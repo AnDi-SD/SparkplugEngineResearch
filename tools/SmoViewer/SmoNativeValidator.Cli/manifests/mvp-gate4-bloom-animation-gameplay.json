@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "name": "Bloom generated skin stock walk gameplay",
+      "asset": "../../../../local-data/validation-results/mvp-gate4-skinned-20260829/imports/bloom-miku.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 15,
+      "timeoutSeconds": 90
+    }
+  ]
+}

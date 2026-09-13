@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "name": "Flora generated skin stock animation context",
+      "asset": "../../../../local-data/validation-results/mvp-gate4-skinned-20260829/imports/flora-miku-safe.smo",
+      "logical": "Characters\\Flora\\Flora.smo",
+      "route": "contextual",
+      "startLevel": 10,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 15,
+      "timeoutSeconds": 90
+    }
+  ]
+}

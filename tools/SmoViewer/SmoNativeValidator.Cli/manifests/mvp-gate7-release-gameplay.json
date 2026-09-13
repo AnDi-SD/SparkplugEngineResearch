@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "name": "Gate7 Alfea 1000-operation gameplay probe",
+      "asset": "../../../../local-data/validation-results/mvp-gate7-release-20260829/stress-alfea/20260829-182706-n1000-seed82744/stress.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 20,
+      "timeoutSeconds": 90
+    }
+  ]
+}

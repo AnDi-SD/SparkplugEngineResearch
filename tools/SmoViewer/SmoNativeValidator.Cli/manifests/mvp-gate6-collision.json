@@ -1,0 +1,58 @@
+{
+  "cases": [
+    {
+      "name": "Alfea02 collision baseline before",
+      "asset": "../../../../local-data/Winx Club/Media/Levels/Alfea/Alfea02_old.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 generated collision Group 2",
+      "asset": "../../../../local-data/validation-results/mvp-gate6-collision-20260829/project-collision-final/collision.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 moved imported collision",
+      "asset": "../../../../local-data/validation-results/mvp-gate6-collision-20260829/project-collision-final/imported-collision-moved.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 moved generated collision",
+      "asset": "../../../../local-data/validation-results/mvp-gate6-collision-20260829/project-collision-final/collision-moved.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 generated collision deleted",
+      "asset": "../../../../local-data/validation-results/mvp-gate6-collision-20260829/project-collision-final/collision-deleted.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 collision baseline after",
+      "asset": "../../../../local-data/Winx Club/Media/Levels/Alfea/Alfea02_old.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    }
+  ]
+}

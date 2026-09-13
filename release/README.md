@@ -4,6 +4,13 @@ All user-facing applications are packaged through `Build-Releases.ps1` and
 `release-manifest.json`. Ad-hoc copies of `bin/` or `publish/` directories are
 not release artifacts.
 
+All tool sources and future releases are hosted in `AnDi-SD/SparkplugEngineResearch`.
+SmoViewer and SMOTextureTool are ordinary directories under `tools/`.
+The existing Viewer 0.5.0 and TextureTool 2.1.0 releases retain their original
+download files under `smoviewer-v0.5.0` and `smotexturetool-v2.1.0`.
+Those tags contain the release-era workspace with both tools' sources included;
+the current development versions remain on `main`.
+
 The package contract is:
 
 ```text

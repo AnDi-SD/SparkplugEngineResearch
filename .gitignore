@@ -1,5 +1,8 @@
 # Local game data and research artefacts. Never publish proprietary assets.
 /local-data/
+/.private/
+# Legacy local samples retained when SmoViewer joined the main repository.
+/tools/SmoViewer/SmoViewer/Assets/*.smo
 /game/
 /games/
 /Samples/

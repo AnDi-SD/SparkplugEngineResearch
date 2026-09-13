@@ -1,0 +1,49 @@
+{
+  "cases": [
+    {
+      "name": "Alfea02 pristine before rigid imports",
+      "asset": "../../../../local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 GLB Shrek two-part import",
+      "asset": "../../../../local-data/validation-results/mvp-gate35-rigid-import-20260829/glb-shrek-final/external.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 OBJ Layla alpha import",
+      "asset": "../../../../local-data/validation-results/mvp-gate35-rigid-import-20260829/obj-layla-enchantix-final/external.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 FBX Flora 30-part import",
+      "asset": "../../../../local-data/validation-results/mvp-gate35-rigid-import-20260829/fbx-flora-enchantix-final/external.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Alfea02 pristine after rigid imports",
+      "asset": "../../../../local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    }
+  ]
+}

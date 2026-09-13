@@ -1,0 +1,5195 @@
+using Microsoft.Win32;
+using SmoViewer.Core;
+using SmoViewer.Scene;
+using SmoViewer.Sparkplug;
+using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using Matrix4x4 = System.Numerics.Matrix4x4;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
+using Brush = System.Windows.Media.Brush;
+using Brushes = System.Windows.Media.Brushes;
+using CheckBox = System.Windows.Controls.CheckBox;
+using Color = System.Windows.Media.Color;
+using Cursors = System.Windows.Input.Cursors;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using MessageBox = System.Windows.MessageBox;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using Point = System.Windows.Point;
+
+namespace SmoViewer;
+
+public partial class MainWindow : Window
+{
+    private const double OrbitSensitivity = 0.008;
+    private const double DragZoomSensitivity = 0.012;
+    private const double MinimumCameraDistance = 0.01;
+    private const double MaximumCameraDistance = 1_000_000;
+    private const double PitchLimit = Math.PI / 2 - 0.001;
+    private const double FlyLookSensitivity = 0.004;
+
+    private static readonly Color[] ModelColors =
+    {
+        Color.FromRgb(127, 180, 255),
+        Color.FromRgb(255, 170, 120),
+        Color.FromRgb(142, 218, 164),
+        Color.FromRgb(210, 154, 255),
+        Color.FromRgb(255, 218, 126),
+        Color.FromRgb(116, 218, 218)
+    };
+
+    private static readonly Color DefaultSceneBackgroundColor =
+        Color.FromRgb(17, 20, 26);
+    private static readonly Color DefaultFloorGridColor =
+        Color.FromRgb(89, 98, 115);
+
+    private readonly BoundsBuilder _sceneBounds = new();
+    private readonly List<LoadIssue> _allIssues = new();
+    private readonly HashSet<Key> _pressedKeys = new();
+    private readonly Dictionary<SceneObjectKey, SceneGeometry> _sceneGeometry = new();
+    private readonly Dictionary<SceneObjectKey, GuiLayoutAnchorGeometry>
+        _guiLayoutAnchorGeometry = new();
+    private readonly Dictionary<GeometryModel3D, SceneObjectKey> _geometryObjectKeys = new();
+    private readonly Dictionary<SceneObjectKey, TreeViewItem> _visibleTreeItems = new();
+    private readonly Dictionary<int, DecodedSmoFile> _treeFiles = new();
+    private readonly List<SceneGeometry> _highlightedGeometry = new();
+    private readonly HashSet<SceneObjectKey> _highlightedGuiLayoutAnchors = new();
+    private readonly List<BoneListItem> _allBoneItems = new();
+    private readonly List<Model3D> _skeletonModels = new();
+    private readonly List<Model3D> _attachmentModels = new();
+    private readonly List<Model3D> _collisionModels = new();
+    private readonly List<Model3D> _controlRigModels = new();
+    private readonly List<Model3D> _markerModels = new();
+    private readonly List<AuxiliaryObjectItem> _auxiliaryItems = new();
+    private readonly List<AnimationListItem> _allAnimationItems = new();
+    private readonly List<string> _loadedModelPaths = new();
+    private readonly Dictionary<string, HashSet<string>> _animationGroupsByPath =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _enabledAnimationGroups =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<int, System.Numerics.Vector3> _animatedBonePositions = new();
+    private readonly OrthographicCamera _guiCamera = new()
+    {
+        NearPlaneDistance = 0.01,
+        FarPlaneDistance = 10000,
+        UpDirection = new Vector3D(0, 1, 0)
+    };
+    private readonly OrthographicCamera _guiSkeletonCamera = new()
+    {
+        NearPlaneDistance = 0.01,
+        FarPlaneDistance = 10000,
+        UpDirection = new Vector3D(0, 1, 0)
+    };
+    private BoneListItem? _selectedBone;
+    private SceneObjectKey? _selectedAuxiliary;
+    private SparkplugAnimationClip? _selectedAnimation;
+    private bool _animationPlaying;
+    private bool _updatingAnimationSlider;
+    private bool _updatingAnimationGroups;
+    private double _animationTime;
+    private int _animationFileIndex;
+
+    private Point _lastMousePosition;
+    private Point3D _navigationStartTarget;
+    private Point3D _cameraTarget = new(0, 0, 0);
+    private CameraNavigationMode _navigationMode;
+    private double _cameraYaw = 0.65;
+    private double _cameraPitch = 0.35;
+    private double _cameraDistance = 5;
+    private double _navigationStartYaw;
+    private double _navigationStartPitch;
+    private double _navigationStartDistance;
+    private CameraControlMode _cameraControlMode;
+    private Point3D _flyPosition;
+    private double _flySpeed = 5;
+    private TimeSpan? _lastRenderTime;
+    private int _loadedFileCount;
+    private int _totalMeshCount;
+    private int _decodedMeshCount;
+    private int _sharedMeshInstanceCount;
+    private int _diagnosticCount;
+    private int _diagnosticErrorCount;
+    private int _unsupportedMeshCount;
+    private int _texturedMeshCount;
+    private int _textureIssueCount;
+    private int _failedFileCount;
+    private Color _sceneBackgroundColor = DefaultSceneBackgroundColor;
+    private Color _floorGridColor = DefaultFloorGridColor;
+    private bool _modelTurntableEnabled;
+    private double _modelTurntableAngle;
+    private bool _guiPreviewActive;
+    private bool _updatingGuiPanel;
+    private SceneTreeNode? _selectedTreeNode;
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        InitializeGpuViewport();
+        ApplySceneColors();
+        GuiStateSelector.ItemsSource = new GuiStateChoice[]
+        {
+            new("NORMAL + общие слои", SmoGuiVisualState.Normal),
+            new("HIGHLIGHTED + общие слои", SmoGuiVisualState.Highlighted),
+            new("PUSHED + общие слои", SmoGuiVisualState.Pushed),
+            new("DISABLED + общие слои", SmoGuiVisualState.Disabled),
+            new("Все состояния (диагностика)", null)
+        };
+        GuiStateSelector.SelectedIndex = 0;
+        UpdateFloorGrid();
+        UpdateCameraHelpToolTip();
+        AddLog("SmoViewer запущен.");
+        UpdateCamera();
+        UpdateSceneStats();
+        CompositionTarget.Rendering += CompositionTarget_Rendering;
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        string[] commandLineFiles = Environment.GetCommandLineArgs()
+            .Skip(1)
+            .Where(File.Exists)
+            .Select(Path.GetFullPath)
+            .ToArray();
+        string[] startupFiles = commandLineFiles
+            .Where(path => Path.GetExtension(path).Equals(
+                ".smo", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (startupFiles.Length > 0)
+        {
+            await LoadSmoFilesAsync(startupFiles);
+            string[] startupAnimations = commandLineFiles
+                .Where(path => Path.GetExtension(path) is string extension &&
+                    (extension.Equals(".san", StringComparison.OrdinalIgnoreCase) ||
+                     extension.Equals(".anm", StringComparison.OrdinalIgnoreCase)))
+                .ToArray();
+            foreach (string animation in startupAnimations)
+            {
+                if (Path.GetExtension(animation).Equals(
+                        ".anm", StringComparison.OrdinalIgnoreCase))
+                    AddAnimationsFromAnm(animation);
+                else
+                    AddAnimationFile(animation, null, "Command line");
+            }
+            if (startupAnimations.Length > 0)
+            {
+                RefreshAnimationList();
+                string requested = startupAnimations[0];
+                AnimationListItem? selected = AnimationList.Items
+                    .OfType<AnimationListItem>()
+                    .FirstOrDefault(item => item.Path.Equals(
+                        requested, StringComparison.OrdinalIgnoreCase));
+                if (selected is not null)
+                {
+                    AnimationList.SelectedItem = selected;
+                    if (_selectedAnimation is { Duration: > 0 })
+                    {
+                        _animationPlaying = true;
+                        AnimationPlayPauseButton.Content = "⏸";
+                        AddLog($"Command line animation playback started: " +
+                            $"{Path.GetFileName(selected.Path)}.");
+                    }
+                }
+            }
+        }
+    }
+
+    private async void OpenSmo_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog dialog = new()
+        {
+            Title = "Открыть SMO-объекты",
+            Filter = "SMO models (*.smo)|*.smo|All files (*.*)|*.*",
+            Multiselect = true,
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        await LoadSmoFilesAsync(dialog.FileNames);
+    }
+
+    private async Task LoadSmoFilesAsync(IReadOnlyList<string> fileNames)
+    {
+        OpenSmoButton.IsEnabled = false;
+        ResetLoadedScene();
+
+        int addedFiles = 0;
+        int totalMeshes = 0;
+        int decodedMeshes = 0;
+        int sharedMeshInstances = 0;
+        int diagnostics = 0;
+        int diagnosticErrors = 0;
+        int unsupportedMeshes = 0;
+        int texturedMeshes = 0;
+        int textureIssues = 0;
+        int failedFiles = 0;
+        List<LoadIssue> batchIssues = new();
+
+        try
+        {
+            foreach (string fileName in fileNames)
+            {
+                StatusText.Text = $"Чтение {Path.GetFileName(fileName)}…";
+
+                try
+                {
+                    Stopwatch fileLoadTimer = Stopwatch.StartNew();
+                    Stopwatch decodeTimer = Stopwatch.StartNew();
+                    DecodedSmoFile decodedFile = await Task.Run(
+                        () => DecodeFile(fileName));
+                    decodeTimer.Stop();
+
+                    Stopwatch scenePreparationTimer = Stopwatch.StartNew();
+                    AddFileTree(decodedFile, addedFiles);
+                    _gpuRenderer.SetMaterialRuntime(addedFiles, decodedFile.Runtime.Materials);
+                    _gpuRenderer.SetLightingRuntime(addedFiles, decodedFile.Runtime);
+
+                    SceneAddResult sceneAdd =
+                        AddModelToScene(
+                            decodedFile.RenderMeshes,
+                            addedFiles,
+                            allowDirectGpu: !decodedFile.GuiScene.IsGuiContent || decodedFile.Texts.Count>0);
+                    foreach(var text in decodedFile.Texts)
+                        _gpuRenderer.AddText(text,new(addedFiles,text.Text.ObjectIndex,text.OccurrenceKey));
+                    AddSkeletonToScene(decodedFile, addedFiles);
+                    AddGuiLayoutAnchors(decodedFile, addedFiles);
+                    scenePreparationTimer.Stop();
+                    fileLoadTimer.Stop();
+                    _loadedModelPaths.Add(fileName);
+
+                    addedFiles++;
+                    totalMeshes += decodedFile.TotalMeshCount;
+                    decodedMeshes += sceneAdd.MeshCount - sceneAdd.SharedInstanceCount;
+                    sharedMeshInstances += sceneAdd.SharedInstanceCount;
+                    diagnostics += decodedFile.Diagnostics.Count;
+                    diagnosticErrors += decodedFile.Diagnostics.Count(
+                        diagnostic => diagnostic.Severity == SmoDiagnosticSeverity.Error);
+                    unsupportedMeshes += decodedFile.DecodeErrors.Count;
+                    texturedMeshes += sceneAdd.TexturedMeshCount;
+                    textureIssues += decodedFile.TextureIssues.Count;
+                    AddDocumentIssues(decodedFile, batchIssues);
+                    if (decodedFile.SharedMeshInstances.Count > 0)
+                    {
+                        int sharedSourceMeshCount = decodedFile.SharedMeshInstances
+                            .Select(item => item.SourceMeshObjectIndex)
+                            .Distinct()
+                            .Count();
+                        string instanceNote =
+                            $"SMO_SHARED_MESH_INSTANCING: Viewer развернул " +
+                            $"{decodedFile.SharedMeshInstances.Count} reference-only " +
+                            $"instance(s) из {sharedSourceMeshCount} " +
+                            "общих mesh. Геометрия хранится совместно; каждый " +
+                            "placement имеет своё положение в сцене.";
+                        batchIssues.Add(new LoadIssue(false,
+                            $"{Path.GetFileName(fileName)}: {instanceNote}"));
+                        AddLog(instanceNote);
+                    }
+                    AddLog(
+                        $"Загружен {Path.GetFileName(fileName)}: " +
+                        $"объектов {decodedFile.Objects.Count}, physical meshes " +
+                        $"{sceneAdd.MeshCount - sceneAdd.SharedInstanceCount}, " +
+                        $"shared instances {sceneAdd.SharedInstanceCount}, " +
+                        $"с текстурой {sceneAdd.TexturedMeshCount}.");
+                    AddLog(
+                        $"Время {Path.GetFileName(fileName)}: decode " +
+                        $"{decodeTimer.Elapsed.TotalMilliseconds:F1} ms; " +
+                        $"подготовка сцены " +
+                        $"{scenePreparationTimer.Elapsed.TotalMilliseconds:F1} ms; " +
+                        $"до первого GPU upload " +
+                        $"{fileLoadTimer.Elapsed.TotalMilliseconds:F1} ms.");
+                }
+                catch (Exception exception)
+                {
+                    failedFiles++;
+                    batchIssues.Add(new LoadIssue(
+                        true,
+                        $"{Path.GetFileName(fileName)}: {exception.GetType().Name}: " +
+                        exception.Message));
+                    AddLog($"ОШИБКА {Path.GetFileName(fileName)}: {exception.Message}");
+                }
+            }
+
+            _loadedFileCount = addedFiles;
+            _totalMeshCount = totalMeshes;
+            _decodedMeshCount = decodedMeshes;
+            _sharedMeshInstanceCount = sharedMeshInstances;
+            _diagnosticCount = diagnostics;
+            _diagnosticErrorCount = diagnosticErrors;
+            _unsupportedMeshCount = unsupportedMeshes;
+            _texturedMeshCount = texturedMeshes;
+            _textureIssueCount = textureIssues;
+            _failedFileCount = failedFiles;
+            _allIssues.AddRange(batchIssues);
+            foreach (LoadIssue issue in batchIssues)
+                AddLog($"{(issue.IsError ? "ОШИБКА" : "ПРЕДУПРЕЖДЕНИЕ")}: {issue.Text}");
+
+            foreach (string directory in fileNames
+                         .Select(Path.GetDirectoryName)
+                         .OfType<string>()
+                         .Where(path => !string.IsNullOrWhiteSpace(path))
+                         .Distinct(StringComparer.OrdinalIgnoreCase))
+                AddAnimationsFromDirectory(directory);
+            if (_allAnimationItems.Count == 0 &&
+                TryFindDefaultBloomAnimationDirectory(fileNames, out string bloomDirectory))
+            {
+                AddAnimationsFromDirectory(bloomDirectory);
+                AnimationSourceText.Text = $"Автоподстановка Bloom: {bloomDirectory}";
+                AddLog($"Рядом с моделью нет SAN/ANM; подключена папка Bloom: {bloomDirectory}");
+            }
+            RefreshAnimationList();
+
+            UpdateSceneStats();
+            UpdateIssueToolTip();
+            bool guiConfigured = ConfigureGuiPanel();
+            UpdateFloorGrid();
+
+            if (decodedMeshes > 0 || guiConfigured)
+            {
+                if (guiConfigured)
+                    FrameGuiPreview();
+                else
+                    FrameScene();
+            }
+
+            RefreshBoneList();
+            UpdateSkeletonVisibility();
+            UpdateMeshAppearance();
+
+            StatusText.Text = BuildLoadStatus(
+                addedFiles,
+                decodedMeshes,
+                sharedMeshInstances,
+                totalMeshes,
+                diagnostics,
+                unsupportedMeshes,
+                texturedMeshes,
+                textureIssues,
+                failedFiles,
+                batchIssues);
+            GameValidationPanel.SetModelPath(_loadedModelPaths.LastOrDefault());
+            LaunchExporterButton.IsEnabled = _loadedModelPaths.Count > 0;
+            LaunchImporterButton.IsEnabled = _loadedModelPaths.Count > 0;
+        }
+        finally
+        {
+            OpenSmoButton.IsEnabled = true;
+        }
+    }
+
+    private void About_Click(object sender, RoutedEventArgs e)
+    {
+        var aboutWindow = new AboutWindow(
+            FindExporterExecutable(),
+            FindImporterExecutable(),
+            FindHairPatcherExecutable())
+        {
+            Owner = this
+        };
+        aboutWindow.ShowDialog();
+    }
+
+    private void GameValidationPanel_LaunchHairPatcherRequested(
+        object? sender,
+        HairPatcherLaunchRequestedEventArgs e)
+    {
+        string? executable = FindHairPatcherExecutable();
+        if (executable is null)
+        {
+            MessageBox.Show(this,
+                "WinxHairPatcher.Gui не найден. Установите полный комплект SmoViewer " +
+                "или соберите проект tools/WinxHairPatcher/WinxHairPatcher.Gui.",
+                "Winx Hair Patcher", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        try
+        {
+            ProcessStartInfo start = CreateToolStartInfo(executable);
+            if (!string.IsNullOrWhiteSpace(e.GameExecutablePath))
+                start.ArgumentList.Add(e.GameExecutablePath);
+            Process.Start(start);
+            AddLog(string.IsNullOrWhiteSpace(e.GameExecutablePath)
+                ? "Открыт Winx Hair Patcher для настройки волос Блум."
+                : $"Открыт Winx Hair Patcher; передан путь {e.GameExecutablePath}.");
+        }
+        catch (Exception exception)
+        {
+            AddLog($"ОШИБКА запуска Winx Hair Patcher: {exception.Message}");
+            MessageBox.Show(this,
+                $"Не удалось запустить Winx Hair Patcher.\n\n{exception.Message}",
+                "Winx Hair Patcher", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void LaunchExporter_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loadedModelPaths.Count == 0)
+            return;
+
+        string? executable = FindExporterExecutable();
+        if (executable is null)
+        {
+            MessageBox.Show(this,
+                "SmoExporter.Gui не найден. Сначала соберите проект tools/SmoExporter/SmoExporter.Gui.",
+                "SMO Exporter", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        string animationManifest = Path.Combine(Path.GetTempPath(),
+            $"smoviewer-animations-{Guid.NewGuid():N}.json");
+        SmoAnimationCatalogEntry[] animationEntries = _allAnimationItems
+            .Select(item => new SmoAnimationCatalogEntry(
+                item.Path,
+                item.Display,
+                _animationGroupsByPath.TryGetValue(
+                    item.Path, out HashSet<string>? groups)
+                        ? groups.OrderBy(
+                            group => group, StringComparer.OrdinalIgnoreCase).ToArray()
+                        : []))
+            .ToArray();
+        var catalog = new SmoAnimationCatalogManifest(
+            SmoAnimationCatalogManifest.CurrentVersion,
+            animationEntries);
+        File.WriteAllText(animationManifest, JsonSerializer.Serialize(
+            catalog,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
+            }));
+
+        var start = CreateToolStartInfo(executable);
+        start.ArgumentList.Add(_loadedModelPaths[0]);
+        start.ArgumentList.Add("--viewer-animation-list");
+        start.ArgumentList.Add(animationManifest);
+        try
+        {
+            Process.Start(start);
+            AddLog($"Открыт экспортер для {Path.GetFileName(_loadedModelPaths[0])}; " +
+                   $"передано SAN: {animationEntries.Length}.");
+        }
+        catch
+        {
+            try { File.Delete(animationManifest); }
+            catch { }
+            throw;
+        }
+    }
+
+    private static string? FindExporterExecutable()
+    {
+        string installRoot = GetInstallRoot();
+        string local = Path.Combine(AppContext.BaseDirectory, "SmoExporter.Gui.exe");
+        if (File.Exists(local))
+            return local;
+        foreach (string bundled in new[]
+        {
+            Path.Combine(installRoot, "tools", "SmoExporter", "SmoExporter.Gui.exe"),
+            Path.Combine(AppContext.BaseDirectory, "SmoExporter", "SmoExporter.Gui.exe")
+        })
+            if (File.Exists(bundled))
+                return bundled;
+
+        for (DirectoryInfo? directory = new(AppContext.BaseDirectory);
+             directory is not null; directory = directory.Parent)
+        {
+            foreach (string configuration in new[] { "Release", "Debug" })
+            {
+                string candidate = Path.Combine(directory.FullName, "tools", "SmoExporter",
+                    "SmoExporter.Gui", "bin", configuration, "net8.0-windows",
+                    "SmoExporter.Gui.exe");
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+        }
+        return null;
+    }
+
+    private void LaunchImporter_Click(object sender, RoutedEventArgs e)
+    {
+        if (_loadedModelPaths.Count == 0)
+            return;
+
+        string? executable = FindImporterExecutable();
+        if (executable is null)
+        {
+            MessageBox.Show(this,
+                "SmoImporter.Gui не найден. Сначала соберите проект tools/SmoImporter/SmoImporter.Gui.",
+                "SMO Importer", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var start = CreateToolStartInfo(executable);
+        start.ArgumentList.Add(_loadedModelPaths[0]);
+        Process.Start(start);
+        AddLog($"Открыт импортер для {Path.GetFileName(_loadedModelPaths[0])}.");
+    }
+
+    private static string? FindImporterExecutable()
+    {
+        string installRoot = GetInstallRoot();
+        string local = Path.Combine(AppContext.BaseDirectory, "SmoImporter.Gui.exe");
+        if (File.Exists(local))
+            return local;
+        foreach (string bundled in new[]
+        {
+            Path.Combine(installRoot, "tools", "SmoImporter", "SmoImporter.Gui.exe"),
+            Path.Combine(AppContext.BaseDirectory, "SmoImporter", "SmoImporter.Gui.exe")
+        })
+            if (File.Exists(bundled))
+                return bundled;
+
+        for (DirectoryInfo? directory = new(AppContext.BaseDirectory);
+             directory is not null; directory = directory.Parent)
+        {
+            foreach (string configuration in new[] { "Release", "Debug" })
+            {
+                string candidate = Path.Combine(directory.FullName, "tools", "SmoImporter",
+                    "SmoImporter.Gui", "bin", configuration, "net8.0-windows",
+                    "SmoImporter.Gui.exe");
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static string? FindHairPatcherExecutable()
+    {
+        string installRoot = GetInstallRoot();
+        string local = Path.Combine(AppContext.BaseDirectory, "WinxHairPatcher.Gui.exe");
+        if (File.Exists(local))
+            return local;
+        foreach (string bundled in new[]
+        {
+            Path.Combine(installRoot, "tools", "WinxHairPatcher", "WinxHairPatcher.Gui.exe"),
+            Path.Combine(AppContext.BaseDirectory, "WinxHairPatcher", "WinxHairPatcher.Gui.exe")
+        })
+            if (File.Exists(bundled))
+                return bundled;
+
+#if DEBUG
+        string[] configurations = ["Debug", "Release"];
+#else
+        string[] configurations = ["Release", "Debug"];
+#endif
+        for (DirectoryInfo? directory = new(AppContext.BaseDirectory);
+             directory is not null; directory = directory.Parent)
+        {
+            foreach (string configuration in configurations)
+            {
+                string outputDirectory = Path.Combine(directory.FullName, "tools", "WinxHairPatcher",
+                    "WinxHairPatcher.Gui", "bin", configuration, "net8.0-windows");
+                foreach (string candidate in new[]
+                {
+                    Path.Combine(outputDirectory, "WinxHairPatcher.Gui.exe"),
+                    Path.Combine(outputDirectory, "win-x64", "WinxHairPatcher.Gui.exe")
+                })
+                    if (File.Exists(candidate))
+                        return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static string GetInstallRoot()
+    {
+        var applicationDirectory = new DirectoryInfo(AppContext.BaseDirectory);
+        return applicationDirectory.Name.Equals("app", StringComparison.OrdinalIgnoreCase) &&
+               applicationDirectory.Parent is not null
+            ? applicationDirectory.Parent.FullName
+            : applicationDirectory.FullName;
+    }
+
+    private static ProcessStartInfo CreateToolStartInfo(string executable) => new(executable)
+    {
+        UseShellExecute = true,
+        WorkingDirectory = Path.GetDirectoryName(executable) ?? AppContext.BaseDirectory
+    };
+
+    private void ResetLoadedScene()
+    {
+        if (GameValidationPanel is not null)
+            GameValidationPanel.SetModelPath(null);
+        LoadedModelsRoot.Children.Clear();
+        SkeletonRoot.Children.Clear();
+        AttachmentRoot.Children.Clear();
+        CollisionRoot.Children.Clear();
+        ControlRigRoot.Children.Clear();
+        MarkerRoot.Children.Clear();
+        SceneTree.Items.Clear();
+        StateLog.Items.Clear();
+        _sceneBounds.Reset();
+        _allIssues.Clear();
+        _sceneGeometry.Clear();
+        ResetDirectGpuScene();
+        _guiLayoutAnchorGeometry.Clear();
+        _geometryObjectKeys.Clear();
+        _visibleTreeItems.Clear();
+        foreach (DecodedSmoFile file in _treeFiles.Values) file.Runtime.Dispose();
+        _treeFiles.Clear();
+        _highlightedGeometry.Clear();
+        _allBoneItems.Clear();
+        _skeletonModels.Clear();
+        _attachmentModels.Clear();
+        _collisionModels.Clear();
+        _controlRigModels.Clear();
+        _markerModels.Clear();
+        _auxiliaryItems.Clear();
+        _allAnimationItems.Clear();
+        _loadedModelPaths.Clear();
+        if (LaunchExporterButton is not null)
+            LaunchExporterButton.IsEnabled = false;
+        if (LaunchImporterButton is not null)
+            LaunchImporterButton.IsEnabled = false;
+        _animationGroupsByPath.Clear();
+        _enabledAnimationGroups.Clear();
+        _animatedBonePositions.Clear();
+        _animationSkeletonVisuals = null;
+        _selectedBoneVisual = null;
+        _selectedAnimation?.Dispose();
+        _selectedAnimation = null;
+        _animationPlaying = false;
+        _animationTime = 0;
+        _selectedBone = null;
+        _selectedAuxiliary = null;
+        _selectedTreeNode = null;
+        _updatingGuiPanel = true;
+        _guiPreviewActive = false;
+        SceneViewport.Camera = SceneCamera;
+        SkeletonViewport.Camera = SkeletonCamera;
+        if (GuiPanelButton is not null)
+            GuiPanelButton.Visibility = Visibility.Collapsed;
+        if (GuiPanel is not null)
+            GuiPanel.Visibility = Visibility.Collapsed;
+        if (GuiGroupSelector is not null)
+            GuiGroupSelector.ItemsSource = null;
+        if (GuiElementList is not null)
+            GuiElementList.ItemsSource = null;
+        if (GuiSummaryText is not null)
+            GuiSummaryText.Text = "GUI-сцена не загружена.";
+        if (GuiTextStatusText is not null)
+            GuiTextStatusText.Text = string.Empty;
+        if (GuiCollisionCheck is not null)
+            GuiCollisionCheck.IsChecked = false;
+        if (GuiOrthographicCheck is not null)
+            GuiOrthographicCheck.IsChecked = true;
+        if (GuiStateSelector is not null)
+            GuiStateSelector.SelectedIndex = 0;
+        _updatingGuiPanel = false;
+        if (BoneList is not null)
+            BoneList.ItemsSource = null;
+        if (AuxiliaryObjectList is not null)
+            AuxiliaryObjectList.ItemsSource = null;
+        if (AnimationList is not null)
+            AnimationList.ItemsSource = null;
+        if (AnimationGroupsPanel is not null)
+            AnimationGroupsPanel.Children.Clear();
+        if (AnimationFilterBox is not null)
+            AnimationFilterBox.Clear();
+        if (AnimationSourceText is not null)
+            AnimationSourceText.Text = "Анимации будут найдены рядом с открытой моделью.";
+        if (AnimationTimeline is not null)
+            AnimationTimeline.Visibility = Visibility.Collapsed;
+        UpdateSerializedFieldsPanel();
+        AddLog("Сцена очищена.");
+
+        _loadedFileCount = 0;
+        _totalMeshCount = 0;
+        _decodedMeshCount = 0;
+        _sharedMeshInstanceCount = 0;
+        _diagnosticCount = 0;
+        _diagnosticErrorCount = 0;
+        _unsupportedMeshCount = 0;
+        _texturedMeshCount = 0;
+        _textureIssueCount = 0;
+        _failedFileCount = 0;
+
+        EndCameraNavigation();
+
+        _cameraTarget = new Point3D(0, 0, 0);
+        _cameraYaw = 0.65;
+        _cameraPitch = 0.35;
+        _cameraDistance = 5;
+        SceneCamera.NearPlaneDistance = 0.01;
+        SceneCamera.FarPlaneDistance = 100000;
+
+        StatusText.ToolTip = null;
+        _modelTurntableEnabled = false;
+        _modelTurntableAngle = 0;
+        NativeLightTurntableCheck.IsChecked = false;
+        NativeLightTurntableSlider.Value = 0;
+        NativeLightTurntableSlider.IsEnabled = false;
+        ApplyModelTurntableTransform();
+        UpdateFloorGrid();
+        UpdateCamera();
+        UpdateSceneStats();
+    }
+
+    private static DecodedSmoFile DecodeFile(string fileName)
+    {
+        SmoDocument document = SmoDocument.Load(fileName);
+        SmoGuiSceneInfo guiScene = SmoGuiSceneAnalyzer.Analyze(document);
+        SmoPreparedScene preparedScene = SmoSceneBuilder.Build(document);
+        IReadOnlyList<SmoSceneMesh> renderMeshes = preparedScene.Meshes;
+        IReadOnlyList<SmoSharedMeshInstanceInfo> sharedMeshInstances =
+            preparedScene.SharedMeshInstances;
+        SmoNodeHierarchy nodeHierarchy = preparedScene.NodeHierarchy;
+        IReadOnlyDictionary<int, Matrix4x4> bindWorldMatrices =
+            preparedScene.BindWorldMatrices;
+        IReadOnlyDictionary<int, SmoSkin> skins = preparedScene.Skins;
+
+        Dictionary<int, List<BonePaletteReference>> paletteReferences = new();
+        foreach (SmoSkin skin in skins.Values)
+        foreach (SmoSkinBone bone in skin.Bones)
+        {
+            if (!paletteReferences.TryGetValue(
+                    bone.NodeObjectIndex, out List<BonePaletteReference>? references))
+            {
+                references = [];
+                paletteReferences.Add(bone.NodeObjectIndex, references);
+            }
+            references.Add(new BonePaletteReference(
+                skin.ObjectIndex, skin.Name, bone.PaletteIndex));
+        }
+        HashSet<int> boneIndices = bindWorldMatrices.Keys.ToHashSet();
+        List<SkeletonBone> skeleton = new();
+        foreach ((int nodeIndex, Matrix4x4 matrix) in bindWorldMatrices)
+        {
+            SmoObjectEntry node = document.Objects[nodeIndex];
+            int? parentBone = FindNearestBoneParent(
+                nodeIndex, boneIndices, document.Objects, nodeHierarchy);
+            skeleton.Add(new SkeletonBone(
+                nodeIndex,
+                node.Name,
+                new System.Numerics.Vector3(matrix.M41, matrix.M42, matrix.M43),
+                matrix,
+                parentBone,
+                IsAttachmentPointName(node.Name),
+                paletteReferences.TryGetValue(nodeIndex, out List<BonePaletteReference>? refs)
+                    ? refs.ToArray() : []));
+        }
+
+        foreach (SmoObjectEntry node in document.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.Node &&
+                     IsAttachmentPointName(entry.Name) &&
+                     !boneIndices.Contains(entry.Index)))
+        {
+            if (!TryResolveNodeWorldMatrix(
+                    document, node, nodeHierarchy, bindWorldMatrices, out Matrix4x4 world))
+                continue;
+            skeleton.Add(new SkeletonBone(
+                node.Index,
+                node.Name,
+                new System.Numerics.Vector3(world.M41, world.M42, world.M43),
+                world,
+                FindNearestBoneParent(node.Index, boneIndices, document.Objects, nodeHierarchy),
+                true,
+                []));
+        }
+
+        List<CollisionVolume> collisionVolumes = DecodeCollisionVolumes(
+            document, nodeHierarchy, bindWorldMatrices);
+        List<HelperNode> controlRig = DecodeControlRig(
+            document, nodeHierarchy, bindWorldMatrices);
+        List<HelperNode> markers = DecodeServiceMarkers(
+            document, nodeHierarchy, bindWorldMatrices);
+        Dictionary<int, AnimationNode> animationNodes = document.Objects
+            .Where(entry => entry.TypeHash is SmoClassIds.Node or SmoClassIds.RenderNode)
+            .Select(entry =>
+            {
+                TryResolveNodeWorldMatrix(
+                    document, entry, nodeHierarchy, bindWorldMatrices, out Matrix4x4 bindWorld);
+                return new AnimationNode(
+                    entry.Index, entry.Name, bindWorld,
+                    GetLogicalParent(entry.Index, document.Objects, nodeHierarchy));
+            }).ToDictionary(node => node.ObjectIndex);
+        List<AuxiliaryObjectInfo> auxiliaryObjects = document.Objects
+            .Where(entry => entry.Index is 85 or 88 or 91 or 92 or 95 or 119 or 120)
+            .Select(entry => new AuxiliaryObjectInfo(entry.Index, entry.Name,
+                GetAuxiliaryRole(entry)))
+            .ToList();
+
+        return new DecodedSmoFile(
+            fileName,
+            preparedScene.TotalMeshCount,
+            renderMeshes,
+            document.Objects.Select(entry => new SceneObjectInfo(
+                entry.Index,
+                entry.ParentIndex,
+                entry.TypeHash,
+                entry.Name)).ToArray(),
+            document.Objects.ToDictionary(
+                entry => entry.Index,
+                entry => SmoSerializedFieldInspector.Inspect(document, entry)),
+            document.Diagnostics.ToArray(),
+            preparedScene.DecodeErrors,
+            preparedScene.TextureIssues,
+            preparedScene.ImportedFaceDiffuseInfo,
+            skeleton,
+            collisionVolumes,
+            controlRig,
+            markers,
+            auxiliaryObjects,
+            skins,
+            animationNodes,
+            guiScene,
+            sharedMeshInstances,
+            new SparkplugSceneRuntime(document, skins, enableDocumentLighting: true)){Texts=preparedScene.Texts};
+    }
+
+    private static List<CollisionVolume> DecodeCollisionVolumes(
+        SmoDocument document, SmoNodeHierarchy hierarchy,
+        IReadOnlyDictionary<int, Matrix4x4> bindWorldMatrices)
+    {
+        List<CollisionVolume> result = new();
+        foreach (SmoObjectEntry node in document.Objects.Where(entry =>
+                     entry.TypeHash == SmoClassIds.Node &&
+                     entry.Name.StartsWith("collision_volume_", StringComparison.OrdinalIgnoreCase)))
+        {
+            SmoObjectEntry? shape = document.Objects.FirstOrDefault(entry =>
+                entry.ParentIndex is int infoIndex &&
+                document.Objects[infoIndex].ParentIndex == node.Index &&
+                entry.TypeHash == 0x4DA04889);
+            if (shape is null || !TryReadVectorField(document, shape, 1, out var size) ||
+                !TryResolveNodeWorldMatrix(document, node, hierarchy, bindWorldMatrices, out Matrix4x4 world))
+                continue;
+            result.Add(new CollisionVolume(node.Index, node.Name, world, size));
+        }
+        return result;
+    }
+
+    private static List<HelperNode> DecodeControlRig(
+        SmoDocument document, SmoNodeHierarchy hierarchy,
+        IReadOnlyDictionary<int, Matrix4x4> bindWorldMatrices)
+    {
+        SmoObjectEntry? root = document.Objects.FirstOrDefault(entry =>
+            entry.TypeHash == SmoClassIds.Node &&
+            entry.Name.Equals("SubMaster", StringComparison.OrdinalIgnoreCase));
+        if (root is null) return [];
+        HashSet<int> members = [root.Index];
+        bool changed;
+        do
+        {
+            changed = false;
+            foreach (SmoObjectEntry entry in document.Objects.Where(entry => entry.TypeHash == SmoClassIds.Node))
+            {
+                // Keep the authored control subtree. esfNodeChild references from
+                // C-lowerRoot/C-upperRoot point back into the deform skeleton and
+                // must not turn the whole skin skeleton into control geometry.
+                int? parent = entry.ParentIndex;
+                if (parent is int parentIndex && members.Contains(parentIndex))
+                    changed |= members.Add(entry.Index);
+            }
+        } while (changed);
+
+        return members.Select(index => document.Objects[index]).Select(node =>
+        {
+            TryResolveNodeWorldMatrix(document, node, hierarchy, bindWorldMatrices, out Matrix4x4 world);
+            int? parent = node.ParentIndex;
+            return new HelperNode(node.Index, node.Name,
+                new System.Numerics.Vector3(world.M41, world.M42, world.M43),
+                parent is int value && members.Contains(value) ? value : null);
+        }).ToList();
+    }
+
+    private static List<HelperNode> DecodeServiceMarkers(
+        SmoDocument document, SmoNodeHierarchy hierarchy,
+        IReadOnlyDictionary<int, Matrix4x4> bindWorldMatrices) => document.Objects
+        .Where(entry => entry.TypeHash == SmoClassIds.Node &&
+            (entry.Name.Equals("movement_tracker", StringComparison.OrdinalIgnoreCase) ||
+             entry.Name.Equals("BLOOM", StringComparison.OrdinalIgnoreCase)))
+        .Select(node =>
+        {
+            TryResolveNodeWorldMatrix(document, node, hierarchy, bindWorldMatrices, out Matrix4x4 world);
+            return new HelperNode(node.Index, node.Name,
+                new System.Numerics.Vector3(world.M41, world.M42, world.M43), null);
+        }).ToList();
+
+    private static string GetAuxiliaryRole(SmoObjectEntry entry) => entry.Index switch
+    {
+        85 or 88 or 92 => "collision volume",
+        91 => "movement tracker",
+        95 => "control / IK rig root",
+        119 => "named service marker",
+        120 => "ambient/light preset (class not identified)",
+        _ => "auxiliary object"
+    };
+
+    private static bool TryReadVectorField(
+        SmoDocument document, SmoObjectEntry entry, int expectedType,
+        out System.Numerics.Vector3 value)
+    {
+        value = default;
+        if (!entry.IsWithinDataSection || entry.SerializedSize > int.MaxValue ||
+            entry.PhysicalOffset < 0 || entry.PhysicalEnd > document.Data.Length)
+            return false;
+        ReadOnlySpan<byte> data = document.Data.Span.Slice(
+            (int)entry.PhysicalOffset, (int)entry.SerializedSize);
+        int offset = data.Length >= 8 ? 8 : 0;
+        if (!SmoDataBlockReader.TryReadHeader(data, offset, out SmoDataBlockHeader header) ||
+            header.FieldType != expectedType || header.PayloadSize != 12)
+            return false;
+        ReadOnlySpan<byte> payload = data.Slice(header.PayloadOffset, 12);
+        value = new System.Numerics.Vector3(
+            BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(payload)),
+            BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(payload[4..])),
+            BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(payload[8..])));
+        return float.IsFinite(value.X) && float.IsFinite(value.Y) && float.IsFinite(value.Z);
+    }
+
+    private static int? FindNearestBoneParent(
+        int nodeIndex,
+        IReadOnlySet<int> boneIndices,
+        IReadOnlyList<SmoObjectEntry> entries,
+        SmoNodeHierarchy hierarchy)
+    {
+        var visited = new HashSet<int> { nodeIndex };
+        int? cursor = GetLogicalParent(nodeIndex, entries, hierarchy);
+        while (cursor is int index && visited.Add(index))
+        {
+            if (boneIndices.Contains(index))
+                return index;
+            cursor = GetLogicalParent(index, entries, hierarchy);
+        }
+        return null;
+    }
+
+    private static int? GetLogicalParent(
+        int objectIndex,
+        IReadOnlyList<SmoObjectEntry> entries,
+        SmoNodeHierarchy hierarchy) =>
+        hierarchy.ParentsByChild.TryGetValue(
+            objectIndex, out IReadOnlyList<int>? parents) && parents.Count == 1
+                ? parents[0]
+                : (uint)objectIndex < (uint)entries.Count
+                    ? entries[objectIndex].ParentIndex
+                    : null;
+
+    private static bool TryResolveNodeWorldMatrix(
+        SmoDocument document,
+        SmoObjectEntry node,
+        SmoNodeHierarchy hierarchy,
+        IReadOnlyDictionary<int, Matrix4x4> bindWorldMatrices,
+        out Matrix4x4 world)
+    {
+        return SmoNodeTransformDecoder.TryResolveNodeWorldMatrix(document, node, out world);
+    }
+
+    private static bool IsAttachmentPointName(string name) =>
+        name.Contains("attach", StringComparison.OrdinalIgnoreCase) ||
+        name.Contains("socket", StringComparison.OrdinalIgnoreCase) ||
+        name.Contains("locator", StringComparison.OrdinalIgnoreCase) ||
+        name.Contains("hook", StringComparison.OrdinalIgnoreCase) ||
+        name.StartsWith("hair_top_", StringComparison.OrdinalIgnoreCase) ||
+        name.StartsWith("hair_bottom_", StringComparison.OrdinalIgnoreCase);
+
+    private static void AddDocumentIssues(
+        DecodedSmoFile decodedFile,
+        ICollection<LoadIssue> target)
+    {
+        string fileName = Path.GetFileName(decodedFile.Path);
+
+        foreach (SmoDiagnostic diagnostic in decodedFile.Diagnostics
+                     .OrderByDescending(item => item.Severity))
+        {
+            string location = diagnostic.Offset is long offset
+                ? $" @0x{offset:X}"
+                : string.Empty;
+            target.Add(new LoadIssue(
+                diagnostic.Severity == SmoDiagnosticSeverity.Error,
+                $"{fileName}: {diagnostic.Severity} {diagnostic.Code}{location}: " +
+                diagnostic.Message));
+        }
+
+        foreach (string decodeError in decodedFile.DecodeErrors)
+        {
+            target.Add(new LoadIssue(
+                true,
+                $"{fileName}: unsupported mesh: {decodeError}"));
+        }
+
+        foreach (string textureIssue in decodedFile.TextureIssues)
+        {
+            target.Add(new LoadIssue(
+                false,
+                $"{fileName}: render/texture diagnostic: {textureIssue}"));
+        }
+    }
+
+    private SceneAddResult AddModelToScene(
+        IReadOnlyList<SmoSceneMesh> renderMeshes,
+        int colorIndex,
+        bool allowDirectGpu)
+    {
+        if (allowDirectGpu)
+            RequireGpuRenderer();
+
+        Model3DGroup fileModel = new();
+        BoundsBuilder fileBounds = new();
+        Color baseColor = ModelColors[colorIndex % ModelColors.Length];
+        int addedMeshes = 0;
+        int texturedMeshes = 0;
+        List<GeometryModel3D> opaqueModels = [];
+        List<GeometryModel3D> transparentModels = [];
+
+        foreach (SmoSceneMesh renderMesh in renderMeshes)
+        {
+            SmoMesh mesh = renderMesh.Mesh;
+            bool directGpu = allowDirectGpu;
+            TriangleTextureBake? triangleTextureBake = directGpu
+                ? null
+                : CreateTriangleTextureBake(renderMesh);
+            BoundsBuilder meshBounds = new();
+            MeshGeometry3D? geometry = CreateGeometry(
+                renderMesh, meshBounds, triangleTextureBake);
+            if (geometry is null)
+                continue;
+            fileBounds.Merge(meshBounds);
+
+            Color color = VaryColor(baseColor, addedMeshes);
+            Material material;
+            if (directGpu)
+            {
+                var hitTestMaterial = new DiffuseMaterial(Brushes.Transparent);
+                hitTestMaterial.Freeze();
+                material = hitTestMaterial;
+            }
+            else
+            {
+                material = CreateMaterialWithBake(
+                    renderMesh, color, triangleTextureBake);
+            }
+            GeometryModel3D model = new(geometry, material)
+            {
+                BackMaterial = material
+            };
+
+            SceneObjectKey sceneKey = new(
+                colorIndex, renderMesh.SceneObjectIndex, renderMesh.OccurrenceKey);
+            if (directGpu)
+                AddDirectGpuMesh(renderMesh, sceneKey, color);
+
+            (RequiresTransparentOrdering(renderMesh)
+                ? transparentModels
+                : opaqueModels).Add(model);
+            _sceneGeometry[sceneKey] =
+                new SceneGeometry(
+                    model, geometry, material, meshBounds, renderMesh,
+                    triangleTextureBake?.SourceVertexIndices,
+                    directGpu);
+            _geometryObjectKeys[model] = sceneKey;
+            addedMeshes++;
+            if (renderMesh.Texture is not null)
+                texturedMeshes++;
+        }
+
+        // WPF 3D does not sort transparent GeometryModel3D instances. Render
+        // opaque geometry first so translucent shields/effects do not fill the
+        // depth buffer before the character behind them is drawn.
+        foreach (GeometryModel3D model in opaqueModels)
+            fileModel.Children.Add(model);
+        foreach (GeometryModel3D model in transparentModels)
+            fileModel.Children.Add(model);
+
+        if (addedMeshes > 0)
+        {
+            LoadedModelsRoot.Children.Add(fileModel);
+            _sceneBounds.Merge(fileBounds);
+        }
+
+        return new SceneAddResult(
+            addedMeshes,
+            texturedMeshes,
+            renderMeshes.Count(item => item.SharedInstance is not null));
+    }
+
+    private static bool RequiresTransparentOrdering(SmoSceneMesh renderMesh) =>
+        renderMesh.RequiresTransparentOrdering;
+
+    private void AddGuiLayoutAnchors(DecodedSmoFile file, int fileIndex)
+    {
+        if (file.GuiScene.ContentKind != SmoGuiContentKind.RuntimeNodeLayout ||
+            file.GuiScene.LayoutAnchors.Count == 0)
+        {
+            return;
+        }
+
+        Point3D[] centers = file.GuiScene.LayoutAnchors
+            .Select(anchor => ToViewportPoint(anchor.WorldPosition))
+            .ToArray();
+        BoundsBuilder centerBounds = new();
+        foreach (Point3D center in centers)
+            centerBounds.Include(center);
+        double width = Math.Max(centerBounds.DiagonalLength * 0.42, 0.22);
+        double height = Math.Max(width * 0.24, 0.055);
+        var group = new Model3DGroup();
+        BoundsBuilder fileBounds = new();
+
+        for (int index = 0; index < file.GuiScene.LayoutAnchors.Count; index++)
+        {
+            SmoGuiLayoutAnchorInfo anchor = file.GuiScene.LayoutAnchors[index];
+            Point3D center = centers[index];
+            Material material = CreateGuiLayoutAnchorMaterial(anchor);
+            MeshGeometry3D geometry = CreateGuiLayoutAnchorGeometry(
+                center, width, height, out BoundsBuilder bounds);
+            var model = new GeometryModel3D(geometry, material)
+            {
+                BackMaterial = material
+            };
+            SceneObjectKey key = new(fileIndex, anchor.ObjectIndex);
+            _guiLayoutAnchorGeometry[key] = new GuiLayoutAnchorGeometry(
+                model, geometry, material, bounds, anchor);
+            _geometryObjectKeys[model] = key;
+            group.Children.Add(model);
+            fileBounds.Merge(bounds);
+        }
+
+        LoadedModelsRoot.Children.Add(group);
+        _sceneBounds.Merge(fileBounds);
+        AddLog(
+            $"Добавлены диагностические runtime-якоря: " +
+            $"{file.GuiScene.LayoutAnchors.Count}. Это placeholders, не текст игры.");
+    }
+
+    private static MeshGeometry3D CreateGuiLayoutAnchorGeometry(
+        Point3D center,
+        double width,
+        double height,
+        out BoundsBuilder bounds)
+    {
+        double halfWidth = width * 0.5;
+        double halfHeight = height * 0.5;
+        Point3DCollection positions =
+        [
+            new(center.X - halfWidth, center.Y - halfHeight, center.Z),
+            new(center.X + halfWidth, center.Y - halfHeight, center.Z),
+            new(center.X + halfWidth, center.Y + halfHeight, center.Z),
+            new(center.X - halfWidth, center.Y + halfHeight, center.Z)
+        ];
+        var geometry = new MeshGeometry3D
+        {
+            Positions = positions,
+            TriangleIndices = new Int32Collection([0, 1, 2, 0, 2, 3]),
+            TextureCoordinates = new PointCollection(
+                [new Point(0, 1), new Point(1, 1), new Point(1, 0), new Point(0, 0)])
+        };
+        geometry.Freeze();
+        bounds = new BoundsBuilder();
+        foreach (Point3D point in positions)
+            bounds.Include(point);
+        return geometry;
+    }
+
+    private static Material CreateGuiLayoutAnchorMaterial(
+        SmoGuiLayoutAnchorInfo anchor)
+    {
+        const int pixelWidth = 640;
+        const int pixelHeight = 144;
+        Color accent = anchor.VisualState == SmoGuiVisualState.Shadow
+            ? Color.FromRgb(115, 122, 136)
+            : Color.FromRgb(68, 172, 255);
+        var visual = new DrawingVisual();
+        using (DrawingContext drawing = visual.RenderOpen())
+        {
+            Rect area = new(1, 1, pixelWidth - 2, pixelHeight - 2);
+            drawing.DrawRoundedRectangle(
+                new SolidColorBrush(Color.FromArgb(232, 27, 35, 47)),
+                new System.Windows.Media.Pen(new SolidColorBrush(accent), 7),
+                area,
+                18,
+                18);
+            string label = $"{anchor.VisualState.ToString().ToUpperInvariant()}  ·  " +
+                           anchor.Name;
+            var text = new FormattedText(
+                label,
+                CultureInfo.InvariantCulture,
+                System.Windows.FlowDirection.LeftToRight,
+                new Typeface("Segoe UI Semibold"),
+                38,
+                Brushes.White,
+                1.0)
+            {
+                MaxTextWidth = pixelWidth - 48,
+                TextAlignment = TextAlignment.Center
+            };
+            drawing.DrawText(
+                text,
+                new Point(24, (pixelHeight - text.Height) * 0.5));
+        }
+
+        var bitmap = new RenderTargetBitmap(
+            pixelWidth, pixelHeight, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        bitmap.Freeze();
+        var brush = new ImageBrush(bitmap)
+        {
+            Stretch = Stretch.Fill
+        };
+        brush.Freeze();
+        var material = new MaterialGroup();
+        material.Children.Add(new DiffuseMaterial(brush));
+        material.Children.Add(new EmissiveMaterial(brush));
+        material.Freeze();
+        return material;
+    }
+
+    private void AddSkeletonToScene(DecodedSmoFile file, int fileIndex)
+    {
+        Dictionary<int, SkeletonBone> byIndex = file.Skeleton
+            .ToDictionary(bone => bone.ObjectIndex);
+
+        BoundsBuilder bounds = new();
+        foreach (SkeletonBone bone in file.Skeleton)
+            bounds.Include(ToViewportPoint(bone.Position));
+        double radius = Math.Max(bounds.DiagonalLength * 0.006, 0.008);
+        Material boneMaterial = CreateSolidMaterial(Color.FromRgb(70, 220, 255));
+        Material jointMaterial = CreateSolidMaterial(Color.FromRgb(255, 218, 75));
+        Material attachmentMaterial = CreateSolidMaterial(Color.FromRgb(255, 70, 190));
+
+        foreach (SkeletonBone bone in file.Skeleton)
+        {
+            Point3D point = ToViewportPoint(bone.Position);
+            if (bone.IsAttachment)
+            {
+                _attachmentModels.Add(CreateOctahedron(
+                    point, radius * 1.8, attachmentMaterial));
+            }
+            else
+            {
+                _skeletonModels.Add(CreateOctahedron(point, radius, jointMaterial));
+            }
+
+            if (!bone.IsAttachment && bone.ParentObjectIndex is int parentIndex &&
+                byIndex.TryGetValue(parentIndex, out SkeletonBone? parent))
+            {
+                Point3D parentPoint = ToViewportPoint(parent.Position);
+                if ((point - parentPoint).Length > radius * 0.25)
+                    _skeletonModels.Add(CreateBoneSegment(
+                        parentPoint, point, radius * 0.35, boneMaterial));
+            }
+
+            string palettes = bone.Palettes.Count == 0
+                ? "без palette"
+                : string.Join(", ", bone.Palettes.Select(reference =>
+                    $"{reference.SkinName}[{reference.PaletteIndex}]"));
+            _allBoneItems.Add(new BoneListItem(
+                fileIndex,
+                bone.ObjectIndex,
+                bone.Name,
+                $"{bone.Name}  ·  {palettes}"));
+        }
+
+        double helperRadius = Math.Max(bounds.DiagonalLength * 0.0035, 0.006);
+        Material collisionMaterial = CreateSolidMaterial(Color.FromRgb(80, 255, 105));
+        foreach (CollisionVolume collision in file.CollisionVolumes)
+            _collisionModels.Add(CreateCollisionBox(collision, helperRadius, collisionMaterial));
+
+        Material rigLineMaterial = CreateSolidMaterial(Color.FromRgb(180, 105, 255));
+        Material rigPointMaterial = CreateSolidMaterial(Color.FromRgb(225, 175, 255));
+        Dictionary<int, HelperNode> rigByIndex = file.ControlRig.ToDictionary(item => item.ObjectIndex);
+        foreach (HelperNode node in file.ControlRig)
+        {
+            Point3D point = ToViewportPoint(node.Position);
+            _controlRigModels.Add(CreateOctahedron(point, helperRadius * 1.25, rigPointMaterial));
+            if (node.ParentObjectIndex is int parentIndex && rigByIndex.TryGetValue(parentIndex, out HelperNode? parent))
+            {
+                Point3D parentPoint = ToViewportPoint(parent.Position);
+                if ((point - parentPoint).Length > helperRadius * 0.25)
+                    _controlRigModels.Add(CreateBoneSegment(parentPoint, point, helperRadius * 0.3, rigLineMaterial));
+            }
+        }
+
+        Material markerMaterial = CreateSolidMaterial(Color.FromRgb(255, 155, 45));
+        foreach (HelperNode marker in file.Markers)
+            _markerModels.Add(CreateOctahedron(
+                ToViewportPoint(marker.Position), helperRadius * 2.2, markerMaterial));
+        foreach (AuxiliaryObjectInfo item in file.AuxiliaryObjects)
+            _auxiliaryItems.Add(new AuxiliaryObjectItem(
+                fileIndex, item.ObjectIndex,
+                $"[{item.ObjectIndex}] {item.Name} — {item.Role}"));
+        AuxiliaryObjectList.ItemsSource = null;
+        AuxiliaryObjectList.ItemsSource = _auxiliaryItems.ToArray();
+    }
+
+    private static Model3DGroup CreateCollisionBox(
+        CollisionVolume collision, double radius, Material material)
+    {
+        var group = new Model3DGroup();
+        System.Numerics.Vector3 half = collision.Size * 0.5f;
+        System.Numerics.Vector3[] local =
+        [
+            new(-half.X,-half.Y,-half.Z), new(half.X,-half.Y,-half.Z),
+            new(half.X,half.Y,-half.Z), new(-half.X,half.Y,-half.Z),
+            new(-half.X,-half.Y,half.Z), new(half.X,-half.Y,half.Z),
+            new(half.X,half.Y,half.Z), new(-half.X,half.Y,half.Z)
+        ];
+        Point3D[] points = local.Select(point => ToViewportPoint(
+            System.Numerics.Vector3.Transform(point, collision.WorldTransform))).ToArray();
+        int[] edges = [0,1, 1,2, 2,3, 3,0, 4,5, 5,6, 6,7, 7,4, 0,4, 1,5, 2,6, 3,7];
+        for (int i = 0; i < edges.Length; i += 2)
+            group.Children.Add(CreateBoneSegment(
+                points[edges[i]], points[edges[i + 1]], radius, material));
+        return group;
+    }
+
+    private static Point3D ToViewportPoint(System.Numerics.Vector3 point) =>
+        new(point.X, point.Y, -point.Z);
+
+    private static Material CreateSolidMaterial(Color color)
+    {
+        var group = new MaterialGroup();
+        group.Children.Add(new DiffuseMaterial(new SolidColorBrush(color)));
+        group.Children.Add(new EmissiveMaterial(new SolidColorBrush(
+            Color.FromArgb(120, color.R, color.G, color.B))));
+        group.Freeze();
+        return group;
+    }
+
+    private static GeometryModel3D CreateOctahedron(
+        Point3D center, double radius, Material material)
+    {
+        Point3DCollection positions =
+        [
+            new(center.X + radius, center.Y, center.Z),
+            new(center.X - radius, center.Y, center.Z),
+            new(center.X, center.Y + radius, center.Z),
+            new(center.X, center.Y - radius, center.Z),
+            new(center.X, center.Y, center.Z + radius),
+            new(center.X, center.Y, center.Z - radius)
+        ];
+        Int32Collection triangles =
+        [
+            2, 0, 4, 2, 4, 1, 2, 1, 5, 2, 5, 0,
+            3, 4, 0, 3, 1, 4, 3, 5, 1, 3, 0, 5
+        ];
+        var geometry = new MeshGeometry3D
+        {
+            Positions = positions,
+            TriangleIndices = triangles
+        };
+        geometry.Freeze();
+        return new GeometryModel3D(geometry, material) { BackMaterial = material };
+    }
+
+    private static GeometryModel3D CreateBoneSegment(
+        Point3D start, Point3D end, double radius, Material material)
+    {
+        Vector3D axis = end - start;
+        axis.Normalize();
+        Vector3D reference = Math.Abs(Vector3D.DotProduct(axis, new Vector3D(0, 1, 0))) > 0.9
+            ? new Vector3D(1, 0, 0)
+            : new Vector3D(0, 1, 0);
+        Vector3D side = Vector3D.CrossProduct(axis, reference);
+        side.Normalize();
+        Vector3D up = Vector3D.CrossProduct(side, axis);
+        up.Normalize();
+        const int sides = 8;
+        var positions = new Point3DCollection(sides * 2);
+        for (int index = 0; index < sides; index++)
+        {
+            double angle = 2 * Math.PI * index / sides;
+            Vector3D offset = radius * (side * Math.Cos(angle) + up * Math.Sin(angle));
+            positions.Add(start + offset);
+            positions.Add(end + offset);
+        }
+        var triangles = new Int32Collection(sides * 6);
+        for (int index = 0; index < sides; index++)
+        {
+            int next = (index + 1) % sides;
+            triangles.Add(index * 2); triangles.Add(next * 2); triangles.Add(index * 2 + 1);
+            triangles.Add(index * 2 + 1); triangles.Add(next * 2); triangles.Add(next * 2 + 1);
+        }
+        var geometry = new MeshGeometry3D
+        {
+            Positions = positions,
+            TriangleIndices = triangles
+        };
+        geometry.Freeze();
+        return new GeometryModel3D(geometry, material) { BackMaterial = material };
+    }
+
+    private static TriangleTextureBake? CreateTriangleTextureBake(
+        SmoSceneMesh renderMesh)
+    {
+        SmoMesh mesh = renderMesh.Mesh;
+        int triangleCount = mesh.TriangleIndices.Length / 3;
+        bool bakeVertexAlpha =
+            SmoVertexColorUsage.HasAuthoredAlphaGradient(
+                mesh, renderMesh.MaterialRenderState) ||
+            (!mesh.HasSkinningData &&
+             SmoVertexColorUsage.HasUniformPartialAlpha(mesh) &&
+             SmoVertexColorUsage.ShouldUseVertexAlphaInPreview(
+                 mesh, renderMesh.MaterialRenderState));
+        bool needsTriangleBake =
+            SmoVertexColorUvConflictAnalyzer.HasConflictingSharedCoordinates(mesh) ||
+            bakeVertexAlpha;
+        if (mesh.HasSkinningData ||
+            renderMesh.BaseTexture is not null ||
+            !mesh.HasTextureCoordinates ||
+            !mesh.HasDiffuseColors ||
+            triangleCount is <= 0 or
+                > SmoVertexColorUvConflictAnalyzer.MaximumTriangleAtlasTriangles ||
+            !needsTriangleBake)
+        {
+            return null;
+        }
+
+        int columns = (int)Math.Ceiling(Math.Sqrt(triangleCount));
+        int rows = (triangleCount + columns - 1) / columns;
+        int cellSize = SmoVertexColorUvConflictAnalyzer
+            .GetPreviewTriangleAtlasCellSize(mesh, renderMesh.Texture);
+        int width = checked(columns * cellSize);
+        int height = checked(rows * cellSize);
+        byte[] pixels = new byte[checked(width * height * 4)];
+        int[] sourceVertexIndices = new int[checked(triangleCount * 3)];
+        var textureCoordinates = new Point[checked(triangleCount * 3)];
+        SmoTexture? texture = renderMesh.Texture;
+
+        const int padding =
+            SmoVertexColorUvConflictAnalyzer.TriangleAtlasPadding;
+        for (int triangle = 0; triangle < triangleCount; triangle++)
+        {
+            int sourceOffset = triangle * 3;
+            int ia = checked((int)mesh.TriangleIndices[sourceOffset]);
+            int ib = checked((int)mesh.TriangleIndices[sourceOffset + 1]);
+            int ic = checked((int)mesh.TriangleIndices[sourceOffset + 2]);
+            sourceVertexIndices[sourceOffset] = ia;
+            sourceVertexIndices[sourceOffset + 1] = ib;
+            sourceVertexIndices[sourceOffset + 2] = ic;
+
+            int cellX = triangle % columns * cellSize;
+            int cellY = triangle / columns * cellSize;
+            int firstX = cellX + padding;
+            int firstY = cellY + padding;
+            int lastX = cellX + cellSize - padding - 1;
+            int lastY = cellY + cellSize - padding - 1;
+            textureCoordinates[sourceOffset] = new Point(
+                (double)firstX / (width - 1),
+                (double)firstY / (height - 1));
+            textureCoordinates[sourceOffset + 1] = new Point(
+                (double)lastX / (width - 1),
+                (double)firstY / (height - 1));
+            textureCoordinates[sourceOffset + 2] = new Point(
+                (double)firstX / (width - 1),
+                (double)lastY / (height - 1));
+
+            for (int y = cellY; y < cellY + cellSize; y++)
+            for (int x = cellX; x < cellX + cellSize; x++)
+            {
+                float wb = (x - firstX) / (float)Math.Max(lastX - firstX, 1);
+                float wc = (y - firstY) / (float)Math.Max(lastY - firstY, 1);
+                float wa = 1f - wb - wc;
+                wa = MathF.Max(wa, 0);
+                wb = MathF.Max(wb, 0);
+                wc = MathF.Max(wc, 0);
+                float total = wa + wb + wc;
+                if (total <= 0.000001f)
+                {
+                    wa = 1;
+                    total = 1;
+                }
+                wa /= total;
+                wb /= total;
+                wc /= total;
+
+                byte tintRed = InterpolateColor(
+                    mesh.DiffuseColorsArgb[ia], mesh.DiffuseColorsArgb[ib],
+                    mesh.DiffuseColorsArgb[ic], 16, wa, wb, wc);
+                byte tintGreen = InterpolateColor(
+                    mesh.DiffuseColorsArgb[ia], mesh.DiffuseColorsArgb[ib],
+                    mesh.DiffuseColorsArgb[ic], 8, wa, wb, wc);
+                byte tintBlue = InterpolateColor(
+                    mesh.DiffuseColorsArgb[ia], mesh.DiffuseColorsArgb[ib],
+                    mesh.DiffuseColorsArgb[ic], 0, wa, wb, wc);
+                byte tintAlpha = bakeVertexAlpha
+                    ? InterpolateColor(
+                        mesh.DiffuseColorsArgb[ia], mesh.DiffuseColorsArgb[ib],
+                        mesh.DiffuseColorsArgb[ic], 24, wa, wb, wc)
+                    : byte.MaxValue;
+                byte sourceBlue = 255;
+                byte sourceGreen = 255;
+                byte sourceRed = 255;
+                byte sourceAlpha = 255;
+                if (texture is not null)
+                {
+                    var uvA = mesh.TextureCoordinates[ia];
+                    var uvB = mesh.TextureCoordinates[ib];
+                    var uvC = mesh.TextureCoordinates[ic];
+                    float u = SmoTextureCoordinateTiling.Wrap(
+                        wa * uvA.X + wb * uvB.X + wc * uvC.X);
+                    float v = SmoTextureCoordinateTiling.Wrap(
+                        wa * uvA.Y + wb * uvB.Y + wc * uvC.Y);
+                    int textureX = Math.Clamp(
+                        (int)MathF.Round(u * (texture.Width - 1)),
+                        0, texture.Width - 1);
+                    int textureY = Math.Clamp(
+                        (int)MathF.Round(v * (texture.Height - 1)),
+                        0, texture.Height - 1);
+                    int textureOffset =
+                        (textureY * texture.Width + textureX) * 4;
+                    ReadOnlySpan<byte> sourcePixels = texture.Bgra32Pixels.Span;
+                    sourceBlue = sourcePixels[textureOffset];
+                    sourceGreen = sourcePixels[textureOffset + 1];
+                    sourceRed = sourcePixels[textureOffset + 2];
+                    sourceAlpha = sourcePixels[textureOffset + 3];
+                }
+
+                int destination = (y * width + x) * 4;
+                pixels[destination] = (byte)(sourceBlue * tintBlue / 255);
+                pixels[destination + 1] = (byte)(sourceGreen * tintGreen / 255);
+                pixels[destination + 2] = (byte)(sourceRed * tintRed / 255);
+                pixels[destination + 3] =
+                    (byte)(sourceAlpha * tintAlpha / 255);
+            }
+        }
+
+        return new TriangleTextureBake(
+            pixels, width, height, sourceVertexIndices, textureCoordinates);
+    }
+
+    private static Material CreateMaterial(
+        SmoSceneMesh renderMesh,
+        Color fallbackColor) =>
+        CreateMaterialWithBake(
+            renderMesh, fallbackColor, CreateTriangleTextureBake(renderMesh));
+
+    private static Material CreateMaterialWithBake(
+        SmoSceneMesh renderMesh,
+        Color fallbackColor,
+        TriangleTextureBake? triangleTextureBake)
+    {
+        if (triangleTextureBake is not null)
+        {
+            byte[] bakedPixels = triangleTextureBake.Pixels.ToArray();
+            if (renderMesh.MaterialRenderState?.UsesLuminanceCoverageApproximation == true)
+                ApplyLuminanceCoverage(bakedPixels);
+            if (renderMesh.AlphaDecalDepthInfo?.HasNearCoplanarDepthRisk == true)
+                SmoAlphaDecalDepthAnalyzer.ApplyOverlayLossSimulation(bakedPixels);
+            BitmapSource bakedBitmap = BitmapSource.Create(
+                triangleTextureBake.Width,
+                triangleTextureBake.Height,
+                96,
+                96,
+                PixelFormats.Bgra32,
+                null,
+                bakedPixels,
+                triangleTextureBake.Width * 4);
+            bakedBitmap.Freeze();
+            ImageBrush bakedBrush = new(bakedBitmap)
+            {
+                ViewportUnits = BrushMappingMode.Absolute,
+                Viewport = new Rect(0, 0, 1, 1),
+                Stretch = Stretch.Fill
+            };
+            bakedBrush.Freeze();
+            return CreateBlendAwareMaterial(
+                bakedBrush, renderMesh.MaterialRenderState);
+        }
+
+        if (renderMesh.Texture is null || !renderMesh.Mesh.HasTextureCoordinates)
+        {
+            if (renderMesh.Mesh.VertexFormat == 0x0100 &&
+                renderMesh.Mesh.HasDiffuseColors)
+            {
+                return CreateAverageVertexColorMaterial(
+                    renderMesh.Mesh, renderMesh.MaterialRenderState);
+            }
+
+            if (!renderMesh.Mesh.HasSkinningData &&
+                SmoVertexColorUsage.HasUniformRgb(renderMesh.Mesh))
+            {
+                return CreateAverageVertexColorMaterial(
+                    renderMesh.Mesh, renderMesh.MaterialRenderState);
+            }
+
+            if (renderMesh.Mesh.HasDiffuseColors &&
+                renderMesh.Mesh.HasTextureCoordinates &&
+                UsesRenderableVertexColors(renderMesh.Mesh))
+            {
+                return CreateVertexColorMaterial(
+                    renderMesh.Mesh, renderMesh.MaterialRenderState);
+            }
+
+            Color color = renderMesh.MaterialColorArgb is uint argb
+                ? Color.FromArgb(
+                    (byte)(argb >> 24),
+                    (byte)(argb >> 16),
+                    (byte)(argb >> 8),
+                    (byte)argb)
+                : fallbackColor;
+            return CreateBlendAwareMaterial(
+                new SolidColorBrush(color), renderMesh.MaterialRenderState);
+        }
+
+        SmoTexture texture = renderMesh.BaseTexture ?? renderMesh.Texture;
+        byte[] pixels;
+        int textureWidth = texture.Width;
+        int textureHeight = texture.Height;
+        if (renderMesh.BaseTexture is not null &&
+            renderMesh.Mesh.HasTextureCoordinates1)
+        {
+            (pixels, textureWidth, textureHeight) =
+                CreateLayeredPixelBuffer(renderMesh);
+        }
+        else
+        {
+            pixels = CreateTintedPixelBuffer(renderMesh);
+        }
+        if (renderMesh.MaterialRenderState?.UsesLuminanceCoverageApproximation == true)
+            ApplyLuminanceCoverage(pixels);
+        if (renderMesh.AlphaDecalDepthInfo?.HasNearCoplanarDepthRisk == true)
+            SmoAlphaDecalDepthAnalyzer.ApplyOverlayLossSimulation(pixels);
+        BitmapSource bitmap = BitmapSource.Create(
+            textureWidth,
+            textureHeight,
+            96,
+            96,
+            PixelFormats.Bgra32,
+            null,
+            pixels,
+            textureWidth * 4);
+        bitmap.Freeze();
+
+        ImageBrush brush = new(bitmap)
+        {
+            // SMO UVs address the complete source atlas. RelativeToBoundingBox
+            // remaps each mesh's UV bounds over the whole image and makes small
+            // atlas regions (beds, pillows, carpets) sample unrelated tiles.
+            TileMode = TileMode.Tile,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, 1, 1),
+            Stretch = Stretch.Fill
+        };
+        brush.Freeze();
+        return CreateBlendAwareMaterial(brush, renderMesh.MaterialRenderState);
+    }
+
+    private static Material CreateBlendAwareMaterial(
+        Brush brush,
+        SmoMaterialRenderStateInfo? renderState)
+    {
+        Brush renderBrush = brush;
+        if (renderState?.UsesLuminanceCoverageApproximation == true &&
+            brush is SolidColorBrush solid)
+        {
+            Color color = solid.Color;
+            int luminanceCoverage = Math.Max(color.R, Math.Max(color.G, color.B));
+            renderBrush = new SolidColorBrush(Color.FromArgb(
+                (byte)((color.A * luminanceCoverage + 127) / 255),
+                color.R,
+                color.G,
+                color.B));
+        }
+
+        if (!renderBrush.IsFrozen && renderBrush.CanFreeze)
+            renderBrush.Freeze();
+
+        if (renderState?.HasConsumerStateMismatch == true)
+        {
+            // A companion tuple authored for the other vertex-consumer family
+            // produced the exact false-positive that prompted this decoder.
+            // Make that mismatch conspicuous instead of silently previewing it
+            // as valid source alpha.
+            EmissiveMaterial mismatch = new(renderBrush);
+            mismatch.Freeze();
+            return mismatch;
+        }
+
+        switch (renderState?.BlendMode)
+        {
+            case SmoMaterialBlendMode.EffectFinalBlend4:
+            {
+                // Native op4 is an effect/additive family. WPF Media3D has no
+                // programmable blend state, so emission plus black-as-zero
+                // luminance coverage is the closest deterministic preview.
+                EmissiveMaterial effect = new(renderBrush);
+                effect.Freeze();
+                return effect;
+            }
+            case SmoMaterialBlendMode.EffectFinalBlend5:
+            {
+                // Op5 is a separate projectile/effect family in the shipped
+                // corpus. Keep its authored alpha and distinguish it from both
+                // op4 and ordinary op6 with a diffuse/emissive approximation.
+                MaterialGroup effect = new();
+                effect.Children.Add(new DiffuseMaterial(renderBrush));
+                effect.Children.Add(new EmissiveMaterial(renderBrush));
+                effect.Freeze();
+                return effect;
+            }
+            case SmoMaterialBlendMode.FinalBlend6Companion2
+                when renderState.ConsumerKind == SmoMaterialConsumerKind.RigidOrEffect:
+            {
+                // Confirmed level glow/spark materials use op6/companion2 in
+                // both observed tuple variants. Preserve authored alpha and
+                // approximate their unlit contribution with emission.
+                EmissiveMaterial effect = new(renderBrush);
+                effect.Freeze();
+                return effect;
+            }
+            default:
+            {
+                DiffuseMaterial diffuse = new(renderBrush);
+                diffuse.Freeze();
+                return diffuse;
+            }
+        }
+    }
+
+    private static void ApplyLuminanceCoverage(byte[] pixels)
+    {
+        for (int offset = 0; offset + 3 < pixels.Length; offset += 4)
+        {
+            int luminanceCoverage = Math.Max(
+                pixels[offset],
+                Math.Max(pixels[offset + 1], pixels[offset + 2]));
+            pixels[offset + 3] = (byte)(
+                (pixels[offset + 3] * luminanceCoverage + 127) / 255);
+        }
+    }
+
+    private static Material CreateAverageVertexColorMaterial(
+        SmoMesh mesh,
+        SmoMaterialRenderStateInfo? renderState)
+    {
+        // GUI state meshes in menu.smo use XYZ + diffuse ARGB without UVs.
+        // WPF has no per-vertex color channel, but these meshes are normally
+        // authored with one state color. Averaging preserves that information
+        // instead of replacing every state with the viewer fallback color.
+        ulong alpha = 0;
+        ulong red = 0;
+        ulong green = 0;
+        ulong blue = 0;
+        foreach (uint argb in mesh.DiffuseColorsArgb)
+        {
+            alpha += argb >> 24;
+            red += (argb >> 16) & 0xFF;
+            green += (argb >> 8) & 0xFF;
+            blue += argb & 0xFF;
+        }
+
+        ulong count = (ulong)mesh.DiffuseColorsArgb.Length;
+        byte averageAlpha = (byte)(alpha / count);
+        byte renderedAlpha = SmoVertexColorUsage.ShouldUseVertexAlphaInPreview(
+                mesh, renderState)
+            ? averageAlpha
+            : (byte)255;
+        Color color = Color.FromArgb(
+            renderedAlpha,
+            (byte)(red / count),
+            (byte)(green / count),
+            (byte)(blue / count));
+        return CreateBlendAwareMaterial(new SolidColorBrush(color), renderState);
+    }
+
+    private static (byte[] Pixels, int Width, int Height) CreateLayeredPixelBuffer(
+        SmoSceneMesh renderMesh)
+    {
+        SmoTexture baseTexture = renderMesh.BaseTexture!;
+        SmoTexture effectTexture = renderMesh.Texture!;
+        SmoMesh mesh = renderMesh.Mesh;
+        int width = Math.Max(baseTexture.Width, effectTexture.Width);
+        int height = Math.Max(baseTexture.Height, effectTexture.Height);
+        byte[] pixels = ResizeTexturePixels(baseTexture, width, height);
+
+        for (int triangle = 0; triangle < mesh.TriangleIndices.Length; triangle += 3)
+        {
+            int ia = checked((int)mesh.TriangleIndices[triangle]);
+            int ib = checked((int)mesh.TriangleIndices[triangle + 1]);
+            int ic = checked((int)mesh.TriangleIndices[triangle + 2]);
+            RasterizeEffectTriangle(
+                pixels,
+                width,
+                height,
+                effectTexture,
+                mesh.TextureCoordinates[ia],
+                mesh.TextureCoordinates[ib],
+                mesh.TextureCoordinates[ic],
+                mesh.TextureCoordinates1[ia],
+                mesh.TextureCoordinates1[ib],
+                mesh.TextureCoordinates1[ic]);
+        }
+
+        return (pixels, width, height);
+    }
+
+    private static byte[] ResizeTexturePixels(
+        SmoTexture texture,
+        int width,
+        int height)
+    {
+        if (texture.Width == width && texture.Height == height)
+            return texture.Bgra32Pixels.ToArray();
+
+        byte[] result = new byte[checked(width * height * 4)];
+        ReadOnlySpan<byte> source = texture.Bgra32Pixels.Span;
+        for (int y = 0; y < height; y++)
+        {
+            int sourceY = height == 1
+                ? 0
+                : (int)MathF.Round(y * (texture.Height - 1f) / (height - 1f));
+            for (int x = 0; x < width; x++)
+            {
+                int sourceX = width == 1
+                    ? 0
+                    : (int)MathF.Round(x * (texture.Width - 1f) / (width - 1f));
+                int sourceOffset = (sourceY * texture.Width + sourceX) * 4;
+                int targetOffset = (y * width + x) * 4;
+                source.Slice(sourceOffset, 4).CopyTo(result.AsSpan(targetOffset, 4));
+            }
+        }
+
+        return result;
+    }
+
+    private static void RasterizeEffectTriangle(
+        byte[] destination,
+        int width,
+        int height,
+        SmoTexture effect,
+        System.Numerics.Vector2 a,
+        System.Numerics.Vector2 b,
+        System.Numerics.Vector2 c,
+        System.Numerics.Vector2 effectA,
+        System.Numerics.Vector2 effectB,
+        System.Numerics.Vector2 effectC)
+    {
+        if (!SmoTextureCoordinateTiling.TryGetTriangleTileBounds(
+                a, b, c, out SmoTextureTileBounds tileBounds))
+            return;
+
+        for (int tileY = tileBounds.FirstY; tileY <= tileBounds.LastY; tileY++)
+        for (int tileX = tileBounds.FirstX; tileX <= tileBounds.LastX; tileX++)
+        {
+            System.Numerics.Vector2 offset = new(tileX, tileY);
+            RasterizeEffectTriangleTile(
+                destination,
+                width,
+                height,
+                effect,
+                a - offset,
+                b - offset,
+                c - offset,
+                effectA,
+                effectB,
+                effectC);
+        }
+    }
+
+    private static void RasterizeEffectTriangleTile(
+        byte[] destination,
+        int width,
+        int height,
+        SmoTexture effect,
+        System.Numerics.Vector2 a,
+        System.Numerics.Vector2 b,
+        System.Numerics.Vector2 c,
+        System.Numerics.Vector2 effectA,
+        System.Numerics.Vector2 effectB,
+        System.Numerics.Vector2 effectC)
+    {
+        float ax = a.X * (width - 1);
+        float ay = a.Y * (height - 1);
+        float bx = b.X * (width - 1);
+        float by = b.Y * (height - 1);
+        float cx = c.X * (width - 1);
+        float cy = c.Y * (height - 1);
+        float area = Edge(ax, ay, bx, by, cx, cy);
+        if (MathF.Abs(area) < 0.0000001f)
+            return;
+
+        int minX = Math.Clamp((int)MathF.Floor(MathF.Min(ax, MathF.Min(bx, cx))), 0, width - 1);
+        int maxX = Math.Clamp((int)MathF.Ceiling(MathF.Max(ax, MathF.Max(bx, cx))), 0, width - 1);
+        int minY = Math.Clamp((int)MathF.Floor(MathF.Min(ay, MathF.Min(by, cy))), 0, height - 1);
+        int maxY = Math.Clamp((int)MathF.Ceiling(MathF.Max(ay, MathF.Max(by, cy))), 0, height - 1);
+        ReadOnlySpan<byte> effectPixels = effect.Bgra32Pixels.Span;
+
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
+            {
+                float wa = Edge(bx, by, cx, cy, x + 0.5f, y + 0.5f) / area;
+                float wb = Edge(cx, cy, ax, ay, x + 0.5f, y + 0.5f) / area;
+                float wc = 1f - wa - wb;
+                if (MathF.Min(wa, MathF.Min(wb, wc)) < -0.00001f)
+                    continue;
+
+                float u = wa * effectA.X + wb * effectB.X + wc * effectC.X;
+                float v = wa * effectA.Y + wb * effectB.Y + wc * effectC.Y;
+                u = SmoTextureCoordinateTiling.Wrap(u);
+                v = SmoTextureCoordinateTiling.Wrap(v);
+                int effectX = Math.Clamp(
+                    (int)MathF.Round(u * (effect.Width - 1)), 0, effect.Width - 1);
+                int effectY = Math.Clamp(
+                    (int)MathF.Round(v * (effect.Height - 1)), 0, effect.Height - 1);
+                int source = (effectY * effect.Width + effectX) * 4;
+                int target = (y * width + x) * 4;
+                int alpha = effectPixels[source + 3];
+                for (int channel = 0; channel < 3; channel++)
+                {
+                    destination[target + channel] = (byte)Math.Min(
+                        255,
+                        destination[target + channel] +
+                        effectPixels[source + channel] * alpha / 255);
+                }
+            }
+        }
+    }
+
+    private static byte[] CreateTintedPixelBuffer(SmoSceneMesh renderMesh)
+    {
+        SmoTexture texture = renderMesh.Texture!;
+        byte[] pixels = texture.Bgra32Pixels.ToArray();
+        SmoMesh mesh = renderMesh.Mesh;
+        if (!mesh.HasSkinningData &&
+            SmoVertexColorUsage.HasUniformPartialAlpha(mesh) &&
+            SmoVertexColorUsage.ShouldUseVertexAlphaInPreview(
+                mesh, renderMesh.MaterialRenderState))
+        {
+            int vertexAlpha = (byte)(mesh.DiffuseColorsArgb[0] >> 24);
+            for (int offset = 3; offset < pixels.Length; offset += 4)
+            {
+                pixels[offset] = (byte)(
+                    (pixels[offset] * vertexAlpha + 127) / 255);
+            }
+        }
+        if (!SmoVertexColorUsage.ShouldModulateTexture(mesh) ||
+            !mesh.HasDiffuseColors ||
+            !mesh.HasTextureCoordinates)
+            return pixels;
+
+        if (SmoVertexColorUsage.HasUniformRgb(mesh))
+        {
+            uint color = mesh.DiffuseColorsArgb[0];
+            int tintBlue = (int)(color & 0xFF);
+            int tintGreen = (int)((color >> 8) & 0xFF);
+            int tintRed = (int)((color >> 16) & 0xFF);
+            for (int offset = 0; offset + 3 < pixels.Length; offset += 4)
+            {
+                pixels[offset] = (byte)(pixels[offset] * tintBlue / 255);
+                pixels[offset + 1] =
+                    (byte)(pixels[offset + 1] * tintGreen / 255);
+                pixels[offset + 2] =
+                    (byte)(pixels[offset + 2] * tintRed / 255);
+            }
+            return pixels;
+        }
+
+        byte[] tint = new byte[texture.Width * texture.Height * 3];
+        bool[] covered = new bool[texture.Width * texture.Height];
+        int[] tintSamples = new int[texture.Width * texture.Height];
+        Dictionary<int, (long Blue, long Green, long Red, int Samples)> degenerateUvColors = [];
+
+        for (int triangle = 0; triangle < mesh.TriangleIndices.Length; triangle += 3)
+        {
+            int ia = checked((int)mesh.TriangleIndices[triangle]);
+            int ib = checked((int)mesh.TriangleIndices[triangle + 1]);
+            int ic = checked((int)mesh.TriangleIndices[triangle + 2]);
+            System.Numerics.Vector2 uvA = mesh.TextureCoordinates[ia];
+            System.Numerics.Vector2 uvB = mesh.TextureCoordinates[ib];
+            System.Numerics.Vector2 uvC = mesh.TextureCoordinates[ic];
+            float uvArea = MathF.Abs(Edge(uvA.X, uvA.Y, uvB.X, uvB.Y, uvC.X, uvC.Y));
+            if (uvArea < 0.0000001f)
+            {
+                int x = Math.Clamp(
+                    (int)MathF.Round(SmoTextureCoordinateTiling.Wrap(uvA.X) *
+                        (texture.Width - 1)), 0, texture.Width - 1);
+                int y = Math.Clamp(
+                    (int)MathF.Round(SmoTextureCoordinateTiling.Wrap(uvA.Y) *
+                        (texture.Height - 1)), 0, texture.Height - 1);
+                int pixel = y * texture.Width + x;
+                (long blue, long green, long red, int samples) =
+                    degenerateUvColors.GetValueOrDefault(pixel);
+                foreach (uint color in new[]
+                         {
+                             mesh.DiffuseColorsArgb[ia],
+                             mesh.DiffuseColorsArgb[ib],
+                             mesh.DiffuseColorsArgb[ic]
+                         })
+                {
+                    blue += color & 0xFF;
+                    green += (color >> 8) & 0xFF;
+                    red += (color >> 16) & 0xFF;
+                    samples++;
+                }
+                degenerateUvColors[pixel] = (blue, green, red, samples);
+                continue;
+            }
+            RasterizeVertexColorTriangle(
+                tint,
+                covered,
+                tintSamples,
+                texture.Width,
+                texture.Height,
+                mesh.TextureCoordinates[ia],
+                mesh.TextureCoordinates[ib],
+                mesh.TextureCoordinates[ic],
+                mesh.DiffuseColorsArgb[ia],
+                mesh.DiffuseColorsArgb[ib],
+                mesh.DiffuseColorsArgb[ic]);
+        }
+
+        DilateVertexColorCoverage(tint, covered, texture.Width, texture.Height, 2);
+
+        for (int pixel = 0; pixel < covered.Length; pixel++)
+        {
+            if (!covered[pixel])
+                continue;
+            int pixelOffset = pixel * 4;
+            int tintOffset = pixel * 3;
+            pixels[pixelOffset] = (byte)(pixels[pixelOffset] * tint[tintOffset] / 255);
+            pixels[pixelOffset + 1] =
+                (byte)(pixels[pixelOffset + 1] * tint[tintOffset + 1] / 255);
+            pixels[pixelOffset + 2] =
+                (byte)(pixels[pixelOffset + 2] * tint[tintOffset + 2] / 255);
+        }
+
+        // Some character face polygons deliberately collapse all three UVs to
+        // one sentinel texel and carry their appearance only in vertex diffuse.
+        // WPF has no vertex-color input, so preserve their average diffuse in
+        // the private texture copy instead of stretching the sentinel's black.
+        foreach ((int pixel, (long blue, long green, long red, int samples)) in
+                 degenerateUvColors)
+        {
+            int centerX = pixel % texture.Width;
+            int centerY = pixel / texture.Width;
+            for (int y = Math.Max(0, centerY - 1);
+                 y <= Math.Min(texture.Height - 1, centerY + 1); y++)
+            {
+                for (int x = Math.Max(0, centerX - 1);
+                     x <= Math.Min(texture.Width - 1, centerX + 1); x++)
+                {
+                    int offset = (y * texture.Width + x) * 4;
+                    pixels[offset] = (byte)(blue / samples);
+                    pixels[offset + 1] = (byte)(green / samples);
+                    pixels[offset + 2] = (byte)(red / samples);
+                    pixels[offset + 3] = 255;
+                }
+            }
+        }
+
+        return pixels;
+    }
+
+    private static void DilateVertexColorCoverage(
+        byte[] tint,
+        bool[] covered,
+        int width,
+        int height,
+        int iterations)
+    {
+        for (int iteration = 0; iteration < iterations; iteration++)
+        {
+            byte[] sourceTint = (byte[])tint.Clone();
+            bool[] sourceCovered = (bool[])covered.Clone();
+            bool changed = false;
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int pixel = y * width + x;
+                    if (sourceCovered[pixel])
+                        continue;
+
+                    int blue = 0;
+                    int green = 0;
+                    int red = 0;
+                    int count = 0;
+                    for (int offsetY = -1; offsetY <= 1; offsetY++)
+                    {
+                        int neighborY = y + offsetY;
+                        if (neighborY < 0 || neighborY >= height)
+                            continue;
+                        for (int offsetX = -1; offsetX <= 1; offsetX++)
+                        {
+                            if (offsetX == 0 && offsetY == 0)
+                                continue;
+                            int neighborX = x + offsetX;
+                            if (neighborX < 0 || neighborX >= width)
+                                continue;
+                            int neighbor = neighborY * width + neighborX;
+                            if (!sourceCovered[neighbor])
+                                continue;
+                            int source = neighbor * 3;
+                            blue += sourceTint[source];
+                            green += sourceTint[source + 1];
+                            red += sourceTint[source + 2];
+                            count++;
+                        }
+                    }
+
+                    if (count == 0)
+                        continue;
+                    int destination = pixel * 3;
+                    tint[destination] = (byte)(blue / count);
+                    tint[destination + 1] = (byte)(green / count);
+                    tint[destination + 2] = (byte)(red / count);
+                    covered[pixel] = true;
+                    changed = true;
+                }
+            }
+
+            if (!changed)
+                break;
+        }
+    }
+
+    private static Material CreateVertexColorMaterial(
+        SmoMesh mesh,
+        SmoMaterialRenderStateInfo? renderState)
+    {
+        // A compact per-mesh lookup is sufficient for smoothly interpolated
+        // diffuse lighting and avoids hundreds of 256x256 WPF bitmaps in levels.
+        const int size = 64;
+        byte[] tint = new byte[size * size * 3];
+        bool[] covered = new bool[size * size];
+        int[] tintSamples = new int[size * size];
+        for (int triangle = 0; triangle < mesh.TriangleIndices.Length; triangle += 3)
+        {
+            int ia = checked((int)mesh.TriangleIndices[triangle]);
+            int ib = checked((int)mesh.TriangleIndices[triangle + 1]);
+            int ic = checked((int)mesh.TriangleIndices[triangle + 2]);
+            RasterizeVertexColorTriangle(
+                tint, covered, tintSamples, size, size,
+                mesh.TextureCoordinates[ia],
+                mesh.TextureCoordinates[ib],
+                mesh.TextureCoordinates[ic],
+                mesh.DiffuseColorsArgb[ia],
+                mesh.DiffuseColorsArgb[ib],
+                mesh.DiffuseColorsArgb[ic]);
+        }
+
+        byte renderedAlpha = !mesh.HasSkinningData &&
+                             SmoVertexColorUsage.HasUniformPartialAlpha(mesh) &&
+                             SmoVertexColorUsage.ShouldUseVertexAlphaInPreview(
+                                 mesh, renderState)
+            ? (byte)(mesh.DiffuseColorsArgb[0] >> 24)
+            : byte.MaxValue;
+        byte[] pixels = new byte[size * size * 4];
+        for (int pixel = 0; pixel < covered.Length; pixel++)
+        {
+            int destination = pixel * 4;
+            int source = pixel * 3;
+            if (covered[pixel])
+            {
+                pixels[destination] = tint[source];
+                pixels[destination + 1] = tint[source + 1];
+                pixels[destination + 2] = tint[source + 2];
+            }
+            else
+            {
+                pixels[destination] = 255;
+                pixels[destination + 1] = 255;
+                pixels[destination + 2] = 255;
+            }
+            pixels[destination + 3] = renderedAlpha;
+        }
+        if (renderState?.UsesLuminanceCoverageApproximation == true)
+            ApplyLuminanceCoverage(pixels);
+
+        BitmapSource bitmap = BitmapSource.Create(
+            size, size, 96, 96, PixelFormats.Bgra32, null, pixels, size * 4);
+        bitmap.Freeze();
+        ImageBrush brush = new(bitmap)
+        {
+            // Preserve authored atlas coordinates for vertex-colour-only meshes
+            // for the same reason as the textured material path above.
+            TileMode = TileMode.Tile,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, 1, 1),
+            Stretch = Stretch.Fill
+        };
+        brush.Freeze();
+        return CreateBlendAwareMaterial(brush, renderState);
+    }
+
+    private static bool UsesRenderableVertexColors(SmoMesh mesh) =>
+        (mesh.VertexFormat is 0x0100 or 0x0900 or 0x093E or 0x0940 or
+            0x097E or 0x1940 or 0x197E) &&
+        mesh.DiffuseColorsArgb
+            .Select(color => color & 0x00FFFFFF)
+            .Distinct()
+            .Skip(1)
+            .Any();
+
+    private static void RasterizeVertexColorTriangle(
+        byte[] tint,
+        bool[] covered,
+        int[] tintSamples,
+        int width,
+        int height,
+        System.Numerics.Vector2 a,
+        System.Numerics.Vector2 b,
+        System.Numerics.Vector2 c,
+        uint colorA,
+        uint colorB,
+        uint colorC)
+    {
+        if (!SmoTextureCoordinateTiling.TryGetTriangleTileBounds(
+                a, b, c, out SmoTextureTileBounds tileBounds))
+            return;
+
+        for (int tileY = tileBounds.FirstY; tileY <= tileBounds.LastY; tileY++)
+        for (int tileX = tileBounds.FirstX; tileX <= tileBounds.LastX; tileX++)
+        {
+            System.Numerics.Vector2 offset = new(tileX, tileY);
+            RasterizeVertexColorTriangleTile(
+                tint, covered, tintSamples, width, height,
+                a - offset, b - offset, c - offset,
+                colorA, colorB, colorC);
+        }
+    }
+
+    private static void RasterizeVertexColorTriangleTile(
+        byte[] tint,
+        bool[] covered,
+        int[] tintSamples,
+        int width,
+        int height,
+        System.Numerics.Vector2 a,
+        System.Numerics.Vector2 b,
+        System.Numerics.Vector2 c,
+        uint colorA,
+        uint colorB,
+        uint colorC)
+    {
+        float ax = a.X * (width - 1);
+        float ay = a.Y * (height - 1);
+        float bx = b.X * (width - 1);
+        float by = b.Y * (height - 1);
+        float cx = c.X * (width - 1);
+        float cy = c.Y * (height - 1);
+        float area = Edge(ax, ay, bx, by, cx, cy);
+        if (MathF.Abs(area) < 0.0000001f)
+            return;
+
+        int minX = Math.Clamp((int)MathF.Floor(MathF.Min(ax, MathF.Min(bx, cx))), 0, width - 1);
+        int maxX = Math.Clamp((int)MathF.Ceiling(MathF.Max(ax, MathF.Max(bx, cx))), 0, width - 1);
+        int minY = Math.Clamp((int)MathF.Floor(MathF.Min(ay, MathF.Min(by, cy))), 0, height - 1);
+        int maxY = Math.Clamp((int)MathF.Ceiling(MathF.Max(ay, MathF.Max(by, cy))), 0, height - 1);
+
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
+            {
+                float wa = Edge(bx, by, cx, cy, x + 0.5f, y + 0.5f) / area;
+                float wb = Edge(cx, cy, ax, ay, x + 0.5f, y + 0.5f) / area;
+                float wc = 1f - wa - wb;
+                if (MathF.Min(wa, MathF.Min(wb, wc)) < -0.00001f)
+                    continue;
+
+                byte red = InterpolateColor(colorA, colorB, colorC, 16, wa, wb, wc);
+                byte green = InterpolateColor(colorA, colorB, colorC, 8, wa, wb, wc);
+                byte blue = InterpolateColor(colorA, colorB, colorC, 0, wa, wb, wc);
+                int pixel = y * width + x;
+                int offset = pixel * 3;
+                int samples = tintSamples[pixel];
+                tint[offset] = (byte)((tint[offset] * samples + blue) / (samples + 1));
+                tint[offset + 1] =
+                    (byte)((tint[offset + 1] * samples + green) / (samples + 1));
+                tint[offset + 2] = (byte)((tint[offset + 2] * samples + red) / (samples + 1));
+                tintSamples[pixel] = samples + 1;
+                covered[pixel] = true;
+            }
+        }
+    }
+
+    private static byte InterpolateColor(
+        uint a, uint b, uint c, int shift, float wa, float wb, float wc) =>
+        (byte)Math.Clamp(
+            (int)MathF.Round(
+                wa * ((a >> shift) & 0xFF) +
+                wb * ((b >> shift) & 0xFF) +
+                wc * ((c >> shift) & 0xFF)),
+            0,
+            255);
+
+    private static float Edge(
+        float ax, float ay, float bx, float by, float px, float py) =>
+        (px - ax) * (by - ay) - (py - ay) * (bx - ax);
+
+    private static MeshGeometry3D? CreateGeometry(
+        SmoSceneMesh renderMesh,
+        BoundsBuilder bounds,
+        TriangleTextureBake? triangleTextureBake)
+    {
+        SmoMesh mesh = renderMesh.Mesh;
+        if (mesh.Positions.Length == 0 || mesh.TriangleIndices.Length < 3)
+            return null;
+
+        int positionCount = triangleTextureBake?.SourceVertexIndices.Length ??
+            mesh.Positions.Length;
+        Point3DCollection positions = new(positionCount);
+        IEnumerable<int> sourcePositionIndices =
+            triangleTextureBake?.SourceVertexIndices ??
+            Enumerable.Range(0, mesh.Positions.Length);
+        foreach (int sourceIndex in sourcePositionIndices)
+        {
+            var source = mesh.Positions[sourceIndex];
+            System.Numerics.Vector3 transformed = System.Numerics.Vector3.Transform(
+                source, renderMesh.WorldTransform);
+            // Sparkplug/D3D assets use a left-handed world while WPF 3D is
+            // right-handed. Reflect Z once after the complete model-to-world
+            // transform; triangle winding is reversed below to preserve fronts.
+            Point3D position = new(transformed.X, transformed.Y, -transformed.Z);
+            positions.Add(position);
+            bounds.Include(position);
+        }
+
+        Int32Collection triangleIndices = new(mesh.TriangleIndices.Length);
+        for (int triangle = 0; triangle < mesh.TriangleIndices.Length; triangle += 3)
+        {
+            uint a = triangleTextureBake is null
+                ? mesh.TriangleIndices[triangle]
+                : checked((uint)triangle);
+            uint b = triangleTextureBake is null
+                ? mesh.TriangleIndices[triangle + 1]
+                : checked((uint)(triangle + 1));
+            uint c = triangleTextureBake is null
+                ? mesh.TriangleIndices[triangle + 2]
+                : checked((uint)(triangle + 2));
+            if (a >= positionCount || b >= positionCount || c >= positionCount)
+                throw new InvalidDataException(
+                    $"Decoded mesh [{mesh.ObjectIndex}] \"{mesh.Name}\" has an index " +
+                    $"outside its {positionCount} rendered positions.");
+
+            triangleIndices.Add(checked((int)a));
+            triangleIndices.Add(checked((int)c));
+            triangleIndices.Add(checked((int)b));
+        }
+
+        MeshGeometry3D geometry = new()
+        {
+            Positions = positions,
+            TriangleIndices = triangleIndices
+        };
+
+        if (mesh.HasNormals)
+        {
+            Matrix4x4 normalTransform = renderMesh.WorldTransform;
+            if (Matrix4x4.Invert(renderMesh.WorldTransform, out Matrix4x4 inverseWorld))
+                normalTransform = Matrix4x4.Transpose(inverseWorld);
+            Vector3DCollection normals = new(positionCount);
+            foreach (int sourceIndex in sourcePositionIndices)
+            {
+                System.Numerics.Vector3 source = mesh.Normals[sourceIndex];
+                System.Numerics.Vector3 transformed = System.Numerics.Vector3.TransformNormal(
+                    source, normalTransform);
+                transformed.Z = -transformed.Z;
+                if (transformed.LengthSquared() > 0.000001f)
+                    transformed = System.Numerics.Vector3.Normalize(transformed);
+                normals.Add(new Vector3D(transformed.X, transformed.Y, transformed.Z));
+            }
+            geometry.Normals = normals;
+        }
+
+        if (triangleTextureBake is not null)
+        {
+            geometry.TextureCoordinates = new PointCollection(
+                triangleTextureBake.TextureCoordinates);
+        }
+        else if (mesh.HasTextureCoordinates)
+        {
+            PointCollection textureCoordinates = new(mesh.TextureCoordinates.Length);
+            foreach (var source in mesh.TextureCoordinates)
+                textureCoordinates.Add(new Point(source.X, source.Y));
+
+            geometry.TextureCoordinates = textureCoordinates;
+        }
+
+        if (!mesh.HasSkinningData && renderMesh.RigidNodeObjectIndex is null)
+            geometry.Freeze();
+        return geometry;
+    }
+
+    private bool ConfigureGuiPanel()
+    {
+        var guiFiles = _treeFiles
+            .Where(item => item.Value.GuiScene.IsGuiContent)
+            .OrderBy(item => item.Key)
+            .ToArray();
+        if (guiFiles.Length == 0)
+        {
+            GuiPanelButton.Visibility = Visibility.Collapsed;
+            return false;
+        }
+
+        _updatingGuiPanel = true;
+        GuiPanelButton.Visibility = Visibility.Visible;
+        GuiRootGroupItem[] groups = guiFiles
+            .SelectMany(file => file.Value.GuiScene.RootGroups
+                .Select(group => new GuiRootGroupItem(
+                    file.Key,
+                    group.ObjectIndex,
+                    group.Name,
+                    group.MeshCount,
+                    file.Value.GuiScene.LayoutAnchors.Count(anchor =>
+                        anchor.RootGroupObjectIndex == group.ObjectIndex),
+                    guiFiles.Length > 1
+                        ? $"{Path.GetFileName(file.Value.Path)} · {group.Name} " +
+                          $"({group.MeshCount} mesh, " +
+                          $"{file.Value.GuiScene.LayoutAnchors.Count(anchor => anchor.RootGroupObjectIndex == group.ObjectIndex)} anchor)"
+                        : $"{group.Name}  ·  {group.MeshCount} mesh · " +
+                          $"{file.Value.GuiScene.LayoutAnchors.Count(anchor => anchor.RootGroupObjectIndex == group.ObjectIndex)} anchor"))
+                .Where(group => group.MeshCount > 0 || group.AnchorCount > 0))
+            .ToArray();
+        GuiGroupSelector.ItemsSource = groups;
+        GuiRootGroupItem? preferred = groups.FirstOrDefault(group =>
+                group.Name.Equals("display", StringComparison.OrdinalIgnoreCase)) ??
+            groups.FirstOrDefault(group =>
+                group.Name.Equals("settings", StringComparison.OrdinalIgnoreCase)) ??
+            groups.OrderByDescending(group => group.MeshCount + group.AnchorCount)
+                .FirstOrDefault();
+        GuiGroupSelector.SelectedItem = preferred;
+
+        int meshes = guiFiles.Sum(file => file.Value.GuiScene.DecodedMeshCount);
+        int planar = guiFiles.Sum(file => file.Value.GuiScene.PlanarMeshCount);
+        int states = guiFiles.Sum(file => file.Value.GuiScene.StateMeshCount);
+        int collisions = guiFiles.Sum(file => file.Value.GuiScene.CollisionMeshCount);
+        int anchors = guiFiles.Sum(file => file.Value.GuiScene.LayoutAnchors.Count);
+        bool hasRuntimeNodeLayout = guiFiles.Any(file =>
+            file.Value.GuiScene.ContentKind == SmoGuiContentKind.RuntimeNodeLayout);
+        GuiSummaryText.Text = meshes == 0 && anchors > 0
+            ? $"Распознана node-only 2D-сцена: {anchors} runtime-якоря без mesh. " +
+              "Карточки в viewport показывают позиции и состояния слотов, а не " +
+              "фактический текст игры."
+            : $"Распознана плоская GUI-сцена: {planar}/{meshes} mesh в одной " +
+              $"плоскости, {states} state-mesh, {collisions} GUICollision. " +
+              "Корневые ветви интерпретируются как отдельные экраны.";
+        int textObjects = guiFiles.Sum(file => file.Value.GuiScene.TextClassObjectCount);
+        GuiTextStatusText.Text = hasRuntimeNodeLayout
+            ? "В SMO нет геометрии и строки. text_* — runtime-слоты; Viewer " +
+              "рисует только диагностические карточки NORMAL/shadow по их transform."
+            : textObjects == 0
+            ? "В файле нет serialized spTextNode/spTextRenderable/spFont. Узлы вроде " +
+              "resolution_label и value_resolution являются якорями; текст, вероятно, " +
+              "создаётся runtime-кодом и пока показан только в дереве."
+            : $"Текстовые объекты Sparkplug: {textObjects}. Их рендер пока не реализован.";
+        GuiOrthographicCheck.IsChecked = true;
+        _updatingGuiPanel = false;
+
+        SetGuiPreviewActive(true);
+        RefreshGuiElementList();
+        UpdateMeshAppearance();
+        ShowSidebarPanel(GuiPanel);
+        AddLog(
+            $"Распознан 2D/GUI content: {planar}/{meshes} planar mesh; " +
+            $"layout anchors {anchors}; state mesh {states}; " +
+            $"GUICollision {collisions}.");
+        return true;
+    }
+
+    private void GuiPanelButton_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(GuiPanel);
+
+    private void GuiGroupSelector_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (_updatingGuiPanel || !IsInitialized)
+            return;
+        RefreshGuiElementList();
+        UpdateMeshAppearance();
+        FrameGuiPreview();
+    }
+
+    private void GuiStateSelector_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (_updatingGuiPanel || !IsInitialized)
+            return;
+        RefreshGuiElementList();
+        UpdateMeshAppearance();
+    }
+
+    private void GuiFilter_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_updatingGuiPanel || !IsInitialized)
+            return;
+        RefreshGuiElementList();
+        UpdateMeshAppearance();
+    }
+
+    private void GuiOrthographicCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_updatingGuiPanel || !IsInitialized)
+            return;
+        SetGuiPreviewActive(GuiOrthographicCheck.IsChecked == true);
+        if (_guiPreviewActive)
+            FrameGuiPreview();
+    }
+
+    private void FrameGuiPreview_Click(object sender, RoutedEventArgs e) =>
+        FrameGuiPreview();
+
+    private void SetGuiPreviewActive(bool active)
+    {
+        _guiPreviewActive = active && _treeFiles.Values.Any(file =>
+            file.GuiScene.IsGuiContent);
+        SceneViewport.Camera = _guiPreviewActive ? _guiCamera : SceneCamera;
+        SkeletonViewport.Camera = _guiPreviewActive
+            ? _guiSkeletonCamera
+            : SkeletonCamera;
+        CameraModeSelector.IsEnabled = !_guiPreviewActive;
+        UpdateFloorGrid();
+        if (!_guiPreviewActive)
+            UpdateCamera();
+    }
+
+    private void RefreshGuiElementList()
+    {
+        if (GuiElementList is null)
+            return;
+        var items = new List<GuiElementItem>();
+        foreach ((SceneObjectKey key, SceneGeometry geometry) in _sceneGeometry)
+        {
+            if (!IsGuiGeometryVisible(key, geometry) ||
+                !_treeFiles.TryGetValue(key.FileIndex, out DecodedSmoFile? file) ||
+                !file.GuiScene.MeshesByObjectIndex.TryGetValue(
+                    key.ObjectIndex, out SmoGuiMeshInfo? guiMesh))
+            {
+                continue;
+            }
+
+            string state = guiMesh.IsCollision
+                ? "GUICollision"
+                : guiMesh.VisualState.ToString();
+            items.Add(new GuiElementItem(
+                key.FileIndex,
+                key.ObjectIndex,
+                $"[{key.ObjectIndex}] {guiMesh.ElementName} · {state}"));
+        }
+        foreach ((SceneObjectKey key, GuiLayoutAnchorGeometry geometry)
+                 in _guiLayoutAnchorGeometry)
+        {
+            if (!IsGuiLayoutAnchorVisible(key, geometry))
+                continue;
+            items.Add(new GuiElementItem(
+                key.FileIndex,
+                key.ObjectIndex,
+                $"[{key.ObjectIndex}] {geometry.Anchor.Name} · " +
+                $"{geometry.Anchor.VisualState} · runtime anchor"));
+        }
+        GuiElementList.ItemsSource = items
+            .OrderBy(item => item.Display, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private void GuiElementList_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (GuiElementList.SelectedItem is not GuiElementItem selected)
+            return;
+        SceneObjectKey key = new(selected.FileIndex, selected.ObjectIndex);
+        TreeViewItem? item = RevealTreeObject(key);
+        if (item is not null)
+        {
+            item.IsSelected = true;
+            item.BringIntoView();
+        }
+        FrameGuiPreview();
+    }
+
+    private bool IsGuiGeometryVisible(SceneObjectKey key, SceneGeometry geometry)
+    {
+        if (!_treeFiles.TryGetValue(key.FileIndex, out DecodedSmoFile? file) ||
+            !file.GuiScene.IsGuiContent ||
+            !file.GuiScene.MeshesByObjectIndex.TryGetValue(
+                key.ObjectIndex, out SmoGuiMeshInfo? guiMesh))
+        {
+            return true;
+        }
+
+        if (GuiGroupSelector.SelectedItem is GuiRootGroupItem selectedGroup &&
+            (selectedGroup.FileIndex != key.FileIndex ||
+             selectedGroup.ObjectIndex != guiMesh.RootGroupObjectIndex))
+        {
+            return false;
+        }
+        if (guiMesh.IsCollision)
+            return GuiCollisionCheck.IsChecked == true;
+        if (GuiStateSelector.SelectedItem is not GuiStateChoice stateChoice ||
+            stateChoice.State is null)
+        {
+            return true;
+        }
+        return guiMesh.VisualState is
+            SmoGuiVisualState.Unclassified or SmoGuiVisualState.Shadow ||
+            guiMesh.VisualState == stateChoice.State;
+    }
+
+    private bool IsGuiLayoutAnchorVisible(
+        SceneObjectKey key,
+        GuiLayoutAnchorGeometry geometry)
+    {
+        if (GuiGroupSelector.SelectedItem is GuiRootGroupItem selectedGroup &&
+            (selectedGroup.FileIndex != key.FileIndex ||
+             selectedGroup.ObjectIndex != geometry.Anchor.RootGroupObjectIndex))
+        {
+            return false;
+        }
+        if (GuiStateSelector.SelectedItem is not GuiStateChoice stateChoice ||
+            stateChoice.State is null)
+        {
+            return true;
+        }
+        return geometry.Anchor.VisualState is
+            SmoGuiVisualState.Unclassified or SmoGuiVisualState.Shadow ||
+            geometry.Anchor.VisualState == stateChoice.State;
+    }
+
+    private void FrameGuiPreview()
+    {
+        BoundsBuilder bounds = new();
+        GuiRootGroupItem? selectedGroup =
+            GuiGroupSelector.SelectedItem as GuiRootGroupItem;
+        foreach ((SceneObjectKey key, SceneGeometry geometry) in _sceneGeometry)
+        {
+            if ((selectedGroup is null || key.FileIndex == selectedGroup.FileIndex) &&
+                IsGuiGeometryVisible(key, geometry))
+                bounds.Merge(geometry.Bounds);
+        }
+        foreach ((SceneObjectKey key, GuiLayoutAnchorGeometry geometry)
+                 in _guiLayoutAnchorGeometry)
+        {
+            if ((selectedGroup is null || key.FileIndex == selectedGroup.FileIndex) &&
+                IsGuiLayoutAnchorVisible(key, geometry))
+            {
+                bounds.Merge(geometry.Bounds);
+            }
+        }
+        if (!bounds.HasValue)
+        {
+            AddLog("У выбранной GUI-ветви нет отображаемой геометрии или anchors.");
+            return;
+        }
+        FrameBounds(bounds);
+    }
+
+    private bool SynchronizeGuiTreeSelection(SceneTreeNode node)
+    {
+        if (node.ObjectIndex is not int selectedIndex ||
+            !_treeFiles.TryGetValue(node.FileIndex, out DecodedSmoFile? file) ||
+            !file.GuiScene.IsGuiContent ||
+            !file.GuiScene.ObjectContextsByObjectIndex.TryGetValue(
+                selectedIndex, out SmoGuiObjectContext? context))
+        {
+            return false;
+        }
+
+        GuiRootGroupItem? groupItem = GuiGroupSelector.Items
+            .OfType<GuiRootGroupItem>()
+            .FirstOrDefault(item =>
+                item.FileIndex == node.FileIndex &&
+                item.ObjectIndex == context.RootGroupObjectIndex);
+        if (groupItem is null)
+        {
+            AddLog(
+                $"GUI-ветвь {context.RootGroupName} не содержит отображаемых " +
+                "mesh или runtime-якорей.");
+            return false;
+        }
+        GuiStateChoice? stateItem = context.VisualState is
+                SmoGuiVisualState.Unclassified or SmoGuiVisualState.Shadow
+            ? null
+            : GuiStateSelector.Items
+                .OfType<GuiStateChoice>()
+                .FirstOrDefault(item => item.State == context.VisualState);
+
+        _updatingGuiPanel = true;
+        try
+        {
+            if (groupItem is not null)
+                GuiGroupSelector.SelectedItem = groupItem;
+            if (stateItem is not null)
+                GuiStateSelector.SelectedItem = stateItem;
+            if (context.IsCollision)
+                GuiCollisionCheck.IsChecked = true;
+        }
+        finally
+        {
+            _updatingGuiPanel = false;
+        }
+
+        RefreshGuiElementList();
+        string stateDescription = stateItem?.Display ??
+            (GuiStateSelector.SelectedItem as GuiStateChoice)?.Display ??
+            "текущее состояние";
+        AddLog(
+            $"GUI-контекст: экран {context.RootGroupName}, {stateDescription}; " +
+            "выбранный объект показан в собранной сцене.");
+        return true;
+    }
+
+    private void ShowResourcesPanel_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(ResourcesPanel);
+
+    private void SkeletonPanelButton_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(SkeletonPanel);
+
+    private void SkeletonPanelClose_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(ResourcesPanel);
+
+    private void AnimationPanelButton_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(AnimationPanel);
+
+    private void NativeValidationPanelButton_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(GameValidationPanel);
+
+    private void AnimationPanelClose_Click(object sender, RoutedEventArgs e) =>
+        ShowSidebarPanel(ResourcesPanel);
+
+    private void ShowSidebarPanel(UIElement selected)
+    {
+        ResourcesPanel.Visibility = ReferenceEquals(selected, ResourcesPanel)
+            ? Visibility.Visible : Visibility.Collapsed;
+        SkeletonPanel.Visibility = ReferenceEquals(selected, SkeletonPanel)
+            ? Visibility.Visible : Visibility.Collapsed;
+        AnimationPanel.Visibility = ReferenceEquals(selected, AnimationPanel)
+            ? Visibility.Visible : Visibility.Collapsed;
+        GuiPanel.Visibility = ReferenceEquals(selected, GuiPanel)
+            ? Visibility.Visible : Visibility.Collapsed;
+        GameValidationPanel.Visibility = ReferenceEquals(selected, GameValidationPanel)
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void GameValidationPanel_LogMessage(
+        object? sender,
+        NativeValidationPanelLogEventArgs e) =>
+        AddLog(e.Message);
+
+    private void AddAnimationFiles_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog dialog = new()
+        {
+            Title = "Добавить анимации",
+            Filter = "Sparkplug animations (*.san;*.anm)|*.san;*.anm|All files (*.*)|*.*",
+            Multiselect = true,
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        foreach (string file in dialog.FileNames)
+        {
+            if (Path.GetExtension(file).Equals(".anm", StringComparison.OrdinalIgnoreCase))
+                AddAnimationsFromAnm(file);
+            else
+                AddAnimationFile(file, null, "Ручные SAN");
+        }
+        AnimationSourceText.Text = $"Добавлено вручную: {dialog.FileNames.Length}";
+        RefreshAnimationList();
+    }
+
+    private void ChooseAnimationFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog { Title = "Папка с SAN/ANM-анимациями" };
+        if (dialog.ShowDialog(this) != true) return;
+        AddAnimationsFromDirectory(dialog.FolderName);
+        AnimationSourceText.Text = dialog.FolderName;
+        RefreshAnimationList();
+    }
+
+    private void AddAnimationsFromDirectory(string directory)
+    {
+        if (!Directory.Exists(directory)) return;
+        foreach (string anm in Directory.EnumerateFiles(directory, "*.anm", SearchOption.AllDirectories))
+            AddAnimationsFromAnm(anm);
+        foreach (string san in Directory.EnumerateFiles(directory, "*.san", SearchOption.AllDirectories))
+            if (!_allAnimationItems.Any(item => item.Path.Equals(
+                    Path.GetFullPath(san), StringComparison.OrdinalIgnoreCase)))
+                AddAnimationFile(san, null,
+                    $"{new DirectoryInfo(Path.GetDirectoryName(san)!).Name} · без ANM");
+        AnimationSourceText.Text = $"Автопоиск: {directory}";
+    }
+
+    private static bool TryFindDefaultBloomAnimationDirectory(
+        IEnumerable<string> modelPaths, out string directory)
+    {
+        directory = string.Empty;
+        IEnumerable<string> starts = modelPaths
+            .Select(path => Path.GetDirectoryName(path) ?? string.Empty)
+            .Where(path => path.Length > 0)
+            .Concat([Environment.CurrentDirectory, AppContext.BaseDirectory]);
+        foreach (string start in starts)
+        {
+            DirectoryInfo? cursor;
+            try { cursor = new DirectoryInfo(start); }
+            catch { continue; }
+            while (cursor is not null)
+            {
+                string candidate = cursor.Name.Equals("Media", StringComparison.OrdinalIgnoreCase)
+                    ? Path.Combine(cursor.FullName, "Characters", "Bloom")
+                    : Path.Combine(cursor.FullName, "Media", "Characters", "Bloom");
+                if (Directory.Exists(candidate) &&
+                    (Directory.EnumerateFiles(candidate, "*.san", SearchOption.AllDirectories).Any() ||
+                     Directory.EnumerateFiles(candidate, "*.anm", SearchOption.AllDirectories).Any()))
+                {
+                    directory = candidate;
+                    return true;
+                }
+                cursor = cursor.Parent;
+            }
+        }
+        return false;
+    }
+
+    private void AddAnimationsFromAnm(string anmPath)
+    {
+        string directory = Path.GetDirectoryName(anmPath) ?? string.Empty;
+        string group = Path.GetFileNameWithoutExtension(anmPath);
+        foreach (string line in File.ReadLines(anmPath))
+        {
+            string clean = line.Trim();
+            if (clean.Length == 0 || clean.StartsWith('#') ||
+                clean.StartsWith("end", StringComparison.OrdinalIgnoreCase)) continue;
+            string[] fields = clean.TrimEnd(';').Split(',').Select(value => value.Trim()).ToArray();
+            if (fields.Length < 8 || !fields[^1].EndsWith(".san", StringComparison.OrdinalIgnoreCase)) continue;
+            string san = Path.Combine(directory, fields[^1]);
+            string state = string.Join(" / ", fields.Take(6).Where(value =>
+                value.Length > 0 && !value.Equals("none", StringComparison.OrdinalIgnoreCase)));
+            AddAnimationFile(san, $"{group}: {state} [{fields[6]}]", group);
+        }
+    }
+
+    private void AddAnimationFile(string path, string? state, string group)
+    {
+        if (!File.Exists(path)) return;
+        string fullPath = Path.GetFullPath(path);
+        int existingIndex = _allAnimationItems.FindIndex(item =>
+            item.Path.Equals(fullPath, StringComparison.OrdinalIgnoreCase));
+        if (existingIndex >= 0)
+        {
+            AddAnimationGroup(fullPath, group);
+            if (!string.IsNullOrWhiteSpace(state) &&
+                !_allAnimationItems[existingIndex].Display.Contains(state, StringComparison.OrdinalIgnoreCase))
+                _allAnimationItems[existingIndex] = _allAnimationItems[existingIndex] with
+                    { Display = _allAnimationItems[existingIndex].Display + $" · {state}" };
+            return;
+        }
+        string display = Path.GetFileNameWithoutExtension(fullPath);
+        if (!string.IsNullOrWhiteSpace(state)) display += $"  ·  {state}";
+        _allAnimationItems.Add(new AnimationListItem(fullPath, display));
+        AddAnimationGroup(fullPath, group);
+    }
+
+    private void AddAnimationGroup(string path, string group)
+    {
+        if (!_animationGroupsByPath.TryGetValue(path, out HashSet<string>? groups))
+        {
+            groups = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _animationGroupsByPath.Add(path, groups);
+        }
+        groups.Add(group);
+        _enabledAnimationGroups.Add(group);
+    }
+
+    private void AnimationFilter_Changed(object sender, TextChangedEventArgs e) => RefreshAnimationList();
+
+    private void RefreshAnimationList()
+    {
+        if (AnimationList is null || AnimationFilterBox is null) return;
+        RebuildAnimationGroupControls();
+        string filter = AnimationFilterBox.Text.Trim();
+        AnimationList.ItemsSource = _allAnimationItems.Where(item =>
+            _animationGroupsByPath.TryGetValue(item.Path, out HashSet<string>? groups) &&
+            groups.Any(_enabledAnimationGroups.Contains) &&
+            (filter.Length == 0 || item.Display.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(item => item.Display, StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
+    private void RebuildAnimationGroupControls()
+    {
+        if (AnimationGroupsPanel is null) return;
+        string[] groups = _animationGroupsByPath.Values.SelectMany(value => value)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase).ToArray();
+        if (AnimationGroupsPanel.Children.Count == groups.Length &&
+            AnimationGroupsPanel.Children.OfType<CheckBox>().Select(box => box.Tag as string)
+                .SequenceEqual(groups, StringComparer.OrdinalIgnoreCase)) return;
+
+        _updatingAnimationGroups = true;
+        AnimationGroupsPanel.Children.Clear();
+        foreach (string group in groups)
+        {
+            var checkBox = new CheckBox
+            {
+                Content = group,
+                Tag = group,
+                Foreground = new SolidColorBrush(Color.FromRgb(216, 220, 228)),
+                IsChecked = _enabledAnimationGroups.Contains(group),
+                Margin = new Thickness(0, 2, 0, 2)
+            };
+            checkBox.Checked += AnimationGroupCheck_Changed;
+            checkBox.Unchecked += AnimationGroupCheck_Changed;
+            AnimationGroupsPanel.Children.Add(checkBox);
+        }
+        _updatingAnimationGroups = false;
+    }
+
+    private void AnimationGroupCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_updatingAnimationGroups || sender is not CheckBox { Tag: string group } checkBox) return;
+        if (checkBox.IsChecked == true) _enabledAnimationGroups.Add(group);
+        else _enabledAnimationGroups.Remove(group);
+        RefreshAnimationList();
+    }
+
+    private void EnableAllAnimationGroups_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (string group in _animationGroupsByPath.Values.SelectMany(value => value))
+            _enabledAnimationGroups.Add(group);
+        SetAnimationGroupChecks(true);
+    }
+
+    private void DisableAllAnimationGroups_Click(object sender, RoutedEventArgs e)
+    {
+        _enabledAnimationGroups.Clear();
+        SetAnimationGroupChecks(false);
+    }
+
+    private void SetAnimationGroupChecks(bool enabled)
+    {
+        _updatingAnimationGroups = true;
+        foreach (CheckBox checkBox in AnimationGroupsPanel.Children.OfType<CheckBox>())
+            checkBox.IsChecked = enabled;
+        _updatingAnimationGroups = false;
+        RefreshAnimationList();
+    }
+
+    private void AnimationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AnimationList.SelectedItem is not AnimationListItem item) return;
+        SparkplugAnimationClip? clip = null;
+        _animationFileIndex = _treeFiles.FirstOrDefault(pair => pair.Value.Skeleton.Count > 0).Key;
+        try
+        {
+            clip = SparkplugAnimationClip.Load(item.Path);
+            if (!_treeFiles.TryGetValue(_animationFileIndex, out DecodedSmoFile? target))
+                throw new InvalidOperationException("No model is available for animation.");
+            foreach (string warning in target.Runtime.Bind(clip)) AddLog(warning);
+        }
+        catch (Exception exception)
+        {
+            clip?.Dispose();
+            _selectedAnimation?.Dispose();
+            _selectedAnimation = null;
+            _animationPlaying = false;
+            AnimationPlayPauseButton.Content = "▶";
+            AnimationTimeline.Visibility = Visibility.Collapsed;
+            AddLog($"SAN {Path.GetFileName(item.Path)}: {exception.Message}");
+            return;
+        }
+        _selectedAnimation?.Dispose();
+        _selectedAnimation = clip;
+        _animationTime = 0;
+        _animationPlaying = false;
+        AnimationPlayPauseButton.Content = "▶";
+        AnimationPlayPauseButton.IsEnabled = clip.Duration > 0;
+        AnimationSlider.Minimum = 0;
+        AnimationSlider.Maximum = clip.Duration;
+        AnimationTimeline.Visibility = Visibility.Visible;
+        ApplyAnimationPose();
+        int matched = _treeFiles.TryGetValue(_animationFileIndex, out DecodedSmoFile? animationFile)
+            ? animationFile.Skeleton.Count(bone => clip.Tracks.Any(track =>
+                track.NodeName.Equals(bone.Name, StringComparison.Ordinal))) : 0;
+        AddLog($"Анимация {Path.GetFileName(item.Path)}: {clip.Tracks.Count} tracks, " +
+               $"совпало со skeleton {matched}, {clip.FrameCount} keys, {clip.Duration:G4} s.");
+    }
+
+    private void AnimationPlayPause_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedAnimation is not { Duration: > 0 }) return;
+        _animationPlaying = !_animationPlaying;
+        AnimationPlayPauseButton.Content = _animationPlaying ? "⏸" : "▶";
+    }
+
+    private void PreviousAnimationFrame_Click(object sender, RoutedEventArgs e) => StepAnimation(-1);
+    private void NextAnimationFrame_Click(object sender, RoutedEventArgs e) => StepAnimation(1);
+
+    private void StepAnimation(int direction)
+    {
+        if (_selectedAnimation is null) return;
+        _animationPlaying = false;
+        AnimationPlayPauseButton.Content = "▶";
+        double step = _selectedAnimation.FrameCount > 1
+            ? _selectedAnimation.Duration / (_selectedAnimation.FrameCount - 1) : 1.0 / 30.0;
+        _animationTime = Math.Clamp(_animationTime + direction * step, 0, _selectedAnimation.Duration);
+        ApplyAnimationPose();
+    }
+
+    private void AnimationSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_updatingAnimationSlider || _selectedAnimation is null) return;
+        _animationTime = e.NewValue;
+        _animationPlaying = false;
+        if (AnimationPlayPauseButton is not null) AnimationPlayPauseButton.Content = "▶";
+        ApplyAnimationPose();
+    }
+
+    private void ApplyAnimationPose()
+    {
+        try
+        {
+            ApplyAnimationPoseCore();
+        }
+        catch (Exception exception)
+        {
+            _animationPlaying = false;
+            if (AnimationPlayPauseButton is not null)
+                AnimationPlayPauseButton.Content = "▶";
+            AddLog($"ОШИБКА применения анимации: {exception.GetType().Name}: {exception.Message}");
+        }
+    }
+
+    private void ApplyAnimationPoseCore()
+    {
+        if (_selectedAnimation is null ||
+            !_treeFiles.TryGetValue(_animationFileIndex, out DecodedSmoFile? file)) return;
+
+        IReadOnlyDictionary<int, AnimationNode> nodes = file.AnimationNodes;
+        file.Runtime.Sample((float)_animationTime);
+        IReadOnlyDictionary<int, Matrix4x4> worlds = file.Runtime.Worlds;
+
+        _animatedBonePositions.Clear();
+        foreach ((int index, Matrix4x4 world) in worlds)
+            _animatedBonePositions[index] = new System.Numerics.Vector3(world.M41, world.M42, world.M43);
+
+        foreach ((SceneObjectKey key, SceneGeometry scene) in _sceneGeometry)
+        {
+            if (key.FileIndex != _animationFileIndex) continue;
+            SmoMesh mesh = scene.RenderMesh.Mesh;
+            if (!mesh.HasSkinningData)
+            {
+                if (scene.RenderMesh.RigidNodeObjectIndex is int rigidNodeIndex &&
+                    worlds.TryGetValue(rigidNodeIndex, out Matrix4x4 animatedNode) &&
+                    nodes.TryGetValue(rigidNodeIndex, out AnimationNode? rigidNode) &&
+                    Matrix4x4.Invert(rigidNode.BindWorldMatrix, out Matrix4x4 inverseBind))
+                {
+                    Matrix4x4 transform = scene.RenderMesh.WorldTransform * inverseBind * animatedNode;
+                    if (scene.GpuRendered)
+                        UpdateDirectGpuModelTransform(key, transform);
+                    int[]? sourceVertexIndices = scene.SourceVertexIndices;
+                    int rigidPositionCount = sourceVertexIndices?.Length ??
+                        mesh.Positions.Length;
+                    Point3DCollection rigidPositions = new(rigidPositionCount);
+                    IEnumerable<int> rigidSourceIndices = sourceVertexIndices ??
+                        Enumerable.Range(0, mesh.Positions.Length);
+                    foreach (int sourceIndex in rigidSourceIndices)
+                    {
+                        var source = mesh.Positions[sourceIndex];
+                        var value = System.Numerics.Vector3.Transform(source, transform);
+                        rigidPositions.Add(new Point3D(value.X, value.Y, -value.Z));
+                    }
+                    scene.Geometry.Positions = rigidPositions;
+                }
+                continue;
+            }
+            if (scene.RenderMesh.SkinObjectIndex is not int skinIndex ||
+                !file.Skins.ContainsKey(skinIndex)) continue;
+            if (mesh.BlendWeights.Length != mesh.Positions.Length ||
+                mesh.BlendIndices.Length != mesh.Positions.Length)
+                continue;
+            Matrix4x4[] boneMatrices = file.Runtime.Palette(skinIndex);
+            if (scene.GpuRendered)
+                UpdateDirectGpuSkinning(key, boneMatrices);
+            // Picking companions receive current vertex positions from the
+            // visible GPU shader only when a click is processed after Render.
+        }
+        if (UpdateAnimationSkeletonVisuals(file)) UpdateSkeletonVisibility();
+        else UpdateSelectedBoneVisual();
+        _updatingAnimationSlider = true;
+        AnimationSlider.Value = _animationTime;
+        _updatingAnimationSlider = false;
+        AnimationTimeText.Text = $"{_animationTime:0.000} / {_selectedAnimation.Duration:0.000} s";
+    }
+
+    private void SkeletonOption_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!IsInitialized)
+            return;
+        UpdateSkeletonVisibility();
+        UpdateMeshAppearance();
+    }
+
+    private void FloorGridOption_Changed(object sender, RoutedEventArgs e)
+    {
+        if (IsInitialized)
+            UpdateFloorGrid();
+    }
+
+    private void NativeLightTurntable_Changed(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (!IsInitialized)
+            return;
+
+        _modelTurntableEnabled = NativeLightTurntableCheck.IsChecked == true;
+        NativeLightTurntableSlider.IsEnabled = _modelTurntableEnabled;
+        ApplyModelTurntableTransform();
+    }
+
+    private void NativeLightTurntableSlider_ValueChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<double> e)
+    {
+        _modelTurntableAngle = e.NewValue;
+        if (NativeLightTurntableValueText is not null)
+            NativeLightTurntableValueText.Text = $"{_modelTurntableAngle:F0}°";
+        if (IsInitialized)
+            ApplyModelTurntableTransform();
+    }
+
+    private void ApplyModelTurntableTransform()
+    {
+        if (LoadedModelsRoot is null)
+            return;
+
+        Transform3D transform = Transform3D.Identity;
+        if (_modelTurntableEnabled && _sceneBounds.HasValue)
+        {
+            AxisAngleRotation3D rotation = new(
+                new Vector3D(0, 1, 0), _modelTurntableAngle);
+            RotateTransform3D turntable = new(rotation, _sceneBounds.Center);
+            turntable.Freeze();
+            transform = turntable;
+        }
+
+        LoadedModelsRoot.Transform = transform;
+        SkeletonRoot.Transform = transform;
+        AttachmentRoot.Transform = transform;
+        CollisionRoot.Transform = transform;
+        ControlRigRoot.Transform = transform;
+        MarkerRoot.Transform = transform;
+    }
+
+    private void BackgroundColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (ChooseColor(_sceneBackgroundColor) is not Color selected)
+            return;
+
+        _sceneBackgroundColor = selected;
+        ApplySceneColors();
+    }
+
+    private void FloorGridColor_Click(object sender, RoutedEventArgs e)
+    {
+        if (ChooseColor(_floorGridColor) is not Color selected)
+            return;
+
+        _floorGridColor = selected;
+        ApplySceneColors();
+        UpdateFloorGrid();
+    }
+
+    private static Color? ChooseColor(Color current)
+    {
+        using var dialog = new System.Windows.Forms.ColorDialog
+        {
+            AllowFullOpen = true,
+            AnyColor = true,
+            FullOpen = true,
+            SolidColorOnly = true,
+            Color = System.Drawing.Color.FromArgb(
+                current.R, current.G, current.B)
+        };
+        if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            return null;
+
+        System.Drawing.Color selected = dialog.Color;
+        return Color.FromRgb(selected.R, selected.G, selected.B);
+    }
+
+    private void ApplySceneColors()
+    {
+        SolidColorBrush background = new(_sceneBackgroundColor);
+        background.Freeze();
+        SceneSurface.Background = background;
+
+        SolidColorBrush grid = new(_floorGridColor);
+        grid.Freeze();
+        BackgroundColorSwatch.Background = background;
+        FloorGridColorSwatch.Background = grid;
+        BackgroundColorText.Text = $"Фон · #{_sceneBackgroundColor.R:X2}" +
+                                   $"{_sceneBackgroundColor.G:X2}" +
+                                   $"{_sceneBackgroundColor.B:X2}";
+        FloorGridColorText.Text = $"Сетка · #{_floorGridColor.R:X2}" +
+                                  $"{_floorGridColor.G:X2}" +
+                                  $"{_floorGridColor.B:X2}";
+    }
+
+    private void UpdateFloorGrid()
+    {
+        if (FloorGridRoot is null)
+            return;
+
+        FloorGridRoot.Children.Clear();
+        if (HasDirectGpuScene ||
+            _guiPreviewActive ||
+            ShowFloorGridCheck?.IsChecked != true)
+            return;
+
+        double centerX = 0;
+        double centerZ = 0;
+        double floorY = 0;
+        double span = 20;
+        double diagonal = 0;
+        if (_sceneBounds.HasValue)
+        {
+            centerX = _sceneBounds.Center.X;
+            centerZ = _sceneBounds.Center.Z;
+            floorY = _sceneBounds.MinY;
+            diagonal = _sceneBounds.DiagonalLength;
+            span = Math.Max(
+                Math.Max(_sceneBounds.Width, _sceneBounds.Depth),
+                diagonal * 0.25);
+        }
+
+        double step = NiceGridStep(Math.Max(span / 20.0, 0.0001));
+        const int halfLineCount = 12;
+        double extent = step * halfLineCount;
+        centerX = Math.Round(centerX / step) * step;
+        centerZ = Math.Round(centerZ / step) * step;
+        floorY -= Math.Max(step * 0.002, diagonal * 0.0005);
+        double thickness = Math.Max(step * 0.012, 0.0001);
+        Material minorMaterial = CreateGridMaterial(_floorGridColor, 150);
+        Material majorMaterial = CreateGridMaterial(_floorGridColor, 235);
+
+        for (int offset = -halfLineCount; offset <= halfLineCount; offset++)
+        {
+            double coordinate = offset * step;
+            bool major = offset % 5 == 0;
+            Material material = major ? majorMaterial : minorMaterial;
+            double lineThickness = major ? thickness * 1.65 : thickness;
+            FloorGridRoot.Children.Add(CreateFloorGridLine(
+                new Point3D(centerX + coordinate, floorY, centerZ - extent),
+                new Point3D(centerX + coordinate, floorY, centerZ + extent),
+                lineThickness,
+                material));
+            FloorGridRoot.Children.Add(CreateFloorGridLine(
+                new Point3D(centerX - extent, floorY, centerZ + coordinate),
+                new Point3D(centerX + extent, floorY, centerZ + coordinate),
+                lineThickness,
+                material));
+        }
+    }
+
+    private static double NiceGridStep(double value)
+        => SmoViewer.Rendering.Wpf.SmoViewportMath.NiceGridStep(value);
+
+    private static Material CreateGridMaterial(Color color, byte alpha)
+    {
+        Color visible = Color.FromArgb(alpha, color.R, color.G, color.B);
+        EmissiveMaterial material = new(new SolidColorBrush(visible));
+        material.Freeze();
+        return material;
+    }
+
+    private static GeometryModel3D CreateFloorGridLine(
+        Point3D start,
+        Point3D end,
+        double thickness,
+        Material material)
+    {
+        Vector3D direction = end - start;
+        Vector3D side = new(-direction.Z, 0, direction.X);
+        side.Normalize();
+        side *= thickness * 0.5;
+        Point3DCollection positions =
+        [
+            start - side,
+            start + side,
+            end + side,
+            end - side
+        ];
+        MeshGeometry3D geometry = new()
+        {
+            Positions = positions,
+            TriangleIndices = [0, 1, 2, 0, 2, 3]
+        };
+        geometry.Freeze();
+        return new GeometryModel3D(geometry, material)
+        {
+            BackMaterial = material
+        };
+    }
+
+    private void BoneFilter_Changed(object sender, TextChangedEventArgs e)
+    {
+        if (!IsInitialized)
+            return;
+        RefreshBoneList();
+    }
+
+    private void RefreshBoneList()
+    {
+        if (BoneList is null || BoneFilterBox is null)
+            return;
+        string filter = BoneFilterBox.Text.Trim();
+        BoneListItem[] visible = _allBoneItems
+            .Where(item => filter.Length == 0 ||
+                item.Display.Contains(filter, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(item => item.FileIndex)
+            .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        BoneListItem? selected = _selectedBone;
+        BoneList.ItemsSource = visible;
+        if (selected is not null)
+        {
+            BoneListItem? visibleSelection = visible.FirstOrDefault(item =>
+                item.FileIndex == selected.FileIndex &&
+                item.ObjectIndex == selected.ObjectIndex);
+            BoneList.SelectedItem = visibleSelection;
+            _selectedBone = visibleSelection ?? selected;
+            UpdateSkeletonVisibility();
+            UpdateMeshAppearance();
+        }
+    }
+
+    private void BoneList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        _selectedBone = BoneList.SelectedItem as BoneListItem;
+        UpdateSkeletonVisibility();
+        if (_selectedBone is not null)
+        {
+            AddLog($"Кость: {_selectedBone.Name}; подсвечены mesh с ненулевым весом.");
+            TreeViewItem? item = RevealTreeObject(new SceneObjectKey(
+                _selectedBone.FileIndex, _selectedBone.ObjectIndex));
+            if (item is not null)
+            {
+                item.IsSelected = true;
+                item.BringIntoView();
+            }
+        }
+        UpdateMeshAppearance();
+    }
+
+    private void AuxiliaryObjectList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AuxiliaryObjectList.SelectedItem is not AuxiliaryObjectItem selected)
+            return;
+        TreeViewItem? item = RevealTreeObject(new SceneObjectKey(
+            selected.FileIndex, selected.ObjectIndex));
+        if (item is not null)
+        {
+            item.IsSelected = true;
+            item.BringIntoView();
+        }
+    }
+
+    private void UpdateSkeletonVisibility()
+    {
+        if (SkeletonRoot is null || AttachmentRoot is null || CollisionRoot is null ||
+            ControlRigRoot is null || MarkerRoot is null)
+            return;
+        SkeletonRoot.Children.Clear();
+        AttachmentRoot.Children.Clear();
+        CollisionRoot.Children.Clear();
+        ControlRigRoot.Children.Clear();
+        MarkerRoot.Children.Clear();
+        _selectedBoneVisual = null;
+        if (_animatedBonePositions.Count > 0 &&
+            _treeFiles.TryGetValue(_animationFileIndex, out DecodedSmoFile? animationFile))
+            UpdateAnimationSkeletonVisuals(animationFile);
+        if (ShowSkeletonCheck?.IsChecked == true)
+        {
+            if (_animatedBonePositions.Count > 0 &&
+                _treeFiles.TryGetValue(_animationFileIndex, out DecodedSmoFile? animatedFile))
+            {
+                SkeletonRoot.Children.Add(_animationSkeletonVisuals!.Bones);
+            }
+            else foreach (Model3D model in _skeletonModels)
+                SkeletonRoot.Children.Add(model);
+        }
+        if (ShowAttachmentsCheck?.IsChecked == true)
+        {
+            if (_animatedBonePositions.Count > 0 &&
+                _treeFiles.TryGetValue(_animationFileIndex, out DecodedSmoFile? animatedFile))
+            {
+                AttachmentRoot.Children.Add(_animationSkeletonVisuals!.Attachments);
+            }
+            else foreach (Model3D model in _attachmentModels)
+                AttachmentRoot.Children.Add(model);
+        }
+        if (ShowCollisionCheck?.IsChecked == true)
+        {
+            foreach (Model3D model in _collisionModels)
+                CollisionRoot.Children.Add(model);
+            if (_selectedAuxiliary is SceneObjectKey selected &&
+                _treeFiles.TryGetValue(selected.FileIndex, out DecodedSmoFile? collisionFile))
+            {
+                CollisionVolume? collision = collisionFile.CollisionVolumes.FirstOrDefault(
+                    item => item.ObjectIndex == selected.ObjectIndex);
+                if (collision is not null)
+                {
+                    double radius = Math.Max(_sceneBounds.DiagonalLength * 0.007, 0.012);
+                    CollisionRoot.Children.Add(CreateCollisionBox(
+                        collision, radius,
+                        CreateSolidMaterial(Color.FromRgb(255, 45, 45))));
+                }
+            }
+        }
+        if (ShowControlRigCheck?.IsChecked == true)
+        {
+            foreach (Model3D model in _controlRigModels)
+                ControlRigRoot.Children.Add(model);
+            AddSelectedHelperMarker(ControlRigRoot, true, 1.8);
+        }
+        if (ShowMarkersCheck?.IsChecked == true)
+        {
+            foreach (Model3D model in _markerModels)
+                MarkerRoot.Children.Add(model);
+            AddSelectedHelperMarker(MarkerRoot, false, 2.8);
+        }
+
+        if (_selectedBone is not null &&
+            _treeFiles.TryGetValue(_selectedBone.FileIndex, out DecodedSmoFile? file))
+        {
+            SkeletonBone? bone = file.Skeleton.FirstOrDefault(item =>
+                item.ObjectIndex == _selectedBone.ObjectIndex);
+            if (bone is not null)
+            {
+                double radius = Math.Max(_sceneBounds.DiagonalLength * 0.01, 0.012);
+                Model3D marker = CreateOctahedron(
+                    new Point3D(), 1,
+                    CreateSolidMaterial(Color.FromRgb(255, 45, 45)));
+                var transform = new MatrixTransform3D();
+                marker.Transform = transform;
+                _selectedBoneVisual = new SelectedBoneVisual(_selectedBone.FileIndex, bone, radius, transform);
+                UpdateSelectedBoneVisual();
+                if (bone.IsAttachment && ShowAttachmentsCheck?.IsChecked == true)
+                    AttachmentRoot.Children.Add(marker);
+                else if (!bone.IsAttachment && ShowSkeletonCheck?.IsChecked == true)
+                    SkeletonRoot.Children.Add(marker);
+            }
+        }
+    }
+
+    private void AddSelectedHelperMarker(
+        Model3DGroup target, bool controlRig, double radiusScale)
+    {
+        if (_selectedAuxiliary is not SceneObjectKey selected ||
+            !_treeFiles.TryGetValue(selected.FileIndex, out DecodedSmoFile? file))
+            return;
+        IReadOnlyList<HelperNode> helpers = controlRig ? file.ControlRig : file.Markers;
+        HelperNode? helper = helpers.FirstOrDefault(item => item.ObjectIndex == selected.ObjectIndex);
+        if (helper is null)
+            return;
+        double radius = Math.Max(_sceneBounds.DiagonalLength * 0.008, 0.012) * radiusScale;
+        target.Children.Add(CreateOctahedron(
+            ToViewportPoint(helper.Position), radius,
+            CreateSolidMaterial(Color.FromRgb(255, 45, 45))));
+    }
+
+    private void UpdateMeshAppearance()
+    {
+        if (HighlightInfluencedMeshesCheck is null)
+            return;
+        bool highlightBone = HighlightInfluencedMeshesCheck.IsChecked == true &&
+                             _selectedBone is not null;
+        Material influencedMaterial = CreateSolidMaterial(Color.FromRgb(255, 92, 35));
+        Material treeHighlightMaterial = CreateSolidMaterial(Color.FromRgb(255, 176, 35));
+        Material guiCollisionMaterial = CreateSolidMaterial(
+            Color.FromArgb(105, 255, 92, 35));
+
+        foreach ((SceneObjectKey key, SceneGeometry geometry) in _sceneGeometry)
+        {
+            bool visible = IsGuiGeometryVisible(key, geometry);
+            if (!visible)
+            {
+                geometry.Model.Material = null;
+                geometry.Model.BackMaterial = null;
+                if (geometry.GpuRendered)
+                {
+                    UpdateDirectGpuAppearance(
+                        key,
+                        visible: false,
+                        highlighted: false,
+                        opacity: 0);
+                }
+                continue;
+            }
+
+            bool treeHighlighted = _highlightedGeometry.Contains(geometry);
+            bool influenced = highlightBone &&
+                key.FileIndex == _selectedBone!.FileIndex &&
+                geometry.RenderMesh.BoneInfluences.ContainsKey(_selectedBone.ObjectIndex);
+            double opacity = highlightBone && !influenced ? 0.22 : 1.0;
+            bool guiCollision = _treeFiles.TryGetValue(
+                    key.FileIndex, out DecodedSmoFile? file) &&
+                file.GuiScene.MeshesByObjectIndex.TryGetValue(
+                    key.ObjectIndex, out SmoGuiMeshInfo? guiMesh) &&
+                guiMesh.IsCollision;
+            if (geometry.GpuRendered)
+            {
+                UpdateDirectGpuAppearance(
+                    key,
+                    visible: true,
+                    highlighted: treeHighlighted || influenced,
+                    opacity);
+                // The transparent WPF copy is not part of the visible render,
+                // but it must retain a material to participate in Viewport3D
+                // ray hit testing. The real pixels are produced by OpenGL.
+                geometry.Model.Material = geometry.OriginalMaterial;
+                geometry.Model.BackMaterial = geometry.OriginalMaterial;
+                continue;
+            }
+            Material material = treeHighlighted
+                ? treeHighlightMaterial
+                : guiCollision
+                    ? guiCollisionMaterial
+                    : influenced
+                        ? influencedMaterial
+                        : opacity < 1
+                            ? CloneMaterialWithOpacity(
+                                geometry.OriginalMaterial, opacity)
+                            : geometry.OriginalMaterial;
+            geometry.Model.Material = material;
+            geometry.Model.BackMaterial = material;
+        }
+
+        foreach ((SceneObjectKey key, GuiLayoutAnchorGeometry geometry)
+                 in _guiLayoutAnchorGeometry)
+        {
+            if (!IsGuiLayoutAnchorVisible(key, geometry))
+            {
+                geometry.Model.Material = null;
+                geometry.Model.BackMaterial = null;
+                continue;
+            }
+            Material material = _highlightedGuiLayoutAnchors.Contains(key)
+                ? treeHighlightMaterial
+                : geometry.OriginalMaterial;
+            geometry.Model.Material = material;
+            geometry.Model.BackMaterial = material;
+        }
+    }
+
+    private static Material CloneMaterialWithOpacity(Material source, double opacity)
+    {
+        Material result = source switch
+        {
+            DiffuseMaterial diffuse => new DiffuseMaterial(CloneBrush(diffuse.Brush, opacity)),
+            EmissiveMaterial emissive => new EmissiveMaterial(CloneBrush(emissive.Brush, opacity)),
+            SpecularMaterial specular => new SpecularMaterial(
+                CloneBrush(specular.Brush, opacity), specular.SpecularPower),
+            MaterialGroup group => new MaterialGroup
+            {
+                Children = new MaterialCollection(group.Children.Select(child =>
+                    CloneMaterialWithOpacity(child, opacity)))
+            },
+            _ => source.CloneCurrentValue()
+        };
+        result.Freeze();
+        return result;
+    }
+
+    private static Brush CloneBrush(Brush source, double opacity)
+    {
+        Brush brush = source.CloneCurrentValue();
+        brush.Opacity *= opacity;
+        brush.Freeze();
+        return brush;
+    }
+
+    private void UpdateSceneStats()
+    {
+        SceneStatsText.Text =
+            $"Файлов: {_loadedFileCount} · меши: {_decodedMeshCount}/{_totalMeshCount} · " +
+            $"shared instances: {_sharedMeshInstanceCount} · " +
+            $"с текстурой: {_texturedMeshCount} · texture issues: {_textureIssueCount} · " +
+            $"диагностики: {_diagnosticCount} (ошибок: {_diagnosticErrorCount}) · " +
+            $"unsupported: {_unsupportedMeshCount} · сбоев: {_failedFileCount}";
+    }
+
+    private void UpdateIssueToolTip()
+    {
+        if (_allIssues.Count == 0)
+        {
+            StatusText.ToolTip = null;
+            return;
+        }
+
+        TextBlock details = new()
+        {
+            Text = string.Join(Environment.NewLine, _allIssues.Select(issue => issue.Text)),
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 780
+        };
+
+        StatusText.ToolTip = new ScrollViewer
+        {
+            Content = details,
+            MaxHeight = 420,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+        };
+    }
+
+    private void AddLog(string message)
+    {
+        StateLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+        if (StateLog.Items.Count > 2000)
+            StateLog.Items.RemoveAt(0);
+        StateLog.ScrollIntoView(StateLog.Items[StateLog.Items.Count - 1]);
+    }
+
+    private void AddFileTree(DecodedSmoFile file, int fileIndex)
+    {
+        _treeFiles[fileIndex] = file;
+        TreeViewItem root = CreateTreeItem(new SceneTreeNode(fileIndex, null));
+        int palettes = file.Objects.Count(item => item.TypeHash == SmoClassIds.Skin);
+        int bones = file.Skeleton.Count(item => !item.IsAttachment);
+        string sharedInstances = file.SharedMeshInstances.Count > 0
+            ? $" · {file.SharedMeshInstances.Count} shared instances"
+            : string.Empty;
+        root.Header =
+            $"{Path.GetFileName(file.Path)}  ·  {file.TotalMeshCount} physical mesh" +
+            $"{sharedInstances} · {palettes} palette · {bones} bones";
+        root.FontWeight = FontWeights.SemiBold;
+        AddExpansionPlaceholder(root, file.Objects.Any(item => item.ParentIndex is null));
+        SceneTree.Items.Add(root);
+    }
+
+    private TreeViewItem CreateTreeItem(SceneTreeNode node)
+    {
+        string header;
+        Brush foreground;
+        if (node.ObjectIndex is not int objectIndex)
+        {
+            header = Path.GetFileName(_treeFiles[node.FileIndex].Path);
+            foreground = Brushes.LightSteelBlue;
+        }
+        else
+        {
+            SceneObjectInfo info = _treeFiles[node.FileIndex].Objects[objectIndex];
+            string name = string.IsNullOrWhiteSpace(info.Name) ? "<без имени>" : info.Name;
+            header = $"{GetLogicalObjectKind(node.FileIndex, info)}  [{info.Index}] {name}";
+            foreground = GetClassBrush(info.TypeHash);
+        }
+
+        TreeViewItem item = new()
+        {
+            Header = header,
+            Tag = node,
+            Foreground = foreground
+        };
+        item.Expanded += SceneTreeItem_Expanded;
+        if (node.ObjectIndex is int index)
+            _visibleTreeItems[new SceneObjectKey(node.FileIndex, index)] = item;
+        return item;
+    }
+
+    private void AddExpansionPlaceholder(TreeViewItem item, bool hasChildren)
+    {
+        if (hasChildren)
+            item.Items.Add(new TreeViewItem { Header = "…", Tag = ExpansionPlaceholder.Instance });
+    }
+
+    private void SceneTreeItem_Expanded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not TreeViewItem item ||
+            item.Items.Count != 1 ||
+            item.Items[0] is not TreeViewItem placeholder ||
+            placeholder.Tag is not ExpansionPlaceholder ||
+            item.Tag is not SceneTreeNode node)
+            return;
+
+        item.Items.Clear();
+        DecodedSmoFile file = _treeFiles[node.FileIndex];
+        IEnumerable<SceneObjectInfo> children = node.ObjectIndex is int parentIndex
+            ? file.Objects.Where(entry => entry.ParentIndex == parentIndex)
+            : file.Objects.Where(entry => entry.ParentIndex is null);
+        foreach (SceneObjectInfo child in children
+                     .OrderBy(GetTreeSortPriority)
+                     .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+                     .ThenBy(entry => entry.Index))
+        {
+            TreeViewItem childItem = CreateTreeItem(
+                new SceneTreeNode(node.FileIndex, child.Index));
+            AddExpansionPlaceholder(
+                childItem,
+                file.Objects.Any(entry => entry.ParentIndex == child.Index));
+            item.Items.Add(childItem);
+        }
+
+        e.Handled = true;
+    }
+
+    private string GetLogicalObjectKind(int fileIndex, SceneObjectInfo info)
+    {
+        if (info.TypeHash == SmoClassIds.Node)
+        {
+            DecodedSmoFile file = _treeFiles[fileIndex];
+            if (file.CollisionVolumes.Any(item => item.ObjectIndex == info.Index)) return "Collision";
+            if (file.ControlRig.Any(item => item.ObjectIndex == info.Index)) return "Control";
+            if (file.Markers.Any(item => item.ObjectIndex == info.Index)) return "Marker";
+            SkeletonBone? bone = file.Skeleton.FirstOrDefault(item =>
+                item.ObjectIndex == info.Index);
+            if (bone?.IsAttachment == true) return "Attachment";
+            if (bone is not null) return "Bone";
+            return "Node";
+        }
+        SmoSharedMeshInstanceInfo? sharedInstance =
+            _treeFiles[fileIndex].SharedMeshInstances.FirstOrDefault(item =>
+                item.ModelObjectIndex == info.Index);
+        if (sharedInstance is not null)
+            return $"Mesh instance → [{sharedInstance.SourceMeshObjectIndex}]";
+        return info.TypeHash switch
+        {
+            SmoClassIds.Model => "Model",
+            SmoClassIds.RenderNode => "Render",
+            SmoClassIds.Skin => "Palette",
+            SmoClassIds.MeshData => "Mesh",
+            SmoClassIds.MaterialData => "Material",
+            SmoClassIds.TextureData => "Texture",
+            SmoClassIds.StaticRenderObject => "Instance",
+            SmoClassIds.OrientedBoxBoundingVolume => "Collision OBB",
+            SmoClassIds.LightData => "Light",
+            SmoClassIds.Fog => "Fog",
+            SmoClassIds.ParticleSystem => "Particles",
+            SmoClassIds.MaterialColorController => "Material color controller",
+            SmoClassIds.AnimTextureController => "Animated texture",
+            SmoClassIds.SkyBox => "Sky box",
+            SmoClassIds.OcclusionVolume => "Occlusion volume",
+            SmoClassIds.LensFlare => "Lens flare",
+            SmoClassIds.SphereBoundingVolume => "Collision sphere",
+            _ => SmoClassRegistry.GetDisplayName(info.TypeHash)
+        };
+    }
+
+    private static int GetTreeSortPriority(SceneObjectInfo info) => info.TypeHash switch
+    {
+        SmoClassIds.Model => 0,
+        SmoClassIds.RenderNode => 1,
+        SmoClassIds.Skin => 2,
+        SmoClassIds.MeshData => 3,
+        SmoClassIds.MaterialData => 4,
+        SmoClassIds.TextureData => 5,
+        SmoClassIds.Node => 6,
+        _ => 10
+    };
+
+    private void SceneTree_SelectedItemChanged(
+        object sender,
+        RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (e.NewValue is not TreeViewItem item || item.Tag is not SceneTreeNode node)
+            return;
+
+        _selectedTreeNode = node;
+        UpdateSerializedFieldsPanel();
+
+        BoneListItem? bone = node.ObjectIndex is int objectIndex
+            ? _allBoneItems.FirstOrDefault(candidate =>
+                candidate.FileIndex == node.FileIndex &&
+                candidate.ObjectIndex == objectIndex)
+            : null;
+        CollisionVolume? collision = node.ObjectIndex is int collisionIndex
+            ? _treeFiles[node.FileIndex].CollisionVolumes.FirstOrDefault(candidate =>
+                candidate.ObjectIndex == collisionIndex)
+            : null;
+        HelperNode? control = node.ObjectIndex is int controlIndex
+            ? _treeFiles[node.FileIndex].ControlRig.FirstOrDefault(candidate =>
+                candidate.ObjectIndex == controlIndex)
+            : null;
+        HelperNode? marker = node.ObjectIndex is int markerIndex
+            ? _treeFiles[node.FileIndex].Markers.FirstOrDefault(candidate =>
+                candidate.ObjectIndex == markerIndex)
+            : null;
+        _selectedAuxiliary = collision is not null
+            ? new SceneObjectKey(node.FileIndex, collision.ObjectIndex)
+            : control is not null
+                ? new SceneObjectKey(node.FileIndex, control.ObjectIndex)
+                : marker is not null
+                    ? new SceneObjectKey(node.FileIndex, marker.ObjectIndex)
+                    : null;
+        AuxiliaryObjectList.SelectedItem = node.ObjectIndex is int auxiliaryIndex
+            ? _auxiliaryItems.FirstOrDefault(candidate =>
+                candidate.FileIndex == node.FileIndex && candidate.ObjectIndex == auxiliaryIndex)
+            : null;
+        if (bone is null && _selectedBone is not null)
+        {
+            _selectedBone = null;
+            BoneList.SelectedItem = null;
+            UpdateSkeletonVisibility();
+            UpdateMeshAppearance();
+        }
+        else if (bone is not null)
+        {
+            _selectedBone = bone;
+            BoneList.SelectedItem = BoneList.Items.Cast<BoneListItem>().FirstOrDefault(candidate =>
+                candidate.FileIndex == bone.FileIndex && candidate.ObjectIndex == bone.ObjectIndex);
+            UpdateSkeletonVisibility();
+        }
+
+        UpdateSkeletonVisibility();
+        if (collision is not null)
+            AddLog($"Коллизия: {collision.Name}; выбранный объём подсвечен красным.");
+
+        bool guiContextResolved = SynchronizeGuiTreeSelection(node);
+        HighlightTreeSelection(node);
+        if (guiContextResolved)
+            FrameGuiPreview();
+        if (bone is not null)
+        {
+            UpdateMeshAppearance();
+        }
+    }
+
+    private void SerializedFieldsVisibility_Changed(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (SerializedFieldsPanel is null)
+            return;
+        SerializedFieldsPanel.Visibility = ShowSerializedFieldsCheck.IsChecked == true
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        UpdateSerializedFieldsPanel();
+    }
+
+    private void UpdateSerializedFieldsPanel()
+    {
+        if (SerializedFieldsText is null || SerializedFieldsHeader is null)
+            return;
+        if (_selectedTreeNode is not SceneTreeNode node ||
+            node.ObjectIndex is not int objectIndex ||
+            !_treeFiles.TryGetValue(node.FileIndex, out DecodedSmoFile? file) ||
+            objectIndex < 0 || objectIndex >= file.Objects.Count)
+        {
+            SerializedFieldsHeader.Text = "Восстановленные поля";
+            SerializedFieldsText.Text = "Выберите объект в дереве SMO.";
+            return;
+        }
+
+        SceneObjectInfo info = file.Objects[objectIndex];
+        string className = SmoClassRegistry.GetDisplayName(info.TypeHash);
+        string objectName = string.IsNullOrWhiteSpace(info.Name)
+            ? "<без имени>"
+            : info.Name;
+        SerializedFieldsHeader.Text = $"[{info.Index}] {className} · {objectName}";
+
+        if (!file.SerializedFields.TryGetValue(
+                objectIndex, out IReadOnlyList<SmoSerializedFieldValue>? fields) ||
+            fields.Count == 0)
+        {
+            SerializedFieldsText.Text =
+                SmoSerializedFieldRegistry.HasFieldDefinitions(info.TypeHash)
+                    ? "В собственной serializer-секции объекта нет подтверждённых значений."
+                    : "Для этого класса восстановленные поля пока не зарегистрированы.";
+            return;
+        }
+
+        var text = new System.Text.StringBuilder();
+        foreach (SmoSerializedFieldValue field in fields)
+        {
+            text.Append('f').Append(field.Descriptor.FieldType)
+                .Append('[').Append(field.Occurrence).Append("]  ")
+                .Append(field.Descriptor.DisplayName).AppendLine()
+                .Append("  ").Append(field.Descriptor.Key).Append(" = ")
+                .AppendLine(field.DisplayValue)
+                .Append("  layout: ").AppendLine(field.Descriptor.PayloadLayout)
+                .Append("  payload: ").Append(field.PayloadSize).Append(" B @ 0x")
+                .Append(field.AbsolutePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
+                .Append(" · ").AppendLine(field.SizeKind.ToString())
+                .Append("  hex: ").AppendLine(
+                    field.HexPreview.Length == 0 ? "<empty>" : field.HexPreview)
+                .AppendLine();
+        }
+        SerializedFieldsText.Text = text.ToString().TrimEnd();
+        SerializedFieldsText.ScrollToHome();
+    }
+
+    private void SceneTree_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (SceneTree.SelectedItem is not TreeViewItem item ||
+            item.Tag is not SceneTreeNode node)
+            return;
+
+        FrameTreeNode(node);
+        e.Handled = true;
+    }
+
+    private void SelectObjectAtPrepared(
+        Point viewportPoint,
+        IReadOnlySet<SceneObjectKey> readableSkins)
+    {
+        SceneObjectKey? selectedKey = null;
+        VisualTreeHelper.HitTest(
+            SceneViewport,
+            null,
+            result =>
+            {
+                if (result is RayMeshGeometry3DHitTestResult meshHit &&
+                    meshHit.ModelHit is GeometryModel3D model &&
+                    _geometryObjectKeys.TryGetValue(model, out SceneObjectKey key))
+                {
+                    if (_sceneGeometry.TryGetValue(key, out SceneGeometry? companion) &&
+                        ReferenceEquals(companion.Model, model) &&
+                        companion.RenderMesh.Mesh.HasSkinningData &&
+                        !readableSkins.Contains(key))
+                    {
+                        return HitTestResultBehavior.Continue;
+                    }
+                    bool visible =
+                        _sceneGeometry.TryGetValue(
+                            key, out SceneGeometry? sceneGeometry) &&
+                        IsGuiGeometryVisible(key, sceneGeometry) &&
+                        (!sceneGeometry.RenderMesh.Mesh.HasSkinningData ||
+                         readableSkins.Contains(key)) ||
+                        _guiLayoutAnchorGeometry.TryGetValue(
+                            key, out GuiLayoutAnchorGeometry? anchorGeometry) &&
+                        IsGuiLayoutAnchorVisible(key, anchorGeometry);
+                    if (visible)
+                    {
+                        selectedKey = key;
+                        return HitTestResultBehavior.Stop;
+                    }
+                }
+
+                return HitTestResultBehavior.Continue;
+            },
+            new PointHitTestParameters(viewportPoint));
+        if (selectedKey is not SceneObjectKey key)
+        {
+            AddLog("ЛКМ: под курсором нет отображаемого SMO-объекта.");
+            return;
+        }
+
+        TreeViewItem? item = RevealTreeObject(key);
+        if (item is null)
+        {
+            AddLog($"Не удалось раскрыть object [{key.ObjectIndex}] в дереве.");
+            return;
+        }
+
+        item.IsSelected = true;
+        item.BringIntoView();
+        item.Focus();
+    }
+
+    private TreeViewItem? RevealTreeObject(SceneObjectKey key)
+    {
+        if (!_treeFiles.TryGetValue(key.FileIndex, out DecodedSmoFile? file))
+            return null;
+
+        TreeViewItem? root = SceneTree.Items
+            .OfType<TreeViewItem>()
+            .FirstOrDefault(item =>
+                item.Tag is SceneTreeNode node && node.FileIndex == key.FileIndex);
+        if (root is null)
+            return null;
+
+        var path = new Stack<int>();
+        int? cursor = key.ObjectIndex;
+        while (cursor is int index)
+        {
+            path.Push(index);
+            cursor = file.Objects[index].ParentIndex;
+        }
+
+        TreeViewItem current = root;
+        current.IsExpanded = true;
+        while (path.Count > 0)
+        {
+            int index = path.Pop();
+            TreeViewItem? child = current.Items
+                .OfType<TreeViewItem>()
+                .FirstOrDefault(item =>
+                    item.Tag is SceneTreeNode node && node.ObjectIndex == index);
+            if (child is null)
+                return null;
+            current = child;
+            if (path.Count > 0)
+                current.IsExpanded = true;
+        }
+
+        return current;
+    }
+
+    private void HighlightTreeSelection(SceneTreeNode node)
+    {
+        _highlightedGeometry.Clear();
+        _highlightedGuiLayoutAnchors.Clear();
+
+        HashSet<int> related = GetRelatedObjectIndices(node);
+        foreach ((SceneObjectKey key, TreeViewItem item) in _visibleTreeItems)
+        {
+            if (key.FileIndex != node.FileIndex)
+                continue;
+            SceneObjectInfo info = _treeFiles[key.FileIndex].Objects[key.ObjectIndex];
+            item.Foreground = related.Contains(key.ObjectIndex)
+                ? Brushes.DeepSkyBlue
+                : GetClassBrush(info.TypeHash);
+        }
+
+        foreach (var geometry in _sceneGeometry.Where(pair => pair.Key.FileIndex == node.FileIndex
+                     && related.Contains(pair.Key.ObjectIndex)).Select(pair => pair.Value))
+        {
+            _highlightedGeometry.Add(geometry);
+        }
+        foreach (int index in related)
+        {
+            SceneObjectKey key = new(node.FileIndex, index);
+            if (_guiLayoutAnchorGeometry.ContainsKey(key))
+                _highlightedGuiLayoutAnchors.Add(key);
+        }
+
+        if (node.ObjectIndex is int selectedIndex)
+        {
+            DecodedSmoFile selectedFile = _treeFiles[node.FileIndex];
+            SceneObjectInfo info = selectedFile.Objects[selectedIndex];
+            AddLog($"Выбран [{selectedIndex}] {SmoClassRegistry.GetDisplayName(info.TypeHash)} {info.Name}");
+
+            SmoSceneMesh? selectedMesh = selectedFile.RenderMeshes
+                .FirstOrDefault(renderMesh =>
+                    renderMesh.RenderableObjectIndex == selectedIndex || renderMesh.Mesh.ObjectIndex == selectedIndex);
+            bool directGpu = _sceneGeometry.Any(pair => pair.Key.FileIndex == node.FileIndex
+                && pair.Key.ObjectIndex == selectedIndex && pair.Value.GpuRendered);
+            if (directGpu)
+            {
+                bool usesVertexDiffuse = selectedMesh is not null &&
+                    selectedMesh.Mesh.HasDiffuseColors &&
+                    (selectedMesh.Texture is null ||
+                     SmoVertexColorUsage.ShouldModulateTexture(selectedMesh.Mesh));
+                bool usesVertexAlpha = selectedMesh is not null &&
+                    SmoVertexColorUsage.ShouldUseVertexAlphaInPreview(
+                        selectedMesh.Mesh, selectedMesh.MaterialRenderState);
+                string gpuInputs;
+                if (selectedMesh?.Texture is SmoTexture gpuTexture)
+                {
+                    gpuInputs = $"texture [{gpuTexture.ObjectIndex}] " +
+                        gpuTexture.Name +
+                        (usesVertexDiffuse
+                            ? " × interpolated vertex diffuse"
+                            : string.Empty);
+                }
+                else if (usesVertexDiffuse)
+                {
+                    gpuInputs = "interpolated vertex diffuse" +
+                        (usesVertexAlpha
+                            ? "/alpha"
+                            : "; alpha игнорируется opaque-материалом") +
+                        "; material texture отсутствует в SMO";
+                }
+                else
+                {
+                    gpuInputs = "material/viewer fallback color; " +
+                        "material texture отсутствует в SMO";
+                }
+                AddLog(
+                    $"GPU direct [{selectedIndex}]: {gpuInputs}; " +
+                    "CPU triangle-atlas не используется.");
+            }
+            else if (selectedMesh is not null &&
+                selectedMesh.Texture is not null &&
+                selectedMesh.BaseTexture is null &&
+                !selectedMesh.Mesh.HasSkinningData &&
+                selectedMesh.Mesh.HasTextureCoordinates &&
+                selectedMesh.Mesh.HasDiffuseColors &&
+                selectedMesh.Mesh.TriangleCount is > 0 and <=
+                    SmoVertexColorUvConflictAnalyzer
+                        .MaximumTriangleAtlasTriangles &&
+                SmoVertexColorUvConflictAnalyzer
+                    .HasConflictingSharedCoordinates(selectedMesh.Mesh))
+            {
+                SmoTriangleAtlasResolutionInfo atlas =
+                    SmoVertexColorUvConflictAnalyzer
+                        .GetPreviewTriangleAtlasResolution(
+                            selectedMesh.Mesh,
+                            selectedMesh.Texture);
+                string fidelity = atlas.IsCapacityLimited
+                    ? "ОГРАНИЧЕНО общим бюджетом WPF-preview"
+                    : "требуемая texel-плотность сохранена";
+                AddLog(
+                    $"Triangle-atlas [{selectedIndex}]: требуется ячейка " +
+                    $"{atlas.DesiredCellSize}×{atlas.DesiredCellSize}, " +
+                    $"используется {atlas.CellSize}×{atlas.CellSize}, bitmap " +
+                    $"{atlas.Width}×{atlas.Height}; {fidelity}.");
+            }
+        }
+        UpdateMeshAppearance();
+    }
+
+    private HashSet<int> GetRelatedObjectIndices(SceneTreeNode node)
+    {
+        var result = new HashSet<int>();
+        if (node.ObjectIndex is not int selected)
+            return result;
+
+        DecodedSmoFile file = _treeFiles[node.FileIndex];
+        Dictionary<int, List<int>> children = file.Objects
+            .Where(item => item.ParentIndex.HasValue)
+            .GroupBy(item => item.ParentIndex!.Value)
+            .ToDictionary(group => group.Key, group => group.Select(item => item.Index).ToList());
+        var pending = new Stack<int>();
+        pending.Push(selected);
+        foreach (SmoSharedMeshInstanceInfo instance in file.SharedMeshInstances.Where(
+                     item => item.SourceMeshObjectIndex == selected))
+        {
+            pending.Push(instance.ModelObjectIndex);
+        }
+        if (file.Objects[selected].ParentIndex is int siblingParent)
+        {
+            foreach (SceneObjectInfo sibling in file.Objects.Where(
+                         item => item.ParentIndex == siblingParent &&
+                                 item.TypeHash is SmoClassIds.MeshData or
+                                     SmoClassIds.MaterialData or SmoClassIds.TextureData))
+                pending.Push(sibling.Index);
+        }
+        while (pending.Count > 0)
+        {
+            int index = pending.Pop();
+            if (!result.Add(index) || !children.TryGetValue(index, out List<int>? descendants))
+                continue;
+            foreach (int child in descendants)
+                pending.Push(child);
+        }
+
+        int? cursor = file.Objects[selected].ParentIndex;
+        while (cursor is int ancestor)
+        {
+            result.Add(ancestor);
+            cursor = file.Objects[ancestor].ParentIndex;
+        }
+        return result;
+    }
+
+    private void FrameTreeNode(SceneTreeNode node)
+    {
+        if (node.ObjectIndex is int guiObjectIndex &&
+            _treeFiles.TryGetValue(node.FileIndex, out DecodedSmoFile? guiFile) &&
+            guiFile.GuiScene.IsGuiContent &&
+            guiFile.GuiScene.ObjectContextsByObjectIndex.TryGetValue(
+                guiObjectIndex, out SmoGuiObjectContext? guiContext) &&
+            guiFile.GuiScene.RootGroups.Any(group =>
+                group.ObjectIndex == guiContext.RootGroupObjectIndex &&
+                (group.MeshCount > 0 || guiFile.GuiScene.LayoutAnchors.Any(anchor =>
+                    anchor.RootGroupObjectIndex == group.ObjectIndex))))
+        {
+            FrameGuiPreview();
+            AddLog(
+                $"Камера вписала собранный GUI-экран {guiContext.RootGroupName}, " +
+                "а не отдельный mesh.");
+            return;
+        }
+
+        if (node.ObjectIndex is int selectedIndex &&
+            TryGetHelperBounds(node.FileIndex, selectedIndex, out BoundsBuilder helperBounds))
+        {
+            FrameBounds(helperBounds);
+            AddLog("Камера перемещена к выбранному вспомогательному объекту.");
+            return;
+        }
+
+        BoundsBuilder bounds = new();
+        IEnumerable<int> indices = node.ObjectIndex is null
+            ? _treeFiles[node.FileIndex].Objects.Select(item => item.Index)
+            : GetRelatedObjectIndices(node);
+        var selectedIndices = indices.ToHashSet();
+        foreach (var geometry in _sceneGeometry.Where(pair => pair.Key.FileIndex == node.FileIndex
+                     && selectedIndices.Contains(pair.Key.ObjectIndex)).Select(pair => pair.Value))
+            bounds.Merge(geometry.Bounds);
+        foreach (int index in selectedIndices)
+        {
+            SceneObjectKey key = new(node.FileIndex, index);
+            if (_guiLayoutAnchorGeometry.TryGetValue(
+                    key, out GuiLayoutAnchorGeometry? anchorGeometry))
+            {
+                bounds.Merge(anchorGeometry.Bounds);
+            }
+        }
+        if (!bounds.HasValue)
+        {
+            AddLog("У выбранного объекта нет отображаемой геометрии.");
+            return;
+        }
+
+        FrameBounds(bounds);
+        AddLog("Камера перемещена к выбранному объекту.");
+    }
+
+    private bool TryGetHelperBounds(int fileIndex, int objectIndex, out BoundsBuilder bounds)
+    {
+        bounds = new BoundsBuilder();
+        if (!_treeFiles.TryGetValue(fileIndex, out DecodedSmoFile? file))
+            return false;
+
+        CollisionVolume? collision = file.CollisionVolumes.FirstOrDefault(item =>
+            item.ObjectIndex == objectIndex);
+        if (collision is not null)
+        {
+            System.Numerics.Vector3 half = collision.Size * 0.5f;
+            for (int x = -1; x <= 1; x += 2)
+            for (int y = -1; y <= 1; y += 2)
+            for (int z = -1; z <= 1; z += 2)
+            {
+                var corner = new System.Numerics.Vector3(
+                    half.X * x, half.Y * y, half.Z * z);
+                bounds.Include(ToViewportPoint(System.Numerics.Vector3.Transform(
+                    corner, collision.WorldTransform)));
+            }
+            return true;
+        }
+
+        SkeletonBone? bone = file.Skeleton.FirstOrDefault(item =>
+            item.ObjectIndex == objectIndex);
+        HelperNode? helper = file.ControlRig.Concat(file.Markers).FirstOrDefault(item =>
+            item.ObjectIndex == objectIndex);
+        System.Numerics.Vector3? position = bone?.Position ?? helper?.Position;
+        if (position is not System.Numerics.Vector3 point)
+            return false;
+
+        Point3D center = ToViewportPoint(point);
+        double padding = Math.Max(_sceneBounds.DiagonalLength * 0.025, 0.05);
+        bounds.Include(new Point3D(center.X - padding, center.Y - padding, center.Z - padding));
+        bounds.Include(new Point3D(center.X + padding, center.Y + padding, center.Z + padding));
+        return true;
+    }
+
+    private static Brush GetClassBrush(uint typeHash) => typeHash switch
+    {
+        SmoClassIds.MeshData => Brushes.LightGreen,
+        SmoClassIds.MaterialData => Brushes.Khaki,
+        SmoClassIds.TextureData => Brushes.Plum,
+        SmoClassIds.Skin => Brushes.LightSalmon,
+        SmoClassIds.Node => Brushes.LightGoldenrodYellow,
+        SmoClassIds.StaticRenderObject => Brushes.LightSkyBlue,
+        SmoClassIds.Model => Brushes.PaleTurquoise,
+        _ => Brushes.Gainsboro
+    };
+
+    private void FrameScene()
+    {
+        FrameBounds(_sceneBounds);
+    }
+
+    private void FrameBounds(BoundsBuilder bounds)
+    {
+        if (!bounds.HasValue)
+            return;
+
+        if (_guiPreviewActive)
+        {
+            FrameOrthographicBounds(bounds);
+            return;
+        }
+
+        _cameraTarget = bounds.Center;
+
+        double radius = Math.Max(bounds.DiagonalLength * 0.5, 0.01);
+        double halfFieldOfView = GetVerticalHalfFieldOfViewRadians();
+        _cameraDistance = Math.Max(radius / Math.Tan(halfFieldOfView) * 1.25, 0.1);
+
+        if (_cameraControlMode == CameraControlMode.Fly)
+            _flyPosition = _cameraTarget - GetFlyForward() * _cameraDistance;
+
+        UpdateCameraClippingPlanes();
+        UpdateCamera();
+    }
+
+    private void FrameOrthographicBounds(BoundsBuilder bounds)
+    {
+        Point3D center = bounds.Center;
+        double viewportWidth = Math.Max(SceneViewport.ActualWidth, 1);
+        double viewportHeight = Math.Max(SceneViewport.ActualHeight, 1);
+        double aspect = viewportWidth / viewportHeight;
+        double contentWidth = Math.Max(bounds.Width, 0.01);
+        double contentHeight = Math.Max(bounds.Height, 0.01);
+        double cameraWidth = Math.Max(contentWidth, contentHeight * aspect) * 1.08;
+        double distance = Math.Max(bounds.DiagonalLength * 1.5, 10.0);
+        Point3D position = new(center.X, center.Y, bounds.MaxZ + distance);
+        Vector3D look = center - position;
+
+        _guiCamera.Position = position;
+        _guiCamera.LookDirection = look;
+        _guiCamera.UpDirection = new Vector3D(0, 1, 0);
+        _guiCamera.Width = cameraWidth;
+        _guiCamera.NearPlaneDistance = 0.01;
+        _guiCamera.FarPlaneDistance = distance * 4 + Math.Max(bounds.Depth, 1);
+
+        _guiSkeletonCamera.Position = position;
+        _guiSkeletonCamera.LookDirection = look;
+        _guiSkeletonCamera.UpDirection = new Vector3D(0, 1, 0);
+        _guiSkeletonCamera.Width = cameraWidth;
+        _guiSkeletonCamera.NearPlaneDistance = _guiCamera.NearPlaneDistance;
+        _guiSkeletonCamera.FarPlaneDistance = _guiCamera.FarPlaneDistance;
+    }
+
+    private void Viewport_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        {
+            SelectObjectAt(e.GetPosition(SceneViewport));
+            e.Handled = true;
+            return;
+        }
+
+        if (_guiPreviewActive)
+        {
+            if (e.ChangedButton != MouseButton.Middle)
+                return;
+            _navigationMode = Keyboard.Modifiers.HasFlag(ModifierKeys.Control)
+                ? CameraNavigationMode.Zoom
+                : CameraNavigationMode.Pan;
+            _lastMousePosition = e.GetPosition(SceneViewport);
+            SceneSurface.Cursor = _navigationMode == CameraNavigationMode.Pan
+                ? Cursors.Hand
+                : Cursors.SizeNS;
+            SceneSurface.CaptureMouse();
+            SceneSurface.Focus();
+            e.Handled = true;
+            return;
+        }
+
+        if (_cameraControlMode == CameraControlMode.Fly)
+        {
+            if (e.ChangedButton != MouseButton.Right)
+                return;
+
+            _navigationMode = CameraNavigationMode.FlyLook;
+            _lastMousePosition = e.GetPosition(SceneViewport);
+            _navigationStartYaw = _cameraYaw;
+            _navigationStartPitch = _cameraPitch;
+            SceneSurface.Cursor = Cursors.Cross;
+            SceneSurface.CaptureMouse();
+            SceneSurface.Focus();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.ChangedButton == MouseButton.Right &&
+            _navigationMode != CameraNavigationMode.None)
+        {
+            CancelCameraNavigation();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.ChangedButton != MouseButton.Middle)
+            return;
+
+        ModifierKeys modifiers = Keyboard.Modifiers;
+        bool control = (modifiers & ModifierKeys.Control) != 0;
+        bool shift = (modifiers & ModifierKeys.Shift) != 0;
+        _navigationMode = (control, shift) switch
+        {
+            (true, true) => CameraNavigationMode.Dolly,
+            (true, false) => CameraNavigationMode.Zoom,
+            (false, true) => CameraNavigationMode.Pan,
+            _ => CameraNavigationMode.Orbit
+        };
+
+        _lastMousePosition = e.GetPosition(SceneViewport);
+        _navigationStartTarget = _cameraTarget;
+        _navigationStartYaw = _cameraYaw;
+        _navigationStartPitch = _cameraPitch;
+        _navigationStartDistance = _cameraDistance;
+
+        SceneSurface.Cursor = _navigationMode switch
+        {
+            CameraNavigationMode.Pan => Cursors.Hand,
+            CameraNavigationMode.Zoom or CameraNavigationMode.Dolly => Cursors.SizeNS,
+            _ => Cursors.SizeAll
+        };
+        SceneSurface.CaptureMouse();
+        SceneSurface.Focus();
+        e.Handled = true;
+    }
+
+    private void Viewport_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        MouseButton expectedButton = _cameraControlMode == CameraControlMode.Fly
+            ? MouseButton.Right
+            : MouseButton.Middle;
+        if (e.ChangedButton != expectedButton ||
+            _navigationMode == CameraNavigationMode.None)
+        {
+            return;
+        }
+
+        EndCameraNavigation();
+        e.Handled = true;
+    }
+
+    private void Viewport_LostMouseCapture(object sender, MouseEventArgs e)
+    {
+        _navigationMode = CameraNavigationMode.None;
+        SceneSurface.Cursor = null;
+    }
+
+    private void Viewport_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_navigationMode == CameraNavigationMode.None)
+            return;
+
+        bool navigationButtonPressed = _navigationMode == CameraNavigationMode.FlyLook
+            ? e.RightButton == MouseButtonState.Pressed
+            : e.MiddleButton == MouseButtonState.Pressed;
+        if (!navigationButtonPressed)
+        {
+            EndCameraNavigation();
+            return;
+        }
+
+        Point currentPosition = e.GetPosition(SceneViewport);
+        Vector delta = currentPosition - _lastMousePosition;
+        _lastMousePosition = currentPosition;
+
+        if (_guiPreviewActive)
+        {
+            if (_navigationMode == CameraNavigationMode.Pan)
+                PanGuiCamera(delta.X, delta.Y);
+            else if (_navigationMode == CameraNavigationMode.Zoom)
+                ZoomGuiCamera(Math.Exp(delta.Y * DragZoomSensitivity));
+            e.Handled = true;
+            return;
+        }
+
+        switch (_navigationMode)
+        {
+            case CameraNavigationMode.FlyLook:
+                _cameraYaw -= delta.X * FlyLookSensitivity;
+                _cameraPitch = Math.Clamp(
+                    _cameraPitch + delta.Y * FlyLookSensitivity,
+                    -PitchLimit,
+                    PitchLimit);
+                break;
+            case CameraNavigationMode.Orbit:
+                _cameraYaw -= delta.X * OrbitSensitivity;
+                _cameraPitch = Math.Clamp(
+                    _cameraPitch + delta.Y * OrbitSensitivity,
+                    -PitchLimit,
+                    PitchLimit);
+                break;
+            case CameraNavigationMode.Pan:
+                PanCamera(delta.X, delta.Y);
+                break;
+            case CameraNavigationMode.Zoom:
+                ChangeCameraDistance(Math.Exp(delta.Y * DragZoomSensitivity));
+                break;
+            case CameraNavigationMode.Dolly:
+                DollyCamera(delta.Y);
+                break;
+        }
+
+        UpdateCamera();
+        e.Handled = true;
+    }
+
+    private void Viewport_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (_guiPreviewActive)
+        {
+            ZoomGuiCamera(Math.Exp(-e.Delta / 120.0 * 0.14));
+            SceneSurface.Focus();
+            e.Handled = true;
+            return;
+        }
+
+        if (_cameraControlMode == CameraControlMode.Fly)
+        {
+            _flySpeed = Math.Clamp(
+                _flySpeed * Math.Exp(e.Delta / 120.0 * 0.18),
+                0.01,
+                100000);
+            UpdateCameraHelpToolTip();
+            SceneSurface.Focus();
+            e.Handled = true;
+            return;
+        }
+
+        ChangeCameraDistance(Math.Exp(-e.Delta / 120.0 * 0.14));
+        UpdateCamera();
+        SceneSurface.Focus();
+        e.Handled = true;
+    }
+
+    private void PanGuiCamera(double horizontalPixels, double verticalPixels)
+    {
+        double unitsPerPixel = _guiCamera.Width /
+            Math.Max(SceneViewport.ActualWidth, 1);
+        Vector3D offset = new(
+            -horizontalPixels * unitsPerPixel,
+            verticalPixels * unitsPerPixel,
+            0);
+        _guiCamera.Position += offset;
+        _guiSkeletonCamera.Position += offset;
+    }
+
+    private void ZoomGuiCamera(double factor)
+    {
+        double width = Math.Clamp(_guiCamera.Width * factor, 0.001, 1_000_000);
+        _guiCamera.Width = width;
+        _guiSkeletonCamera.Width = width;
+    }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // Window-level camera shortcuts are handled during the preview phase.  Let text
+        // editing controls receive the keys first; otherwise keys shared with camera
+        // controls (for example Shift+OemMinus, which types '_') are swallowed here.
+        if (IsTextEditingInput(e.OriginalSource) ||
+            IsTextEditingInput(Keyboard.FocusedElement))
+        {
+            return;
+        }
+
+        if (_cameraControlMode == CameraControlMode.Fly && IsFlyMovementKey(e.Key))
+        {
+            _pressedKeys.Add(e.Key);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Escape && _navigationMode != CameraNavigationMode.None)
+        {
+            CancelCameraNavigation();
+            e.Handled = true;
+            return;
+        }
+
+        ModifierKeys modifiers = Keyboard.Modifiers;
+        bool control = (modifiers & ModifierKeys.Control) != 0;
+        bool shift = (modifiers & ModifierKeys.Shift) != 0;
+        bool handled = true;
+
+        switch (e.Key)
+        {
+            case Key.Left:
+                PanCameraByKey(horizontal: -1, vertical: 0, shift);
+                break;
+            case Key.Right:
+                PanCameraByKey(horizontal: 1, vertical: 0, shift);
+                break;
+            case Key.Up:
+                PanCameraByKey(horizontal: 0, vertical: 1, shift);
+                break;
+            case Key.Down:
+                PanCameraByKey(horizontal: 0, vertical: -1, shift);
+                break;
+            case Key.Home:
+            case Key.Decimal:
+                FrameScene();
+                break;
+            case Key.Add:
+            case Key.OemPlus:
+                ChangeCameraDistance(0.85);
+                UpdateCamera();
+                break;
+            case Key.Subtract:
+            case Key.OemMinus:
+                ChangeCameraDistance(1.0 / 0.85);
+                UpdateCamera();
+                break;
+            case Key.NumPad1:
+                SetAxisView(AxisView.Front, opposite: control);
+                break;
+            case Key.NumPad3:
+                SetAxisView(AxisView.Right, opposite: control);
+                break;
+            case Key.NumPad7:
+                SetAxisView(AxisView.Top, opposite: control);
+                break;
+            case Key.NumPad9:
+                _cameraYaw += Math.PI;
+                _cameraPitch = -_cameraPitch;
+                UpdateCamera();
+                break;
+            case Key.NumPad2:
+                NavigateWithNumpad(horizontal: 0, vertical: -1, control);
+                break;
+            case Key.NumPad4:
+                NavigateWithNumpad(horizontal: -1, vertical: 0, control);
+                break;
+            case Key.NumPad6:
+                NavigateWithNumpad(horizontal: 1, vertical: 0, control);
+                break;
+            case Key.NumPad8:
+                NavigateWithNumpad(horizontal: 0, vertical: 1, control);
+                break;
+            default:
+                handled = false;
+                break;
+        }
+
+        e.Handled = handled;
+    }
+
+    private static bool IsTextEditingInput(object? source) =>
+        source is System.Windows.Controls.Primitives.TextBoxBase or
+        System.Windows.Controls.PasswordBox or
+        System.Windows.Controls.ComboBox { IsEditable: true };
+
+    private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
+    {
+        if (_pressedKeys.Remove(e.Key))
+            e.Handled = true;
+    }
+
+    private void Window_Deactivated(object? sender, EventArgs e)
+    {
+        _pressedKeys.Clear();
+        EndCameraNavigation();
+    }
+
+    private void Window_Closed(object? sender, EventArgs e)
+    {
+        CompositionTarget.Rendering -= CompositionTarget_Rendering;
+        _selectedAnimation?.Dispose();
+        foreach (DecodedSmoFile file in _treeFiles.Values) file.Runtime.Dispose();
+        GameValidationPanel.Dispose();
+    }
+
+    private void CameraModeSelector_SelectionChanged(
+        object sender,
+        SelectionChangedEventArgs e)
+    {
+        if (!IsInitialized || CameraModeSelector.SelectedItem is not ComboBoxItem item)
+            return;
+
+        CameraControlMode requested = Equals(item.Tag, "Fly")
+            ? CameraControlMode.Fly
+            : CameraControlMode.Orbit;
+        if (requested == _cameraControlMode)
+            return;
+
+        EndCameraNavigation();
+        _pressedKeys.Clear();
+        if (requested == CameraControlMode.Fly)
+        {
+            _flyPosition = SceneCamera.Position;
+            _flySpeed = Math.Clamp(_cameraDistance * 0.3, 0.01, 100000);
+        }
+        else
+        {
+            Vector3D forward = GetFlyForward();
+            _cameraTarget = _flyPosition + forward * _cameraDistance;
+        }
+
+        _cameraControlMode = requested;
+        UpdateCameraHelpToolTip();
+        _lastRenderTime = null;
+        UpdateCamera();
+        SceneSurface.Focus();
+    }
+
+    private void UpdateCameraHelpToolTip()
+    {
+        CameraHelpIcon.ToolTip = _cameraControlMode == CameraControlMode.Fly
+            ? "Управление камерой — Полёт\n" +
+              "ПКМ — обзор · WASD — движение · Q/E — вниз/вверх\n" +
+              $"Shift — быстрее · колесо — скорость ({_flySpeed:G4}) · Home — вся сцена"
+            : "Управление камерой — Blender\n" +
+              "СКМ — вращение · Shift+СКМ — сдвиг · Ctrl+СКМ/колесо — масштаб\n" +
+              "Стрелки — камера · Home — вся сцена · Ctrl+Shift+СКМ — dolly\n" +
+              "NumPad 1/3/7 — спереди/справа/сверху · NumPad 2/4/6/8 — шаговое вращение\n" +
+              "ПКМ/Esc — отмена жеста";
+    }
+
+    private void CompositionTarget_Rendering(object? sender, EventArgs e)
+    {
+        if (e is not RenderingEventArgs rendering)
+            return;
+
+        if (_lastRenderTime is not TimeSpan previous)
+        {
+            _lastRenderTime = rendering.RenderingTime;
+            return;
+        }
+
+        double elapsed = Math.Clamp(
+            (rendering.RenderingTime - previous).TotalSeconds, 0, 0.1);
+        _lastRenderTime = rendering.RenderingTime;
+        if (_animationPlaying && _selectedAnimation is not null)
+        {
+            _animationTime += elapsed;
+            if (_animationTime >= _selectedAnimation.Duration)
+                _animationTime = _selectedAnimation.Duration > 0
+                    ? _animationTime % _selectedAnimation.Duration : 0;
+            ApplyAnimationPose();
+        }
+        if (_cameraControlMode != CameraControlMode.Fly || _pressedKeys.Count == 0)
+            return;
+
+        GetCameraBasis(out Vector3D forward, out Vector3D right, out _);
+        Vector3D worldUp = new(0, 1, 0);
+        Vector3D movement = new();
+        if (_pressedKeys.Contains(Key.W)) movement += forward;
+        if (_pressedKeys.Contains(Key.S)) movement -= forward;
+        if (_pressedKeys.Contains(Key.D)) movement += right;
+        if (_pressedKeys.Contains(Key.A)) movement -= right;
+        if (_pressedKeys.Contains(Key.E)) movement += worldUp;
+        if (_pressedKeys.Contains(Key.Q)) movement -= worldUp;
+        if (movement.LengthSquared < 1e-12)
+            return;
+
+        movement.Normalize();
+        double multiplier = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) ? 4 : 1;
+        _flyPosition += movement * (_flySpeed * multiplier * elapsed);
+        UpdateCamera();
+    }
+
+    private static bool IsFlyMovementKey(Key key) =>
+        key is Key.W or Key.A or Key.S or Key.D or Key.Q or Key.E;
+
+    private void NavigateWithNumpad(int horizontal, int vertical, bool pan)
+    {
+        if (pan)
+        {
+            PanCameraByKey(horizontal, vertical, fast: false);
+            return;
+        }
+
+        const double step = Math.PI / 12;
+        _cameraYaw += horizontal * step;
+        _cameraPitch = Math.Clamp(
+            _cameraPitch + vertical * step,
+            -PitchLimit,
+            PitchLimit);
+        UpdateCamera();
+    }
+
+    private void SetAxisView(AxisView view, bool opposite)
+    {
+        switch (view)
+        {
+            case AxisView.Front:
+                _cameraYaw = opposite ? Math.PI : 0;
+                _cameraPitch = 0;
+                break;
+            case AxisView.Right:
+                _cameraYaw = opposite ? -Math.PI / 2 : Math.PI / 2;
+                _cameraPitch = 0;
+                break;
+            case AxisView.Top:
+                _cameraYaw = 0;
+                _cameraPitch = opposite ? -Math.PI / 2 : Math.PI / 2;
+                break;
+        }
+
+        UpdateCamera();
+    }
+
+    private void PanCamera(double horizontalPixels, double verticalPixels)
+    {
+        GetCameraBasis(out _, out Vector3D right, out Vector3D up);
+        double scale = GetWorldUnitsPerPixel();
+        _cameraTarget +=
+            -right * (horizontalPixels * scale) +
+            up * (verticalPixels * scale);
+    }
+
+    private void PanCameraByKey(int horizontal, int vertical, bool fast)
+    {
+        GetCameraBasis(out _, out Vector3D right, out Vector3D up);
+        double screenPixels = fast ? 160 : 40;
+        double scale = GetWorldUnitsPerPixel() * screenPixels;
+        _cameraTarget += right * (horizontal * scale) + up * (vertical * scale);
+        UpdateCamera();
+    }
+
+    private void DollyCamera(double verticalPixels)
+    {
+        GetCameraBasis(out Vector3D forward, out _, out _);
+        double amount = -verticalPixels * GetWorldUnitsPerPixel() * 3;
+        _cameraTarget += forward * amount;
+    }
+
+    private void ChangeCameraDistance(double factor)
+    {
+        _cameraDistance = Math.Clamp(
+            _cameraDistance * factor,
+            MinimumCameraDistance,
+            MaximumCameraDistance);
+        UpdateCameraClippingPlanes();
+    }
+
+    private double GetWorldUnitsPerPixel()
+    {
+        double viewportHeight = Math.Max(SceneViewport.ActualHeight, 1);
+        double halfFieldOfView = GetVerticalHalfFieldOfViewRadians();
+        double visibleHeight = 2 * _cameraDistance * Math.Tan(halfFieldOfView);
+        return visibleHeight / viewportHeight;
+    }
+
+    private double GetVerticalHalfFieldOfViewRadians()
+    {
+        double viewportWidth = Math.Max(SceneViewport.ActualWidth, 1);
+        double viewportHeight = Math.Max(SceneViewport.ActualHeight, 1);
+        double aspect = viewportWidth / viewportHeight;
+        double horizontalHalfFieldOfView =
+            SceneCamera.FieldOfView * Math.PI / 360.0;
+        return Math.Atan(
+            Math.Tan(horizontalHalfFieldOfView) / Math.Max(aspect, 0.0001));
+    }
+
+    private void GetCameraBasis(
+        out Vector3D forward,
+        out Vector3D right,
+        out Vector3D up)
+    {
+        forward = SceneCamera.LookDirection;
+        if (forward.LengthSquared < 1e-12)
+            forward = new Vector3D(0, 0, -1);
+        forward.Normalize();
+
+        Vector3D upHint = SceneCamera.UpDirection;
+        if (upHint.LengthSquared < 1e-12)
+            upHint = new Vector3D(0, 1, 0);
+        upHint.Normalize();
+
+        right = Vector3D.CrossProduct(forward, upHint);
+        if (right.LengthSquared < 1e-12)
+            right = new Vector3D(1, 0, 0);
+        right.Normalize();
+
+        up = Vector3D.CrossProduct(right, forward);
+        up.Normalize();
+    }
+
+    private void CancelCameraNavigation()
+    {
+        _cameraTarget = _navigationStartTarget;
+        _cameraYaw = _navigationStartYaw;
+        _cameraPitch = _navigationStartPitch;
+        _cameraDistance = _navigationStartDistance;
+        UpdateCameraClippingPlanes();
+        UpdateCamera();
+        EndCameraNavigation();
+    }
+
+    private void EndCameraNavigation()
+    {
+        _navigationMode = CameraNavigationMode.None;
+        SceneSurface.Cursor = null;
+        if (SceneSurface.IsMouseCaptured)
+            SceneSurface.ReleaseMouseCapture();
+    }
+
+    private void UpdateCameraClippingPlanes()
+    {
+        SceneCamera.NearPlaneDistance = Math.Max(_cameraDistance / 10000.0, 0.001);
+        SceneCamera.FarPlaneDistance = Math.Max(_cameraDistance * 100.0, 100.0);
+        SynchronizeSkeletonCamera();
+    }
+
+    private void UpdateCamera()
+    {
+        if (_cameraControlMode == CameraControlMode.Fly)
+        {
+            SceneCamera.Position = _flyPosition;
+            SceneCamera.LookDirection = GetFlyForward();
+            SceneCamera.UpDirection = new Vector3D(0, 1, 0);
+            SynchronizeSkeletonCamera();
+            return;
+        }
+
+        double horizontal = Math.Cos(_cameraPitch) * _cameraDistance;
+        Vector3D offset = new(
+            Math.Sin(_cameraYaw) * horizontal,
+            Math.Sin(_cameraPitch) * _cameraDistance,
+            Math.Cos(_cameraYaw) * horizontal);
+
+        SceneCamera.Position = _cameraTarget + offset;
+        SceneCamera.LookDirection = _cameraTarget - SceneCamera.Position;
+        SceneCamera.UpDirection = Math.Abs(horizontal) < 1e-9
+            ? (_cameraPitch >= 0
+                ? new Vector3D(0, 0, -1)
+                : new Vector3D(0, 0, 1))
+            : new Vector3D(0, 1, 0);
+        SynchronizeSkeletonCamera();
+    }
+
+    private void SynchronizeSkeletonCamera()
+    {
+        if (SkeletonCamera is null)
+            return;
+        SkeletonCamera.Position = SceneCamera.Position;
+        SkeletonCamera.LookDirection = SceneCamera.LookDirection;
+        SkeletonCamera.UpDirection = SceneCamera.UpDirection;
+        SkeletonCamera.FieldOfView = SceneCamera.FieldOfView;
+        SkeletonCamera.NearPlaneDistance = SceneCamera.NearPlaneDistance;
+        SkeletonCamera.FarPlaneDistance = SceneCamera.FarPlaneDistance;
+    }
+
+    private Vector3D GetFlyForward()
+    {
+        double horizontal = Math.Cos(_cameraPitch);
+        Vector3D forward = new(
+            -Math.Sin(_cameraYaw) * horizontal,
+            -Math.Sin(_cameraPitch),
+            -Math.Cos(_cameraYaw) * horizontal);
+        forward.Normalize();
+        return forward;
+    }
+
+    private static Color VaryColor(Color baseColor, int meshIndex)
+    {
+        double factor = 0.82 + (meshIndex % 4) * 0.06;
+        return Color.FromRgb(
+            (byte)Math.Clamp(baseColor.R * factor, 0, 255),
+            (byte)Math.Clamp(baseColor.G * factor, 0, 255),
+            (byte)Math.Clamp(baseColor.B * factor, 0, 255));
+    }
+
+    private static string BuildLoadStatus(
+        int files,
+        int decodedMeshes,
+        int sharedMeshInstances,
+        int totalMeshes,
+        int diagnostics,
+        int unsupportedMeshes,
+        int texturedMeshes,
+        int textureIssues,
+        int failedFiles,
+        IReadOnlyList<LoadIssue> issues)
+    {
+        string result =
+            $"Разобрано файлов: {files}; меши: {decodedMeshes}/{totalMeshes}; " +
+            $"shared instances: {sharedMeshInstances}; " +
+            $"диагностики: {diagnostics}; unsupported: {unsupportedMeshes}; " +
+            $"с текстурой: {texturedMeshes}; texture issues: {textureIssues}; " +
+            $"сбоев: {failedFiles}.";
+
+        LoadIssue? firstError = issues.FirstOrDefault(issue => issue.IsError);
+        LoadIssue? highlighted = firstError ?? issues.FirstOrDefault();
+        if (highlighted is not null)
+            result += $" {highlighted.Text}";
+
+        return result;
+    }
+
+    private enum CameraNavigationMode
+    {
+        None,
+        FlyLook,
+        Orbit,
+        Pan,
+        Zoom,
+        Dolly
+    }
+
+    private enum CameraControlMode
+    {
+        Orbit,
+        Fly
+    }
+
+    private enum AxisView
+    {
+        Front,
+        Right,
+        Top
+    }
+
+    private sealed record SceneAddResult(
+        int MeshCount,
+        int TexturedMeshCount,
+        int SharedInstanceCount);
+
+    private sealed record DecodedSmoFile(
+        string Path,
+        int TotalMeshCount,
+        IReadOnlyList<SmoSceneMesh> RenderMeshes,
+        IReadOnlyList<SceneObjectInfo> Objects,
+        IReadOnlyDictionary<int, IReadOnlyList<SmoSerializedFieldValue>> SerializedFields,
+        IReadOnlyList<SmoDiagnostic> Diagnostics,
+        IReadOnlyList<string> DecodeErrors,
+        IReadOnlyList<string> TextureIssues,
+        SmoImportedFaceDiffuseInfo ImportedFaceDiffuseInfo,
+        IReadOnlyList<SkeletonBone> Skeleton,
+        IReadOnlyList<CollisionVolume> CollisionVolumes,
+        IReadOnlyList<HelperNode> ControlRig,
+        IReadOnlyList<HelperNode> Markers,
+        IReadOnlyList<AuxiliaryObjectInfo> AuxiliaryObjects,
+        IReadOnlyDictionary<int, SmoSkin> Skins,
+        IReadOnlyDictionary<int, AnimationNode> AnimationNodes,
+        SmoGuiSceneInfo GuiScene,
+        IReadOnlyList<SmoSharedMeshInstanceInfo> SharedMeshInstances,
+        SparkplugSceneRuntime Runtime)
+    {
+        public IReadOnlyList<SmoSceneText> Texts {get;init;}=[];
+    }
+
+    private sealed record AnimationNode(
+        int ObjectIndex, string Name, Matrix4x4 BindWorldMatrix,
+        int? ParentObjectIndex);
+
+    private sealed record CollisionVolume(
+        int ObjectIndex, string Name, Matrix4x4 WorldTransform,
+        System.Numerics.Vector3 Size);
+
+    private sealed record HelperNode(
+        int ObjectIndex, string Name, System.Numerics.Vector3 Position,
+        int? ParentObjectIndex);
+
+    private sealed record AuxiliaryObjectInfo(int ObjectIndex, string Name, string Role);
+    private sealed record AuxiliaryObjectItem(
+        int FileIndex, int ObjectIndex, string Display);
+
+    private sealed record SkeletonBone(
+        int ObjectIndex,
+        string Name,
+        System.Numerics.Vector3 Position,
+        Matrix4x4 BindWorldMatrix,
+        int? ParentObjectIndex,
+        bool IsAttachment,
+        IReadOnlyList<BonePaletteReference> Palettes);
+
+    private sealed record BonePaletteReference(
+        int SkinObjectIndex,
+        string SkinName,
+        int PaletteIndex);
+
+    private sealed record BoneListItem(
+        int FileIndex,
+        int ObjectIndex,
+        string Name,
+        string Display);
+
+    private sealed record SceneObjectInfo(
+        int Index,
+        int? ParentIndex,
+        uint TypeHash,
+        string Name);
+
+    private readonly record struct SceneObjectKey(int FileIndex, int ObjectIndex,
+        SmoRenderOccurrenceKey? OccurrenceKey = null);
+
+    private sealed record SceneTreeNode(int FileIndex, int? ObjectIndex);
+
+    private sealed record SceneGeometry(
+        GeometryModel3D Model,
+        MeshGeometry3D Geometry,
+        Material OriginalMaterial,
+        BoundsBuilder Bounds,
+        SmoSceneMesh RenderMesh,
+        int[]? SourceVertexIndices,
+        bool GpuRendered = false);
+
+    private sealed record TriangleTextureBake(
+        byte[] Pixels,
+        int Width,
+        int Height,
+        int[] SourceVertexIndices,
+        Point[] TextureCoordinates);
+
+    private sealed record GuiLayoutAnchorGeometry(
+        GeometryModel3D Model,
+        MeshGeometry3D Geometry,
+        Material OriginalMaterial,
+        BoundsBuilder Bounds,
+        SmoGuiLayoutAnchorInfo Anchor);
+
+    private sealed record GuiRootGroupItem(
+        int FileIndex,
+        int ObjectIndex,
+        string Name,
+        int MeshCount,
+        int AnchorCount,
+        string Display);
+
+    private sealed record GuiStateChoice(
+        string Display,
+        SmoGuiVisualState? State);
+
+    private sealed record GuiElementItem(
+        int FileIndex,
+        int ObjectIndex,
+        string Display);
+
+    private sealed record AnimationListItem(string Path, string Display);
+
+    private sealed class ExpansionPlaceholder
+    {
+        public static readonly ExpansionPlaceholder Instance = new();
+        private ExpansionPlaceholder() { }
+    }
+
+    private sealed record LoadIssue(bool IsError, string Text);
+
+    private sealed class BoundsBuilder
+    {
+        private double _minX;
+        private double _minY;
+        private double _minZ;
+        private double _maxX;
+        private double _maxY;
+        private double _maxZ;
+
+        public bool HasValue { get; private set; }
+
+        public double MinZ => HasValue ? _minZ : 0;
+        public double MaxZ => HasValue ? _maxZ : 0;
+        public double MinY => HasValue ? _minY : 0;
+        public double Width => HasValue ? _maxX - _minX : 0;
+        public double Height => HasValue ? _maxY - _minY : 0;
+        public double Depth => HasValue ? _maxZ - _minZ : 0;
+
+        public Point3D Center => new(
+            (_minX + _maxX) * 0.5,
+            (_minY + _maxY) * 0.5,
+            (_minZ + _maxZ) * 0.5);
+
+        public double DiagonalLength
+        {
+            get
+            {
+                double x = _maxX - _minX;
+                double y = _maxY - _minY;
+                double z = _maxZ - _minZ;
+                return Math.Sqrt(x * x + y * y + z * z);
+            }
+        }
+
+        public void Include(Point3D point)
+        {
+            if (!HasValue)
+            {
+                _minX = _maxX = point.X;
+                _minY = _maxY = point.Y;
+                _minZ = _maxZ = point.Z;
+                HasValue = true;
+                return;
+            }
+
+            _minX = Math.Min(_minX, point.X);
+            _minY = Math.Min(_minY, point.Y);
+            _minZ = Math.Min(_minZ, point.Z);
+            _maxX = Math.Max(_maxX, point.X);
+            _maxY = Math.Max(_maxY, point.Y);
+            _maxZ = Math.Max(_maxZ, point.Z);
+        }
+
+        public void Merge(BoundsBuilder source)
+        {
+            if (!source.HasValue)
+                return;
+
+            Include(new Point3D(source._minX, source._minY, source._minZ));
+            Include(new Point3D(source._maxX, source._maxY, source._maxZ));
+        }
+
+        public void Reset()
+        {
+            HasValue = false;
+        }
+    }
+}

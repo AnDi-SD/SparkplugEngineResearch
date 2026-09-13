@@ -1,0 +1,27 @@
+{
+  "cases": [
+    {
+      "name": "Bloom generated skin with stock walk animation",
+      "asset": "../../../../local-data/validation-results/mvp-gate4-skinned-20260829/imports/bloom-miku.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Flora generated skin in BMS02 animation context",
+      "asset": "../../../../local-data/validation-results/mvp-gate4-skinned-20260829/imports/flora-miku-safe.smo",
+      "logical": "Characters\\Flora\\Flora.smo",
+      "route": "contextual",
+      "startLevel": 10,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    }
+  ]
+}

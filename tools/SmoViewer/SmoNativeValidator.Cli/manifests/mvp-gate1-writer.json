@@ -1,0 +1,63 @@
+{
+  "cases": [
+    {
+      "name": "Gate1 zero-edit Alfea project round-trip",
+      "asset": "../../../../local-data/validation-results/mvp-gate1-writer-20260829/alfea-zero-edit.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate1 legacy whole-model verified install",
+      "asset": "../../../../local-data/validation-results/mvp-gate1-writer-20260829/whole-model-tecna.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate1 rigid multi-material verified install",
+      "asset": "../../../../local-data/validation-results/mvp-gate1-writer-20260829/rigid-layla-bloom.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate1 SMO-to-SMO verified install",
+      "asset": "../../../../local-data/validation-results/mvp-gate1-writer-20260829/smo-to-smo-faragonda-bloom.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate1 skinned GLB verified install",
+      "asset": "../../../../local-data/validation-results/mvp-gate1-writer-20260829/skinned-bloom-miku.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SmoViewer/SmoViewer.csproj" />
+    <ProjectReference Include="../../SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj" />
+    <ProjectReference Include="../../SmoLVLcreator/SmoLVLcreator.Gui/SmoLVLcreator.Gui.csproj" />
+    <Compile Include="../../SmoImporter/SmoImporter.FormatTests/TargetRigFittingPreviewRegression.cs" Link="TargetRigFittingPreviewRegression.cs" />
+  </ItemGroup>
+</Project>

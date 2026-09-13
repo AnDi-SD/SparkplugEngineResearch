@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "name": "Alfea02 generated collision gameplay probe",
+      "asset": "../../../../local-data/validation-results/mvp-gate6-collision-20260829/project-collision-final/collision.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 45,
+      "timeoutSeconds": 90
+    }
+  ]
+}

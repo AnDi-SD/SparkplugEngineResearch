@@ -1,0 +1,116 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SMOTextureTool.MainWindow"
+        Title="SMO Texture Tool" Width="1280" Height="820"
+        MinWidth="900" MinHeight="600" Background="#0F1117">
+  <Grid RowDefinitions="Auto,Auto,*" IsEnabled="{Binding IsIdle}">
+    <Border Background="#171A21" BorderBrush="#2A2F3A"
+            BorderThickness="0,0,0,1" Padding="24,20">
+      <Grid ColumnDefinitions="*,240,Auto,Auto">
+        <StackPanel Spacing="4">
+          <TextBlock Text="SMO Texture Tool" FontSize="26" FontWeight="SemiBold" />
+          <TextBlock Text="Просмотр · PNG · замена RGBA · сохранение копии SMO"
+                     Foreground="#9ED7A5" />
+        </StackPanel>
+        <ComboBox Grid.Column="1" Margin="0,0,16,0"
+                  VerticalAlignment="Center"
+                  ItemsSource="{Binding PreviewModes}"
+                  SelectedItem="{Binding SelectedPreviewMode}" />
+        <CheckBox Grid.Column="2" Margin="0,0,20,0"
+                  VerticalAlignment="Center"
+                  IsChecked="{Binding SafeMode}"
+                  Content="Безопасный режим · максимум 4096²" />
+        <Button Grid.Column="3" Classes="action" Click="OpenFile_Click"
+                Content="Открыть SMO" />
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1" Padding="24,16" Background="#12151B">
+      <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,180,180,280">
+        <StackPanel>
+          <TextBlock Text="{Binding FileName}" FontWeight="SemiBold"
+                     TextTrimming="CharacterEllipsis" />
+          <TextBlock Text="{Binding Summary}" Foreground="#9299A8" FontSize="13" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="action" Margin="8,0,0,0"
+                IsEnabled="{Binding HasDocument}" Click="ExtractAll_Click"
+                Content="Извлечь все" />
+        <Button Grid.Column="2" Classes="action" Margin="8,0,0,0"
+                IsEnabled="{Binding HasDocument}" Click="SelectFolder_Click"
+                Content="Папка с заменами" />
+        <Button Grid.Column="3" Classes="action" Margin="8,0,0,0"
+                IsEnabled="{Binding HasReplacements}" Click="Save_Click"
+                Content="Сохранить копию SMO" />
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="4" Margin="0,10,0,0"
+                   Text="{Binding Status}" Foreground="#74B9FF"
+                   TextWrapping="Wrap" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="2" Padding="24,24,16,0"
+                  HorizontalContentAlignment="Stretch"
+                  VerticalScrollBarVisibility="Visible"
+                  HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding Rows}" Margin="0,0,8,24"
+                    MinWidth="0" HorizontalAlignment="Stretch">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="card" MinWidth="0"
+                    HorizontalAlignment="Stretch">
+              <Grid ColumnDefinitions="200,44,200,*,200"
+                    RowDefinitions="Auto,320">
+                <TextBlock Grid.ColumnSpan="5" Text="{Binding Header}"
+                           FontWeight="SemiBold" Margin="0,0,0,12" />
+                <Border Grid.Row="1" Background="#0D0F14" CornerRadius="8"
+                        Padding="10" Margin="0,0,0,0">
+                  <Image Source="{Binding OriginalPreview}" Stretch="Uniform" />
+                </Border>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="→" FontSize="32"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#6F7787" />
+                <Border Grid.Row="1" Grid.Column="2" Background="#0D0F14"
+                        CornerRadius="8" Padding="10">
+                  <Grid>
+                    <Image Source="{Binding ReplacementPreview}" Stretch="Uniform" />
+                    <TextBlock Text="Замена не выбрана"
+                               IsVisible="{Binding HasNoReplacement}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="#6F7787" />
+                  </Grid>
+                </Border>
+                <StackPanel Grid.Row="1" Grid.Column="3" Margin="24,8,20,8"
+                            MinWidth="0" VerticalAlignment="Center" Spacing="6">
+                  <TextBlock Text="{Binding Details}" Foreground="#AAB1C0"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding ChannelDetails}" Foreground="#AAB1C0"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding ResourceDetails}" Foreground="#9ED7A5"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding VertexColorDetails}" Foreground="#C3A6FF"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding MaterialDetails}" Foreground="#74B9FF"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding ResizeNotice}" Foreground="#E8B86D"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="4" Spacing="8"
+                            Margin="8,0,8,0" MinWidth="0" VerticalAlignment="Center"
+                            HorizontalAlignment="Stretch">
+                  <Button Classes="action" HorizontalAlignment="Stretch"
+                          Tag="{Binding}" Click="ExportOne_Click"
+                          Content="Сохранить PNG" />
+                  <Button Classes="action" HorizontalAlignment="Stretch"
+                          Tag="{Binding}" Click="ChooseReplacement_Click"
+                          IsEnabled="{Binding Texture.CanReplace}" Content="Выбрать замену" />
+                  <Button Classes="action" HorizontalAlignment="Stretch"
+                          Tag="{Binding}" Click="ResetReplacement_Click"
+                          IsEnabled="{Binding HasReplacement}" Content="Сбросить" />
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</Window>

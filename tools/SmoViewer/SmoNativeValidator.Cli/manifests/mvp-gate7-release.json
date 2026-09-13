@@ -1,0 +1,82 @@
+{
+  "cases": [
+    {
+      "name": "Gate7 pristine Gardenia control before edited levels",
+      "asset": "../../../../local-data/pc-pristine/Media/Levels/Gardenia/Gardenia01.smo",
+      "logical": "Levels\\Gardenia\\Gardenia01.smo",
+      "route": "contextual",
+      "startLevel": 1,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate7 Gardenia mixed project stress output",
+      "asset": "../../../../local-data/validation-results/mvp-gate7-release-20260829/stress-gardenia/20260829-182336-n100-seed82901/stress.smo",
+      "logical": "Levels\\Gardenia\\Gardenia01.smo",
+      "route": "contextual",
+      "startLevel": 1,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate7 Alfea 1000-operation project stress output",
+      "asset": "../../../../local-data/validation-results/mvp-gate7-release-20260829/stress-alfea/20260829-182706-n1000-seed82744/stress.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate7 large Domino mixed project stress output",
+      "asset": "../../../../local-data/validation-results/mvp-gate7-release-20260829/stress-domino04/20260829-190256-n100-seed82904/stress.smo",
+      "logical": "Levels\\Domino\\Domino04.smo",
+      "route": "contextual",
+      "startLevel": 7,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate7 Bloom skinned import release target",
+      "asset": "../../../../local-data/validation-results/mvp-gate1-writer-20260829/skinned-bloom-miku.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate7 Flora second skinned release target",
+      "asset": "../../../../local-data/validation-results/mvp-gate4-skinned-20260829/imports/flora-miku-safe.smo",
+      "logical": "Characters\\Flora\\Flora.smo",
+      "route": "contextual",
+      "startLevel": 10,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    },
+    {
+      "name": "Gate7 pristine Alfea regression after edited assets",
+      "asset": "../../../../local-data/Winx Club/Media/Levels/Alfea/Alfea02_old.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "survivalWindowSeconds": 5,
+      "timeoutSeconds": 90
+    }
+  ]
+}

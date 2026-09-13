@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "name": "Alfea02 level scene",
+      "asset": "../../../../local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo",
+      "logical": "Levels\\Alfea\\Alfea02.smo",
+      "route": "contextual",
+      "startLevel": 28,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Gardenia01 level scene",
+      "asset": "../../../../local-data/pc-pristine/Media/Levels/Gardenia/Gardenia01.smo",
+      "logical": "Levels\\Gardenia\\Gardenia01.smo",
+      "route": "contextual",
+      "startLevel": 1,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true
+    },
+    {
+      "name": "Bloom jeans character in Gardenia02",
+      "asset": "../../../../local-data/pc-pristine/Media/Characters/Bloom/bloom_jeans.smo",
+      "logical": "Characters\\Bloom\\bloom_jeans.smo",
+      "route": "contextual",
+      "startLevel": 2,
+      "requireSceneReady": true,
+      "useIsolatedLaunchWorkspace": true,
+      "includeBloomCheckpoints": true
+    }
+  ]
+}

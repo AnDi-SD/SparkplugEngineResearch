@@ -71,12 +71,12 @@ SMO — little-endian `FFPS`-контейнер с каталогом сериа
 | [`journal`](journal/README.md) | Хронология экспериментов и принятых решений |
 | [`research`](research/open-questions.md) | Очередь открытых вопросов и критерии их закрытия |
 
-Последние опубликованные версии инструментов: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SmoViewer/releases/tag/v0.5.0),
+Последние опубликованные версии инструментов: [SmoViewer `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoviewer-v0.5.0),
 [SmoExporter `0.5.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoexporter-v0.5.0),
 [SmoImporter `0.6.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smoimporter-v0.6.0),
 [SmoLVLcreator `0.1.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smolvlcreator-v0.1.0),
 [Winx Hair Patcher `0.2.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/v0.2.0) и
-[SMOTextureTool `2.1.0`](https://github.com/AnDi-SD/SMOTextureTool/releases/tag/v2.1.0).
+[SMOTextureTool `2.1.0`](https://github.com/AnDi-SD/SparkplugEngineResearch/releases/tag/smotexturetool-v2.1.0).
 Архивы собраны общей схемой в `artifacts/release/current` и опубликованы в GitHub Releases.
 Сборка и native loader smoke-tests не заменяют описанные в release notes визуальные
 проверки в игре. `SmoNativeValidator` сохраняется в исходниках и
@@ -88,7 +88,10 @@ SMO — little-endian `FFPS`-контейнер с каталогом сериа
 проверки на копиях игровых SMO. Отложенные улучшения ведутся в его отдельной
 [дорожной карте](tools/SmoLVLcreator/ROADMAP.md).
 
-Оба инструмента подключены как Git submodule и сохраняют собственную историю. Этот репозиторий фиксирует проверенную комбинацию их ревизий.
+SmoViewer и SMOTextureTool входят в этот репозиторий обычными каталогами `tools/`.
+Все приложения и общие библиотеки изменяются и собираются в одном checkout.
+Последние опубликованные пакеты Viewer и TextureTool перенесены без пересборки;
+их теги сохраняют исходники соответствующих релизов.
 
 ## Быстрый старт
 
@@ -98,7 +101,7 @@ SMO — little-endian `FFPS`-контейнер с каталогом сериа
 Общее решение включает WPF-приложение, поэтому полная сборка привязана к Windows.
 
 ```powershell
-git clone --recurse-submodules https://github.com/AnDi-SD/SparkplugEngineResearch.git
+git clone https://github.com/AnDi-SD/SparkplugEngineResearch.git
 cd SparkplugEngineResearch
 dotnet build SparkplugEngineResearch.slnx
 ```
@@ -114,12 +117,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./release/Build-Releases
 Корневой загрузчик при необходимости предлагает скачать официальный Microsoft .NET 8
 Desktop Runtime, проверяет цифровую подпись Microsoft и устанавливает его в тихом режиме.
 Подробный контракт структуры описан в [`release/README.md`](release/README.md).
-
-Если репозиторий уже клонирован без submodule:
-
-```powershell
-git submodule update --init --recursive
-```
 
 Запуск просмотрщика и текстурного инструмента:
 
@@ -171,4 +168,7 @@ dotnet run --project tools/SMOTextureTool/SMOTextureTool.FormatTests -- path/to/
 
 Не добавляйте в Git `.smo`, исполняемые файлы, полные каталоги игры, дампы или извлечённые ресурсы. Для них предназначена игнорируемая папка `local-data/`; рекомендуемая организация и правила фиксации результатов описаны в [политике корпуса](docs/research/corpus-policy.md).
 
-Условия использования исходного кода смотрите в соответствующих submodule. Материалы игры в этот репозиторий не входят.
+Условия использования исходного кода инструментов сохранены рядом с ними:
+[SmoViewer](tools/SmoViewer/LICENSE.txt) и
+[SMOTextureTool](tools/SMOTextureTool/LICENSE.txt).
+Материалы игры в этот репозиторий не входят.

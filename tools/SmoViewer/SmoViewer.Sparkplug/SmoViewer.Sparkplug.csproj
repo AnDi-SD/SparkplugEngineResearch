@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <SparkplugWorkspace Condition="'$(SparkplugWorkspace)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\'))</SparkplugWorkspace>
+    <SparkplugNativePath Condition="'$(SparkplugNativePath)' == ''">$(SparkplugWorkspace)artifacts\native\viewer\$(Configuration)\SparkplugViewerNative.dll</SparkplugNativePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(SparkplugNativePath)" Link="SparkplugViewerNative.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+  <Target Name="BuildSparkplugViewerNative" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipSparkplugNativeBuild)' != 'true'">
+    <Error Condition="!Exists('$(SparkplugWorkspace)tools\SparkplugViewer.Native\Build-Native.ps1')" Text="Build within SparkplugEngineResearch, or supply SparkplugNativePath and SkipSparkplugNativeBuild=true for a prebuilt bridge." />
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(SparkplugWorkspace)tools\SparkplugViewer.Native\Build-Native.ps1&quot; -Configuration $(Configuration)" />
+  </Target>
+  <Target Name="RequireSparkplugViewerNative" BeforeTargets="GetCopyToOutputDirectoryItems" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="!Exists('$(SparkplugNativePath)')" Text="SparkplugViewerNative.dll is required. Build the native bridge first." />
+  </Target>
+</Project>

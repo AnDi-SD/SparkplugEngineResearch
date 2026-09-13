@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SMOTextureTool.Core/SMOTextureTool.Core.csproj" />
+  <Project Path="SMOTextureTool.FormatTests/SMOTextureTool.FormatTests.csproj" />
+  <Project Path="SMOTextureTool.GuiTests/SMOTextureTool.GuiTests.csproj" />
+  <Project Path="SMOTextureTool/SMOTextureTool.csproj" />
+</Solution>
