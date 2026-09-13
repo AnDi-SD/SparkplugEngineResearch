@@ -1,0 +1,1714 @@
+diff --git a/bridge/meson.build b/bridge/meson.build
+index bcdc9aa..8153346 100644
+--- a/bridge/meson.build
++++ b/bridge/meson.build
+@@ -22,7 +22,7 @@
+ 
+ project(
+   'bridge', ['c', 'cpp'],
+-  version : 'remix-main',
++  version : 'remix-main-skinwire-v1',
+   meson_version : '>= 0.58',
+   default_options : ['werror=true', 'b_vscrt=static_from_buildtype', 'cpp_std=vc++17']
+ )
+diff --git a/bridge/src/client/remix_api.cpp b/bridge/src/client/remix_api.cpp
+index 2fd6eb3..2118dd1 100644
+--- a/bridge/src/client/remix_api.cpp
++++ b/bridge/src/client/remix_api.cpp
+@@ -24,6 +24,7 @@
+ #include "util_bridgecommand.h"
+ #include "util_devicecommand.h"
+ #include "util_remixapi.h"
++#include <cstdlib>
+ 
+ using namespace remixapi::util;
+ 
+@@ -77,7 +78,7 @@ auto serializeAndSend(ClientMessage& msg, const SerializableT& serializable) {
+   auto pSlzd = new uint8_t[serializableSize];
+   serializable.serialize(pSlzd);
+   msg.send_data(serializableSize, pSlzd);
+-  delete pSlzd;
++  delete[] pSlzd;
+ }
+ 
+ 
+@@ -166,7 +167,9 @@ remixapi_ErrorCode REMIXAPI_CALL remixapi_CreateMesh(
+   remixapi_MeshHandle*     out_handle) {
+ 
+   ASSERT_REMIXAPI_PFN_TYPE(remixapi_CreateMesh);
+-  assert(info->sType == REMIXAPI_STRUCT_TYPE_MESH_INFO);
++  if (!out_handle || !isSupportedMeshInfo(info)) {
++    return REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++  }
+ 
+   MeshHandle newHandle;
+   {
+@@ -174,16 +177,6 @@ remixapi_ErrorCode REMIXAPI_CALL remixapi_CreateMesh(
+     
+     serializeAndSend<serialize::MeshInfo>(c, *info);
+ 
+-    const void* infoItr = info;
+-    while (auto* const pNext = getPNext(infoItr)) {
+-      switch (getSType(pNext)) {
+-        default:
+-        {
+-          Logger::warn("[remixapi_CreateMesh] Unknown sType. Skipping.");
+-          break;
+-        }
+-      }
+-    }
+     sendHandle(c, newHandle);
+   }
+   
+@@ -207,6 +200,26 @@ remixapi_ErrorCode REMIXAPI_CALL remixapi_DestroyMesh(remixapi_MeshHandle handle
+ 
+ remixapi_ErrorCode REMIXAPI_CALL remixapi_DrawInstance(const remixapi_InstanceInfo* info) {
+   ASSERT_REMIXAPI_PFN_TYPE(remixapi_DrawInstance);
++  if (!info || info->sType != REMIXAPI_STRUCT_TYPE_INSTANCE_INFO) {
++    return REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++  }
++  // Validate the bone payload before opening a command, so bad input cannot
++  // leave a half-written Instance in the shared FIFO. Other extensions keep
++  // their existing routing; bound traversal also rejects cyclic pNext chains.
++  const void* extension = info;
++  uint32_t extensionCount = 0;
++  bool seenBones = false;
++  while ((extension = getPNext(extension))) {
++    if (++extensionCount > 64) return REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++    if (getSType(extension) == REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT) {
++      if (seenBones || !isSupportedBoneTransforms(
++          static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(extension))) {
++        return REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++      }
++      seenBones = true;
++    }
++  }
++
+   {
+     ClientMessage c(Commands::RemixApi_DrawInstance);
+ 
+@@ -387,6 +400,39 @@ remixapi_ErrorCode REMIXAPI_CALL remixapi_SetConfigVariable(const char* var, con
+   return REMIXAPI_ERROR_CODE_SUCCESS;
+ }
+ 
++// Local camera extension. Return the server's actual API result: enqueuing
++// alone does not establish that its Remix device accepted the camera.
++remixapi_ErrorCode REMIXAPI_CALL remixapi_SetupCamera(const remixapi_CameraInfo* info) {
++  ASSERT_REMIXAPI_PFN_TYPE(remixapi_SetupCamera);
++  if (!isSupportedCameraInfo(info)) return REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++  if (!g_bInterfaceInitialized || !gbBridgeRunning) return REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
++  serialize::CameraInfo serialized(*info);
++  if (serialized.size() != CameraInfoWireSize) return REMIXAPI_ERROR_CODE_INCOMPATIBLE_VERSION;
++  uint8_t payload[CameraInfoWireSize]{};
++  serialized.serialize(payload);
++  UID currentUID = 0;
++  {
++    ClientMessage command(Commands::RemixApi_SetupCamera);
++    currentUID = command.get_uid();
++    command.send_data(sizeof(payload), payload);
++  }
++  const auto transport = DeviceBridge::waitForCommand(Commands::Bridge_Response,
++    GlobalOptions::getAckTimeout(), nullptr, true, currentUID);
++  if (transport != Result::Success) {
++    // A delayed reply can remain at the head of the shared response queue.
++    // Returning to arbitrary D3D work is unsafe: merely disabling camera API
++    // does not make subsequent synchronous D3D waits consume that old UID.
++    Logger::err("[RemixApi_SetupCamera] Fatal transport failure; UID=" + std::to_string(currentUID) +
++      " result=" + std::to_string(static_cast<unsigned>(transport)) + "; terminating client, no recovery.");
++    gbBridgeRunning = false;
++    TerminateProcess(GetCurrentProcess(), 0xE052CA01u);
++    std::abort(); // Never continue if the terminal OS call unexpectedly fails.
++  }
++  const auto result = static_cast<remixapi_ErrorCode>(DeviceBridge::get_data());
++  DeviceBridge::pop_front();
++  return result;
++}
++
+ remixapi_ErrorCode REMIXAPI_CALL remixapi_dxvk_CreateD3D9(
+   remixapi_Bool       editorModeEnabled,
+   IDirect3D9Ex**      out_pD3D9) {
+@@ -442,7 +488,7 @@ extern "C" {
+       interf.DestroyMaterial = remixapi_DestroyMaterial;
+       interf.CreateMesh = remixapi_CreateMesh;
+       interf.DestroyMesh = remixapi_DestroyMesh;
+-      // interf.SetupCamera = remixapi_SetupCamera;
++      interf.SetupCamera = remixapi_SetupCamera;
+       interf.DrawInstance = remixapi_DrawInstance;
+       interf.CreateLight = remixapi_CreateLight;
+       interf.DestroyLight = remixapi_DestroyLight;
+diff --git a/bridge/src/meson.build b/bridge/src/meson.build
+index 42f4eb4..18369cf 100644
+--- a/bridge/src/meson.build
++++ b/bridge/src/meson.build
+@@ -23,12 +23,10 @@
+ subdir('tracy')
+ subdir('util')
+ 
+-if not enable_tests
+-	if cpu_family == 'x86'
+-		subdir('client')
+-		subdir('server')
+-		subdir('launcher')
+-	elif cpu_family == 'x86_64'
+-		subdir('server')
+-	endif
++if cpu_family == 'x86'
++	subdir('client')
++	subdir('server')
++	subdir('launcher')
++elif cpu_family == 'x86_64'
++	subdir('server')
+ endif
+diff --git a/bridge/src/server/main.cpp b/bridge/src/server/main.cpp
+index bf87d32..ed056a7 100644
+--- a/bridge/src/server/main.cpp
++++ b/bridge/src/server/main.cpp
+@@ -24,6 +24,7 @@
+ #include "version.h"
+ #include "module_processing.h"
+ #include "remix_api.h"
++#include "instance_audit.h"
+ 
+ #include "util_bridge_assert.h"
+ #include "util_circularbuffer.h"
+@@ -141,14 +142,20 @@ HANDLE hWait;
+ 
+ namespace {
+ template<typename SerializableT>
+-static void deserializeFromQueue(SerializableT& serializableT) {
++static bool deserializeFromQueue(SerializableT& serializableT) {
+   static_assert(is_serializable_v<SerializableT>, "deserializeRemixApiT(...)  may only be called with defined Serializable<T> types");
+   void* pSlzdData = nullptr;
+   const auto size = DeviceBridge::get_data(&pSlzdData);
++  if constexpr (std::is_same_v<SerializableT, remixapi::util::serialize::MeshInfo>) {
++    if (!remixapi::util::validateMeshInfoPayload(pSlzdData, size)) return false;
++  } else if constexpr (std::is_same_v<SerializableT, remixapi::util::serialize::InstanceInfoTransforms>) {
++    if (!remixapi::util::validateBoneTransformsPayload(pSlzdData, size)) return false;
++  }
+   SerializableT dslz(pSlzdData);
+   assert(size == dslz.size());
+   dslz.deserialize();
+   serializableT = std::move(dslz);
++  return true;
+ }
+ }
+ 
+@@ -271,7 +278,10 @@ static bool dumpLeakedObjects() {
+   return anyLeaked;
+ }
+ 
++static bridge_instance_audit::Audit instanceAudit;
++
+ void ProcessDeviceCommandQueue() {
++  instanceAudit.Initialize();
+   // Loop until the client sends terminate instruction
+   bool done = false;
+   while (!done && DeviceBridge::waitForCommand() == Result::Success) {
+@@ -300,6 +310,7 @@ void ProcessDeviceCommandQueue() {
+         ZoneName(commandStr.c_str(), commandStr.size());
+       }
+       PULL_U(currentUID);
++      instanceAudit.Command(currentUID);
+ #if defined(_DEBUG) || defined(DEBUGOPT)
+       if (GlobalOptions::getLogServerCommands()) {
+         Logger::info("Device Processing: " + toString(rpcHeader.command) + " UID: " + std::to_string(currentUID));
+@@ -332,7 +343,8 @@ void ProcessDeviceCommandQueue() {
+           gpD3DDevices[pHandle] = pD3DDevice;
+           if(GlobalOptions::getExposeRemixApi()) {
+             remixapi::g_device = pD3DDevice;
+-            remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            const auto registrationResult = remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            instanceAudit.Registered(pHandle,reinterpret_cast<uintptr_t>(pD3DDevice),registrationResult);
+           }
+         }
+ 
+@@ -367,7 +379,8 @@ void ProcessDeviceCommandQueue() {
+           gpD3DDevices[pHandle] = (IDirect3DDevice9Ex*) pD3DDevice;
+           if(GlobalOptions::getExposeRemixApi()) {
+             remixapi::g_device = (IDirect3DDevice9Ex*) pD3DDevice;
+-            remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            const auto registrationResult = remixapi::g_remix.dxvk_RegisterD3D9Device(remixapi::g_device);
++            instanceAudit.Registered(pHandle,reinterpret_cast<uintptr_t>(pD3DDevice),registrationResult);
+           }
+         }
+ 
+@@ -466,6 +479,7 @@ void ProcessDeviceCommandQueue() {
+         const auto hresult = pD3DDevice->GetSwapChain(0, &pSwapChain);
+         if (SUCCEEDED(hresult)) {
+           gpD3DSwapChains[pClientSwapchain] = pSwapChain;
++          instanceAudit.LinkImplicit(reinterpret_cast<uintptr_t>(pD3DDevice),pClientSwapchain,reinterpret_cast<uintptr_t>(pSwapChain));
+         }
+         break;
+       }
+@@ -501,6 +515,7 @@ void ProcessDeviceCommandQueue() {
+       case IDirect3DDevice9Ex_Destroy:
+       {
+         GET_RES(pD3DDevice, gpD3DDevices);
++        instanceAudit.DestroyDevice(reinterpret_cast<uintptr_t>(pD3DDevice));
+         safeDestroy(pD3DDevice, pD3DDeviceHandle);
+         gpD3DDevices.erase(pD3DDeviceHandle);
+         break;
+@@ -651,12 +666,14 @@ void ProcessDeviceCommandQueue() {
+           done = true;
+         }
+ 
++        instanceAudit.ResetBegin(reinterpret_cast<uintptr_t>(pD3DDevice));
+         //Release implicit swapchain
+         IDirect3DSwapChain9* pSwapChain = nullptr;
+         pD3DDevice->GetSwapChain(0, &pSwapChain);
+         pSwapChain->Release();
+ 
+         const auto hresult = pD3DDevice->Reset(&PresentationParameters);
++        instanceAudit.ResetResult(reinterpret_cast<uintptr_t>(pD3DDevice),hresult);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+         break;
+@@ -676,12 +693,14 @@ void ProcessDeviceCommandQueue() {
+           done = true;
+         }
+ 
++        instanceAudit.ResetBegin(reinterpret_cast<uintptr_t>(pD3DDevice));
+         //Release implicit swapchain
+         IDirect3DSwapChain9* pSwapChain = nullptr;
+         pD3DDevice->GetSwapChain(0, &pSwapChain);
+         pSwapChain->Release();
+ 
+         const auto hresult = ((IDirect3DDevice9Ex*) pD3DDevice)->ResetEx(&PresentationParameters, pFullscreenDisplayMode);
++        instanceAudit.ResetResult(reinterpret_cast<uintptr_t>(pD3DDevice),hresult);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+         break;
+@@ -702,6 +721,7 @@ void ProcessDeviceCommandQueue() {
+         HWND hwnd = TRUNCATE_HANDLE(HWND, hDestWindowOverride);
+ 
+         const auto hresult = pD3DDevice->Present(pSourceRect, pDestRect, hwnd, pDirtyRegion);
++        instanceAudit.PresentDevice(reinterpret_cast<uintptr_t>(pD3DDevice),hresult);
+         if (!SUCCEEDED(hresult)) {
+           std::stringstream ss;
+           ss << "Present() failed! Check all logs for reported errors.";
+@@ -1308,6 +1328,7 @@ void ProcessDeviceCommandQueue() {
+         PULL(D3DPRIMITIVETYPE, PrimitiveType);
+         PULL_U(StartVertex);
+         PULL_U(PrimitiveCount);
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),1,PrimitiveCount);
+         const auto hresult = pD3DDevice->DrawPrimitive(IN PrimitiveType, IN StartVertex, IN PrimitiveCount);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1322,6 +1343,7 @@ void ProcessDeviceCommandQueue() {
+         PULL_U(NumVertices);
+         PULL_U(startIndex);
+         PULL_U(primCount);
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),2,primCount);
+         const auto hresult = pD3DDevice->DrawIndexedPrimitive(IN Type, IN BaseVertexIndex, IN MinVertexIndex, IN NumVertices, IN startIndex, IN primCount);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1335,6 +1357,7 @@ void ProcessDeviceCommandQueue() {
+         void* pVertexStreamZeroData = nullptr;
+         DeviceBridge::get_data(&pVertexStreamZeroData);
+         PULL_U(VertexStreamZeroStride);
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),3,PrimitiveCount);
+         const auto hresult = pD3DDevice->DrawPrimitiveUP(IN PrimitiveType, IN PrimitiveCount, IN pVertexStreamZeroData, IN VertexStreamZeroStride);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1355,6 +1378,7 @@ void ProcessDeviceCommandQueue() {
+         void* pVertexStreamZeroData = nullptr;
+         DeviceBridge::get_data(&pVertexStreamZeroData);
+ 
++        instanceAudit.BeforeDraw(reinterpret_cast<uintptr_t>(pD3DDevice),4,PrimitiveCount);
+         const auto hresult = pD3DDevice->DrawIndexedPrimitiveUP(IN PrimitiveType, IN MinVertexIndex, IN NumVertices, IN PrimitiveCount, IN pIndexData, IN IndexDataFormat, IN pVertexStreamZeroData, IN VertexStreamZeroStride);
+         assert(SUCCEEDED(hresult));
+         SEND_OPTIONAL_SERVER_RESPONSE(hresult, currentUID);
+@@ -1731,6 +1755,7 @@ void ProcessDeviceCommandQueue() {
+       {
+         GET_HND(pHandle);
+         const auto& pSwapChain = gpD3DSwapChains[pHandle];
++        instanceAudit.DestroySwap(reinterpret_cast<uintptr_t>(pSwapChain));
+         safeDestroy(pSwapChain, pHandle);
+         gpD3DSwapChains.erase(pHandle);
+         break;
+@@ -1752,6 +1777,7 @@ void ProcessDeviceCommandQueue() {
+         HWND hwnd = TRUNCATE_HANDLE(HWND, hDestWindowOverride);
+ 
+         const auto hresult = pSwapChain->Present(pSourceRect, pDestRect, hwnd, pDirtyRegion, dwFlags);
++        instanceAudit.PresentSwap(reinterpret_cast<uintptr_t>(pSwapChain),hresult);
+ 
+         if (!SUCCEEDED(hresult)) {
+           std::stringstream ss;
+@@ -2893,7 +2919,11 @@ void ProcessDeviceCommandQueue() {
+         const auto meshInfoSType = remixapi::pullSType();
+         assert(meshInfoSType == REMIXAPI_STRUCT_TYPE_MESH_INFO);
+         serialize::MeshInfo meshInfo;
+-        deserializeFromQueue(meshInfo);
++        if (!deserializeFromQueue(meshInfo)) {
++          DeviceBridge::get_data(); // Always consume the following bridge UID.
++          Logger::err("[RemixApi_CreateMesh] Invalid mesh wire payload; command discarded.");
++          break;
++        }
+         meshInfo.pNext = nullptr;
+         
+         for(size_t iSurf = 0; iSurf < meshInfo.surfaces_count; ++iSurf) {
+@@ -2948,7 +2978,8 @@ void ProcessDeviceCommandQueue() {
+         deserializeFromQueue(instInfo);
+         
+         MeshHandle meshHandle(instInfo.mesh);
+-        if(meshHandle.isValid()) {
++        const bool meshValid = meshHandle.isValid();
++        if(meshValid) {
+           instInfo.mesh = meshHandle;
+         } else {
+           Logger::err("[RemixApi_DrawInstance] Invalid mesh handle!" );
+@@ -2956,6 +2987,8 @@ void ProcessDeviceCommandQueue() {
+ 
+         instInfo.pNext = nullptr;
+         
++        bool invalidBonePayload = false;
++        bool seenBonePayload = false;
+         bool bInstExtExists = remixapi::pullBool();
+         auto* pInfoProto = &getInfoProto(instInfo);
+         while(bInstExtExists) {
+@@ -2979,8 +3012,17 @@ void ProcessDeviceCommandQueue() {
+             }
+             case REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT:
+             {
+-              assert(!exts.boneXforms.pNext);
+-              deserializeFromQueue(exts.boneXforms);
++              if (seenBonePayload) {
++                void* ignored = nullptr;
++                DeviceBridge::get_data(&ignored); // Drain duplicate payload without replacing ownership.
++                invalidBonePayload = true;
++                break;
++              }
++              seenBonePayload = true;
++              if (!deserializeFromQueue(exts.boneXforms)) {
++                invalidBonePayload = true;
++                break;
++              }
+               pInfoProto->pNext = &(exts.boneXforms);
+               pInfoProto = &getInfoProto(exts.boneXforms);
+               break;
+@@ -3002,7 +3044,13 @@ void ProcessDeviceCommandQueue() {
+           bInstExtExists = remixapi::pullBool();
+         }
+ 
+-        if(remixapi::g_remix.DrawInstance(&instInfo) != REMIXAPI_ERROR_CODE_SUCCESS) {
++        if (invalidBonePayload) {
++          Logger::err("[RemixApi_DrawInstance] Invalid bone wire payload; command discarded.");
++          break;
++        }
++        const auto instanceResult = remixapi::g_remix.DrawInstance(&instInfo);
++        instanceAudit.Instance(instanceResult,meshValid);
++        if(instanceResult != REMIXAPI_ERROR_CODE_SUCCESS) {
+           Logger::err("[RemixApi_DrawInstance] Remix API call failed!");
+         }
+ 
+@@ -3149,6 +3197,28 @@ void ProcessDeviceCommandQueue() {
+         break;
+       }
+ 
++      case RemixApi_SetupCamera:
++      {
++        // Consume one complete data item even when invalid; never interpret a
++        // client pointer or leave a malformed camera blob in the command queue.
++        void* payload = nullptr;
++        const auto payloadSize = DeviceBridge::get_data(&payload);
++        remixapi_CameraInfo camera{};
++        auto result = REMIXAPI_ERROR_CODE_INVALID_ARGUMENTS;
++        if (decodeCameraInfoPayload(payload, payloadSize, camera)) {
++          result = remixapi::g_remix_initialized && remixapi::g_remix.SetupCamera
++            ? remixapi::g_remix.SetupCamera(&camera)
++            : REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
++        }
++        if (result != REMIXAPI_ERROR_CODE_SUCCESS) {
++          Logger::err("[RemixApi_SetupCamera] Server result: " + std::to_string(result));
++        }
++        // Mandatory response, independent of sendAllServerResponses.
++        ServerMessage response(Commands::Bridge_Response, currentUID);
++        response.send_data(static_cast<uint32_t>(result));
++        break;
++      }
++
+       case RemixApi_CreateD3D9:
+       {
+         Logger::err("[RemixApi_CreateD3D9] Not yet supported. Device used by Remix API defaults to "
+@@ -3205,6 +3275,7 @@ void ProcessDeviceCommandQueue() {
+ #endif
+   }
+ 
++  instanceAudit.QueueExit(done);
+   // Check if we exited the command processing loop unexpectedly while the bridge is still enabled
+   if (!done && gbBridgeRunning) {
+     Logger::debug("The device command processing loop was exited unexpectedly, either due to timing out or some other command queue issue.");
+@@ -3563,4 +3634,4 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
+     ServerMessage { Commands::Bridge_Ack };
+   }
+   return 0;
+-}
+\ No newline at end of file
++}
+diff --git a/bridge/src/util/util_commands.h b/bridge/src/util/util_commands.h
+index e38f874..3b2472c 100644
+--- a/bridge/src/util/util_commands.h
++++ b/bridge/src/util/util_commands.h
+@@ -443,6 +443,9 @@ namespace Commands {
+     IDirect3DQuery9_GetDataSize,
+     IDirect3DQuery9_Issue,
+     IDirect3DQuery9_GetData,
++
++    // Local universal extension: append to preserve all existing command IDs.
++    RemixApi_SetupCamera,
+   };
+ 
+   // Maybe this will be useful...  
+@@ -470,6 +473,7 @@ namespace Commands {
+     case Bridge_Terminate: return "Terminate";
+     case Bridge_Invalid: return "Invalid";
+     case Bridge_Syn: return "Syn";
++    case RemixApi_SetupCamera: return "RemixApi_SetupCamera";
+     case Bridge_Ack: return "Ack";
+     case Bridge_Continue: return "Continue";
+     case Bridge_Any: return "Any";
+diff --git a/bridge/src/util/util_remixapi.cpp b/bridge/src/util/util_remixapi.cpp
+index e4d0a39..4495d3d 100644
+--- a/bridge/src/util/util_remixapi.cpp
++++ b/bridge/src/util/util_remixapi.cpp
+@@ -27,11 +27,131 @@
+ #include <type_traits>
+ #include <typeinfo>
+ #include <assert.h>
++#include <cmath>
++#include <stdexcept>
+ 
+ using namespace remixapi::util::serialize;
+ 
+ namespace remixapi {
+ namespace util {
++namespace {
++// Wire sizes are architecture independent; HardcodedVertex padding is omitted.
++static_assert(sizeof(float) == 4 && sizeof(remixapi_Bool) == 4);
++constexpr uint32_t kMeshVertexWireBytes = 9 * sizeof(uint32_t);
++constexpr uint32_t kTransformWireBytes = 12 * sizeof(float);
++bool addWireArray(uint64_t& size, uint64_t count, uint32_t stride) {
++  if (count > (UINT32_MAX - size) / stride) return false;
++  size += count * stride;
++  return true;
++}
++struct PayloadCursor {
++  const uint8_t* data;
++  uint64_t left;
++  bool skip(uint64_t count, uint32_t stride) {
++    if (count > left / stride) return false;
++    const size_t bytes = static_cast<size_t>(count * stride);
++    data += bytes;
++    left -= bytes;
++    return true;
++  }
++  template<typename T> bool read(T& output) {
++    if (left < sizeof(T)) return false;
++    memcpy(&output, data, sizeof(T));
++    return skip(1, sizeof(T));
++  }
++};
++bool payloadHeader(PayloadCursor& c, uint32_t size, remixapi_StructType expected) {
++  uint32_t bytes = 0, type = 0;
++  return c.read(bytes) && bytes == size && c.read(type) && type == expected;
++}
++}
++
++bool isSupportedMeshInfo(const remixapi_MeshInfo* info, uint32_t* wireSize) {
++  if (!info || info->sType != REMIXAPI_STRUCT_TYPE_MESH_INFO || info->pNext ||
++      (info->surfaces_count && !info->surfaces_values)) return false;
++  uint64_t bytes = 4 + 4 + 8 + 4;
++  if (!addWireArray(bytes, info->surfaces_count, 8 + 8 + 4 + 4)) return false;
++  for (uint32_t i = 0; i < info->surfaces_count; ++i) {
++    const auto& s = info->surfaces_values[i];
++    if ((s.vertices_count && !s.vertices_values) || (s.indices_count && !s.indices_values) ||
++        !addWireArray(bytes, s.vertices_count, kMeshVertexWireBytes) ||
++        !addWireArray(bytes, s.indices_count, sizeof(uint32_t))) return false;
++    if (s.skinning_hasvalue) {
++      const auto& skin = s.skinning_value;
++      if (!skin.bonesPerVertex || s.vertices_count > UINT32_MAX / skin.bonesPerVertex) return false;
++      const uint64_t elements = s.vertices_count * skin.bonesPerVertex;
++      if (skin.blendWeights_count != elements || skin.blendIndices_count != elements ||
++          (elements && (!skin.blendWeights_values || !skin.blendIndices_values)) ||
++          !addWireArray(bytes, 3, sizeof(uint32_t)) ||
++          !addWireArray(bytes, elements, sizeof(float) + sizeof(uint32_t))) return false;
++    }
++  }
++  if (wireSize) *wireSize = static_cast<uint32_t>(bytes);
++  return true;
++}
++
++bool validateMeshInfoPayload(const void* data, uint32_t size) {
++  if (!data) return false;
++  PayloadCursor c{static_cast<const uint8_t*>(data), size};
++  uint32_t surfaces = 0;
++  if (!payloadHeader(c, size, REMIXAPI_STRUCT_TYPE_MESH_INFO) ||
++      !c.skip(1, sizeof(uint64_t)) || !c.read(surfaces) || surfaces > c.left / 24) return false;
++  for (uint32_t i = 0; i < surfaces; ++i) {
++    uint64_t vertices = 0, indices = 0;
++    uint32_t hasSkin = 0;
++    if (!c.read(vertices) || !c.skip(vertices, kMeshVertexWireBytes) ||
++        !c.read(indices) || !c.skip(indices, sizeof(uint32_t)) || !c.read(hasSkin)) return false;
++    if (hasSkin) {
++      uint32_t bones = 0, weights = 0, blendIndices = 0;
++      if (!c.read(bones) || !bones || vertices > UINT32_MAX / bones ||
++          !c.read(weights) || weights != vertices * bones || !c.skip(weights, sizeof(float)) ||
++          !c.read(blendIndices) || blendIndices != vertices * bones ||
++          !c.skip(blendIndices, sizeof(uint32_t))) return false;
++    }
++    if (!c.skip(1, sizeof(uint32_t))) return false; // material handle UID
++  }
++  return c.left == 0;
++}
++
++bool isSupportedBoneTransforms(const remixapi_InstanceInfoBoneTransformsEXT* info) {
++  return info && info->sType == REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT &&
++    info->boneTransforms_count <= REMIXAPI_INSTANCE_INFO_MAX_BONES_COUNT &&
++    (!info->boneTransforms_count || info->boneTransforms_values);
++}
++bool validateBoneTransformsPayload(const void* data, uint32_t size) {
++  if (!data) return false;
++  PayloadCursor c{static_cast<const uint8_t*>(data), size};
++  uint32_t count = 0;
++  return payloadHeader(c, size, REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT) &&
++    c.read(count) && count <= REMIXAPI_INSTANCE_INFO_MAX_BONES_COUNT &&
++    c.skip(count, kTransformWireBytes) && c.left == 0;
++}
++
++bool isSupportedCameraInfo(const remixapi_CameraInfo* info) {
++  if (!info || info->sType != REMIXAPI_STRUCT_TYPE_CAMERA_INFO || info->pNext ||
++      (info->type != REMIXAPI_CAMERA_TYPE_WORLD && info->type != REMIXAPI_CAMERA_TYPE_SKY &&
++       info->type != REMIXAPI_CAMERA_TYPE_VIEW_MODEL)) return false;
++  for (unsigned row = 0; row < 4; ++row) {
++    for (unsigned col = 0; col < 4; ++col) {
++      if (!std::isfinite(info->view[row][col]) || !std::isfinite(info->projection[row][col])) return false;
++    }
++  }
++  return true;
++}
++
++bool decodeCameraInfoPayload(const void* data, uint32_t size, remixapi_CameraInfo& output) {
++  // Check the entire envelope before the existing unbounded POD serializer.
++  if (!data || size != CameraInfoWireSize) return false;
++  uint32_t declaredSize = 0;
++  memcpy(&declaredSize, data, sizeof(declaredSize));
++  if (declaredSize != CameraInfoWireSize) return false;
++  serialize::CameraInfo decoded(const_cast<void*>(data));
++  decoded.deserialize();
++  if (!isSupportedCameraInfo(&decoded)) return false;
++  output = decoded;
++  return true;
++}
++
+ #ifdef REMIX_BRIDGE_SERVER
+ MaterialHandle::HandleMapT MaterialHandle::s_handleMap;
+ MeshHandle::HandleMapT MeshHandle::s_handleMap;
+@@ -65,6 +185,24 @@ static inline void deserialize_const_p_for_each(void*& pDeserialize, const T*& d
+ 
+ namespace bridge_util {
+ 
++// Local camera transport uses the same serializer as the other Remix commands.
++// These fixed arrays are serialized as 64 bytes each, without pointer/padding.
++static_assert(sizeof(remixapi_StructType) == 4 && sizeof(remixapi_CameraType) == 4);
++static_assert(sizeof(remixapi_CameraInfo::view) == 64 && sizeof(remixapi_CameraInfo::projection) == 64);
++#define CameraInfoVars sType, type, view, projection
++uint32_t CameraInfo::_calcSize() const {
++  return fold_helper::calcSize(CameraInfoVars);
++}
++void CameraInfo::_serialize(void*& pSerialize) const {
++  fold_helper::serialize(pSerialize, CameraInfoVars);
++}
++void CameraInfo::_deserialize(void*& pDeserialize) {
++  pNext = nullptr;
++  fold_helper::deserialize(pDeserialize, CameraInfoVars);
++}
++void CameraInfo::_dtor() {}
++#undef CameraInfoVars
++
+ // Types that should de-/serialize out of the box, because
+ // they only contain a single member which should be aligned
+ // with the start of the struct
+@@ -424,21 +562,18 @@ void deserialize(void*& pDeserialize, remixapi_MeshInfoSurfaceTriangles& surface
+ 
+ 
+ uint32_t MeshInfo::_calcSize() const {
+-  uint32_t size = 0;
+-  size += sizeOf(sType);
+-  size += sizeOf(hash);
+-  size += sizeOf(surfaces_count);
+-  for(size_t nSurface = 0; nSurface < surfaces_count; ++nSurface) {
+-    size += sizeOf(surfaces_values[nSurface]);
++  uint32_t bytes = 0;
++  if (!remixapi::util::isSupportedMeshInfo(this, &bytes)) {
++    throw std::invalid_argument("Invalid or oversized Remix mesh payload");
+   }
+-  return size;
++  return bytes - sizeof(uint32_t);
+ }
+ 
+-static inline uint32_t blendWeightSizePerVtx(const remixapi_MeshInfoSkinning& skinning) {
+-  return skinning.blendWeights_count * skinning.bonesPerVertex * sizeof(float);
++static inline uint32_t blendWeightsBytes(const remixapi_MeshInfoSkinning& skinning) {
++  return skinning.blendWeights_count * sizeof(float);
+ }
+-static inline uint32_t blendIndicesSizePerVtx(const remixapi_MeshInfoSkinning& skinning) {
+-  return skinning.blendIndices_count * skinning.bonesPerVertex * sizeof(uint32_t);
++static inline uint32_t blendIndicesBytes(const remixapi_MeshInfoSkinning& skinning) {
++  return skinning.blendIndices_count * sizeof(uint32_t);
+ }
+ template<>
+ static inline uint32_t sizeOf(const remixapi_MeshInfoSurfaceTriangles& surface) {
+@@ -451,9 +586,9 @@ static inline uint32_t sizeOf(const remixapi_MeshInfoSurfaceTriangles& surface)
+   if(surface.skinning_hasvalue) {
+     size += sizeOf(surface.skinning_value.bonesPerVertex);
+     size += sizeOf(surface.skinning_value.blendWeights_count);
+-    size += surface.vertices_count * blendWeightSizePerVtx(surface.skinning_value);
++    size += blendWeightsBytes(surface.skinning_value);
+     size += sizeOf(surface.skinning_value.blendIndices_count);
+-    size += surface.vertices_count * blendIndicesSizePerVtx(surface.skinning_value);
++    size += blendIndicesBytes(surface.skinning_value);
+   }
+   size += sizeof(uint32_t);
+   return size;
+@@ -478,7 +613,9 @@ void serialize(const remixapi_MeshInfoSurfaceTriangles& surface, void*& pSeriali
+   // Idxs
+   bridge_util::serialize(surface.indices_count, pSerialize);
+   const size_t indicesSize = surface.indices_count * sizeof(uint32_t);
+-  bridge_util::serialize(surface.indices_values, pSerialize, indicesSize);
++  if (indicesSize) {
++    bridge_util::serialize(surface.indices_values, pSerialize, indicesSize);
++  }
+   // Skinning
+   bridge_util::serialize(surface.skinning_hasvalue, pSerialize);
+   if(surface.skinning_hasvalue) {
+@@ -486,62 +623,77 @@ void serialize(const remixapi_MeshInfoSurfaceTriangles& surface, void*& pSeriali
+     bridge_util::serialize(skinning.bonesPerVertex, pSerialize);
+     // Blend Weights
+     bridge_util::serialize(skinning.blendWeights_count, pSerialize);
+-    const size_t blendWeightsSize = surface.vertices_count * blendWeightSizePerVtx(skinning);
+-    bridge_util::serialize(skinning.blendWeights_values, pSerialize, blendWeightsSize);
++    const size_t blendWeightsSize = blendWeightsBytes(skinning);
++    if (blendWeightsSize) {
++      bridge_util::serialize(skinning.blendWeights_values, pSerialize, blendWeightsSize);
++    }
+     // Blend Indices
+     bridge_util::serialize(skinning.blendIndices_count, pSerialize);
+-    const size_t blendIndicesSize = surface.vertices_count * blendIndicesSizePerVtx(skinning);
+-    bridge_util::serialize(skinning.blendIndices_values, pSerialize, blendIndicesSize);
++    const size_t blendIndicesSize = blendIndicesBytes(skinning);
++    if (blendIndicesSize) {
++      bridge_util::serialize(skinning.blendIndices_values, pSerialize, blendIndicesSize);
++    }
+   }
+   bridge_util::serialize(surface.material, pSerialize);
+ }
+ 
+ void MeshInfo::_deserialize(void*& pDeserialize) {
++  // All fields start empty, including not-yet-decoded surfaces. If allocation
++  // fails, Serializable's owning destructor can release every acquired array.
++  static_cast<remixapi_MeshInfo&>(*this) = {};
+   bridge_util::deserialize(pDeserialize, sType);
+   bridge_util::deserialize(pDeserialize, hash);
+   bridge_util::deserialize(pDeserialize, surfaces_count);
+-  deserialize_const_p_for_each(pDeserialize, surfaces_values, surfaces_count);
++  auto* surfaces = new remixapi_MeshInfoSurfaceTriangles[surfaces_count]{};
++  surfaces_values = surfaces;
++  for (uint32_t i = 0; i < surfaces_count; ++i) {
++    bridge_util::deserialize(pDeserialize, surfaces[i]);
++  }
+ }
+ 
+ template<>
+ void deserialize(void*& pDeserialize, remixapi_MeshInfoSurfaceTriangles& surface) {
+-  // Vtxs
+   bridge_util::deserialize(pDeserialize, surface.vertices_count);
+-  deserialize_const_p_for_each(pDeserialize, surface.vertices_values, surface.vertices_count);
+-  // Idxs
++  auto* vertices = new remixapi_HardcodedVertex[static_cast<size_t>(surface.vertices_count)]{};
++  surface.vertices_values = vertices;
++  for (size_t i = 0; i < surface.vertices_count; ++i) {
++    bridge_util::deserialize(pDeserialize, vertices[i]);
++  }
+   bridge_util::deserialize(pDeserialize, surface.indices_count);
+-  const size_t indicesSize = surface.indices_count * sizeof(uint32_t);
+-  deserialize_const_p(pDeserialize, surface.indices_values, indicesSize);
+-  // Skinning
++  auto* indices = new uint32_t[static_cast<size_t>(surface.indices_count)];
++  surface.indices_values = indices;
++  bridge_util::deserialize(pDeserialize, indices, static_cast<uint32_t>(surface.indices_count * sizeof(uint32_t)));
+   bridge_util::deserialize(pDeserialize, surface.skinning_hasvalue);
+-  if(surface.skinning_hasvalue) {
++  if (surface.skinning_hasvalue) {
+     auto& skinning = surface.skinning_value;
+     bridge_util::deserialize(pDeserialize, skinning.bonesPerVertex);
+-    // Blend Weights
+     bridge_util::deserialize(pDeserialize, skinning.blendWeights_count);
+-    const size_t blendWeightsSize = surface.vertices_count * blendWeightSizePerVtx(skinning);
+-    deserialize_const_p(pDeserialize, skinning.blendWeights_values, blendWeightsSize);
+-    // Blend Indices
++    auto* weights = new float[skinning.blendWeights_count];
++    skinning.blendWeights_values = weights;
++    bridge_util::deserialize(pDeserialize, weights, blendWeightsBytes(skinning));
+     bridge_util::deserialize(pDeserialize, skinning.blendIndices_count);
+-    const size_t blendIndicesSize = surface.vertices_count * blendIndicesSizePerVtx(skinning);
+-    deserialize_const_p(pDeserialize, skinning.blendIndices_values, blendIndicesSize);
++    auto* blendIndices = new uint32_t[skinning.blendIndices_count];
++    skinning.blendIndices_values = blendIndices;
++    bridge_util::deserialize(pDeserialize, blendIndices, blendIndicesBytes(skinning));
+   }
+   bridge_util::deserialize(pDeserialize, surface.material);
+ }
+ 
+ void MeshInfo::_dtor() {
+-  for(size_t nSurface = 0; nSurface < surfaces_count; ++nSurface) {
+-    auto& surface = surfaces_values[nSurface];
+-    delete surface.vertices_values;
+-    delete surface.indices_values;
+-    if(surface.skinning_hasvalue) {
+-      auto& skinning = surface.skinning_value;
+-      delete skinning.blendWeights_values;
+-      delete skinning.blendIndices_values;
++  if (surfaces_values) {
++    for (size_t i = 0; i < surfaces_count; ++i) {
++      const auto& surface = surfaces_values[i];
++      delete[] surface.vertices_values;
++      delete[] surface.indices_values;
++      delete[] surface.skinning_value.blendWeights_values;
++      delete[] surface.skinning_value.blendIndices_values;
+     }
++    delete[] surfaces_values;
+   }
++  static_cast<remixapi_MeshInfo&>(*this) = {};
+ }
+ 
++
+ //////////////////
+ // InstanceInfo //
+ //////////////////
+@@ -679,6 +831,9 @@ void InstanceInfoParticleSystem::_dtor() {
+ 
+ 
+ uint32_t InstanceInfoTransforms::_calcSize() const {
++  if (!remixapi::util::isSupportedBoneTransforms(this)) {
++    throw std::invalid_argument("Invalid Remix bone transform payload");
++  }
+   uint32_t size = 0;
+   size += sizeOf(sType);
+   size += sizeOf(boneTransforms_count);
+@@ -693,13 +848,15 @@ void InstanceInfoTransforms::_serialize(void*& pSerialize) const {
+   }
+ }
+ void InstanceInfoTransforms::_deserialize(void*& pDeserialize) {
++  static_cast<remixapi_InstanceInfoBoneTransformsEXT&>(*this) = {};
+   bridge_util::deserialize(pDeserialize, sType);
+   pNext = nullptr;
+   bridge_util::deserialize(pDeserialize, boneTransforms_count);
+   deserialize_const_p_for_each(pDeserialize, boneTransforms_values, boneTransforms_count);
+ }
+ void InstanceInfoTransforms::_dtor() {
+-  delete boneTransforms_values;
++  delete[] boneTransforms_values;
++  static_cast<remixapi_InstanceInfoBoneTransformsEXT&>(*this) = {};
+ }
+ 
+ 
+@@ -998,4 +1155,4 @@ void LightInfoUSD::_dtor() {
+   if (pFocus) delete pFocus;
+ }
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/bridge/src/util/util_remixapi.h b/bridge/src/util/util_remixapi.h
+index 242cb2b..2a8a122 100644
+--- a/bridge/src/util/util_remixapi.h
++++ b/bridge/src/util/util_remixapi.h
+@@ -35,6 +35,21 @@ namespace remixapi {
+ 
+ namespace util {
+ 
++// Local bridge extension. Pointer-free wire contract: size, sType, type,
++// then the exact 32 float32 matrix words. No pNext extensions yet.
++inline constexpr uint32_t CameraInfoWireSize = 3 * sizeof(uint32_t) + 32 * sizeof(float);
++bool isSupportedCameraInfo(const remixapi_CameraInfo* info);
++bool decodeCameraInfoPayload(const void* data, uint32_t size, remixapi_CameraInfo& output);
++
++// Mesh skin arrays contain total element counts (vertices * bonesPerVertex).
++// These validators bound the existing uint32-sized envelope before allocation
++// or decoding; they do not validate renderer-specific deformation semantics.
++bool isSupportedMeshInfo(const remixapi_MeshInfo* info, uint32_t* wireSize = nullptr);
++bool validateMeshInfoPayload(const void* data, uint32_t size);
++bool isSupportedBoneTransforms(const remixapi_InstanceInfoBoneTransformsEXT* info);
++bool validateBoneTransformsPayload(const void* data, uint32_t size);
++
++
+ template<typename T>
+ struct Handle {
+   using RemixApiHandleT = T;
+@@ -134,6 +149,8 @@ template<> constexpr auto ToRemixApiStructEnum< remixapi_CameraInfoParameterized
+ namespace serialize {
+ // Type declaration
+ 
++using CameraInfo = bridge_util::Serializable<remixapi_CameraInfo,true>;
++
+ // MaterialInfo
+ using MaterialInfo = bridge_util::Serializable<remixapi_MaterialInfo,false>;
+ using MaterialInfoOpaque = bridge_util::Serializable<remixapi_MaterialInfoOpaqueEXT,false>;
+diff --git a/bridge/test/rtx/unit/meson.build b/bridge/test/rtx/unit/meson.build
+index 31682fd..44c1675 100644
+--- a/bridge/test/rtx/unit/meson.build
++++ b/bridge/test/rtx/unit/meson.build
+@@ -53,3 +53,16 @@ test('remix_api__' + variant,
+ endif
+ alias_target('unit_tests', tests)
+ 
++# Local production camera serializer/validator, invoked cross-architecture by
++# the repository wrapper. The executable also runs malformed input checks.
++executable('test_remix_api_camera_' + name_suff, files('test_remix_api_camera.cpp'),
++    include_directories : [util_include_path, public_include_path],
++    dependencies : util_dep,
++    win_subsystem : 'console')
++
++
++# Real production mesh/palette serializer, bounded CPU-only cross-arch fixture.
++executable('test_remix_api_skinning_' + name_suff, files('test_remix_api_skinning.cpp'),
++    include_directories : [util_include_path, public_include_path],
++    dependencies : util_dep,
++    win_subsystem : 'console')
+diff --git a/bridge/test/rtx/unit/test_remix_api_camera.cpp b/bridge/test/rtx/unit/test_remix_api_camera.cpp
+new file mode 100644
+index 0000000..441364e
+--- /dev/null
++++ b/bridge/test/rtx/unit/test_remix_api_camera.cpp
+@@ -0,0 +1,124 @@
++// Local contract tests for the production CameraInfo serializer and validator.
++// Runs without a device or bridge process; cross-architecture files use the
++// exact payload consumed by RemixApi_SetupCamera, not a test-only encoder.
++#include "util_remixapi.h"
++#include <array>
++#include <fstream>
++#include <iostream>
++#include <limits>
++
++using namespace remixapi::util;
++static unsigned checks;
++static bool check(bool value, const char* name) {
++  ++checks;
++  if (!value) std::cerr << "FAIL " << name << '\n';
++  return value;
++}
++
++static remixapi_CameraInfo fixture(unsigned index) {
++  remixapi_CameraInfo camera{};
++  camera.sType = REMIXAPI_STRUCT_TYPE_CAMERA_INFO;
++  camera.type = static_cast<remixapi_CameraType>(index);
++  for (unsigned row = 0; row < 4; ++row) {
++    for (unsigned col = 0; col < 4; ++col) {
++      camera.view[row][col] = float(index * 64 + row * 4 + col) * -0.125f;
++      camera.projection[row][col] = float(index * 64 + row * 4 + col + 3) * 0.0625f;
++    }
++  }
++  const uint32_t minusZero = 0x80000000, subnormal = 1;
++  memcpy(&camera.view[0][0], &minusZero, 4);
++  memcpy(&camera.projection[3][3], &subnormal, 4);
++  return camera;
++}
++
++using Payload = std::array<uint8_t, CameraInfoWireSize>;
++static Payload encode(const remixapi_CameraInfo& camera) {
++  serialize::CameraInfo serializable(camera);
++  Payload bytes{};
++  serializable.serialize(bytes.data());
++  return bytes;
++}
++static bool same(const remixapi_CameraInfo& a, const remixapi_CameraInfo& b) {
++  return a.sType == b.sType && a.type == b.type && !a.pNext && !b.pNext &&
++    !memcmp(a.view, b.view, sizeof(a.view)) && !memcmp(a.projection, b.projection, sizeof(a.projection));
++}
++
++static bool localChecks() {
++  bool passed = true;
++  for (unsigned index = 0; index < 3; ++index) {
++    const auto expected = fixture(index);
++    serialize::CameraInfo serializable(expected);
++    passed &= check(serializable.size() == CameraInfoWireSize && serializable.calcSize() == CameraInfoWireSize, "fixed wire size");
++    std::array<uint8_t, CameraInfoWireSize + 32> guarded;
++    guarded.fill(0xcd);
++    serializable.serialize(guarded.data() + 16);
++    for (unsigned i = 0; i < 16; ++i) passed &= check(guarded[i] == 0xcd && guarded[16 + CameraInfoWireSize + i] == 0xcd, "encode guard");
++    remixapi_CameraInfo decoded{};
++    passed &= check(decodeCameraInfoPayload(guarded.data() + 16, CameraInfoWireSize, decoded) && same(decoded, expected), "round trip exact matrix bits");
++    std::array<uint8_t, CameraInfoWireSize + 1> unaligned;
++    memcpy(unaligned.data() + 1, guarded.data() + 16, CameraInfoWireSize);
++    passed &= check(decodeCameraInfoPayload(unaligned.data() + 1, CameraInfoWireSize, decoded) && same(decoded, expected), "unaligned wire input");
++  }
++  const auto expected = fixture(0);
++  const auto payload = encode(expected);
++  remixapi_CameraInfo output = fixture(2);
++  const auto unchanged = output;
++  for (uint32_t size = 0; size < CameraInfoWireSize; ++size) {
++    passed &= check(!decodeCameraInfoPayload(payload.data(), size, output) && same(output, unchanged), "truncated input rejected without mutation");
++  }
++  passed &= check(!decodeCameraInfoPayload(nullptr, CameraInfoWireSize, output), "null wire input");
++  passed &= check(!decodeCameraInfoPayload(payload.data(), CameraInfoWireSize + 1, output), "oversized wire envelope");
++  for (unsigned word : {0u, 1u, 2u}) {
++    auto corrupt = payload;
++    const uint32_t invalid = 0xffffffff;
++    memcpy(corrupt.data() + word * 4, &invalid, 4);
++    passed &= check(!decodeCameraInfoPayload(corrupt.data(), CameraInfoWireSize, output) && same(output, unchanged), "invalid size sType or camera type");
++    passed &= check(decodeCameraInfoPayload(payload.data(), CameraInfoWireSize, output) && same(output, expected), "valid next item after rejection");
++    output = unchanged;
++  }
++  passed &= check(!isSupportedCameraInfo(nullptr), "null camera input");
++  auto invalid = expected;
++  invalid.pNext = reinterpret_cast<void*>(static_cast<uintptr_t>(0x12345678));
++  passed &= check(!isSupportedCameraInfo(&invalid), "unsupported pNext rejected before send");
++  // The actual serializer never sends a process-local pNext, even if used alone.
++  passed &= check(encode(invalid) == payload, "pNext is omitted from wire");
++  for (uint32_t bad : {0x7fc00001u, 0x7f800000u, 0xff800000u}) {
++    invalid = expected;
++    memcpy(&invalid.view[2][1], &bad, 4);
++    passed &= check(!isSupportedCameraInfo(&invalid), "nonfinite client matrix rejected");
++    const auto bytes = encode(invalid);
++    passed &= check(!decodeCameraInfoPayload(bytes.data(), bytes.size(), output), "nonfinite server matrix rejected");
++  }
++  return passed;
++}
++
++int main(int argc, char** argv) {
++  if (argc != 3 || (strcmp(argv[1], "--write") && strcmp(argv[1], "--read"))) return 2;
++  if (!localChecks()) return 1;
++  constexpr uint32_t magic = 0x314d4143, tail = 0xdeadbeef;
++  if (!strcmp(argv[1], "--write")) {
++    std::ofstream stream(argv[2], std::ios::binary);
++    stream.write(reinterpret_cast<const char*>(&magic), sizeof(magic));
++    for (unsigned index = 0; index < 3; ++index) {
++      const auto payload = encode(fixture(index));
++      stream.write(reinterpret_cast<const char*>(payload.data()), payload.size());
++    }
++    stream.write(reinterpret_cast<const char*>(&tail), sizeof(tail));
++    if (!stream) return 1;
++  } else {
++    std::ifstream stream(argv[2], std::ios::binary);
++    uint32_t got = 0;
++    stream.read(reinterpret_cast<char*>(&got), sizeof(got));
++    if (!check(got == magic, "file envelope")) return 1;
++    for (unsigned index = 0; index < 3; ++index) {
++      Payload payload{};
++      stream.read(reinterpret_cast<char*>(payload.data()), payload.size());
++      remixapi_CameraInfo decoded{};
++      if (!check(bool(stream) && decodeCameraInfoPayload(payload.data(), payload.size(), decoded) && same(decoded, fixture(index)), "cross architecture exact camera")) return 1;
++    }
++    stream.read(reinterpret_cast<char*>(&got), sizeof(got));
++    if (!check(bool(stream) && got == tail && stream.peek() == EOF, "following item boundary and exact file end")) return 1;
++  }
++  std::cout << "PASS " << checks << " camera checks, pointerBytes=" << sizeof(void*) << " wireBytes=" << CameraInfoWireSize << '\n';
++  return 0;
++}
+--- /dev/null
++++ b/bridge/src/server/instance_audit.h
+@@ -0,0 +1,177 @@
++// Own optional server audit. Observes renderer API returns and queue order;
++// SUCCESS means renderer EmitCs acceptance, never GPU completion.
++#pragma once
++#include <windows.h>
++#include <cstdint>
++#include <cstdio>
++#include <cwchar>
++
++namespace bridge_instance_audit {
++struct Counts {
++  uint64_t calls=0,success=0,errors=0,earlyCalls=0,earlySuccess=0,earlyErrors=0,invalidMeshes=0;
++};
++struct Interval {
++  Counts api{};
++  uint64_t draws=0,zeroDraws=0,foreignDraws=0,foreignPresents=0;
++  uint64_t firstDrawSequence=0,firstApiSequence=0,lastApiSequence=0;
++  uint32_t firstDrawUid=0,firstDrawKind=0,firstDrawCount=0,firstApiUid=0,lastApiUid=0;
++  int32_t firstError=0;
++  bool orderKnown=true;
++};
++class Audit {
++public:
++  static constexpr uint64_t byteLimit=16ull*1024*1024;
++  Audit()=default;
++  Audit(const Audit&)=delete;
++  Audit& operator=(const Audit&)=delete;
++  ~Audit(){Close();}
++  bool Enabled() const{return file_!=INVALID_HANDLE_VALUE;}
++  DWORD IoError() const{return ioError_;}
++  bool Capped() const{return capped_;}
++  uint64_t BytesWritten() const{return bytes_;}
++  uint64_t Epoch() const{return epoch_;}
++  uint64_t PresentIndex() const{return presentIndex_;}
++  uint64_t Sequence() const{return sequence_;}
++  const Interval& Current() const{return frame_;}
++  const Counts& Totals() const{return totals_;}
++  void Initialize() {
++    wchar_t path[4096]{};
++    const auto size=GetEnvironmentVariableW(L"REMIX_BRIDGE_INSTANCE_AUDIT",path,4096);
++    if(size&&size<4096)Open(path);
++  }
++  bool Open(const wchar_t* path) {
++    if(Enabled()||!Absolute(path))return false;
++    // CREATE_NEW prevents two servers or a repeated run overwriting evidence.
++    file_=CreateFileW(path,GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
++    if(!Enabled()){ioError_=GetLastError();return false;}
++    char init[512]{};const int length=std::snprintf(init,sizeof(init),
++      "{\"event\":\"init\",\"schema\":1,\"pid\":%lu,\"scope\":\"registered_renderer_api_device\",\"resultMeaning\":\"renderer_api_return_after_EmitCs_not_GPU_completion\",\"frameMeaning\":\"bridge_interval_closed_by_device_or_linked_implicit_swapchain_Present\",\"firstDrawIncludesZeroAndFailure\":true,\"maxBytes\":16777216}\n",GetCurrentProcessId());
++    if(length<0||static_cast<size_t>(length)>=sizeof(init)){ioError_=ERROR_INSUFFICIENT_BUFFER;Close();return false;}
++    return Write(init,static_cast<size_t>(length));
++  }
++  void Command(uint32_t uid){if(Enabled()){uid_=uid;++sequence_;}}
++  void Registered(uint32_t handle,uintptr_t device,int32_t result) {
++    if(!Enabled())return;
++    if(device_||frame_.api.calls||frame_.draws||frame_.foreignDraws||frame_.foreignPresents)
++      Finish(device_?"device_replaced":"registration_boundary",false,0);
++    ++epoch_;device_=device;deviceHandle_=handle;swap_=0;swapHandle_=0;registered_=device&&result==0;
++    frame_={};
++    char line[320]{};const int length=std::snprintf(line,sizeof(line),
++      "{\"event\":\"register\",\"deviceEpoch\":%llu,\"device\":%u,\"commandSequence\":%llu,\"uid\":%u,\"result\":%d}\n",
++      static_cast<unsigned long long>(epoch_),handle,static_cast<unsigned long long>(sequence_),uid_,result);
++    Emit(line,length,sizeof(line));
++  }
++  void LinkImplicit(uintptr_t device,uint32_t handle,uintptr_t swap) {
++    if(!Enabled()||device!=device_||!swap)return;
++    if(swap_&&swap_!=swap){Finish("implicit_swapchain_replaced",false,0);++epoch_;}
++    swap_=swap;swapHandle_=handle;
++  }
++  void BeforeDraw(uintptr_t device,uint32_t kind,uint32_t count) {
++    if(!Enabled())return;
++    if(!device_||device!=device_){++frame_.foreignDraws;frame_.orderKnown=false;return;}
++    if(!frame_.draws){frame_.firstDrawSequence=sequence_;frame_.firstDrawUid=uid_;frame_.firstDrawKind=kind;frame_.firstDrawCount=count;}
++    ++frame_.draws;if(!count)++frame_.zeroDraws;
++  }
++  void Instance(int32_t result,bool meshValid) {
++    if(!Enabled())return;
++    const bool early=frame_.draws==0;
++    const auto add=[&](Counts& c){++c.calls;if(result==0)++c.success;else ++c.errors;
++      if(early){++c.earlyCalls;if(result==0)++c.earlySuccess;else ++c.earlyErrors;}
++      if(!meshValid)++c.invalidMeshes;};
++    add(frame_.api);add(totals_);
++    if(!frame_.firstApiSequence){frame_.firstApiSequence=sequence_;frame_.firstApiUid=uid_;}
++    frame_.lastApiSequence=sequence_;frame_.lastApiUid=uid_;
++    if(result&&frame_.api.errors==1)frame_.firstError=result;
++    if(!registered_)frame_.orderKnown=false;
++  }
++  void PresentDevice(uintptr_t device,int32_t result) {
++    if(!Enabled())return;
++    if(device_&&device==device_){Finish("device_present",true,result);++presentIndex_;}
++    else {++frame_.foreignPresents;frame_.orderKnown=false;}
++  }
++  void PresentSwap(uintptr_t swap,int32_t result) {
++    if(!Enabled())return;
++    if(swap_&&swap==swap_){Finish("implicit_swapchain_present",true,result);++presentIndex_;}
++    else {++frame_.foreignPresents;frame_.orderKnown=false;}
++  }
++  void ResetBegin(uintptr_t device) {
++    if(!Enabled()||!device_||device!=device_)return;
++    Finish("reset_begin",false,0);++epoch_;
++  }
++  void ResetResult(uintptr_t device,int32_t result) {
++    if(Enabled()&&device==device_&&result<0)frame_.orderKnown=false;
++  }
++  void DestroyDevice(uintptr_t device) {
++    if(!Enabled()||!device_||device!=device_)return;
++    Finish("device_destroy",false,0);++epoch_;device_=swap_=0;deviceHandle_=swapHandle_=0;registered_=false;
++  }
++  void DestroySwap(uintptr_t swap) {
++    if(!Enabled()||!swap_||swap!=swap_)return;
++    Finish("implicit_swapchain_destroy",false,0);++epoch_;swap_=0;swapHandle_=0;
++  }
++  void QueueExit(bool normal) {
++    if(Enabled())Finish(normal?"queue_exit_normal":"queue_exit_unexpected",false,0);
++    Close();
++  }
++#if defined(REMIX_BRIDGE_INSTANCE_AUDIT_TEST)
++  void SetByteLimitForTest(uint64_t value){limit_=value;}
++  void FailNextWriteForTest(){failNextWrite_=true;}
++#endif
++private:
++  HANDLE file_=INVALID_HANDLE_VALUE;
++  uintptr_t device_=0,swap_=0;
++  uint32_t deviceHandle_=0,swapHandle_=0,uid_=0;
++  uint64_t sequence_=0,epoch_=0,interval_=0,presentIndex_=0,bytes_=0,limit_=byteLimit;
++  bool registered_=false,capped_=false;
++  DWORD ioError_=0;
++  Interval frame_{};Counts totals_{};
++#if defined(REMIX_BRIDGE_INSTANCE_AUDIT_TEST)
++  bool failNextWrite_=false;
++#endif
++  static bool Absolute(const wchar_t* p) {
++    if(!p||!p[0]||!p[1]||!p[2])return false;
++    const bool letter=(p[0]>=L'A'&&p[0]<=L'Z')||(p[0]>=L'a'&&p[0]<=L'z');
++    return (letter&&p[1]==L':'&&(p[2]==L'\\'||p[2]==L'/'))||
++      (p[0]==L'\\'&&p[1]==L'\\'&&p[2]!=L'.'&&p[2]!=L'?');
++  }
++  void Close(){if(Enabled()){CloseHandle(file_);file_=INVALID_HANDLE_VALUE;}}
++  bool Write(const char* text,size_t length) {
++    if(!Enabled())return false;
++#if defined(REMIX_BRIDGE_INSTANCE_AUDIT_TEST)
++    if(failNextWrite_){failNextWrite_=false;ioError_=ERROR_WRITE_FAULT;Close();return false;}
++#endif
++    DWORD written=0;
++    if(length>MAXDWORD||!WriteFile(file_,text,static_cast<DWORD>(length),&written,nullptr)||written!=length) {
++      ioError_=GetLastError();if(!ioError_)ioError_=ERROR_WRITE_FAULT;Close();return false;
++    }
++    bytes_+=written;return true;
++  }
++  void Emit(const char* text,int length,size_t capacity) {
++    if(!Enabled())return;
++    if(length<0||static_cast<size_t>(length)>=capacity){ioError_=ERROR_INSUFFICIENT_BUFFER;Close();return;}
++    constexpr uint64_t reserve=128;
++    if(limit_<reserve||bytes_+static_cast<uint64_t>(length)>limit_-reserve) {
++      capped_=true;
++      const char cap[]="{\"event\":\"cap\",\"truncated\":true,\"furtherAuditDisabled\":true}\n";
++      if(bytes_+sizeof(cap)-1<=limit_)Write(cap,sizeof(cap)-1);
++      Close();return;
++    }
++    Write(text,static_cast<size_t>(length));
++  }
++  void Finish(const char* reason,bool present,int32_t result) {
++    if(!Enabled())return;
++    char line[2304]{};
++    const auto& c=frame_.api;
++    const bool qualified=present&&registered_&&frame_.orderKnown&&result>=0;
++    const int length=std::snprintf(line,sizeof(line),
++      "{\"event\":\"interval\",\"boundary\":\"%s\",\"complete\":%s,\"qualifiedOrder\":%s,\"deviceEpoch\":%llu,\"interval\":%llu,\"presentIndex\":%llu,\"device\":%u,\"implicitSwapchain\":%u,\"endSequence\":%llu,\"endUid\":%u,\"presentResult\":%d,\"firstDrawSequence\":%llu,\"firstDrawUid\":%u,\"firstDrawKind\":%u,\"firstDrawPrimitiveCount\":%u,\"ordinaryDrawCommands\":%llu,\"zeroDrawCommands\":%llu,\"foreignDrawCommands\":%llu,\"foreignPresents\":%llu,\"firstApiSequence\":%llu,\"lastApiSequence\":%llu,\"firstApiUid\":%u,\"lastApiUid\":%u,\"apiCalls\":%llu,\"rendererApiSuccess\":%llu,\"rendererApiErrors\":%llu,\"earlyCalls\":%llu,\"earlySuccess\":%llu,\"earlyErrors\":%llu,\"invalidMeshHandles\":%llu,\"firstRendererError\":%d,\"totalCalls\":%llu,\"totalSuccess\":%llu,\"totalErrors\":%llu,\"totalEarlyCalls\":%llu,\"totalEarlySuccess\":%llu,\"totalEarlyErrors\":%llu,\"totalInvalidMeshHandles\":%llu}\n",
++      reason,present?"true":"false",qualified?"true":"false",epoch_,interval_,presentIndex_,deviceHandle_,swapHandle_,sequence_,uid_,result,
++      frame_.firstDrawSequence,frame_.firstDrawUid,frame_.firstDrawKind,frame_.firstDrawCount,frame_.draws,frame_.zeroDraws,
++      frame_.foreignDraws,frame_.foreignPresents,frame_.firstApiSequence,frame_.lastApiSequence,frame_.firstApiUid,frame_.lastApiUid,
++      c.calls,c.success,c.errors,c.earlyCalls,c.earlySuccess,c.earlyErrors,c.invalidMeshes,frame_.firstError,
++      totals_.calls,totals_.success,totals_.errors,totals_.earlyCalls,totals_.earlySuccess,totals_.earlyErrors,totals_.invalidMeshes);
++    Emit(line,length,sizeof(line));
++    ++interval_;frame_={};
++  }
++};
++} // namespace bridge_instance_audit
+--- /dev/null
++++ b/bridge/test/rtx/unit/test_remix_api_skinning.cpp
+@@ -0,0 +1,524 @@
++// Own CPU-only contract fixture for the real bridge skinning serializer.
++// No game, COM device, renderer, or GPU calls. Link with util_remixapi.cpp.
++#include <windows.h>
++#include <algorithm>
++#include <array>
++#include <cstddef>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <cwchar>
++#include <limits>
++#include <new>
++#include <stdexcept>
++#include <string>
++#include <type_traits>
++#include <vector>
++#include "util_remixapi.h"
++
++// Allocation accounting is armed only around the real owning deserialize.
++// No bookkeeping allocation is made by these hooks. The allocation header
++// remembers ownership so deletes after the fault also discharge the ledger.
++namespace allocation_fault {
++thread_local bool armed = false;
++thread_local size_t attempts = 0, failAt = SIZE_MAX;
++thread_local long live = 0;
++struct alignas(std::max_align_t) Header { bool tracked; };
++void* Allocate(size_t size) {
++  if (armed && attempts++ == failAt) throw std::bad_alloc();
++  if (size > SIZE_MAX - sizeof(Header)) throw std::bad_alloc();
++  auto* header = static_cast<Header*>(std::malloc(sizeof(Header) + (size ? size : 1)));
++  if (!header) throw std::bad_alloc();
++  header->tracked = armed;
++  if (armed) ++live;
++  return header + 1;
++}
++void Free(void* value) noexcept {
++  if (!value) return;
++  auto* header = static_cast<Header*>(value) - 1;
++  if (header->tracked) --live;
++  std::free(header);
++}
++}
++void* operator new(size_t size) { return allocation_fault::Allocate(size); }
++void* operator new[](size_t size) { return allocation_fault::Allocate(size); }
++void operator delete(void* value) noexcept { allocation_fault::Free(value); }
++void operator delete[](void* value) noexcept { allocation_fault::Free(value); }
++void operator delete(void* value, size_t) noexcept { allocation_fault::Free(value); }
++void operator delete[](void* value, size_t) noexcept { allocation_fault::Free(value); }
++
++namespace {
++namespace wire = remixapi::util;
++using Bytes = std::vector<uint8_t>;
++unsigned checks = 0, errors = 0;
++const ULONGLONG started = GetTickCount64();
++
++void Check(bool value, const char* name) {
++  ++checks;
++  if (!value) { ++errors; std::fprintf(stderr, "FAIL %s\n", name); }
++  if (GetTickCount64() - started > 25000) throw std::runtime_error("fixture deadline");
++}
++void Require(bool value, const char* name) {
++  Check(value, name);
++  if (!value) throw std::runtime_error(name);
++}
++
++// The last byte of the requested storage is immediately before PAGE_NOACCESS.
++// A separate readable prefix catches underruns; it never cushions an overrun.
++class Guarded {
++  uint8_t* allocation_ = nullptr;
++  uint8_t* committed_ = nullptr;
++  size_t committedBytes_ = 0;
++public:
++  uint8_t* data = nullptr;
++  size_t size = 0;
++  explicit Guarded(size_t bytes) : size(bytes) {
++    SYSTEM_INFO system{}; GetSystemInfo(&system);
++    const size_t page = system.dwPageSize;
++    committedBytes_ = ((bytes + 32 + page - 1) / page) * page;
++    allocation_ = static_cast<uint8_t*>(VirtualAlloc(nullptr, committedBytes_ + 2 * page,
++      MEM_RESERVE, PAGE_NOACCESS));
++    if (!allocation_) throw std::bad_alloc();
++    committed_ = static_cast<uint8_t*>(VirtualAlloc(allocation_ + page, committedBytes_,
++      MEM_COMMIT, PAGE_READWRITE));
++    if (!committed_) { VirtualFree(allocation_, 0, MEM_RELEASE); throw std::bad_alloc(); }
++    data = committed_ + committedBytes_ - bytes;
++    std::memset(data - 32, 0xa7, 32);
++    if (bytes) std::memset(data, 0xcc, bytes);
++  }
++  Guarded(const Guarded&) = delete;
++  Guarded& operator=(const Guarded&) = delete;
++  ~Guarded() { if (allocation_) VirtualFree(allocation_, 0, MEM_RELEASE); }
++  void ReadOnly() {
++    DWORD old = 0;
++    Require(VirtualProtect(committed_, committedBytes_, PAGE_READONLY, &old) != FALSE,
++      "guard source readonly");
++  }
++  bool PrefixIntact() const {
++    for (unsigned i = 0; i < 32; ++i) if (data[-32 + int(i)] != 0xa7) return false;
++    return true;
++  }
++};
++
++template<class T> void Append(Bytes& bytes, T value) {
++  static_assert(std::is_integral_v<T> || std::is_enum_v<T>);
++  const auto begin = reinterpret_cast<const uint8_t*>(&value);
++  bytes.insert(bytes.end(), begin, begin + sizeof(value));
++}
++void AppendRaw(Bytes& bytes, const void* source, size_t size) {
++  if (!size) return;
++  const auto begin = static_cast<const uint8_t*>(source);
++  bytes.insert(bytes.end(), begin, begin + size);
++}
++template<class T> void Put(Bytes& bytes, size_t offset, T value) {
++  Require(offset <= bytes.size() && sizeof(value) <= bytes.size() - offset, "mutation inside packet");
++  std::memcpy(bytes.data() + offset, &value, sizeof(value));
++}
++
++void Vertex(remixapi_HardcodedVertex& vertex, unsigned seed) {
++  std::memset(&vertex, 0x5a, sizeof(vertex)); // ABI padding must never enter the wire.
++  const uint32_t bits[8] = {0x80000000u, 0x3f800000u + seed, 0xc0000000u + seed,
++    0x00000000u, 0x3f000000u + seed, 0xbf000000u, 0x3e800000u, 0x3f400000u};
++  std::memcpy(vertex.position, bits, 12);
++  std::memcpy(vertex.normal, bits + 3, 12);
++  std::memcpy(vertex.texcoord, bits + 6, 8);
++  vertex.color = 0x80402010u + seed;
++}
++
++struct SurfaceData {
++  std::array<remixapi_HardcodedVertex, 3> vertices{};
++  std::array<uint32_t, 3> indices{{2, 0, 1}};
++  std::vector<float> weights;
++  std::vector<uint32_t> blends;
++};
++struct MeshData {
++  std::vector<SurfaceData> storage;
++  std::vector<remixapi_MeshInfoSurfaceTriangles> surfaces;
++  remixapi_MeshInfo info{};
++  explicit MeshData(const std::vector<unsigned>& bones) : storage(bones.size()), surfaces(bones.size()) {
++    info.sType = REMIXAPI_STRUCT_TYPE_MESH_INFO;
++    info.hash = 0x0123456789abcdefull;
++    info.surfaces_count = static_cast<uint32_t>(surfaces.size());
++    info.surfaces_values = surfaces.data();
++    for (size_t i = 0; i < bones.size(); ++i) {
++      auto& data = storage[i]; auto& surface = surfaces[i];
++      for (unsigned v = 0; v < 3; ++v) Vertex(data.vertices[v], static_cast<unsigned>(i * 11 + v));
++      surface.vertices_count = 3; surface.vertices_values = data.vertices.data();
++      surface.indices_count = 3; surface.indices_values = data.indices.data();
++      surface.material = reinterpret_cast<remixapi_MaterialHandle>(uintptr_t(0x12340001u + i));
++      if (!bones[i]) continue;
++      data.weights.resize(3 * bones[i]); data.blends.resize(data.weights.size());
++      for (size_t j = 0; j < data.weights.size(); ++j) {
++        uint32_t bits = j == 0 ? 0x80000000u : 0x3e000000u + static_cast<uint32_t>(j);
++        std::memcpy(&data.weights[j], &bits, 4); data.blends[j] = static_cast<uint32_t>((j * 17) % 256);
++      }
++      surface.skinning_hasvalue = 1;
++      surface.skinning_value.bonesPerVertex = bones[i];
++      surface.skinning_value.blendWeights_count = static_cast<uint32_t>(data.weights.size());
++      surface.skinning_value.blendWeights_values = data.weights.data();
++      surface.skinning_value.blendIndices_count = static_cast<uint32_t>(data.blends.size());
++      surface.skinning_value.blendIndices_values = data.blends.data();
++    }
++  }
++};
++
++// Explicit test oracle: field order/width from the bridge wire contract, not
++// native sizeof(MeshInfo/Surface/Vertex), and not the production size helpers.
++Bytes ExpectedMesh(const remixapi_MeshInfo& info) {
++  Bytes bytes;
++  Append(bytes, uint32_t(0)); Append(bytes, uint32_t(info.sType));
++  Append(bytes, info.hash); Append(bytes, info.surfaces_count);
++  for (uint32_t i = 0; i < info.surfaces_count; ++i) {
++    const auto& s = info.surfaces_values[i];
++    Append(bytes, s.vertices_count);
++    for (uint64_t v = 0; v < s.vertices_count; ++v) {
++      AppendRaw(bytes, s.vertices_values[v].position, 12);
++      AppendRaw(bytes, s.vertices_values[v].normal, 12);
++      AppendRaw(bytes, s.vertices_values[v].texcoord, 8);
++      Append(bytes, s.vertices_values[v].color);
++    }
++    Append(bytes, s.indices_count); AppendRaw(bytes, s.indices_values, size_t(s.indices_count) * 4);
++    Append(bytes, s.skinning_hasvalue);
++    if (s.skinning_hasvalue) {
++      const auto& skin = s.skinning_value;
++      Append(bytes, skin.bonesPerVertex); Append(bytes, skin.blendWeights_count);
++      AppendRaw(bytes, skin.blendWeights_values, size_t(skin.blendWeights_count) * 4);
++      Append(bytes, skin.blendIndices_count);
++      AppendRaw(bytes, skin.blendIndices_values, size_t(skin.blendIndices_count) * 4);
++    }
++    Append(bytes, static_cast<uint32_t>(reinterpret_cast<uintptr_t>(s.material)));
++  }
++  Put(bytes, 0, static_cast<uint32_t>(bytes.size()));
++  return bytes;
++}
++
++void CheckDecodedMesh(void* packet, uint32_t size, const remixapi_MeshInfo& expected) {
++  Require(wire::validateMeshInfoPayload(packet, size), "mesh payload valid before deserialize");
++  wire::serialize::MeshInfo decoded(packet); decoded.deserialize();
++  Check(decoded.sType == expected.sType && decoded.hash == expected.hash, "mesh header roundtrip");
++  Require(decoded.surfaces_count == expected.surfaces_count, "surface count roundtrip");
++  for (uint32_t i = 0; i < expected.surfaces_count; ++i) {
++    const auto& a = decoded.surfaces_values[i]; const auto& b = expected.surfaces_values[i];
++    Require(a.vertices_count == b.vertices_count && a.indices_count == b.indices_count, "geometry counts roundtrip");
++    for (uint64_t v = 0; v < b.vertices_count; ++v) {
++      Check(std::memcmp(a.vertices_values[v].position, b.vertices_values[v].position, 12) == 0 &&
++        std::memcmp(a.vertices_values[v].normal, b.vertices_values[v].normal, 12) == 0 &&
++        std::memcmp(a.vertices_values[v].texcoord, b.vertices_values[v].texcoord, 8) == 0 &&
++        a.vertices_values[v].color == b.vertices_values[v].color, "vertex field bits roundtrip");
++    }
++    Check(!b.indices_count || std::memcmp(a.indices_values, b.indices_values, size_t(b.indices_count) * 4) == 0,
++      "triangle index bits roundtrip");
++    Check(a.material == b.material, "material handle remains 32 bit wire value");
++    Require(a.skinning_hasvalue == b.skinning_hasvalue, "skinning presence roundtrip");
++    if (b.skinning_hasvalue) {
++      const auto& x = a.skinning_value; const auto& y = b.skinning_value;
++      Require(x.bonesPerVertex == y.bonesPerVertex && x.blendWeights_count == y.blendWeights_count &&
++        x.blendIndices_count == y.blendIndices_count, "skinning counts roundtrip");
++      Check(std::memcmp(x.blendWeights_values, y.blendWeights_values, size_t(y.blendWeights_count) * 4) == 0,
++        "weight bits roundtrip");
++      Check(std::memcmp(x.blendIndices_values, y.blendIndices_values, size_t(y.blendIndices_count) * 4) == 0,
++        "bone index bits roundtrip");
++    }
++  }
++}
++
++Bytes MeshRoundTrip(const remixapi_MeshInfo& info) {
++  const auto expected = ExpectedMesh(info);
++  uint32_t preflight = 0;
++  Require(wire::isSupportedMeshInfo(&info, &preflight), "mesh preflight accepts supported input");
++  wire::serialize::MeshInfo source(info);
++  Check(preflight == expected.size() && source.size() == expected.size(), "mesh exact wire size");
++  Require(source.size() <= 1024 * 1024, "fixture serialization bounded");
++  Guarded output(source.size()); source.serialize(output.data);
++  Check(output.PrefixIntact(), "mesh output prefix intact");
++  Check(source.size() == expected.size() && std::memcmp(output.data, expected.data(), expected.size()) == 0,
++    "mesh wire bytes including rigid regression");
++  CheckDecodedMesh(output.data, source.size(), info);
++  Check(output.PrefixIntact(), "mesh deserialize did not write before input");
++  return Bytes(output.data, output.data + source.size());
++}
++
++struct BoneData {
++  std::vector<remixapi_Transform> transforms;
++  remixapi_InstanceInfoBoneTransformsEXT info{};
++  explicit BoneData(unsigned count) : transforms(count) {
++    static_assert(sizeof(remixapi_Transform) == 48);
++    info.sType = REMIXAPI_STRUCT_TYPE_INSTANCE_INFO_BONE_TRANSFORMS_EXT;
++    info.boneTransforms_count = count; info.boneTransforms_values = count ? transforms.data() : nullptr;
++    const uint32_t words[12] = {0, 0x80000000u, 0x3f800000u, 0xbf800000u, 0x3e800001u,
++      0x7f7fffffu, 0x00800000u, 1, 0x7fc12345u, 0xff800000u, 0x7f800000u, 0xc0200000u};
++    for (unsigned i = 0; i < count; ++i) {
++      std::memcpy(&transforms[i], words, sizeof(words));
++      const uint32_t unique = 0x3f000000u + i; std::memcpy(&transforms[i], &unique, 4);
++    }
++  }
++};
++void CheckDecodedBones(void* packet, uint32_t size, const BoneData& expected) {
++  Require(wire::validateBoneTransformsPayload(packet, size), "palette payload valid before deserialize");
++  wire::serialize::InstanceInfoTransforms decoded(packet); decoded.deserialize();
++  Check(decoded.sType == expected.info.sType && decoded.pNext == nullptr, "palette header roundtrip");
++  Require(decoded.boneTransforms_count == expected.info.boneTransforms_count, "palette count roundtrip");
++  Check(!decoded.boneTransforms_count || std::memcmp(decoded.boneTransforms_values,
++    expected.transforms.data(), expected.transforms.size() * 48) == 0, "all matrix bits roundtrip including signed zero and nonfinite");
++}
++Bytes BoneRoundTrip(const BoneData& bones) {
++  Require(wire::isSupportedBoneTransforms(&bones.info), "palette preflight accepts supported input");
++  wire::serialize::InstanceInfoTransforms source(bones.info);
++  const uint32_t expectedSize = 12 + bones.info.boneTransforms_count * 48;
++  Require(source.size() == expectedSize, "palette exact wire size");
++  Guarded output(source.size()); source.serialize(output.data);
++  Bytes expected;
++  Append(expected, expectedSize); Append(expected, uint32_t(bones.info.sType));
++  Append(expected, bones.info.boneTransforms_count);
++  AppendRaw(expected, bones.transforms.data(), bones.transforms.size() * 48);
++  Check(std::memcmp(output.data, expected.data(), expected.size()) == 0, "palette exact wire bytes");
++  CheckDecodedBones(output.data, source.size(), bones);
++  Check(output.PrefixIntact(), "palette output prefix intact");
++  return Bytes(output.data, output.data + source.size());
++}
++
++void GuardedSourceCase() {
++  MeshData mesh({2}); auto& s = mesh.surfaces[0];
++  Guarded vertices(3 * sizeof(remixapi_HardcodedVertex)), indices(12), weights(24), blends(24);
++  std::memcpy(vertices.data, s.vertices_values, vertices.size);
++  std::memcpy(indices.data, s.indices_values, indices.size);
++  std::memcpy(weights.data, s.skinning_value.blendWeights_values, weights.size);
++  std::memcpy(blends.data, s.skinning_value.blendIndices_values, blends.size);
++  vertices.ReadOnly(); indices.ReadOnly(); weights.ReadOnly(); blends.ReadOnly();
++  s.vertices_values = reinterpret_cast<const remixapi_HardcodedVertex*>(vertices.data);
++  s.indices_values = reinterpret_cast<const uint32_t*>(indices.data);
++  s.skinning_value.blendWeights_values = reinterpret_cast<const float*>(weights.data);
++  s.skinning_value.blendIndices_values = reinterpret_cast<const uint32_t*>(blends.data);
++  const auto bytes = MeshRoundTrip(mesh.info);
++  Check(bytes.size() == 224, "V3 B2 count6 reads 24 bytes per skinning array, not 144");
++  Check(vertices.PrefixIntact() && indices.PrefixIntact() && weights.PrefixIntact() && blends.PrefixIntact(),
++    "guarded source arrays remain unchanged");
++  BoneData bones(256); Guarded matrices(bones.transforms.size() * 48);
++  std::memcpy(matrices.data, bones.transforms.data(), matrices.size); matrices.ReadOnly();
++  bones.info.boneTransforms_values = reinterpret_cast<const remixapi_Transform*>(matrices.data);
++  BoneRoundTrip(bones);
++}
++
++void PreflightCases() {
++  MeshData mesh({2}); const auto original = mesh.info; const auto surface = mesh.surfaces[0];
++  auto& s = mesh.surfaces[0];
++  Check(!wire::isSupportedMeshInfo(nullptr), "null mesh rejected");
++  mesh.info.sType = REMIXAPI_STRUCT_TYPE_NONE;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "wrong mesh type rejected"); mesh.info = original;
++  mesh.info.pNext = reinterpret_cast<void*>(uintptr_t(1));
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "mesh extension rejected"); mesh.info = original;
++  mesh.info.surfaces_values = nullptr;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "nonnull surface count requires pointer"); mesh.info = original;
++  mesh.info.surfaces_count = UINT32_MAX;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "surface count cannot fit uint32 envelope"); mesh.info = original;
++  s.vertices_values = nullptr;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "nonnull vertex count requires pointer"); s = surface;
++  s.indices_values = nullptr;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "nonnull index count requires pointer"); s = surface;
++  s.skinning_value.bonesPerVertex = 0;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "present skinning requires nonzero B"); s = surface;
++  for (uint32_t count : {0u, 1u, 5u, 7u, UINT32_MAX}) {
++    s.skinning_value.blendWeights_count = count;
++    Check(!wire::isSupportedMeshInfo(&mesh.info), "weight count must equal V times B"); s = surface;
++    s.skinning_value.blendIndices_count = count;
++    Check(!wire::isSupportedMeshInfo(&mesh.info), "bone index count must equal V times B"); s = surface;
++  }
++  s.skinning_value.blendWeights_values = nullptr;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "weights require pointer"); s = surface;
++  s.skinning_value.blendIndices_values = nullptr;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "bone indices require pointer"); s = surface;
++  s.vertices_count = UINT64_MAX;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "vertex multiplication overflow rejected"); s = surface;
++  s.indices_count = UINT64_MAX;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "index multiplication overflow rejected"); s = surface;
++  s.skinning_value.bonesPerVertex = UINT32_MAX;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "V times B cannot fit skinning count"); s = surface;
++  s.skinning_hasvalue = 0; s.vertices_count = uint64_t(UINT32_MAX) / 36 + 1;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "rigid vertex bytes overflow wire envelope"); s = surface;
++  s.skinning_hasvalue = 0; s.indices_count = uint64_t(UINT32_MAX) / 4 + 1;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "rigid index bytes overflow wire envelope"); s = surface;
++  // Each section fits uint32 separately, but their sum plus headers does not.
++  s.skinning_hasvalue = 0; s.vertices_count = uint64_t(UINT32_MAX) / 72;
++  s.indices_count = uint64_t(UINT32_MAX) / 8;
++  Check(!wire::isSupportedMeshInfo(&mesh.info), "aggregate and envelope overhead overflow rejected"); s = surface;
++  Check(wire::isSupportedMeshInfo(&mesh.info), "valid mesh accepted after rejected inputs");
++  BoneData bones(2); const auto palette = bones.info;
++  Check(!wire::isSupportedBoneTransforms(nullptr), "null palette rejected");
++  bones.info.sType = REMIXAPI_STRUCT_TYPE_NONE;
++  Check(!wire::isSupportedBoneTransforms(&bones.info), "wrong palette type rejected"); bones.info = palette;
++  bones.info.boneTransforms_values = nullptr;
++  Check(!wire::isSupportedBoneTransforms(&bones.info), "palette count requires pointer"); bones.info = palette;
++  for (uint32_t count : {257u, UINT32_MAX}) {
++    bones.info.boneTransforms_count = count;
++    Check(!wire::isSupportedBoneTransforms(&bones.info), "palette maximum is 256"); bones.info = palette;
++  }
++  bones.info.pNext = reinterpret_cast<void*>(uintptr_t(1));
++  Check(wire::isSupportedBoneTransforms(&bones.info), "palette pNext remains separately transported chain");
++  bones.info = palette; Check(wire::isSupportedBoneTransforms(&bones.info), "valid palette accepted after rejected inputs");
++}
++
++using Validator = bool (*)(const void*, uint32_t);
++void RejectGuarded(const Bytes& packet, Validator validate, const char* label) {
++  Guarded input(packet.size());
++  if (!packet.empty()) std::memcpy(input.data, packet.data(), packet.size());
++  input.ReadOnly();
++  Check(!validate(input.data, static_cast<uint32_t>(packet.size())), label);
++  Check(input.PrefixIntact(), "rejected packet prefix intact");
++}
++void EnvelopeCases(const Bytes& valid, Validator validate, bool everyPrefix) {
++  Check(!validate(nullptr, static_cast<uint32_t>(valid.size())), "null wire buffer rejected");
++  for (size_t size = 0; size < valid.size(); ++size) {
++    if (!everyPrefix && size > 16 && size + 3 < valid.size() && size % 48 != 11 && size % 48 != 12) continue;
++    Bytes prefix(valid.begin(), valid.begin() + size);
++    RejectGuarded(prefix, validate, "truncated original envelope rejected without overread");
++    if (size >= 4) {
++      Put(prefix, 0, static_cast<uint32_t>(size));
++      RejectGuarded(prefix, validate, "truncated matching envelope rejected without overread");
++    }
++  }
++  auto changed = valid; changed.push_back(0x9b);
++  RejectGuarded(changed, validate, "trailing byte rejected");
++  Put(changed, 0, static_cast<uint32_t>(changed.size()));
++  RejectGuarded(changed, validate, "trailing byte inside declared envelope rejected");
++  for (uint32_t declared : {0u, 3u, uint32_t(valid.size() - 1), uint32_t(valid.size() + 1), UINT32_MAX}) {
++    changed = valid; Put(changed, 0, declared);
++    RejectGuarded(changed, validate, "incorrect declared size rejected");
++  }
++  changed = valid; Put(changed, 4, uint32_t(REMIXAPI_STRUCT_TYPE_NONE));
++  RejectGuarded(changed, validate, "incorrect wire type rejected");
++  Check(validate(valid.data(), static_cast<uint32_t>(valid.size())), "valid packet accepted after malformed envelopes");
++}
++void MalformedCases(const Bytes& skin, const Bytes& palette) {
++  EnvelopeCases(skin, wire::validateMeshInfoPayload, true);
++  EnvelopeCases(palette, wire::validateBoneTransformsPayload, false);
++  // Offsets are fixed contract values for V3/B2/count6, with 36-byte vertices.
++  for (size_t offset : {size_t(16), size_t(160), size_t(164), size_t(192)}) {
++    for (uint32_t value : {0u, 1u, 7u, UINT32_MAX}) {
++      auto changed = skin; Put(changed, offset, value);
++      if ((offset == 16 && value == 1) || (offset == 160 && value == 2)) continue;
++      RejectGuarded(changed, wire::validateMeshInfoPayload, "malformed mesh counts rejected");
++    }
++  }
++  for (size_t offset : {size_t(20), size_t(136)}) {
++    auto changed = skin; Put(changed, offset, UINT64_MAX);
++    RejectGuarded(changed, wire::validateMeshInfoPayload, "wire 64-bit count overflow rejected");
++  }
++  for (uint32_t count : {0u, 1u, 257u, UINT32_MAX}) {
++    auto changed = palette; Put(changed, 8, count);
++    RejectGuarded(changed, wire::validateBoneTransformsPayload, "wire palette count/envelope mismatch rejected");
++  }
++  MeshData mesh({2}); BoneData bones(256);
++  Guarded meshInput(skin.size()), boneInput(palette.size());
++  std::memcpy(meshInput.data, skin.data(), skin.size()); std::memcpy(boneInput.data, palette.data(), palette.size());
++  CheckDecodedMesh(meshInput.data, static_cast<uint32_t>(skin.size()), mesh.info);
++  CheckDecodedBones(boneInput.data, static_cast<uint32_t>(palette.size()), bones);
++}
++
++template<class Decoder> void AllocationCases(const Bytes& bytes) {
++  Guarded input(bytes.size()); std::memcpy(input.data, bytes.data(), bytes.size()); input.ReadOnly();
++  bool reachedSuccess = false;
++  for (size_t fail = 0; fail < 64; ++fail) {
++    Require(allocation_fault::live == 0, "empty deserialize allocation ledger before attempt");
++    allocation_fault::attempts = 0; allocation_fault::failAt = fail;
++    allocation_fault::armed = true;
++    bool failed = false;
++    try { Decoder decoded(input.data); decoded.deserialize(); }
++    catch (const std::bad_alloc&) { failed = true; }
++    catch (...) { allocation_fault::armed = false; throw; }
++    allocation_fault::armed = false;
++    Check(allocation_fault::live == 0, "all owning deserialize arrays freed after success or allocation failure");
++    Check(input.PrefixIntact(), "allocation unwind leaves wire buffer unchanged");
++    if (!failed) {
++      Check(allocation_fault::attempts == fail, "each allocation site faulted once before successful decode");
++      reachedSuccess = true; break;
++    }
++    Check(allocation_fault::attempts == fail + 1, "requested allocation fault reached");
++  }
++  Check(reachedSuccess, "bounded allocation fault sweep reaches valid subsequent packet");
++}
++
++struct Record { uint32_t kind, parameter; Bytes bytes; };
++std::vector<Record> LocalCases() {
++  Check(sizeof(remixapi_Bool) == 4 && sizeof(remixapi_HardcodedVertex) == 64, "SDK ABI widths");
++  GuardedSourceCase(); PreflightCases();
++  std::vector<Record> records;
++  for (unsigned bones : {0u, 1u, 2u, 3u, 4u, 5u}) {
++    MeshData mesh({bones}); records.push_back({1, bones, MeshRoundTrip(mesh.info)});
++  }
++  MeshData multi({0, 1, 2, 3, 4, 5}); records.push_back({1, 100, MeshRoundTrip(multi.info)});
++  for (unsigned count : {0u, 1u, 2u, 256u}) {
++    BoneData bones(count); records.push_back({2, count, BoneRoundTrip(bones)});
++  }
++  Check(records[0].bytes.size() == 164, "rigid byte length unchanged");
++  MalformedCases(records[2].bytes, records.back().bytes);
++  Require(wire::validateMeshInfoPayload(records[6].bytes.data(), static_cast<uint32_t>(records[6].bytes.size())),
++    "multisurface validated before allocation fault sweep");
++  AllocationCases<wire::serialize::MeshInfo>(records[6].bytes);
++  AllocationCases<wire::serialize::InstanceInfoTransforms>(records.back().bytes);
++  return records;
++}
++
++Bytes Bundle(const std::vector<Record>& records) {
++  Bytes file; Append(file, uint32_t(0x314e4b53)); Append(file, uint32_t(1));
++  Append(file, static_cast<uint32_t>(records.size()));
++  for (const auto& record : records) {
++    Append(file, record.kind); Append(file, record.parameter);
++    Append(file, static_cast<uint32_t>(record.bytes.size())); AppendRaw(file, record.bytes.data(), record.bytes.size());
++  }
++  return file;
++}
++void WriteBundle(const wchar_t* path, const std::vector<Record>& records) {
++  const auto bytes = Bundle(records);
++  HANDLE file = CreateFileW(path, GENERIC_WRITE, 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
++  Require(file != INVALID_HANDLE_VALUE, "create fresh cross-architecture bundle");
++  DWORD written = 0; const bool result = WriteFile(file, bytes.data(), static_cast<DWORD>(bytes.size()), &written, nullptr) != FALSE;
++  const bool closed = CloseHandle(file) != FALSE;
++  Require(result && written == bytes.size() && closed, "write complete cross-architecture bundle");
++}
++void ReadBundle(const wchar_t* path, const std::vector<Record>& records) {
++  HANDLE file = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
++  Require(file != INVALID_HANDLE_VALUE, "open cross-architecture bundle");
++  LARGE_INTEGER length{};
++  if (!GetFileSizeEx(file, &length) || length.QuadPart < 12 || length.QuadPart > 1024 * 1024) {
++    CloseHandle(file); Require(false, "bundle length bounded");
++  }
++  Bytes bytes(static_cast<size_t>(length.QuadPart)); DWORD read = 0;
++  const bool result = ReadFile(file, bytes.data(), static_cast<DWORD>(bytes.size()), &read, nullptr) != FALSE;
++  const bool closed = CloseHandle(file) != FALSE;
++  Require(result && read == bytes.size() && closed, "read complete cross-architecture bundle");
++  const auto expected = Bundle(records);
++  Require(bytes == expected, "x86/x64 complete wire bytes are identical");
++  size_t offset = 12;
++  for (const auto& record : records) {
++    offset += 12; Guarded input(record.bytes.size());
++    std::memcpy(input.data, bytes.data() + offset, record.bytes.size()); input.ReadOnly();
++    if (record.kind == 1) {
++      MeshData mesh(record.parameter == 100 ? std::vector<unsigned>{0, 1, 2, 3, 4, 5} : std::vector<unsigned>{record.parameter});
++      CheckDecodedMesh(input.data, static_cast<uint32_t>(record.bytes.size()), mesh.info);
++    } else {
++      BoneData bones(record.parameter); CheckDecodedBones(input.data, static_cast<uint32_t>(record.bytes.size()), bones);
++    }
++    Check(input.PrefixIntact(), "foreign packet input remains unchanged"); offset += record.bytes.size();
++  }
++  Check(offset == bytes.size(), "all foreign packets consumed exactly");
++}
++}
++
++int wmain(int argc, wchar_t** argv) {
++  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
++  size_t packets = 0, bundleBytes = 0;
++  try {
++    Require(argc == 1 || (argc == 3 && (!std::wcscmp(argv[1], L"--write") || !std::wcscmp(argv[1], L"--read"))),
++      "usage: test_skinning [--write fresh-file | --read peer-file]");
++    auto records = LocalCases(); packets = records.size(); bundleBytes = Bundle(records).size();
++    if (argc == 3 && !std::wcscmp(argv[1], L"--write")) WriteBundle(argv[2], records);
++    if (argc == 3 && !std::wcscmp(argv[1], L"--read")) ReadBundle(argv[2], records);
++  } catch (const std::exception& error) {
++    ++errors; std::fprintf(stderr, "fixture exception: %s\n", error.what());
++  }
++  std::printf("{\"checks\":%u,\"pass\":%s,\"errors\":%u,\"pointerBits\":%u,\"packets\":%llu,\"bundleBytes\":%llu,\"cpuOnly\":true}\n",
++    checks, errors ? "false" : "true", errors, unsigned(sizeof(void*) * 8),
++    static_cast<unsigned long long>(packets), static_cast<unsigned long long>(bundleBytes));
++  return errors ? 1 : 0;
++}

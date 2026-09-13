@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "status": "PAIRED_SKIN_B2_TO_B4_PIXEL_FAILURE_WITH_STRIDE_HYPOTHESIS_CORRELATION",
+  "date": "2026-09-13",
+  "newGpuRunsByAuthor": 0,
+  "gameExecuted": false,
+  "fixtureOracleModified": false,
+  "runs": [
+    {
+      "name": "skin-api-v2",
+      "launch": {
+        "serverSha256": "A99FEF75C2465A51E684FE613E579B8CC20ECDBF4D0DE3F30D024B9DC5618E4F",
+        "clientSha256": "4BB7BB4F83E91EC1104C392E760FD6CEB2201D08F164957F89682EC128BE783E",
+        "started": "2026-09-13T08:04:04.4063233+03:00",
+        "gameAssetsUsed": false,
+        "pid": 3180,
+        "maximumBonesPerVertex": 2,
+        "schema": 1,
+        "rendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+        "nativeGameCodeExecuted": false
+      },
+      "exit": {
+        "exited": "2026-09-13T08:04:51.1448420+03:00",
+        "pid": 3180,
+        "timeout": false,
+        "exitCode": 0
+      },
+      "pixelStatus": "FAIL",
+      "paired": false,
+      "captures": 12,
+      "frames": 1167,
+      "serverApiSuccess": 1104,
+      "serverApiErrors": 0,
+      "sourceConservation": "(all frames -60 warmup -3 retirement frames)*1",
+      "serverTermination": "queue_exit_normal",
+      "capReached": false,
+      "negativeControlsPreserved": true
+    },
+    {
+      "name": "skin-api-v3",
+      "launch": {
+        "serverSha256": "A99FEF75C2465A51E684FE613E579B8CC20ECDBF4D0DE3F30D024B9DC5618E4F",
+        "clientSha256": "4BB7BB4F83E91EC1104C392E760FD6CEB2201D08F164957F89682EC128BE783E",
+        "started": "2026-09-13T08:10:59.5232974+03:00",
+        "gameAssetsUsed": false,
+        "pid": 6856,
+        "maximumBonesPerVertex": 4,
+        "schema": 1,
+        "rendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+        "nativeGameCodeExecuted": false
+      },
+      "exit": {
+        "exited": "2026-09-13T08:12:04.0847690+03:00",
+        "pid": 6856,
+        "timeout": false,
+        "exitCode": 0
+      },
+      "pixelStatus": "FAIL",
+      "paired": false,
+      "captures": 24,
+      "frames": 2271,
+      "serverApiSuccess": 2208,
+      "serverApiErrors": 0,
+      "sourceConservation": "(all frames -60 warmup -3 retirement frames)*1",
+      "serverTermination": "queue_exit_normal",
+      "capReached": false,
+      "negativeControlsPreserved": true
+    },
+    {
+      "name": "skin-api-v4",
+      "launch": {
+        "serverSha256": "A99FEF75C2465A51E684FE613E579B8CC20ECDBF4D0DE3F30D024B9DC5618E4F",
+        "clientSha256": "4BB7BB4F83E91EC1104C392E760FD6CEB2201D08F164957F89682EC128BE783E",
+        "started": "2026-09-13T08:17:26.2875668+03:00",
+        "gameAssetsUsed": false,
+        "pid": 26428,
+        "maximumBonesPerVertex": 4,
+        "schema": 1,
+        "rendererSha256": "F7C310821AA98BCDFDEC120330B0A89457B7C5EBA58D21464AF32639611C809F",
+        "nativeGameCodeExecuted": false
+      },
+      "exit": {
+        "exited": "2026-09-13T08:18:23.1623675+03:00",
+        "pid": 26428,
+        "timeout": false,
+        "exitCode": 0
+      },
+      "pixelStatus": "FAIL",
+      "paired": true,
+      "captures": 24,
+      "frames": 2290,
+      "serverApiSuccess": 4454,
+      "serverApiErrors": 0,
+      "sourceConservation": "(all frames -60 warmup -3 retirement frames)*2",
+      "serverTermination": "queue_exit_normal",
+      "capReached": false,
+      "negativeControlsPreserved": false
+    }
+  ],
+  "metrics": [
+    {
+      "bones": 1,
+      "pose": 0,
+      "canonicalIoU": 0.9475753604193972,
+      "hypothesisIoU": 0.9475753604193972,
+      "pairedSkinIoU": 0.9976671850699844,
+      "referenceControlIoU": 0.9976671850699844,
+      "returnedControlIoU": 0.9976671850699844
+    },
+    {
+      "bones": 1,
+      "pose": 1,
+      "canonicalIoU": 0.9681954137587239,
+      "hypothesisIoU": 0.9681954137587239,
+      "pairedSkinIoU": 0.9987780040733197,
+      "referenceControlIoU": 0.9987770077456176,
+      "returnedControlIoU": 0.9987785016286646
+    },
+    {
+      "bones": 2,
+      "pose": 0,
+      "canonicalIoU": 0.7233608646884878,
+      "hypothesisIoU": 0.9635036496350365,
+      "pairedSkinIoU": 0.7431192660550459,
+      "referenceControlIoU": 0.9985365853658537,
+      "returnedControlIoU": 0.9985401459854014
+    },
+    {
+      "bones": 2,
+      "pose": 1,
+      "canonicalIoU": 0.8727936701156421,
+      "hypothesisIoU": 0.96058063656945,
+      "pairedSkinIoU": 0.8827313211281543,
+      "referenceControlIoU": 0.9984932194876946,
+      "returnedControlIoU": 0.9984962406015038
+    },
+    {
+      "bones": 3,
+      "pose": 0,
+      "canonicalIoU": 0.4059990552668871,
+      "hypothesisIoU": 0.9597156398104265,
+      "pairedSkinIoU": 0.40816326530612246,
+      "referenceControlIoU": 0.9979108635097493,
+      "returnedControlIoU": 0.997907949790795
+    },
+    {
+      "bones": 3,
+      "pose": 1,
+      "canonicalIoU": 0.8167153711279953,
+      "hypothesisIoU": 0.9683626033057852,
+      "pairedSkinIoU": 0.8439140811455847,
+      "referenceControlIoU": 0.9984756097560976,
+      "returnedControlIoU": 0.9984787018255578
+    },
+    {
+      "bones": 4,
+      "pose": 0,
+      "canonicalIoU": 0.7235170969993021,
+      "hypothesisIoU": 0.9596931869454053,
+      "pairedSkinIoU": 0.7048360200111173,
+      "referenceControlIoU": 0.9979367262723521,
+      "returnedControlIoU": 0.9979238754325259
+    },
+    {
+      "bones": 4,
+      "pose": 1,
+      "canonicalIoU": 0.39192833750722406,
+      "hypothesisIoU": 0.9638426626323752,
+      "pairedSkinIoU": 0.4010212097407698,
+      "referenceControlIoU": 0.9984709480122325,
+      "returnedControlIoU": 0.998470168281489
+    }
+  ],
+  "hypothesis": {
+    "rendererSourceCommit": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+    "binarySourceIdentityProved": false,
+    "weightIndex": "v+j for j<B-1; lastWeight sequentially subtracts from1; use only weights>0",
+    "boneIndex": "v*B+j",
+    "worldTranslation": [
+      1.5,
+      -0.2,
+      0
+    ],
+    "projection": "x=480+(x+1.5)*480/z; y=270-(y-.2)*480/z",
+    "negativeRemainder": {
+      "vertex": 2,
+      "bones": [
+        3,
+        4
+      ],
+      "lastWeight": -0.25,
+      "outputZ": 6.25
+    },
+    "canonicalJournalMaximumError": 4.964294531006885e-10,
+    "imageFit": false,
+    "sourceOfThresholds": "unchanged frozen paired analyzer; hypothesis has no PASS threshold"
+  },
+  "limits": [
+    "Three-vertex experiment may use renderer CPU small-mesh skinning; GPU compute branch is not established.",
+    "Paired controls distinguish a skin failure from temporal A/A jitter; v2/v3 failed baselines remain historical failures.",
+    "Approximate projected polygon masks omit actual rasterization/jitter; source hypothesis is not binary reverse engineering proof.",
+    "First hypothesis without positive-weight guard failed to explain all B3/B4 cases and is preserved.",
+    "All server DrawInstance calls returned success, but pixels disprove correct deformation for B2-B4; GPU completion is not an API audit claim.",
+    "The same41undisposed shutdown diagnostic and startup Present-semaphore waits remain.",
+    "No game character/material/weighted-native coverage or runtime fix is claimed."
+  ],
+  "evidence": {
+    "path": "local-data/rtx-remix/skinning-fixtures/paired-checkpoint-v1/evidence.json",
+    "bytes": 50331,
+    "sha256": "0470EBFC219A0D0FA9DB43A94FB1F2EA1401F80EFC04C265C14CEFD8E2CE7E85"
+  },
+  "artifacts": 199
+}
