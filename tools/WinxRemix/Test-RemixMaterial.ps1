@@ -58,7 +58,7 @@ rtx.emissiveBlendOverrideEmissiveIntensity = 1
 $previousConfig=$env:DXVK_RTX_CONFIG_FILE
 try {
   $env:DXVK_RTX_CONFIG_FILE=Join-Path $run 'rtx.conf'
-  $arguments=@{FilePath=(Join-Path $run 'test_remix_material.exe');WorkingDirectory=$run;WindowStyle='Normal';PassThru=$true}
+  $arguments=@{FilePath=(Join-Path $run 'test_remix_material.exe');WorkingDirectory=$run;WindowStyle='Hidden';PassThru=$true}
   $fixtureArguments=@()
   if ($System) { $fixtureArguments+='--system' }
   if ($Combiner) { $fixtureArguments+='--combiner' }

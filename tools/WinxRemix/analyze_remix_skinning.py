@@ -43,13 +43,16 @@ def compare(a, b):
 def analyze(run):
     launch = json.loads((run / 'launch.json').read_text(encoding='utf-8-sig'))
     exit_info = json.loads((run / 'exit.json').read_text(encoding='utf-8-sig'))
-    if exit_info['timeout'] or exit_info.get('memoryExceeded', False) or exit_info['exitCode'] != 0 or exit_info['pid'] != launch['pid']:
+    if exit_info['timeout'] or exit_info.get('memoryExceeded', False) or exit_info.get('systemPressure', False) or exit_info['exitCode'] != 0 or exit_info['pid'] != launch['pid']:
         raise ValueError('Fixture did not record a clean process exit')
     rows = [json.loads(line) for line in (run / 'fixture.jsonl').read_text().splitlines()]
     if not rows or rows[-1]['event'] != 'complete' or any(r['event'] == 'error' for r in rows):
         raise ValueError('Fixture journal is incomplete or contains API errors')
     maximum = launch['maximumBonesPerVertex']
     contract = next(r for r in rows if r['event'] == 'contract')
+    signed_weights = bool(launch.get('signedWeights', False))
+    if bool(contract.get('signedWeights', False)) != signed_weights:
+        raise ValueError('Launched and observed weight encoding differ')
     half_resolution = bool(launch.get('halfResolution', False))
     configuration = {r['key']: r['value'] for r in rows if r['event'] == 'config'}
     if half_resolution and (configuration.get('rtx.upscalerType') != '2' or configuration.get('rtx.resolutionScale') != '0.5'):
@@ -109,9 +112,9 @@ def analyze(run):
     files = ['launch.json', 'exit.json', 'build.json', 'fixture.jsonl', *expected_names]
     return dict(schema=1, status='PASS' if success else 'FAIL', run=str(run), results=results,
                 vertices=vertex_count, subdivisions=subdivisions,
-                halfResolution=half_resolution,
+                halfResolution=half_resolution, signedWeights=signed_weights,
                 poseChanges=pose_changes,
-                scope=f'Authored {vertex_count}-vertex mesh, normalized varying weights, four rigid bones, two palettes and independent world translation. Each screenshot contains a simultaneous reference offset by288 exact pixels. Temporal jitter is reported separately. The small mesh permits CPU skinning; 325 vertices exceed the pinned renderer threshold256. This threshold inference is not GPU command tracing. No game skin/material coverage is claimed.',
+                scope=f'Authored {vertex_count}-vertex mesh, '+('negative/nonunit weights encoded through signed palettes and a zero final influence; shared Fixed reference' if signed_weights else 'normalized varying weights')+'. Four original rigid bones, two palettes, immutable skin mesh across poses and independent world translation. Each screenshot contains a simultaneous reference offset by288 pixels. Temporal jitter is reported separately. The small mesh permits CPU skinning; 325 vertices exceed the pinned renderer threshold256. This threshold inference is not GPU command tracing. No game skin/material or temporal motion-vector coverage is claimed.',
                 thresholds=dict(simultaneousControl=.98, expectedProjection=.90, simultaneousSkinReference=.97, minimumPixels=100),
                 hashes={name: digest(run / name) for name in files})
 
@@ -125,5 +128,7 @@ if __name__ == '__main__':
         raise SystemExit('Preserve prior verdict; choose a fresh output path')
     report = analyze(args.run.resolve())
     args.output.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
-    print(json.dumps(dict(status=report['status'], results=report['results'], poseChanges=report['poseChanges'])))
+    print(json.dumps(dict(status=report['status'], signedWeights=report['signedWeights'], cases=len(report['results']),
+                         minimumSkinIoU=min(r['simultaneousReference']['skin']['iou'] for r in report['results']),
+                         poseChanges=report['poseChanges'])))
     raise SystemExit(0 if report['status'] == 'PASS' else 1)

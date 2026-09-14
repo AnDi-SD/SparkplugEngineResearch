@@ -1,8 +1,9 @@
-param()
+param([ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name = ('check-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff')))
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $dependencyInclude = & (Join-Path $PSScriptRoot 'Prepare-Dependencies.ps1') -Offline
-$build=Join-Path $root 'local-data/rtx-remix/test-material-audit'
+$build=Join-Path $root "local-data/rtx-remix/test-material-audit/$Name"
+if (Test-Path -LiteralPath $build) { throw 'Use a fresh evidence directory' }
 $corpus=Join-Path $root 'local-data/rtx-remix/runs/2026-09-12-shader-audit/shaders-client'
 if (-not (Test-Path -LiteralPath $corpus)) { throw 'The preserved native shader audit is required' }
 $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'

@@ -27,7 +27,7 @@ if (-not $RunOnly) {
   Copy-Item -LiteralPath $PSCommandPath -Destination $build
   $abiSnapshot=Join-Path $build 'source/Sparkplug/Analysis/PC'
   New-Item -ItemType Directory -Path $abiSnapshot -Force | Out-Null
-  foreach ($header in 'SparkplugAbi.h','SparkBaseAbi.h','spNodeTransformMath.h','spRenderNodeMath.h','spColorMath.h') {
+  foreach ($header in 'SparkplugAbi.h','SparkBaseAbi.h','spNodeTransformMath.h','spFixedShaderSkinning.h','spRenderNodeMath.h','spColorMath.h') {
     Copy-Item -LiteralPath (Join-Path $root "Sparkplug/Analysis/PC/$header") -Destination $abiSnapshot
   }
   $layoutSnapshot=Join-Path $build 'source/Sparkplug/Code/SparkplugPC'

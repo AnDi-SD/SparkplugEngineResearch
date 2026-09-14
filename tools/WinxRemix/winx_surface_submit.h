@@ -14,6 +14,8 @@ struct SurfaceMesh {
   remixapi_MeshHandle handle;unsigned frame;size_t bytes;remixapi_MaterialHandle material;
   unsigned failedPressureFrame=0;bool pressureFailed=false;
   bool usable=true; // false while pending or quarantined after a failed Create
+  unsigned influences=0; // Zero for immutable baked/unskinned geometry.
+  unsigned requiredBones=0; // One past the largest index in the immutable mesh.
 };
 struct SurfaceMaterialEntry {
   remixapi_MaterialHandle handle;unsigned frame;
@@ -338,27 +340,39 @@ static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64
   }catch(const std::bad_alloc&){++surfaceResourceFailures;return nullptr;}
 }
 
-// One resource cache for both geometry sources. Instance transforms and draw
-// state deliberately do not participate in this immutable mesh resource key.
-static remixapi_MeshHandle SurfaceGeometryResource(const std::vector<remixapi_HardcodedVertex>& expanded,
-                                                  remixapi_MaterialHandle material) {
-  SurfaceResourceOperation operation;if(!operation.owned)return nullptr;
-  const auto api=GetRemixApi();if(!api||!api->CreateMesh||!api->DestroyMesh||!material||expanded.empty())return nullptr;
-  const auto hash=XXH3_64bits_withSeed(expanded.data(),expanded.size()*sizeof(expanded[0]),reinterpret_cast<uintptr_t>(material));
+// Both expanded and compact indexed input share the same cache and API owner.
+// Instance transforms and draw state are outside the immutable resource key.
+static remixapi_MeshHandle CreateSurfaceGeometryOwned(const std::vector<remixapi_HardcodedVertex>& vertices,
+    const std::vector<uint32_t>& indices,remixapi_MaterialHandle material,uint64_t hash,
+    const SurfaceResourceOperation& operation,const remixapi_MeshInfoSkinning* skinning=nullptr) {
+  const auto api=GetRemixApi();if(!operation.Stable()||!api||!api->CreateMesh||!api->DestroyMesh||!material||vertices.empty()||indices.empty())return nullptr;
+  bool liveMaterial=false;for(const auto& item:surfaceMaterials)liveMaterial|=item.second.handle==material&&item.second.usable;
+  if(!liveMaterial)return nullptr;
   {auto found=surfaceMeshes.find(hash);if(found!=surfaceMeshes.end()) {
-    if(!found->second.usable||!operation.Stable())return nullptr;found->second.frame=frameId;return found->second.handle;
+    if(!found->second.usable||found->second.material!=material||found->second.influences!=(skinning?skinning->bonesPerVertex:0)||!operation.Stable())return nullptr;found->second.frame=frameId;return found->second.handle;
   }}
-  if(expanded.size()>surfaceMeshByteLimit/(sizeof(expanded[0])+4))return nullptr;
-  const size_t bytes=expanded.size()*(sizeof(expanded[0])+4);
-  std::vector<uint32_t> sequential;
-  try {sequential.resize(expanded.size());}catch(const std::bad_alloc&){++surfaceResourceFailures;return nullptr;}
-  for(size_t i=0;i<sequential.size();++i)sequential[i]=static_cast<uint32_t>(i);
-  remixapi_MeshInfoSurfaceTriangles surface{};surface.vertices_values=expanded.data();surface.vertices_count=expanded.size();
-  surface.indices_values=sequential.data();surface.indices_count=sequential.size();surface.material=material;
+  if(vertices.size()>surfaceMeshByteLimit/sizeof(vertices[0])||indices.size()>surfaceMeshByteLimit/4||indices.size()%3)return nullptr;
+  size_t bytes=vertices.size()*sizeof(vertices[0])+indices.size()*4;
+  unsigned requiredBones=0;
+  if(skinning) {
+    const auto b=skinning->bonesPerVertex;
+    if(!b||b>8||!skinning->blendWeights_values||!skinning->blendIndices_values||
+       skinning->blendWeights_count!=vertices.size()*b||skinning->blendIndices_count!=vertices.size()*b)return nullptr;
+    for(uint32_t i=0;i<skinning->blendWeights_count;++i) {
+      if(!std::isfinite(skinning->blendWeights_values[i])||skinning->blendWeights_values[i]<0||skinning->blendIndices_values[i]>=256)return nullptr;
+      requiredBones=(std::max)(requiredBones,skinning->blendIndices_values[i]+1);
+    }
+    bytes+=size_t(skinning->blendWeights_count)*4+size_t(skinning->blendIndices_count)*4;
+  }
+  if(bytes>surfaceMeshByteLimit)return nullptr;
+  for(const auto index:indices)if(index>=vertices.size())return nullptr;
+  remixapi_MeshInfoSurfaceTriangles surface{};surface.vertices_values=vertices.data();surface.vertices_count=vertices.size();
+  surface.indices_values=indices.data();surface.indices_count=indices.size();surface.material=material;
+  if(skinning){surface.skinning_hasvalue=1;surface.skinning_value=*skinning;}
   remixapi_MeshInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MESH_INFO;info.hash=hash;info.surfaces_values=&surface;info.surfaces_count=1;
   if(!EnsureSurfaceResourceRoomOwned(1,bytes,0,material)||!operation.Stable())return nullptr;
   try {
-    if(!surfaceMeshes.emplace(hash,SurfaceMesh{nullptr,frameId,bytes,material,0,false,false}).second)return nullptr;
+    if(!surfaceMeshes.emplace(hash,SurfaceMesh{nullptr,frameId,bytes,material,0,false,false,skinning?skinning->bonesPerVertex:0,requiredBones}).second)return nullptr;
   }catch(const std::bad_alloc&){++surfaceResourceFailures;return nullptr;}
   surfaceMeshBytes+=bytes;++surfaceOwnershipEpoch;
   remixapi_MeshHandle handle=nullptr;remixapi_ErrorCode result=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
@@ -372,6 +386,32 @@ static remixapi_MeshHandle SurfaceGeometryResource(const std::vector<remixapi_Ha
   }
   ++surfaceResourceFailures;DestroySurfaceMesh(hash);return nullptr;
 }
+static remixapi_MeshHandle SurfaceGeometryResource(const std::vector<remixapi_HardcodedVertex>& expanded,
+                                                  remixapi_MaterialHandle material) {
+  SurfaceResourceOperation operation;if(!operation.owned)return nullptr;
+  const auto api=GetRemixApi();if(!api||!api->CreateMesh||!api->DestroyMesh||!material||expanded.empty())return nullptr;
+  const auto hash=XXH3_64bits_withSeed(expanded.data(),expanded.size()*sizeof(expanded[0]),reinterpret_cast<uintptr_t>(material));
+  {auto found=surfaceMeshes.find(hash);if(found!=surfaceMeshes.end()) {
+    if(!found->second.usable||!operation.Stable())return nullptr;found->second.frame=frameId;return found->second.handle;
+  }}
+  if(expanded.size()>surfaceMeshByteLimit/(sizeof(expanded[0])+4))return nullptr;
+  std::vector<uint32_t> sequential;
+  try {sequential.resize(expanded.size());}catch(const std::bad_alloc&){++surfaceResourceFailures;return nullptr;}
+  for(size_t i=0;i<sequential.size();++i)sequential[i]=static_cast<uint32_t>(i);
+  return CreateSurfaceGeometryOwned(expanded,sequential,material,hash,operation);
+}
+static remixapi_MeshHandle SurfaceIndexedGeometryResource(const std::vector<remixapi_HardcodedVertex>& vertices,
+    const std::vector<uint32_t>& indices,remixapi_MaterialHandle material) {
+  SurfaceResourceOperation operation;if(!operation.owned)return nullptr;
+  if(vertices.empty()||vertices.size()>65536||indices.empty()||indices.size()>32768*3||indices.size()%3)return nullptr;
+  const auto vertexHash=XXH3_64bits_withSeed(vertices.data(),vertices.size()*sizeof(vertices[0]),reinterpret_cast<uintptr_t>(material));
+  const auto hash=XXH3_64bits_withSeed(indices.data(),indices.size()*sizeof(indices[0]),vertexHash^0x534b494e494e4458ull);
+  return CreateSurfaceGeometryOwned(vertices,indices,material,hash,operation);
+}
+
+#include "winx_skin_packet_submit.h"
+#include "winx_skin_draw_plan.h"
+#include "winx_skin_gpu_submit.h"
 
 static bool SurfaceSubmitFailure(unsigned line) {
   static std::set<unsigned> reported;

@@ -1,5 +1,6 @@
 #include "spPCEffectTemplate.h"
 #include "spPCRFXFileLoader.h"
+#include "spPCShaderSource.h"
 #include "../SparkplugDX/spDXShader.h"
 #include <cstring>
 namespace sparkplug::reconstruction
@@ -17,10 +18,7 @@ namespace sparkplug::reconstruction
     {for(auto& value:text)value.clear();flags={};} //4CFF40 leaves parameter vector intact.
     std::string spPCEffectTemplate::BuildShaderSourceForAnalysis(const ShaderForAnalysis& shader,std::string_view insertion,std::string_view header)
     {
-        std::string source(header);source+=shader.text[1];source+=shader.text[0];
-        const auto position=source.find("// INSERTION POINT");
-        if(position!=std::string::npos&&!insertion.empty())source.insert(position,insertion.data(),insertion.size());
-        return source;
+        return ComposePCShaderSourceForAnalysis(shader.text[0],shader.text[1],insertion,header);
     }
     bool spPCEffectTemplate::CompileShaderForAnalysis(const ShaderForAnalysis& shader,std::string_view insertion,std::string_view header,
         spDXShader& output,const CompilerForAnalysis& compiler,CompilerStateForAnalysis& state)

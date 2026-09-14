@@ -84,6 +84,7 @@ template<class Shader,unsigned Slot> static HRESULT STDMETHODCALLTYPE AuditSetSh
 }
 
 template<class T,unsigned Slot,unsigned Index> static HRESULT STDMETHODCALLTYPE AuditSetConstants(IDirect3DDevice9* d,UINT start,const T* data,UINT count) {
+  d3d9_state_witness::Mutation mutation;
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,const T*,UINT);
   const HRESULT hr=Original<F>(d,Slot)(d,start,data,count);
   std::lock_guard<std::recursive_mutex> lock(guard);
@@ -133,6 +134,11 @@ static void ShaderAuditSnapshot(bool force=false) {
   shaderFrameDraws.clear();
 }
 
+static std::array<void*,6> ShaderConstantAuditHooks() {
+  return {reinterpret_cast<void*>(AuditSetConstants<float,94,0>),reinterpret_cast<void*>(AuditSetConstants<int,96,1>),
+    reinterpret_cast<void*>(AuditSetConstants<BOOL,98,2>),reinterpret_cast<void*>(AuditSetConstants<float,109,3>),
+    reinterpret_cast<void*>(AuditSetConstants<int,111,4>),reinterpret_cast<void*>(AuditSetConstants<BOOL,113,5>)};
+}
 static void InstallShaderAudit(IDirect3DDevice9* d) {
   if(!shaderAuditFile) return;
   Patch(d,91,reinterpret_cast<void*>(AuditCreateShader<IDirect3DVertexShader9,91>));

@@ -32,7 +32,7 @@ def prepare_gpu(destination):
         original=shaders/name
         if original.exists():shutil.copy2(original,destination/name)
     shutil.copy2(renderer/'lib/vulkan-1.lib',destination/'vulkan-1.lib')
-    for name in ['test_gpu_skinning.cpp','prepare_gpu.py','prepare_cpu.py','Test-GPU.ps1']:
+    for name in ['test_gpu_skinning.cpp','vulkan_skin_dispatch.h','prepare_gpu.py','prepare_cpu.py','Test-GPU.ps1']:
         shutil.copy2(PACKAGE/name,destination/name)
     metadata={'schema':1,'shaderSha256':digest(binary),
         'embeddedShaderRoundtrip':True,'shaderSourcesMatchPinnedUpstream':True,

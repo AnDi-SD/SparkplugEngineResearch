@@ -41,3 +41,13 @@ changes preserve the original caller ownership of serialized inputs.
 ## Build and tests
 
 Use `Test-Skinning.ps1`, `Build-Pair.ps1` and the camera regression in the adjacent component. `Capture-Manifest.py` stores a fresh detailed report in the ignored private evidence directory; it does not replace the public build manifest. CPU checks do not establish GPU deformation or compatibility with every game resource.
+
+`Test-BakedPackets.ps1 -Name fresh-name -Manifest paths.txt` exercises the shared
+[baked Skin consumer](../docs/skin-packets.md) with captured packets. It builds
+x86/x64 fixtures from a frozen source snapshot, routes actual compact Mesh,
+identity Instance and Blend arguments through `util_remixapi.cpp`, and reads
+each architecture's file on the other. All meaningful vertex/index/instance
+fields are compared exactly; absent skinning stays absent. Mesh ownership is
+released before its material. The bounded file exchange is not bridge IPC or
+a renderer run. Existing bridge working sources must already contain the
+qualified patch; the test records their hashes and never edits those sources.

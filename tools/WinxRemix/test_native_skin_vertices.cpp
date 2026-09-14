@@ -11,7 +11,7 @@ namespace source=native_mesh_source;
 namespace transport=native_transport_source;
 namespace abi=sparkplug::evidence::pc;
 using skin_test::Check;using skin_test::Ptr;using skin_test::Put;
-static unsigned parserChecks=0,integrationChecks=0;
+static unsigned parserChecks=0,integrationChecks=0,currentPacketChecks=0;
 static float NaN(){return (std::numeric_limits<float>::quiet_NaN)();}
 struct Data {
   unsigned influences,flags,stride=0,base=2,count=4,start=2,primitives=1,type=2,palette=4;
@@ -148,6 +148,52 @@ static void Integration(){const auto before=skin_test::checks;Integrated x;
   audit::output=savedOutput;Check(audit::attempts==attempts,"missing diagnostic output causes no reads or credit");
   integrationChecks=skin_test::checks-before;
 }
+static void CurrentPacket(){
+  namespace current=native_skin_packet_source;namespace packets=winx_remix::skin_packet;
+  const auto before=skin_test::checks;Integrated x(true);frameId=301;
+  fclose(audit::output);audit::output=nullptr;audit::enabled=false;
+  scene_geometry::Scope scene(Ptr(x.f.scene),Ptr(x.f.camera));
+  native_skin_source::Scope skin(Ptr(&x.f.skin),Ptr(x.f.camera),x.f.Support());
+  native_skin_source::Capture(Ptr(&x.f.mesh),Ptr(x.f.renderer),777,0x46a367);
+  Check(skin.observed&&skin.observation.submission==777,"observation retained for this Skin call with vertex journal disabled");
+  native_mesh_source::Scope mesh{nullptr,Ptr(&x.f.mesh),Ptr(x.f.renderer),777};mesh.value=x.f.mesh;mesh.valid=true;
+  struct Active {native_mesh_source::Scope* previous=native_mesh_source::active;
+    explicit Active(native_mesh_source::Scope* value){native_mesh_source::active=value;}
+    ~Active(){native_mesh_source::active=previous;}} active(&mesh);
+  const native_mesh_source::DrawRange draw{D3DPT_TRIANGLELIST,INT(x.data.base),0,x.data.count,x.data.start,x.data.primitives};
+  current::Packet packet;unsigned reason=99;
+  Check(current::CopyDraw(x.Device(),draw,packet,&reason)&&!reason,"current draw packet independent of capture enable, journal and frame sampling");
+  Check(packet.geometry.vertices.size()==3&&packet.geometry.palette.size()==4&&packet.stamp.valid&&
+    !packet.stamp.transport.elements&&current::Current(packet.stamp),"owned geometry and value-only source stamp");
+  std::vector<uint8_t> encoded;Check(packets::Encode(packet.geometry,encoded),"save baseline owned geometry for refusal checks");
+  auto unchanged=[&](){std::vector<uint8_t> now;return packets::Encode(packet.geometry,now)&&now==encoded;};
+  auto reject=[&](const char* label){Check(!current::Current(packet.stamp),label);};
+  const auto baseline=packet.stamp;
+  ++frameId;reject("new frame invalidates source stamp");--frameId;
+  ++mesh.sequence;Check(!current::CopyDraw(x.Device(),draw,packet,&reason)&&unchanged(),"another mesh submission cannot consume old observation");--mesh.sequence;
+  auto badDraw=draw;++badDraw.base;Check(!current::CopyDraw(x.Device(),badDraw,packet,&reason)&&unchanged(),"draw range mismatch preserves prior output");
+  mesh.parent=&mesh;Check(!current::CopyDraw(x.Device(),draw,packet,&reason),"nested mesh scope rejects");mesh.parent=nullptr;
+  skin.observed=false;Check(!current::CopyDraw(x.Device(),draw,packet,&reason),"missing original observation rejects");skin.observed=true;
+  ++x.f.palette[0][12];reject("changed original palette rejects old snapshot");--x.f.palette[0][12];
+  ++x.f.skin.weightCount;reject("changed Skin metadata rejects old operation");--x.f.skin.weightCount;
+  const auto primary=x.f.object[0];x.f.object[0]^=1;reject("changed complete owner rejects");x.f.object[0]=primary;
+  ++x.f.mesh.vertexBegin;reject("changed native range rejects");--x.f.mesh.vertexBegin;
+  ++x.declaration[5];reject("changed native declaration rejects");--x.declaration[5];
+  surfaceWrites.emplace(&x.vertexSlot,decltype(surfaceWrites)::mapped_type{});reject("open write cannot be submitted");surfaceWrites.erase(&x.vertexSlot);
+  auto& sourceBytes=source::buffers[&x.vertexSlot].data;auto& upload=surfaceBuffers[&x.vertexSlot].bytes;
+  const auto offset=x.data.base*x.data.stride;
+  sourceBytes[offset]^=1;upload[offset]^=1;
+  reject("simultaneously changed native and upload bytes cannot reuse an old generation stamp");
+  Check(unchanged(),"owned packet unchanged after native mutation");sourceBytes[offset]^=1;upload[offset]^=1;
+  Check(current::Current(baseline),"restored untouched source remains current within the same operation");
+  transport::Forget(&x.vertexSlot);x.Remember();reject("COM address reused with new creation generation rejects old stamp");
+  Check(current::CopyDraw(x.Device(),draw,packet)&&current::Current(packet.stamp),"fresh snapshot can use new verified transport generation");
+  transport::BeginReset(x.Device());Check(!current::Current(packet.stamp),"Reset retires source stamp");transport::EndReset(x.Device());x.Remember();
+  native_skin_source::Capture(Ptr(&x.f.mesh),Ptr(x.f.renderer),778,0x479df3);
+  Check(!skin.observed,"failed original observation clears earlier submission snapshot");
+  Check(!testRemixApi&&!skin_packet_capture::Enabled(),"source operation did not enable capture or call Remix");
+  currentPacketChecks=skin_test::checks-before;
+}
 static std::vector<uint8_t> ReadPacket(const wchar_t* name){std::ifstream stream(name,std::ios::binary|std::ios::ate);
   Check(bool(stream),"recorded packet exists");const auto size=stream.tellg();Check(size>0&&size<8*1024*1024,"recorded packet bound");
   std::vector<uint8_t> bytes(size_t(size),0);stream.seekg(0);Check(bool(stream.read(reinterpret_cast<char*>(bytes.data()),size)),"recorded packet read completes");return bytes;}
@@ -176,6 +222,6 @@ static void PacketCapture(){
   Check(!capture::Save(observed,999,p)&&capture::stopped&&ReadPacket(L"packets-fixture/packet-0001.skp")==bytes,"exclusive file creation preserves earlier evidence on collision");
 }
 }
-int main(){try{skin_test::Watchdog watchdog;skin_vertex_test::Parser();skin_vertex_test::Integration();skin_vertex_test::PacketCapture();
-  printf("{\"status\":\"PASS\",\"checks\":%u,\"parserChecks\":%u,\"integrationChecks\":%u,\"gpu\":false,\"nativeCode\":false,\"realCOM\":false}\n",skin_test::checks,skin_vertex_test::parserChecks,skin_vertex_test::integrationChecks);return 0;
+int main(){try{skin_test::Watchdog watchdog;skin_vertex_test::Parser();skin_vertex_test::Integration();skin_vertex_test::PacketCapture();skin_vertex_test::CurrentPacket();
+  printf("{\"status\":\"PASS\",\"checks\":%u,\"parserChecks\":%u,\"integrationChecks\":%u,\"currentPacketChecks\":%u,\"gpu\":false,\"nativeCode\":false,\"realCOM\":false}\n",skin_test::checks,skin_vertex_test::parserChecks,skin_vertex_test::integrationChecks,skin_vertex_test::currentPacketChecks);return 0;
 }catch(const std::exception& e){fprintf(stderr,"FAIL %s\n",e.what());return 1;}}

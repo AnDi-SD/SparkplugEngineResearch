@@ -2,6 +2,7 @@
 // existing recursive guard. Getters are read-only; reentrant setters and state
 // block Apply invalidate the entire read operation, including failed setters.
 #pragma once
+#include <array>
 namespace d3d9_state_witness {
 static uint64_t serial=1;
 static unsigned mutations;
@@ -10,13 +11,25 @@ struct Mutation {
   Mutation(){++serial;++mutations;}
   ~Mutation(){--mutations;++serial;}
 };
+// D3D9 may temporarily acquire/release its device while a getter borrows a
+// surface. A nonfinal Release changes ownership, not render state. Block
+// reentrant observations while the external lifetime call is active; setters
+// reached by that call still advance serial, and final Release calls Retire.
+struct LifetimeCall {
+  std::lock_guard<std::recursive_mutex> lock{guard};
+  LifetimeCall(){++mutations;}
+  ~LifetimeCall(){--mutations;}
+};
 // Reset can synchronize with runtime worker threads. Preserve its existing
 // unlocked external call, but keep every observation unqualified until it ends.
 struct DetachedMutation {
   DetachedMutation(){std::lock_guard<std::recursive_mutex> lock(guard);++serial;++mutations;}
   ~DetachedMutation(){std::lock_guard<std::recursive_mutex> lock(guard);--mutations;++serial;}
 };
-struct Device {bool blocked=false;void* vertexShader=nullptr;void* pixelShader=nullptr;void* reset=nullptr;void* release=nullptr;};
+struct Device {
+  bool blocked=false;void* vertexShader=nullptr;void* pixelShader=nullptr;
+  void* reset=nullptr;void* release=nullptr;std::array<void*,6> constants{};
+};
 static std::map<IDirect3DDevice9*,Device> devices;
 static std::map<IDirect3DStateBlock9*,IDirect3DDevice9*> blocks;
 static void Block(IDirect3DDevice9* device){++serial;const auto found=devices.find(device);if(found!=devices.end())found->second.blocked=true;}
@@ -94,11 +107,24 @@ static const Hook hooks[]={
   {102,reinterpret_cast<void*>(Set<102,UINT,UINT>)},
   {104,reinterpret_cast<void*>(Set<104,IDirect3DIndexBuffer9*>)}
 };
+// Shader constants can change palette, projection or material without changing
+// either bound shader. Float, integer and boolean setters all invalidate reads,
+// including failed calls and setters invoked reentrantly by an external call.
+static const Hook constantHooks[]={
+  {94,reinterpret_cast<void*>(Set<94,UINT,const float*,UINT>)},
+  {96,reinterpret_cast<void*>(Set<96,UINT,const int*,UINT>)},
+  {98,reinterpret_cast<void*>(Set<98,UINT,const BOOL*,UINT>)},
+  {109,reinterpret_cast<void*>(Set<109,UINT,const float*,UINT>)},
+  {111,reinterpret_cast<void*>(Set<111,UINT,const int*,UINT>)},
+  {113,reinterpret_cast<void*>(Set<113,UINT,const BOOL*,UINT>)}
+};
 static bool Covered(IDirect3DDevice9* device,const Device& entry) {
   const auto table=*reinterpret_cast<void***>(device);
   if(!table||entry.blocked||table[92]!=entry.vertexShader||table[107]!=entry.pixelShader||
      !entry.reset||table[16]!=entry.reset||!entry.release||table[2]!=entry.release)return false;
   for(const auto& hook:hooks)if(table[hook.slot]!=hook.function)return false;
+  for(size_t i=0;i<entry.constants.size();++i)
+    if(!entry.constants[i]||table[constantHooks[i].slot]!=entry.constants[i])return false;
   for(const auto& block:blocks)if(block.second==device) {
     const auto methods=*reinterpret_cast<void***>(block.first);
     if(!methods||methods[0]!=reinterpret_cast<void*>(QueryBlock)||methods[2]!=reinterpret_cast<void*>(ReleaseBlock)||
@@ -106,7 +132,8 @@ static bool Covered(IDirect3DDevice9* device,const Device& entry) {
   }
   return true;
 }
-static bool Install(IDirect3DDevice9* device,void* reset,void* release,void* auditedVS=nullptr,void* auditedPS=nullptr) {
+static bool Install(IDirect3DDevice9* device,void* reset,void* release,void* auditedVS=nullptr,void* auditedPS=nullptr,
+    const std::array<void*,6>& auditedConstants={}) {
   std::lock_guard<std::recursive_mutex> lock(guard);++serial;
   if(!device||devices.count(device))return false;
   try {
@@ -125,6 +152,8 @@ static bool Install(IDirect3DDevice9* device,void* reset,void* release,void* aud
     };
     entry.vertexShader=shader(92,auditedVS,reinterpret_cast<void*>(Set<92,IDirect3DVertexShader9*>));
     entry.pixelShader=shader(107,auditedPS,reinterpret_cast<void*>(Set<107,IDirect3DPixelShader9*>));
+    for(size_t i=0;i<entry.constants.size();++i)
+      entry.constants[i]=shader(constantHooks[i].slot,auditedConstants[i],constantHooks[i].function);
     entry.blocked=!Covered(device,entry);return !entry.blocked;
   }catch(const std::bad_alloc&){Block(device);return false;}
 }

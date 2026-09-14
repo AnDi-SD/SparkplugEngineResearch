@@ -31,13 +31,7 @@ namespace sparkplug::reconstruction
     {if(fixedTemplate_||!value)return false;fixedTemplate_=std::move(value);return true;}
     spPCShaderManager::SourceInputsForAnalysis spPCShaderManager::BuildSourceInputsForAnalysis(const KeyForAnalysis& key)
     {
-        SourceInputsForAnalysis input;const auto mask=key[0];
-        const auto line=[](std::string_view name,std::uint32_t value){return std::string(name)+" = "+std::to_string(value)+";\n";};
-        input.insertion=line("BlendWeightCount",mask&15)+line("ColorMode",(mask>>16)&15)+line("LightCount",(mask>>20)&15)+line("bUseSpecular",(mask>>24)&1);
-        for(unsigned i=0;i<((mask>>20)&15);++i)input.insertion+=line("LightType["+std::to_string(i)+"]",(key[1]>>(2*i))&3);
-        for(unsigned i=0;i<8;++i)input.insertion+=line("bHasUVTransform["+std::to_string(i)+"]",(mask>>(8+i))&1);
-        for(unsigned i=0;i<std::min((mask>>4)&15u,8u);++i)input.header+="#define USE_TEXCOORD"+std::to_string(i)+"\n";
-        return input;
+        return BuildPCShaderSourceInputsForAnalysis(key);
     }
     spPCShaderManager::SelectionForAnalysis spPCShaderManager::SelectOrCreateForAnalysis(const KeyForAnalysis& key,
         const spPCEffectTemplate::CompilerForAnalysis& compiler,spPCEffectTemplate::CompilerStateForAnalysis& state,

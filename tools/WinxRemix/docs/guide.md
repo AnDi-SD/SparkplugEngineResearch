@@ -111,21 +111,10 @@ x86 DLL сохранена как `d3d9.remix-original.dll`.
 
 `Start-Probe -StartLevel N -DebugMenu` создаёт отдельную рабочую папку с копией
 INI и штатным `startLevel=N` (1–37, 41–49). Установленный INI сохраняется.
-`research/winx_remix_state.py --pid PID --cameras` читает состояние и камеры
-из проверенного debug EXE; доступ к памяти только на чтение.
-Дополнительный `--player` сохраняет мировые/локальные координаты Блум и
-проверенную цепочку profile → player → node. Нулевая позиция во время
-загрузки не означает готовность сцены. Телепорт этот инструмент не выполняет.
-
-`Run-WinxRemix -Mode RTX -DebugMenu -StartLevel 2 -Windowed` открывает
-Гардинию 2 с отдельным `fullScreen=false`, не меняя установленный INI.
+`Run-WinxRemix -Mode RTX -DebugMenu -StartLevel 27 -Windowed` открывает
+Алфею с отдельным `fullScreen=false`, не меняя установленный INI.
 Это запуск уровня, не возврат к произвольным координатам.
 `-Windowed` требует `-StartLevel` для изоляции настройки.
-
-`research/winx_remix_sweep.py` — незавершённый тестовый водитель F1/загрузок,
-не доказательство прохождения всех уровней. Обход остановлен по указанию
-пользователя для исправления геометрии; помехи от tutorial/game-over сохраняются
-как ошибки управления тестом, а не объявляются падениями уровней.
 
 ### Проверка передачи шейдеров
 
@@ -138,7 +127,8 @@ python -B tools/WinxRemix/analyze_shader_audit.py local-data/rtx-remix/runs/ИМ
 ```
 
 Анализатор запускать после закрытия игры. Он требует установленную системную
-`d3dx9_43.dll`; компилирует отдельные файлы только в каталоге результатов,
+`d3dx9_43.dll`; обёртка SDK находится рядом в `pc_shader_sdk.py`.
+Анализатор компилирует отдельные файлы только в каталоге результатов,
 не меняя игру. В `shader-coverage.json` сохраняются инвентарь `Shaders`,
 результаты сопоставления и ограничения проверки.
 
@@ -191,10 +181,12 @@ ShaderAudit и MaterialAudit. Пример универсального диаг
 ./Run-WinxRemix.ps1 -Mode RTX -DebugMenu -ShaderSemantics -SceneLights -SceneGeometry -StartLevel 27 -Windowed
 ```
 
-После закрытия записи используйте общий анализатор из корня репозитория:
+После закрытия записи используйте общий анализатор байткодов из корня
+репозитория. Он проверяет передачу программ; восстановление семантики ключей
+шейдеров остаётся отдельной задачей.
 
 ```powershell
-python research/analyze_pc_shader_contract.py --native-keys --run local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА --output local-data/results/СВЕЖЕЕ-ИМЯ
+python tools/WinxRemix/analyze_shader_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА
 ```
 
 ```powershell
@@ -210,6 +202,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-Materia
 цветовых входов не доказывает отсутствие освещения в программе.
 Тест сравнивает регистры 15 сохранённых игровых шейдеров с Microsoft D3DX
 и отдельно проверяет 12 граничных случаев. Требуется локальный shader-audit corpus.
+`Test-MaterialAudit.ps1`, `Test-SceneGeometry.ps1` и `Test-SurfaceMaterial.ps1`
+принимают `-Name` для нового каталога результатов. Без него создаётся имя
+с отметкой времени; существующий каталог повторно не используется.
 
 
 

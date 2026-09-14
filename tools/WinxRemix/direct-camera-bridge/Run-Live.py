@@ -18,8 +18,8 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / 'research'))
-import smoke_release_packages as owned
+sys.path.insert(0, str(ROOT / 'tools/WinxRemix'))
+import winx_owned_process as owned
 
 K = owned.K
 snapshot = owned.api(K, 'CreateToolhelp32Snapshot', W.HANDLE, W.DWORD, W.DWORD)
@@ -94,24 +94,29 @@ def suspend_owned_server(job,expected):
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--template',default='runtime-v1');parser.add_argument('--name',required=True)
-    parser.add_argument('--visible',action='store_true');parser.add_argument('--fault',action='store_true');args=parser.parse_args()
+    parser.add_argument('--visible',action='store_true');parser.add_argument('--fault',action='store_true')
+    parser.add_argument('--memory-limit-mib',type=int,default=4096);parser.add_argument('--reserve-mib',type=int,default=512);args=parser.parse_args()
+    if not 256<=args.memory_limit_mib<=16384 or not 128<=args.reserve_mib<=8192:raise ValueError('Bounded memory policy required')
     if not all(re.fullmatch(r'[A-Za-z0-9_-]+',v) for v in [args.template,args.name]):raise RuntimeError('Single path segments required')
     base=ROOT/'local-data/rtx-remix/direct-camera-live';template=base/args.template;run=base/args.name
     if run.exists():raise RuntimeError('Use a fresh name')
     if pending:=blockers():raise RuntimeError(f'Another game/bridge/helper is running: {pending}')
+    before_memory=owned.memory_status();reserve=args.reserve_mib*1024*1024
+    if min(before_memory['availablePhysical'],before_memory['availableCommit'])<reserve:raise RuntimeError('Insufficient available system memory')
     prepared=json.loads((template/'prepared.json').read_text(encoding='utf-8-sig'))
     for entry in prepared['files']:
         if hashlib.sha256((template/entry['path']).read_bytes()).hexdigest().upper()!=entry['sha256']:raise RuntimeError(f'Prepared input changed: {entry["path"]}')
     shutil.copytree(template,run)
     job=owned.create_job(None,None);owned.check(job)
-    limits=owned.ExtendedLimit();limits.basic.flags=0x2000|0x200;limits.jobMemory=4*1024*1024*1024
+    limits=owned.ExtendedLimit();limits.basic.flags=0x2000|0x200;limits.jobMemory=args.memory_limit_mib*1024*1024
     owned.check(owned.set_job(job,9,C.byref(limits),C.sizeof(limits)))
     pi=owned.ProcessInfo();startup=owned.Startup();startup.cb=C.sizeof(startup);startup.flags=1;startup.show=0
     executable=run/'live_camera.exe';cmd=[str(executable)]
     if args.visible:cmd.append('--visible')
     if args.fault:cmd.append('--fault')
     os.environ['DXVK_RTX_CONFIG_FILE']=str(run/'rtx.conf')
-    report={'run':str(run),'mode':'fault' if args.fault else 'positive','limitSeconds':30,'jobCommitLimit':limits.jobMemory,'helperHash':hashlib.sha256(executable.read_bytes()).hexdigest().upper(),'preparedFiles':prepared['files']}
+    if (run/'dxvk.conf').is_file():os.environ['DXVK_CONFIG_FILE']=str(run/'dxvk.conf')
+    report={'run':str(run),'mode':'fault' if args.fault else 'positive','limitSeconds':30,'jobCommitLimit':limits.jobMemory,'minimumAvailableMemoryBytes':reserve,'memoryBefore':before_memory,'helperHash':hashlib.sha256(executable.read_bytes()).hexdigest().upper(),'preparedFiles':prepared['files']}
     report['expectedExitCode']=0xE052CA01 if args.fault else 0
     thread_handles=[];start=None
     try:
@@ -126,6 +131,10 @@ def main():
         if owned.resume(pi.thread)==0xffffffff:raise C.WinError(C.get_last_error())
         suspended=False
         while wait(pi.process,10)==0x102:
+            available=owned.memory_status()
+            report['minimumObservedAvailablePhysicalBytes']=min(report.get('minimumObservedAvailablePhysicalBytes',before_memory['availablePhysical']),available['availablePhysical'])
+            if min(available['availablePhysical'],available['availableCommit'])<reserve:
+                report['systemPressure']=True;report['memoryAtStop']=available;break
             if args.fault and not suspended and (run/'fault.ready').exists():
                 details,thread_handles=suspend_owned_server(job,run/'.trex/NvRemixBridge.exe')
                 report['suspendedOwnedServer']=details;suspended=True
@@ -167,7 +176,7 @@ def main():
         report['helperRecords']=len(records)
         report['complete']=records[-1] if records and records[-1]['event']=='complete' else None
         reached=bool(report['complete']) if not args.fault else any(r['event']=='fault-camera-call' for r in records)
-        report['passed']=not report.get('error') and not report.get('timeout') and not report['jobAfterCleanup'] and report.get('exitCode')==report['expectedExitCode'] and reached
+        report['passed']=not report.get('error') and not report.get('timeout') and not report.get('systemPressure') and not report['jobAfterCleanup'] and report.get('exitCode')==report['expectedExitCode'] and reached
     except BaseException as e:report['error']=str(e);report['passed']=False
     (run/'result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:report.get(k) for k in ['run','mode','passed','exitCode','expectedExitCode','elapsedSeconds','complete','error','jobAfterCleanup']},indent=2))

@@ -1,4 +1,4 @@
-#include "winx_skin_packet.h"
+#include "winx_skin_packet_remix.h"
 #include <cstdio>
 #include <fstream>
 #include <stdexcept>
@@ -86,6 +86,38 @@ static void Run(){
     bytes=original;bytes[vertexOffset+72]=0;
     Check(!packet::Decode(bytes,p)&&Encoded(p)==original,"absent color cannot carry undeclared values");}
 }
+static void RemixPreparation(){
+  const std::array<std::array<float,3>,4> expected={{{24,27,32},{25,28.5f,34.5f},{22.5f,24.75f,28.25f},{23,25.5f,29.5f}}};
+  for(unsigned b=1;b<=4;++b){Input input(b);
+    const std::array<float,4> weights=b==1?std::array<float,4>{1,0,0,0}:b==2?std::array<float,4>{.5f,.5f,0,0}:b==3?std::array<float,4>{.25f,.25f,.5f,0}:std::array<float,4>{.25f,.25f,.25f,.25f};
+    for(unsigned v=0;v<input.count;++v)for(unsigned i=0;i<b;++i)input.Real(v,input.weight+i*4,weights[i]);
+    packet::Packet p;Check(input.Build(p),"binary normalized B1..4 bake source");const auto before=Encoded(p);
+    packet::WeightCompatibility compatibility;packet::BakedMesh baked;
+    Check(packet::InspectRemixWeights(p,compatibility)&&compatibility.Exact(),"exact effective Remix weights B1..4");
+    Check(packet::Bake(p,baked)&&baked.vertices[0].position==expected[b-1],"baked world positions retain authored weights and palette translation");
+    Check(baked.vertices[0].normal==std::array<float,3>{0,0,1},"baked normals are unit directions, not Fixed float4 magnitudes");
+    Check(baked.indices==p.indices&&baked.attributes==p.attributes&&baked.vertices[0].uv==p.vertices[0].uv&&baked.vertices[0].color==p.vertices[0].color,"bake preserves winding, UV, color and presence flags");
+    Check(Encoded(p)==before,"bake and weight inspection do not alter the source packet");
+    p.vertices[0].skin.position[0]=0;p.indices[0]=3;p.palette.clear();
+    Check(baked.vertices[0].position==expected[b-1]&&baked.indices[0]==0,"baked storage survives source mutation and palette destruction");
+    const auto prior=baked.vertices[0].position;Check(!packet::Bake(p,baked)&&baked.vertices[0].position==prior,"invalid source preserves previous baked output");
+  }
+  for(const auto weights:std::array<std::array<float,2>,3>{{{.25f,.25f},{1.25f,-.25f},{.5f,.5f+0x1p-23f}}}){
+    Input input(2);for(unsigned v=0;v<input.count;++v)for(unsigned i=0;i<2;++i)input.Real(v,input.weight+i*4,weights[i]);
+    packet::Packet p;packet::WeightCompatibility compatibility;packet::BakedMesh baked;Check(input.Build(p),"nonrepresentable authored weights");
+    Check(packet::InspectRemixWeights(p,compatibility)&&!compatibility.Exact(),"nonunit, negative and near-unit weights need the baked path");
+    Check(packet::Bake(p,baked),"original nonrepresentable weights remain bakeable");
+    if(weights[0]>1)Check(compatibility.changedVertices==0&&compatibility.negativeVertices==4,"negative weight remains incompatible even with exact implicit last");
+    if(weights[0]==.5f)Check(compatibility.maximumLastWeightDelta>0&&compatibility.maximumLastWeightDelta<1e-5,"sum tolerance is not an admission rule");
+  }
+  {Input input(1);for(unsigned v=0;v<input.count;++v)input.Real(v,input.weight,2);
+    packet::Packet p;packet::WeightCompatibility compatibility;packet::BakedMesh baked;Check(input.Build(p),"explicit B1 weight2");
+    Check(packet::InspectRemixWeights(p,compatibility)&&compatibility.changedVertices==4&&!compatibility.Exact(),"B1 implicit weight1 differs from authored2");
+    Check(packet::Bake(p,baked)&&baked.vertices[0].position==std::array<float,3>{48,54,64},"B1 bake preserves the explicit weight2");}
+  {Input input(3);for(unsigned v=0;v<input.count;++v)for(unsigned i=0;i<3;++i)input.Real(v,input.weight+i*4,(std::numeric_limits<float>::max)());
+    packet::Packet p;packet::WeightCompatibility compatibility;Check(input.Build(p),"finite source weights may overflow the remainder");
+    Check(packet::InspectRemixWeights(p,compatibility)&&compatibility.nonfiniteRemainders==4&&!compatibility.Exact(),"nonfinite effective remainder cannot qualify");}
+}
 static int Inspect(const char* path,bool dump=false){
   std::ifstream stream(path,std::ios::binary|std::ios::ate);if(!stream)throw std::runtime_error("cannot open packet");
   const auto size=stream.tellg();if(size<0||uint64_t(size)>packet::MaximumWireBytes)throw std::runtime_error("packet size bound");
@@ -104,5 +136,5 @@ int main(int argc,char** argv){try{
   if(argc==3&&std::string(argv[1])=="--inspect")return Inspect(argv[2]);
   if(argc==3&&std::string(argv[1])=="--deform-json")return Inspect(argv[2],true);
   if(argc!=1)throw std::runtime_error("usage: test_skin_packets [--inspect|--deform-json packet.skp]");
-  Run();printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"gameCode\":false}\n",checks);return 0;
+  Run();RemixPreparation();printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"gameCode\":false}\n",checks);return 0;
 }catch(const std::exception& e){fprintf(stderr,"FAIL %s\n",e.what());return 1;}}

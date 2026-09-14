@@ -31,6 +31,8 @@ param(
     [switch]$NativeOwnerSource,
     [switch]$NativeSkinSource,
     [switch]$NativeSkinPackets,
+    [switch]$SkinDrawAudit,
+    [string]$SkinShaderContracts,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
@@ -53,6 +55,7 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
+if ($SkinDrawAudit) { $NativeSkinPackets=$true; $NativeUpdateSource=$true }
 if ($NativeSkinPackets) { $NativeSkinSource=$true; $ShaderSemantics=$true }
 if ($NativeSkinSource) { $NativeOwnerSource=$true }
 if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
@@ -86,6 +89,12 @@ if ($OpaqueAlphaTest -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw '
 if ($SurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing)) { throw 'Surface roles require the RTX backend' }
 if ($AutoSurfaceRoles -and ($Backend -ne 'remix' -or -not $Raytracing -or $SurfaceRoles -or -not $OpaqueAlphaTest)) { throw 'Automatic surface roles require RTX and OpaqueAlphaTest, without legacy SurfaceRoles' }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$skinContractPath=$null
+if ($SkinDrawAudit) {
+    if (-not $SkinShaderContracts) { throw 'SkinDrawAudit requires prepared SkinShaderContracts' }
+    $skinContractPath=[IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($SkinShaderContracts)) { $SkinShaderContracts } else { Join-Path $root $SkinShaderContracts }))
+    if (-not (Test-Path -LiteralPath $skinContractPath -PathType Leaf) -or (Get-Item -LiteralPath $skinContractPath).Length -gt 1MB) { throw 'Missing or unbounded Skin shader contracts' }
+}
 $game = [IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($GameDirectory)) { $GameDirectory } else { Join-Path $root $GameDirectory }))
 if (-not $game.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) { throw 'Game directory must be inside this workspace' }
 if (Get-Process WinxClub,WinxClubDebug,NvRemixBridge -ErrorAction SilentlyContinue) { throw 'Close the previous game/bridge before starting another run' }
@@ -97,6 +106,7 @@ $run = Join-Path $root "local-data/rtx-remix/runs/$Name"
 if (Test-Path -LiteralPath $run) { throw 'Choose a fresh run name to preserve evidence' }
 New-Item -ItemType Directory -Path $run | Out-Null
 if ($NativeSkinPackets) { New-Item -ItemType Directory -Path (Join-Path $run 'skin-packets') | Out-Null }
+if ($SkinDrawAudit) { Copy-Item -LiteralPath $skinContractPath -Destination (Join-Path $run 'skin-shaders.wsf') }
 if ($AutoSurfaceRoles) { New-Item -ItemType Directory -Path (Join-Path $run 'surface-assets') | Out-Null }
 $config = Join-Path $run 'rtx.conf'
 $text = [IO.File]::ReadAllText((Join-Path $game 'rtx.conf'))
@@ -219,6 +229,8 @@ $values = @{
     WINX_REMIX_NATIVE_SKIN_SOURCE=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_VERTICES=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-vertices.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_PACKETS=$(if ($NativeSkinPackets) { Join-Path $run 'skin-packets' } else { $null })
+    WINX_REMIX_SKIN_DRAW_AUDIT=$(if ($SkinDrawAudit) { Join-Path $run 'skin-draw-source.jsonl' } else { $null })
+    WINX_REMIX_SKIN_SHADER_CONTRACT=$(if ($SkinDrawAudit) { Join-Path $run 'skin-shaders.wsf' } else { $null })
     WINX_REMIX_NATIVE_UPDATE_SOURCE=$(if ($NativeUpdateSource) { Join-Path $run 'native-update-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'independent-scene-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SUBMIT=$(if ($IndependentSceneSubmit) { Join-Path $run 'independent-scene-submit.jsonl' } else { $null })
@@ -267,6 +279,8 @@ try {
         nativeOwnerSource=$NativeOwnerSource.IsPresent
         nativeSkinSource=$NativeSkinSource.IsPresent
         nativeSkinPackets=$NativeSkinPackets.IsPresent
+        skinDrawAudit=$SkinDrawAudit.IsPresent
+        skinShaderContractsSha256=$(if ($SkinDrawAudit) { (Get-FileHash -LiteralPath (Join-Path $run 'skin-shaders.wsf')).Hash } else { $null })
         sceneObserveOnly=$skinPacketSystemCapture
         nativeUpdateSource=$NativeUpdateSource.IsPresent
         independentSceneSource=$IndependentSceneSource.IsPresent

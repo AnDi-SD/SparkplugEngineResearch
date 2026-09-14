@@ -15,6 +15,7 @@ static std::map<Identity,unsigned> samples;
 struct Saved {unsigned frame,file;uint32_t scene,skin,mesh;uint64_t call,submission,generation;};
 static std::vector<Saved> saved;
 static bool Enabled(){return directory[0]!=0;}
+#if defined(_M_IX86)
 static bool Wanted(const native_skin_source::Observation& skin,uint64_t generation){
   if(!Enabled()||!journal||stopped)return false;
   const auto found=samples.find({skin.scene,skin.skin,skin.mesh,generation});
@@ -46,7 +47,15 @@ static bool Save(const native_skin_source::Observation& skin,uint64_t generation
     ordinal,frameId,skin.scene,skin.skin,skin.mesh,skin.modelCall,skin.submission,generation,bytes.size(),input.vertices.size(),input.indices.size()/3,input.influences,input.palette.size());
   fflush(journal);return true;
 }
+#else
+// Native observations contain PC x86 object addresses. The owned packet and API
+// replay remain portable; a 64-bit process must not dereference game observers.
+static bool Wanted(const native_skin_source::Observation&,uint64_t){return false;}
+static void Rejected(const native_skin_source::Observation&,unsigned){}
+static bool Save(const native_skin_source::Observation&,uint64_t,const packet::Packet&){return false;}
+#endif
 static void Initialize(){
+#if defined(_M_IX86)
   wchar_t path[MAX_PATH]{};const auto size=GetEnvironmentVariableW(L"WINX_REMIX_NATIVE_SKIN_PACKETS",path,MAX_PATH);
   if(!size||size>=MAX_PATH-40||!native_skin_source::enabled)return;
   const auto attributes=GetFileAttributesW(path);
@@ -61,5 +70,6 @@ static void Initialize(){
   journal=_fdopen(descriptor,"w");if(!journal){_close(descriptor);return;}
   wcscpy_s(directory,path);
   fprintf(journal,"{\"event\":\"init\",\"schema\":1,\"pid\":%lu,\"maxFiles\":64,\"maxBytes\":33554432,\"maxSamplesPerIdentity\":3,\"scope\":\"owned native geometry and palette candidates; no selected-shader or material qualification, no submission\"}\n",GetCurrentProcessId());fflush(journal);
+#endif
 }
 }

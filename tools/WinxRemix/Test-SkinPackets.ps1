@@ -9,6 +9,7 @@ $installation=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.
 if (-not $installation) { throw 'MSVC tools not found' }
 $environmentScript=Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
 $files=@('tools/WinxRemix/winx_skin_packet.h','tools/WinxRemix/test_skin_packets.cpp',
+    'tools/WinxRemix/winx_skin_packet_remix.h',
     'Sparkplug/Analysis/PC/spFixedShaderSkinning.h','Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h')
 $hashes=@()
 foreach ($relative in $files) {

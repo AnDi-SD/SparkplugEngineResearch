@@ -1,4 +1,5 @@
 #pragma once
+#include "winx_skin_material_capture.h"
 // Own observation after the actual D3D9 indexed call returns. This ties exported
 // candidate data to bound inputs/bytecode/constants without suppressing a draw.
 namespace skin_packet_capture {
@@ -12,7 +13,7 @@ static void DrawResult(IDirect3DDevice9* device,const native_mesh_source::DrawRa
   if(!sample)return;
   // Copy metadata before COM queries; no vector reference crosses them.
   const Saved identity=*sample;
-  bool binding=false,constantsWritten=false;unsigned shader=unknownShader,constantCount=0;uint32_t reason=0;
+  bool binding=false,constantsWritten=false,materialWritten=false;unsigned shader=unknownShader,constantCount=0;uint32_t reason=0;
   try {
     namespace source=native_mesh_source;namespace abi=sparkplug::evidence::pc;
     IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* declaration=nullptr;IDirect3DVertexShader9* vs=nullptr;
@@ -51,9 +52,19 @@ static void DrawResult(IDirect3DDevice9* device,const native_mesh_source::DrawRa
     if(file==INVALID_HANDLE_VALUE)throw 9u;
     DWORD written=0;const bool complete=WriteFile(file,constants.data(),constantCount*16,&written,nullptr)&&written==constantCount*16;
     const bool closed=CloseHandle(file)!=FALSE;constantsWritten=complete&&closed;if(!constantsWritten)throw 9u;
+    // Material failure is independent: keep the completed geometry/constants
+    // evidence, and never turn a partial material snapshot into qualification.
+    abi::spRendererDrawContextObservedLayout materialContext{};
+    skin_material_capture::lastReason=100;skin_material_capture::lastReadFailure=0;skin_material_capture::lastTexture={};
+    if(SUCCEEDED(result)&&source::Read(mesh->renderer+abi::spRendererDrawContextOffset,materialContext)&&
+       materialContext.device==reinterpret_cast<uintptr_t>(device))
+      try {materialWritten=skin_material_capture::Save(directory,device,identity.file,drawId,shader,mesh->renderer,materialContext.selectedMaterial,vs);}catch(...){materialWritten=false;skin_material_capture::lastReason=101;}
+    fprintf(journal,"{\"event\":\"material_result\",\"file\":\"packet-%04u.skp\",\"frame\":%u,\"draw\":%u,\"written\":%s,\"reason\":%u,\"readFailure\":%u,\"texture\":[",
+      identity.file,frameId,drawId,materialWritten?"true":"false",skin_material_capture::lastReason,skin_material_capture::lastReadFailure);
+    for(unsigned i=0;i<8;++i)fprintf(journal,"%s%u",i?",":"",skin_material_capture::lastTexture[i]);fputs("]}\n",journal);
   }catch(unsigned why){reason=why;}catch(...){reason=10;}
-  fprintf(journal,"{\"event\":\"draw_result\",\"file\":\"packet-%04u.skp\",\"frame\":%u,\"draw\":%u,\"modelCall\":%llu,\"submission\":%llu,\"originalHr\":%ld,\"type\":%u,\"base\":%d,\"minimum\":%u,\"vertices\":%u,\"start\":%u,\"primitives\":%u,\"boundInputMatches\":%s,\"shader\":%u,\"constantCount\":%u,\"constantsWritten\":%s,\"reason\":%u}\n",
-    identity.file,frameId,drawId,identity.call,identity.submission,result,unsigned(draw.type),draw.base,draw.minimum,draw.vertices,draw.start,draw.count,binding?"true":"false",shader,constantCount,constantsWritten?"true":"false",reason);fflush(journal);
+  fprintf(journal,"{\"event\":\"draw_result\",\"file\":\"packet-%04u.skp\",\"frame\":%u,\"draw\":%u,\"modelCall\":%llu,\"submission\":%llu,\"originalHr\":%ld,\"type\":%u,\"base\":%d,\"minimum\":%u,\"vertices\":%u,\"start\":%u,\"primitives\":%u,\"boundInputMatches\":%s,\"shader\":%u,\"constantCount\":%u,\"constantsWritten\":%s,\"materialWritten\":%s,\"reason\":%u}\n",
+    identity.file,frameId,drawId,identity.call,identity.submission,result,unsigned(draw.type),draw.base,draw.minimum,draw.vertices,draw.start,draw.count,binding?"true":"false",shader,constantCount,constantsWritten?"true":"false",materialWritten?"true":"false",reason);fflush(journal);
 #else
   (void)device;(void)draw;(void)result;
 #endif

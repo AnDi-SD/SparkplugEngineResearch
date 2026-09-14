@@ -3,6 +3,7 @@
 #include "../SparkplugDX/spDXShaderManager.h"
 #include "spPCVertexShader.h"
 #include "spPCEffectTemplate.h"
+#include "spPCShaderSource.h"
 #include <array>
 namespace sparkplug::reconstruction
 {
@@ -31,7 +32,7 @@ namespace sparkplug::reconstruction
         // Native4C8980: low mask nibble zero returns NULL BEFORE cache lookup.
         // Nonzero cache miss is incomplete, NOT a successful NULL shader.
         [[nodiscard]] SelectionForAnalysis SelectCachedForAnalysis(const KeyForAnalysis&) const noexcept;
-        struct SourceInputsForAnalysis {std::string header,insertion;};
+        using SourceInputsForAnalysis=PCShaderSourceInputsForAnalysis;
         [[nodiscard]] static SourceInputsForAnalysis BuildSourceInputsForAnalysis(const KeyForAnalysis&);
         // Explicit already-loaded template input for original owned field40.
         // Reload/replace remains separate; ownership transfers only on success.

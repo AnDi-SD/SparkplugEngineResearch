@@ -102,6 +102,7 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXShaderManager.h
     Code/SparkplugPC/spPCShaderManager.cpp
     Code/SparkplugPC/spPCShaderManager.h
+    Code/SparkplugPC/spPCShaderSource.h
     Code/Sparkplug/spParser.cpp
     Code/Sparkplug/spParser.h
     Code/SparkplugPC/spPCEffectTemplate.cpp

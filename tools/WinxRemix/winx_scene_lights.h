@@ -14,6 +14,17 @@ struct OwnedLight {
   bool usable=false,retiring=false;uint64_t cleanupAttempt=0;
 };
 using LightKey=std::pair<uintptr_t,uint32_t>;
+struct SubmittedDirectLight {
+  uint32_t address=0;remixapi_LightHandle handle=nullptr;uint64_t id=0;ConvertedLight state{};
+};
+struct DirectLightWitness {
+  bool valid=false;uintptr_t scene=0;uint32_t manager=0;unsigned frame=0;
+  uint64_t revision=0;float gain=0;std::vector<SubmittedDirectLight> lights;
+};
+static DirectLightWitness submittedDirectLights;
+static unsigned directLightAttemptFrame=~0u;
+static uintptr_t directLightAttemptScene;
+static bool directLightAttemptAmbiguous;
 static constexpr size_t maxOwnedLights=4096,maxSeenLightScenes=128;
 static bool lightsBusy,retireAllLights;
 static uint64_t lightRevision=1,lightOperationId;
@@ -21,7 +32,7 @@ static bool attemptedLightType[3]{},restoreLegacyPending[3]{};
 static unsigned attemptedLightFrame[3]{};
 // Reentry never edits ownership or calls the API recursively. The outer call
 // still owns all returned handles, then quarantines them on invalidation.
-static void InvalidateLights(){++lightRevision;retireAllLights=true;}
+static void InvalidateLights(){++lightRevision;retireAllLights=true;submittedDirectLights.valid=false;}
 struct LightOperation {
   std::lock_guard<std::recursive_mutex> lock{guard};
   bool outer=false;uint64_t revision=0;unsigned frame=frameId;float gain=sceneLightGain;
@@ -46,10 +57,12 @@ static bool Normalize(remixapi_Float3D& v) {
   if(!std::isfinite(length) || length<1e-8f) return false;
   v.x/=length;v.y/=length;v.z/=length;return true;
 }
-static bool Convert(const LightRecord& source, ConvertedLight& output) {
+static bool Convert(const LightRecord& source, ConvertedLight& output,bool resolveNative=true) {
   D3DLIGHT9 d{};memcpy(&d,source.raw+0xf0,sizeof(d));
 #if defined(WINX_REMIX_NATIVE_LIGHT_SOURCE_AVAILABLE)
-  (void)native_light_source::Resolve(source,d);
+  if(resolveNative)(void)native_light_source::Resolve(source,d);
+#else
+  (void)resolveNative;
 #endif
   const auto type=At(source.raw,0xc0);if(type>2) return false;
   if(d.Type!=(type==0?D3DLIGHT_DIRECTIONAL:type==1?D3DLIGHT_POINT:D3DLIGHT_SPOT)) return false;
@@ -80,6 +93,50 @@ static bool Convert(const LightRecord& source, ConvertedLight& output) {
   }
   return std::isfinite(output.radiance.x) && std::isfinite(output.radiance.y) && std::isfinite(output.radiance.z);
 }
+// This proves the current direct-light API batch, not ambient/environment
+// illumination or renderer-side completion. Re-read original cached payloads;
+// the optional recovered producer only replaces bit-identical consumed words.
+static bool DirectLightRegistryCurrent(const DirectLightWitness& witness) {
+  if(!witness.valid||!sceneLightsEnabled||keepSceneLightsForComparison||retireAllLights||
+     witness.frame!=frameId||witness.revision!=lightRevision||witness.gain!=sceneLightGain||
+     (directLightAttemptFrame==frameId&&(directLightAttemptAmbiguous||directLightAttemptScene!=witness.scene)))return false;
+  for(unsigned type=0;type<3;++type)if(!ignoredLegacy[type])return false;
+  const auto seen=scenesSeen.find(witness.scene);
+  if(seen==scenesSeen.end()||seen->second!=frameId)return false;
+  const auto registry=ReadLights(witness.scene);
+  if(!registry.valid||registry.manager!=witness.manager)return false;
+  size_t matched=0;
+  for(const auto& light:registry.lights) {
+    if(!light.raw[0xed]||!(At(light.raw,0xb0)&0x100))continue;
+    const auto type=At(light.raw,0xc0);
+    if(type==3)continue; // Original ambient has no direct D3DLIGHT payload.
+    if(type>2||light.raw[0xec])return false;
+    ConvertedLight state{};if(!Convert(light,state,false))return false;
+    const SubmittedDirectLight* submitted=nullptr;
+    for(const auto& value:witness.lights)if(value.address==light.address){submitted=&value;break;}
+    if(!submitted||memcmp(&submitted->state,&state,sizeof(state)))return false;
+    const auto owner=ownedLights.find({witness.scene,light.address});
+    if(owner==ownedLights.end()||!owner->second.usable||owner->second.retiring||owner->second.seen!=frameId||
+       owner->second.handle!=submitted->handle||owner->second.id!=submitted->id||
+       memcmp(&owner->second.state,&submitted->state,sizeof(state)))return false;
+    ++matched;
+  }
+  return matched==witness.lights.size();
+}
+static bool ReadSubmittedDirectLights(const std::unique_lock<std::recursive_mutex>& borrow,uintptr_t scene,DirectLightWitness& result) {
+  if(!borrow.owns_lock()||borrow.mutex()!=&guard||lightsBusy||submittedDirectLights.scene!=scene)return false;
+  try {if(!DirectLightRegistryCurrent(submittedDirectLights))return false;DirectLightWitness copy=submittedDirectLights;result=std::move(copy);return true;}
+  catch(const std::bad_alloc&){return false;}
+}
+static bool CurrentSubmittedDirectLights(const std::unique_lock<std::recursive_mutex>& borrow,const DirectLightWitness& witness) {
+  if(!borrow.owns_lock()||borrow.mutex()!=&guard||lightsBusy||!submittedDirectLights.valid||
+     witness.scene!=submittedDirectLights.scene||witness.frame!=submittedDirectLights.frame||
+     witness.manager!=submittedDirectLights.manager||witness.gain!=submittedDirectLights.gain||
+     witness.revision!=submittedDirectLights.revision||witness.lights.size()!=submittedDirectLights.lights.size())return false;
+  for(size_t i=0;i<witness.lights.size();++i){const auto& a=witness.lights[i];const auto& b=submittedDirectLights.lights[i];
+    if(a.address!=b.address||a.handle!=b.handle||a.id!=b.id||memcmp(&a.state,&b.state,sizeof(a.state)))return false;}
+  try {return DirectLightRegistryCurrent(witness);}catch(const std::bad_alloc&){return false;}
+}
 static auto LightApi()->decltype(GetRemixApi()) {
   try {return GetRemixApi();}catch(const std::bad_alloc&){++lightFailures;return nullptr;}
 }
@@ -98,6 +155,7 @@ static bool IgnoreLegacy(unsigned type,bool ignore) {
   ignoredLegacy[type]=ignore;restoreLegacyPending[type]=false;return true;
 }
 static void MarkLightsRetired() {
+  submittedDirectLights.valid=false;
   for(auto& pair:ownedLights){pair.second.retiring=true;pair.second.usable=false;}
   scenesSeen.clear();retireAllLights=false;
 }
@@ -186,6 +244,7 @@ static void SyncLights(uintptr_t scene) {
   SweepRetiredLights();
   if(!operation.Stable()){FinishLightOperation(operation);return;}
   const auto seen=scenesSeen.find(scene);if(seen!=scenesSeen.end()&&seen->second==frameId)return;
+  submittedDirectLights.valid=false;DirectLightWitness completed;
   try {
     if(scenesSeen.size()>=maxSeenLightScenes&&!scenesSeen.count(scene))throw std::bad_alloc();
     scenesSeen[scene]=frameId;
@@ -235,6 +294,8 @@ static void SyncLights(uintptr_t scene) {
       // Error after submission is not proof of rollback. Keep legacy disabled
       // for this type until frameId advances, including comparison/reset calls.
       attemptedLightType[light.state.type]=true;attemptedLightFrame[light.state.type]=frameId;
+      if(directLightAttemptFrame!=frameId){directLightAttemptFrame=frameId;directLightAttemptScene=scene;directLightAttemptAmbiguous=false;}
+      else if(directLightAttemptScene!=scene)directLightAttemptAmbiguous=true;
       remixapi_ErrorCode result=REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
       try {result=api->DrawLightInstance(light.handle);}catch(const std::bad_alloc&){}
       if(result==REMIXAPI_ERROR_CODE_SUCCESS)++lightDraws;
@@ -246,8 +307,20 @@ static void SyncLights(uintptr_t scene) {
         IgnoreLegacy(light.state.type,false);
       }
     }
+    if(supported[0]&&supported[1]&&supported[2]&&operation.Stable()) {
+      completed.scene=scene;completed.manager=registry.manager;completed.frame=frameId;completed.revision=lightRevision;completed.gain=sceneLightGain;
+      completed.lights.reserve(wanted.size());
+      for(const auto& pair:wanted){const auto found=ownedLights.find({scene,pair.first});
+        if(found==ownedLights.end()||!found->second.handle||!found->second.usable||found->second.retiring)break;
+        completed.lights.push_back({pair.first,found->second.handle,found->second.id,found->second.state});}
+      completed.valid=completed.lights.size()==wanted.size();
+    }
   }catch(const std::bad_alloc&){++lightFailures;LightEvent("ownership_capacity_or_allocation",scene,0,0,-1);MarkLightsRetired();}
   FinishLightOperation(operation);
+  if(completed.valid&&operation.Stable()) {
+    try {if(DirectLightRegistryCurrent(completed))submittedDirectLights=std::move(completed);}
+    catch(const std::bad_alloc&){} // Ownership is already retained; no false completion token.
+  }
 }
 static void RetireAbsentLights(uintptr_t scene) {
   LightOperation operation;if(!operation.outer)return;

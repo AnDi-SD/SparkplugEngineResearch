@@ -2,6 +2,7 @@
 // deformation, producer, COM call, game write or Remix submission is performed.
 #pragma once
 #include "winx_skin_packet_capture.h"
+#include "winx_native_skin_packet_source.h"
 namespace native_skin_vertex_source {
 static FILE* output;
 static bool enabled;
@@ -59,57 +60,21 @@ static void Capture(const native_skin_source::Observation& skin) {
   ++attempts;bool accepted=false;int rejection=0;Summary summary{};uint64_t generation=0;
   try {
     std::unique_lock<std::recursive_mutex> borrow(guard);
-    namespace source=native_mesh_source;namespace abi=sparkplug::evidence::pc;
-    const auto scope=native_skin_source::active;
-    abi::spDXMeshObservedLayout mesh{};source::ResourcePair pair{};uint32_t declaration[7]{},device=0;
-    if(!scope||scope->sequence!=skin.modelCall||scope->skin!=skin.skin||
-       !source::Read(skin.mesh,mesh)||scene_geometry::Word(skin.mesh)!=abi::spDXMeshVTable||
-       mesh.base.base.secondaryVTable!=abi::spDXMeshInterfaceVTable||
-       (mesh.indexType!=2&&mesh.indexType!=3)||!mesh.componentWeightCount||mesh.componentWeightCount>4||
-       !source::ReadResourceHeaders(mesh,pair)||!source::Read(skin.renderer+0xc9e8,device)||
-       !source::Read(mesh.vertexDeclaration,declaration)||declaration[0]!=0x6f2e58||declaration[5]!=mesh.fvfCode)throw 1;
-    auto vb=reinterpret_cast<void*>(pair.vb.direct3DVertexBuffer),ib=reinterpret_cast<void*>(pair.ib.direct3DIndexBuffer);
-    source::TransportWitness transport{};
-    if(!native_transport_source::Witness(borrow,reinterpret_cast<IDirect3DDevice9*>(device),vb,ib,
-       reinterpret_cast<void*>(declaration[6]),transport)||transport.indexFormat!=D3DFMT_INDEX16||
-       transport.vertexBytes!=pair.vb.byteSize||transport.indexBytes!=pair.ib.byteSize||
-       !source::ResolveResourceRanges(mesh,mesh.vertexStride,vb,ib,pair)||
-       surfaceWrites.count(vb)||surfaceWrites.count(ib))throw 2;
-    const auto v=surfaceBuffers.find(vb),i=surfaceBuffers.find(ib);
-    if(v==surfaceBuffers.end()||i==surfaceBuffers.end()||!v->second.complete||!i->second.complete||
-       !source::EqualsUpload(*pair.vertices,v->second.bytes)||!source::EqualsUpload(*pair.indices,i->second.bytes))throw 3;
-    const auto layout=source::Layout(mesh.base.base.vertexComponentFlags);
-    if(!layout||layout->size()!=transport.elementCount||memcmp(layout->data(),transport.elements,layout->size()*sizeof(D3DVERTEXELEMENT9)))throw 4;
-    if(!Inspect(pair.vertices->data,pair.indices->data,transport.elements,transport.elementCount,
+    namespace current=native_skin_packet_source;
+    current::Borrowed input;unsigned reason=0;
+    if(!current::Acquire(borrow,skin,input,&reason))throw int(reason);
+    const auto& mesh=input.stamp.mesh;const auto& pair=input.pair;
+    if(!Inspect(pair.vertices->data,pair.indices->data,
+       reinterpret_cast<const D3DVERTEXELEMENT9*>(input.layout->data()),unsigned(input.layout->size()),
        mesh.vertexStride,mesh.vertexBegin,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount,
        mesh.indexType,mesh.componentWeightCount,skin.boneCount,summary))throw 5;
     winx_remix::skin_packet::Packet ownedPacket;bool packetReady=false;
-    const bool packetWanted=skin_packet_capture::Wanted(skin,pair.vertices->generation);
-    if(packetWanted){
-      winx_remix::skin_packet::Error packetError=winx_remix::skin_packet::Error::Palette;
-      if(skin.fixedPaletteAvailable){
-        // Layout bytes were already compared to the shared emitter above.
-        packetReady=winx_remix::skin_packet::Build(pair.vertices->data,pair.indices->data,layout->data(),layout->size(),
-          mesh.vertexStride,mesh.vertexBegin,mesh.base.base.vertexCount,mesh.indexBegin,mesh.base.base.primitiveCount,
-          mesh.indexType,mesh.componentWeightCount,skin.fixedPalette.data(),skin.boneCount,ownedPacket,&packetError);
-      }
-      if(!packetReady)skin_packet_capture::Rejected(skin,100+unsigned(packetError));
+    if(skin_packet_capture::Wanted(skin,pair.vertices->generation)){
+      winx_remix::skin_packet::Error error=winx_remix::skin_packet::Error::None;
+      packetReady=current::Build(borrow,input,ownedPacket,&error);
+      if(!packetReady)skin_packet_capture::Rejected(skin,100+unsigned(error));
     }
-    abi::spDXMeshObservedLayout final{};source::ResourcePair finalPair{};uint32_t finalDeclaration[7]{},finalDevice=0;
-    if(!source::Read(skin.mesh,final)||memcmp(&mesh,&final,sizeof(mesh))||
-       !source::ReadResourceHeaders(mesh,finalPair)||memcmp(&pair.vb,&finalPair.vb,sizeof(pair.vb))||
-       memcmp(&pair.ib,&finalPair.ib,sizeof(pair.ib))||
-       !source::Read(mesh.vertexDeclaration,finalDeclaration)||memcmp(declaration,finalDeclaration,sizeof(declaration))||
-       !source::Read(skin.renderer+0xc9e8,finalDevice)||device!=finalDevice||
-       !native_transport_source::Current(borrow,transport)||native_skin_source::active!=scope||
-       scope->sequence!=skin.modelCall||scope->frame!=frameId||scope->mutation!=scene_geometry::MutationSerial())throw 6;
-    if(packetReady){
-      uint32_t paletteHeader[2]{};
-      if(!source::Read(skin.renderer+0xc9b8,paletteHeader)||paletteHeader[0]!=skin.palette||paletteHeader[1]!=skin.boneCount)throw 6;
-      for(unsigned b=0;b<skin.boneCount;++b){native_skin_source::math::Matrix4 current{};
-        if(!source::Read(skin.palette+b*64,current)||current!=skin.fixedPalette[b])throw 6;
-      }
-    }
+    if(!current::CurrentBorrowed(borrow,input,packetReady))throw 6;
     generation=pair.vertices->generation;accepted=true;
     if(packetReady){
       try {skin_packet_capture::Save(skin,generation,ownedPacket);}

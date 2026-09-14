@@ -6,6 +6,11 @@ static FILE* output;
 using NativeSelect=uintptr_t(__thiscall*)(void*,uint32_t,uint32_t);
 static NativeSelect originalSelect;
 static DWORD ownerThread;
+#if defined(WINX_REMIX_TEST)
+static uintptr_t selectionSlot=0x6f2e00;
+#else
+static constexpr uintptr_t selectionSlot=0x6f2e00;
+#endif
 struct Selection { uintptr_t manager=0,object=0; uint32_t mask=0,lights=0; unsigned frame=0; uint64_t sequence=0; };
 static thread_local Selection current;
 static uint64_t calls,nulls,samples,linked,fixed,unlinked,failures,limited;
@@ -17,6 +22,7 @@ static uintptr_t __fastcall Select(void* manager,void*,uint32_t mask,uint32_t li
   // and its normal NULL path. Observe the actual returned object afterwards.
   const auto object=originalSelect(manager,mask,lights);
   if(GetCurrentThreadId()!=ownerThread)return object;
+  std::lock_guard<std::recursive_mutex> lock(guard);
   current={reinterpret_cast<uintptr_t>(manager),object,mask,lights,frameId,++calls};
   if(!object)++nulls;
   const auto key=std::make_pair(mask,lights);
@@ -28,6 +34,41 @@ static uintptr_t __fastcall Select(void* manager,void*,uint32_t mask,uint32_t li
   }
   catch(...) {++failures;}
   return object;
+}
+struct BoundSelection {
+  Selection selection{};
+  std::array<uint32_t,0x54/4> header{};
+  std::vector<uint8_t> bytes;
+};
+static bool CurrentSelection(const Selection& saved) {
+  uint32_t hook=0;
+  return originalSelect&&GetCurrentThreadId()==ownerThread&&saved.manager&&saved.object&&saved.sequence&&saved.frame==frameId&&
+    current.manager==saved.manager&&current.object==saved.object&&current.mask==saved.mask&&current.lights==saved.lights&&
+    current.frame==saved.frame&&current.sequence==saved.sequence&&scene_audit::Read(selectionSlot,&hook,sizeof(hook))&&
+    hook==reinterpret_cast<uintptr_t>(&Select);
+}
+// No COM calls: use after external work to reject native selection/code changes.
+static bool Current(const BoundSelection& saved) {
+  if(!CurrentSelection(saved.selection)||saved.bytes.empty()||saved.bytes.size()>16384)return false;
+  std::array<uint32_t,0x54/4> header{};
+  if(!scene_audit::Read(saved.selection.object,header.data(),sizeof(header))||header!=saved.header)return false;
+  std::array<uint8_t,16384> currentBytes{};
+  return scene_audit::Read(header[0x4c/4],currentBytes.data(),saved.bytes.size())&&
+    !memcmp(currentBytes.data(),saved.bytes.data(),saved.bytes.size())&&CurrentSelection(saved.selection);
+}
+// Caller owns the GetVertexShader reference and separately proves D3D state
+// stability. Native key/bytes are independent of sampling and log capacity.
+static bool ReadBound(IDirect3DVertexShader9* shader,BoundSelection& output) {
+  if(!shader)return false;
+  BoundSelection value;value.selection=current;
+  if(!CurrentSelection(value.selection)||!scene_audit::Read(value.selection.object,value.header.data(),sizeof(value.header))||
+     value.header[0]!=0x6f2ecc||value.header[0x50/4]!=reinterpret_cast<uintptr_t>(shader))return false;
+  const auto size=value.header[0x48/4],address=value.header[0x4c/4];UINT actual=0;
+  if(size<8||size>16384||size%4||!address||FAILED(shader->GetFunction(nullptr,&actual))||actual!=size)return false;
+  value.bytes.resize(size);std::vector<uint8_t> bound(size);
+  if(!scene_audit::Read(address,value.bytes.data(),size)||FAILED(shader->GetFunction(bound.data(),&actual))||
+     actual!=size||value.bytes!=bound||!Current(value))return false;
+  output=std::move(value);return true;
 }
 static bool Verify(IDirect3DVertexShader9* vs,unsigned& shader) {
   uint32_t header[0x54/4]{};
@@ -60,7 +101,7 @@ static bool Install() {
   if(!scene_audit::Read(0x4c8980,bytes,sizeof(bytes)) || memcmp(bytes,prefix,sizeof(bytes)))return false;
   // One pointer-sized vtable slot, before any rendering. No relocated machine
   // instructions and no extra native-object or COM ownership.
-  auto slot=reinterpret_cast<void**>(0x6f2e00);DWORD previous=0,ignored=0;
+  auto slot=reinterpret_cast<void**>(selectionSlot);DWORD previous=0,ignored=0;
   if(!VirtualProtect(slot,sizeof(*slot),PAGE_READWRITE,&previous))return false;
   originalSelect=reinterpret_cast<NativeSelect>(*slot);
   ownerThread=GetCurrentThreadId();

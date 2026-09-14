@@ -30,6 +30,22 @@ static uintptr_t renderSlot=abi::spSkinVTable+0x24,renderEntry=abi::spSkinRender
 static constexpr uintptr_t renderSlot=abi::spSkinVTable+0x24,renderEntry=abi::spSkinRender;
 #endif
 template<class T> static bool Read(uintptr_t address,T& value){return scene_geometry::Read(address,&value,sizeof(value));}
+struct Observation {
+  uint32_t scene=0,skin=0,support=0,camera=0,mesh=0,renderer=0,palette=0,boneCount=0,weightHint=0,meshWeights=0;
+  uint64_t modelCall=0,submission=0;
+  unsigned wordsDifferent=0;
+  double absoluteError=0,relativeError=0;
+  bool withinTolerance=true;
+  // Owned snapshot for the separately qualified Fixed.rfx packet path. The
+  // general palette observer still accepts up to256 bones; no truncation is used.
+  std::array<math::Matrix4,16> fixedPalette{};
+  bool fixedPaletteAvailable=false;
+  // Value snapshots for revalidation at the later D3D draw; no borrowed arrays.
+  native_owner_source::Packet owner{};
+  abi::spSkinObservedLayout nativeSkin{};
+  abi::spRenderSupportObservedLayout supportState{};
+  uint32_t ownerPrimary=0;
+};
 struct Scope;
 static thread_local Scope* active;
 struct Scope {
@@ -38,6 +54,7 @@ struct Scope {
   uint64_t sequence=++nextCall,sceneScope=scene_geometry::active?scene_geometry::active->serial:0;
   uint64_t mutation=scene_geometry::MutationSerial();
   unsigned ownMeshes=0;
+  Observation observation{};bool observed=false;
   Scope(uint32_t s,uint32_t c,uint32_t p):skin(s),camera(c),support(p){active=this;}
   ~Scope(){active=parent;}
 };
@@ -49,17 +66,6 @@ static bool Current(const Scope& scope,const native_owner_source::Packet& owner)
     native_owner_source::Current(owner)&&Installed()&&scene_geometry::MutationSerial()==scope.mutation;
 }
 struct BoneInput {uint32_t address;abi::spNodeLayout node;math::Matrix4 inverseBind,palette;};
-struct Observation {
-  uint32_t scene=0,skin=0,support=0,camera=0,mesh=0,renderer=0,palette=0,boneCount=0,weightHint=0,meshWeights=0;
-  uint64_t modelCall=0,submission=0;
-  unsigned wordsDifferent=0;
-  double absoluteError=0,relativeError=0;
-  bool withinTolerance=true;
-  // Owned snapshot for the separately qualified Fixed.rfx packet path. The
-  // general palette observer still accepts up to256 bones; no truncation is used.
-  std::array<math::Matrix4,16> fixedPalette{};
-  bool fixedPaletteAvailable=false;
-};
 template<class T> static bool Finite(const T& values){for(float value:values)if(!std::isfinite(value))return false;return true;}
 static bool Observe(uint32_t mesh,uint32_t renderer,uint64_t submission,uintptr_t returnAddress,Observation& out) {
   out={};++attempts;
@@ -149,11 +155,14 @@ static bool Observe(uint32_t mesh,uint32_t renderer,uint64_t submission,uintptr_
     for(unsigned i=0;i<skin.boneCount;++i)value.fixedPalette[i]=inputs[i].palette;
     value.fixedPaletteAvailable=true;
   }
+  value.owner=owner;value.nativeSkin=skin;value.supportState=support;value.ownerPrimary=primary;
   out=value;return true;
 }
 static void Capture(uint32_t mesh,uint32_t renderer,uint64_t submission,uintptr_t returnAddress) {
   if(!enabled||GetCurrentThreadId()!=ownerThread||!active)return;
+  active->observed=false;
   Observation value{};if(!Observe(mesh,renderer,submission,returnAddress,value))return;
+  if(value.withinTolerance){active->observation=value;active->observed=true;}
   if(value.withinTolerance)++matched;else ++mismatches;
   if(value.withinTolerance)native_skin_vertex_source::Capture(value);
   bonesCompared+=value.boneCount;bitDifferences+=value.wordsDifferent;

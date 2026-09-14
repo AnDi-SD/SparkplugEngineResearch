@@ -55,9 +55,12 @@ static void RetireDeviceTextures(IDirect3DDevice9* device) {
     if(it->second.value.device==device){const auto texture=it->first;++it;ForgetTexture(texture);}else ++it;
   }
 }
-static void BlockTextureDevice(IDirect3DDevice9* device) {
+static void BlockTextureDevice(IDirect3DDevice9* device,unsigned sourceLine=0) {
   // An escaped unhooked interface may outlive Reset and later write another
   // texture. Keep this conservative device block through Reset/address reuse.
+  static unsigned reports;
+  if(output&&reports<32&&_ftelli64(output)<16*1024*1024){++reports;
+    fprintf(output,"{\"event\":\"texture_device_block\",\"frame\":%u,\"sourceLine\":%u,\"alreadyBlocked\":%s}\n",frameId,sourceLine,textureBlockedDevices.count(device)?"true":"false");fflush(output);}
   RetireDeviceTextures(device);++textureRejects;
   try {
     if(textureBlockedDevices.size()>=64&&!textureBlockedDevices.count(device))throw std::bad_alloc();

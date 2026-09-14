@@ -52,6 +52,7 @@ def prepare(destination):
     pieces.append('inline std::vector<uint32_t> Pack(const ApiSource& src) {\n size_t wordsPerCompressedTuple = dxvk::divCeil(src.skinning_value.bonesPerVertex, 4u);\n'+text[start:end].replace('\r\n','\n')+'\nreturn compressedBlendIndices;\n}\n')
     (destination/'source_expressions.h').write_text(''.join(pieces))
     shutil.copy2(PACKAGE/'test_skin_strides.cpp',destination/'test_skin_strides.cpp')
+    shutil.copy2(PACKAGE/'cpu_skinning_reference.h',destination/'cpu_skinning_reference.h')
     metadata={'schema':1,'pin':PIN,'originalSourceSha256':digest(old),'patchedSourceSha256':digest(patched.read_bytes()),
         'patchSha256':digest((PACKAGE/'skin-strides-v2.patch').read_bytes()),
         'fixedShaderSha256':digest(fixed_skin.read_bytes()),

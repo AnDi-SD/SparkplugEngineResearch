@@ -96,7 +96,41 @@ static void NestedSync(){SyncLights(activeScene);}
 static void NestedRetire(){sourceRegistry.lights.clear();RetireAbsentLights(activeScene);}
 static void ChangeGain(){sceneLightGain=20;}
 static void CompareAfterDraw(){keepSceneLightsForComparison=true;ClearLights();}
+static void RefuseDuringApi(){std::unique_lock<std::recursive_mutex> borrow(guard);DirectLightWitness witness;Check(!ReadSubmittedDirectLights(borrow,activeScene,witness));}
+static void ChangePayload(){sourceRegistry.lights[0].raw[0xf4]^=1;}
+static void DirectWitnessTests() {
+  ResetFixture();std::unique_lock<std::recursive_mutex> borrow(guard);DirectLightWitness witness;
+  Check(!ReadSubmittedDirectLights(borrow,1,witness));
+  createCallback=drawCallback=RefuseDuringApi;SyncLights(1);
+  Check(ReadSubmittedDirectLights(borrow,1,witness)&&witness.valid&&witness.lights.size()==1&&CurrentSubmittedDirectLights(borrow,witness));
+  Check(!ReadSubmittedDirectLights(borrow,2,witness));
+  ++frameId;Check(!CurrentSubmittedDirectLights(borrow,witness));--frameId;
+  ++sceneLightGain;Check(!CurrentSubmittedDirectLights(borrow,witness));--sceneLightGain;
+  ++sourceRegistry.manager;Check(!CurrentSubmittedDirectLights(borrow,witness));--sourceRegistry.manager;
+  ChangePayload();Check(!CurrentSubmittedDirectLights(borrow,witness));ChangePayload();
+  sourceRegistry.lights[0].raw[0xed]=0;Check(!CurrentSubmittedDirectLights(borrow,witness));sourceRegistry.lights[0].raw[0xed]=1;
+  sourceRegistry.lights[0].raw[0xec]=1;Check(!CurrentSubmittedDirectLights(borrow,witness));sourceRegistry.lights[0].raw[0xec]=0;
+  ++ownedLights.begin()->second.id;Check(!CurrentSubmittedDirectLights(borrow,witness));--ownedLights.begin()->second.id;
+  Check(CurrentSubmittedDirectLights(borrow,witness));
+  failAllocation=0;Check(!ReadSubmittedDirectLights(borrow,1,witness));failAllocation=-1;
+  Check(CurrentSubmittedDirectLights(borrow,witness));
+  ClearLights();Check(!CurrentSubmittedDirectLights(borrow,witness));
+  ResetFixture();Sources(3);failDraw=2;SyncLights(1);Check(!ReadSubmittedDirectLights(borrow,1,witness));
+  ResetFixture();failCreate=1;SyncLights(1);Check(!ReadSubmittedDirectLights(borrow,1,witness));
+  ResetFixture();failPolicy=1;SyncLights(1);Check(!ReadSubmittedDirectLights(borrow,1,witness));
+  ResetFixture();drawCallback=ChangePayload;SyncLights(1);Check(draws==1&&!ReadSubmittedDirectLights(borrow,1,witness));
+  ResetFixture();Sources(0);SyncLights(1);Check(ReadSubmittedDirectLights(borrow,1,witness)&&witness.lights.empty());
+  ResetFixture();Put(sourceRegistry.lights[0],0xc0,3);SyncLights(1);
+  Check(ReadSubmittedDirectLights(borrow,1,witness)&&witness.lights.empty()); // Direct-light scope excludes original ambient.
+  ResetFixture();Put(sourceRegistry.lights[0],0xc0,4);SyncLights(1);Check(!ReadSubmittedDirectLights(borrow,1,witness));
+  ResetFixture();SyncLights(1);activeScene=2;SyncLights(2);Check(draws==2&&!ReadSubmittedDirectLights(borrow,2,witness));
+  ++frameId;SyncLights(2);Check(ReadSubmittedDirectLights(borrow,2,witness));
+  ResetFixture();SyncLights(1);recordingApi.DrawLightInstance=nullptr;++frameId;SyncLights(1);
+  Check(!ReadSubmittedDirectLights(borrow,1,witness));
+  ResetFixture();
+}
 int main() {
+  DirectWitnessTests();
   ResetFixture();SyncLights(1);Check(creates==1&&draws==1&&ownedLights.size()==1&&Remaining()==1);
   const auto id=ownedLights.begin()->second.id;const auto handle=ownedLights.begin()->second.handle;
   SyncLights(1);Check(creates==1&&draws==1);++frameId;SyncLights(1);Check(creates==1&&draws==2);

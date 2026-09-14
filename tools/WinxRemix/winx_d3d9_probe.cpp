@@ -69,6 +69,7 @@ namespace native_transport_source { static void Initialize(); static void EndFra
 namespace independent_scene_source { static void Initialize(); static void EndFrame(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 namespace skin_packet_capture { static void AuditDevice(IDirect3DDevice9*,const char*); }
+namespace skin_draw_source { static void Initialize(); static bool Enabled(); static void EndFrame(); }
 static bool systemBackend;
 
 static void Initialize() {
@@ -142,6 +143,7 @@ static void Initialize() {
   InitializeSceneAudit();
   native_light_source::Initialize();
   material_audit::Initialize();
+  skin_draw_source::Initialize();
 }
 
 template<class F> static F Proc(const char* name) {
@@ -221,8 +223,8 @@ static void RememberPresentation(IDirect3DDevice9* d,const D3DPRESENT_PARAMETERS
   if(state.height*scale>availableHeight) scale=double(availableHeight)/state.height;
   const LONG width=static_cast<LONG>(state.width*scale)+borderWidth;
   const LONG height=static_cast<LONG>(state.height*scale)+borderHeight;
-  const LONG x=max(monitor.rcWork.left,min(rect.left,monitor.rcWork.right-width));
-  const LONG y=max(monitor.rcWork.top,min(rect.top,monitor.rcWork.bottom-height));
+  const LONG x=(std::max)(monitor.rcWork.left,(std::min)(rect.left,monitor.rcWork.right-width));
+  const LONG y=(std::max)(monitor.rcWork.top,(std::min)(rect.top,monitor.rcWork.bottom-height));
   SetWindowPos(state.window,nullptr,x,y,width,height,SWP_NOZORDER|SWP_NOACTIVATE);
   LogPresentation("fit_window",&p,state.window);
 }
@@ -653,16 +655,25 @@ template<class Buffer> static ULONG STDMETHODCALLTYPE SurfaceBufferRelease(Buffe
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
 static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9*);
 static HRESULT STDMETHODCALLTYPE TextureDeviceQuery(IDirect3DDevice9*,REFIID,void**);
+static HRESULT STDMETHODCALLTYPE TextureAdditionalSwap(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*,IDirect3DSwapChain9**);
+static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
 static void PrepareTransportDevice(IDirect3DDevice9* device) {
   // System CreateDevice may return through a Windows compatibility wrapper
-  // which installs QueryInterface/Release/Reset after our callback. Install at
+  // which installs QueryInterface/Release/Reset and swap-chain access after our
+  // callback. Install at
   // the first resource boundary, preserving that completed chain as Original.
   // A later replacement still fails TransportDeviceHooked; never overwrite it.
   if(systemBackend&&native_transport_source::enabled){
     Patch(device,0,reinterpret_cast<void*>(TextureDeviceQuery));
     Patch(device,2,reinterpret_cast<void*>(DeviceRelease));
     Patch(device,16,reinterpret_cast<void*>(Reset));
+    Patch(device,13,reinterpret_cast<void*>(TextureAdditionalSwap));
+    Patch(device,14,reinterpret_cast<void*>(GetSwapChain));
   }
+  if(skin_draw_source::Enabled()&&!d3d9_state_witness::devices.count(device))
+    d3d9_state_witness::Install(device,reinterpret_cast<void*>(Reset),reinterpret_cast<void*>(DeviceRelease),
+      reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>),
+      ShaderConstantAuditHooks());
 }
 static bool TransportDeviceHooked(IDirect3DDevice9* device) {
   const auto table=*reinterpret_cast<void***>(device);
@@ -740,7 +751,7 @@ static HRESULT STDMETHODCALLTYPE CreateDeclaration(IDirect3DDevice9* device,cons
   return hr;
 }
 static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9* device) {
-  d3d9_state_witness::Mutation mutation;
+  d3d9_state_witness::LifetimeCall lifetime;
   using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DDevice9*);const auto references=Original<F>(device,2)(device);
   if(!references){native_transport_source::RetireDevice(device);d3d9_state_witness::Retire(device);}
   return references;
@@ -862,6 +873,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   native_owner_source::EndFrame();
   native_skin_source::EndFrame();
   native_skin_vertex_source::EndFrame();
+  skin_draw_source::EndFrame();
   native_update_source::EndFrame();
   native_transport_source::EndFrame();
   independent_scene_source::EndFrame();
@@ -907,7 +919,7 @@ static void* OwnedCanonicalIdentity(void* object) {
 }
 static void BlockTextureAlias(IDirect3DTexture9* texture) {
   InvalidateSurfaceTexture(texture);const auto found=native_transport_source::textures.find(texture);
-  if(found!=native_transport_source::textures.end())native_transport_source::BlockTextureDevice(found->second.value.device);
+  if(found!=native_transport_source::textures.end())native_transport_source::BlockTextureDevice(found->second.value.device,__LINE__);
 }
 static bool TextureIID(REFIID iid) {
   return iid==__uuidof(IUnknown)||iid==__uuidof(IDirect3DResource9)||iid==__uuidof(IDirect3DBaseTexture9)||iid==__uuidof(IDirect3DTexture9);
@@ -1001,7 +1013,7 @@ static HRESULT STDMETHODCALLTYPE ChannelGetTexture(IDirect3DDevice9* device,DWOR
   const auto hr=Original<F>(device,64)(device,stage,result);
   if(native_transport_source::enabled&&SUCCEEDED(hr)&&result&&*result) {
     const auto identity=OwnedCanonicalIdentity(*result);
-    if(!identity)native_transport_source::BlockTextureDevice(device);
+    if(!identity)native_transport_source::BlockTextureDevice(device,__LINE__);
     else if(auto texture=native_transport_source::TextureByIdentity(identity))
       if(texture!=*result)BlockTextureAlias(texture);
   }return hr;
@@ -1010,7 +1022,10 @@ static HRESULT STDMETHODCALLTYPE TextureDeviceQuery(IDirect3DDevice9* device,REF
   std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,REFIID,void**);
   const auto hr=Original<F>(device,0)(device,iid,result);
   if(SUCCEEDED(hr)&&result&&*result&&(*result!=device||(iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DDevice9)))) {
-    native_transport_source::BlockTextureDevice(device);d3d9_state_witness::Block(device);
+    if(native_transport_source::output&&!native_transport_source::textureBlockedDevices.count(device))
+      fprintf(native_transport_source::output,"{\"event\":\"texture_device_alias\",\"frame\":%u,\"iid\":\"%08lx-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x\",\"samePointer\":%s}\n",
+        frameId,iid.Data1,iid.Data2,iid.Data3,iid.Data4[0],iid.Data4[1],iid.Data4[2],iid.Data4[3],iid.Data4[4],iid.Data4[5],iid.Data4[6],iid.Data4[7],*result==device?"true":"false");
+    native_transport_source::BlockTextureDevice(device,__LINE__);d3d9_state_witness::Block(device);
   }
   return hr;
 }
@@ -1032,7 +1047,7 @@ static HRESULT STDMETHODCALLTYPE TextureSwapQuery(IDirect3DSwapChain9* swap,REFI
   const auto hr=Original<F>(swap,0)(swap,iid,result);
   if(SUCCEEDED(hr)&&result&&*result&&(*result!=swap||(iid!=__uuidof(IUnknown)&&iid!=__uuidof(IDirect3DSwapChain9)))) {
     IDirect3DDevice9* device=nullptr;
-    if(SUCCEEDED(swap->GetDevice(&device))&&device){native_transport_source::BlockTextureDevice(device);device->Release();}
+    if(SUCCEEDED(swap->GetDevice(&device))&&device){native_transport_source::BlockTextureDevice(device,__LINE__);device->Release();}
     else {native_transport_source::textureCoverage=false;native_transport_source::textures.clear();native_transport_source::textureSurfaces.clear();}
   }return hr;
 }
@@ -1044,7 +1059,7 @@ static bool PatchTextureSwap(IDirect3DSwapChain9* swap) {
 static HRESULT STDMETHODCALLTYPE TextureAdditionalSwap(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS* parameters,IDirect3DSwapChain9** result) {
   std::lock_guard<std::recursive_mutex> lock(guard);using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*,IDirect3DSwapChain9**);
   const auto hr=Original<F>(device,13)(device,parameters,result);
-  if(SUCCEEDED(hr)&&result&&*result&&!PatchTextureSwap(*result))native_transport_source::BlockTextureDevice(device);return hr;
+  if(SUCCEEDED(hr)&&result&&*result&&!PatchTextureSwap(*result))native_transport_source::BlockTextureDevice(device,__LINE__);return hr;
 }
 static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
 static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UINT height,UINT levels,DWORD usage,D3DFORMAT format,D3DPOOL pool,IDirect3DTexture9** result,HANDLE* shared) {
@@ -1078,7 +1093,19 @@ static HRESULT STDMETHODCALLTYPE CreateTexture(IDirect3DDevice9* d,UINT width,UI
         table[2]==reinterpret_cast<void*>(ChannelTextureRelease)&&table[16]==reinterpret_cast<void*>(ChannelTextureGenerateMips)&&
         table[18]==reinterpret_cast<void*>(ChannelTextureSurface)&&table[19]==reinterpret_cast<void*>(ChannelTextureLock)&&
         table[20]==reinterpret_cast<void*>(ChannelTextureUnlock);
-      if(!hooked)native_transport_source::BlockTextureDevice(d);
+      if(!hooked){
+        if(native_transport_source::output&&!native_transport_source::textureBlockedDevices.count(d)){
+          fprintf(native_transport_source::output,"{\"event\":\"texture_hook_mismatch\",\"frame\":%u,\"checks\":[%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s],\"additionalSwapChain\":%s,\"getSwapChain\":%s}\n",frameId,
+            TransportDeviceHooked(d)?"true":"false",deviceTable[0]==reinterpret_cast<void*>(TextureDeviceQuery)?"true":"false",
+            deviceTable[33]==reinterpret_cast<void*>(TextureFrontBuffer)?"true":"false",deviceTable[64]==reinterpret_cast<void*>(ChannelGetTexture)?"true":"false",
+            table[0]==reinterpret_cast<void*>(ChannelTextureQuery)?"true":"false",table[2]==reinterpret_cast<void*>(ChannelTextureRelease)?"true":"false",
+            table[16]==reinterpret_cast<void*>(ChannelTextureGenerateMips)?"true":"false",table[18]==reinterpret_cast<void*>(ChannelTextureSurface)?"true":"false",
+            table[19]==reinterpret_cast<void*>(ChannelTextureLock)?"true":"false",table[20]==reinterpret_cast<void*>(ChannelTextureUnlock)?"true":"false",
+            native_transport_source::enabled?"true":"false",
+            deviceTable[13]==reinterpret_cast<void*>(TextureAdditionalSwap)?"true":"false",
+            deviceTable[14]==reinterpret_cast<void*>(GetSwapChain)?"true":"false");fflush(native_transport_source::output);}
+        native_transport_source::BlockTextureDevice(d,__LINE__);
+      }
       else if(usage==0&&pool==D3DPOOL_MANAGED&&(format==D3DFMT_A8R8G8B8||format==D3DFMT_X8R8G8B8)) {
         const UINT count=(*result)->GetLevelCount();D3DSURFACE_DESC layout[32]{};bool complete=count>0&&count<=32;
         for(UINT level=0;complete&&level<count;++level)complete=SUCCEEDED((*result)->GetLevelDesc(level,&layout[level]));
@@ -1104,6 +1131,7 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   native_owner_source::EndFrame();
   native_skin_source::EndFrame();
   native_skin_vertex_source::EndFrame();
+  skin_draw_source::EndFrame();
   native_update_source::EndFrame();
   native_transport_source::EndFrame();
   independent_scene_source::EndFrame();
@@ -1123,7 +1151,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
   const HRESULT hr=Original<F>(d,14)(d,index,result);
   if(SUCCEEDED(hr) && result && *result) {
     if(sizeof(void*)==8)Patch(*result,3,reinterpret_cast<void*>(SwapPresent));
-    if(native_transport_source::enabled&&!PatchTextureSwap(*result))native_transport_source::BlockTextureDevice(d);
+    if(native_transport_source::enabled&&!PatchTextureSwap(*result))native_transport_source::BlockTextureDevice(d,__LINE__);
   }
   return hr;
 }
@@ -1148,6 +1176,7 @@ static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS
   return hr;
 }
 #include "winx_skin_packet_draw.h"
+#include "winx_skin_draw_source.h"
 static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UINT start,UINT count) {
   std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawPrimitive",t,count);
@@ -1162,6 +1191,7 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
   std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawIndexedPrimitive",t,count);
+  skin_draw_source::Observe(d,{t,base,min,num,start,count});
   if(independent_scene_source::SkipDirectDraw(d,{t,base,min,num,start,count}))return D3D_OK;
   if(SkipLegacyProjectedShadow(d,t)) return D3D_OK;
   ScopedOpaqueAlphaTest alphaTest(d);
@@ -1218,6 +1248,7 @@ static bool CameraDrawsTracked(IDirect3DDevice9* device) {
 }
 namespace skin_packet_capture {
 static void AuditDevice(IDirect3DDevice9* device,const char* phase){
+#if defined(_M_IX86)
   static unsigned reports=0;if(!Enabled()||!journal||!device||reports>=8)return;++reports;
   const auto table=*reinterpret_cast<void***>(device);const auto renderer=scene_geometry::Word(native_owner_source::rendererPointerAddress);
   fprintf(journal,"{\"event\":\"device_hooks\",\"phase\":\"%s\",\"frame\":%u,\"device\":%llu,\"nativeDevice\":%u,\"table\":%llu,\"transportEnabled\":%s,\"slots\":[",phase,frameId,
@@ -1235,6 +1266,9 @@ static void AuditDevice(IDirect3DDevice9* device,const char* phase){
   if(owner)GetModuleFileNameW(owner,ownerPath,MAX_PATH);const wchar_t* filename=wcsrchr(ownerPath,L'\\');filename=filename?filename+1:ownerPath;
   fprintf(journal,"],\"releaseModule\":\"%ls\",\"releaseOffset\":%llu}\n",filename,
     static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(table[2])-reinterpret_cast<uintptr_t>(owner)));fflush(journal);
+#else
+  (void)device;(void)phase;
+#endif
 }
 }
 static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVTYPE type,HWND window,DWORD flags,D3DPRESENT_PARAMETERS* p,IDirect3DDevice9** result) {
@@ -1248,7 +1282,7 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     RememberPresentation(*result,*p,window);
     // Server forwards game Present via its swap chain; sample that boundary on x64.
     if(sizeof(void*)==8) {
-      Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
+      if(!systemBackend||!native_transport_source::enabled)Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
       IDirect3DSwapChain9* swap=nullptr;
       if(SUCCEEDED((*result)->GetSwapChain(0,&swap)) && swap) swap->Release();
     }
@@ -1259,12 +1293,12 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
       Patch(*result,86,reinterpret_cast<void*>(CreateDeclaration));
       if(!systemBackend)Patch(*result,2,reinterpret_cast<void*>(DeviceRelease));
       if(!systemBackend)Patch(*result,0,reinterpret_cast<void*>(TextureDeviceQuery));
-      Patch(*result,13,reinterpret_cast<void*>(TextureAdditionalSwap));Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
+      if(!systemBackend){Patch(*result,13,reinterpret_cast<void*>(TextureAdditionalSwap));Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));}
       Patch(*result,33,reinterpret_cast<void*>(TextureFrontBuffer));Patch(*result,64,reinterpret_cast<void*>(ChannelGetTexture));
       IDirect3DSwapChain9* swap=nullptr;
       if(SUCCEEDED((*result)->GetSwapChain(0,&swap))&&swap) {
-        if(!PatchTextureSwap(swap))native_transport_source::BlockTextureDevice(*result);swap->Release();
-      }else native_transport_source::BlockTextureDevice(*result);
+        if(!PatchTextureSwap(swap))native_transport_source::BlockTextureDevice(*result,__LINE__);swap->Release();
+      }else native_transport_source::BlockTextureDevice(*result,__LINE__);
     }
     Patch(*result,23,reinterpret_cast<void*>(CreateTexture));
     Patch(*result,51,reinterpret_cast<void*>(SetLight));
@@ -1272,7 +1306,8 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     Patch(*result,83,reinterpret_cast<void*>(DrawUP)); Patch(*result,84,reinterpret_cast<void*>(DrawIndexedUP));
     if(independent_scene_source::selectedSubmitEnabled)
       d3d9_state_witness::Install(*result,reinterpret_cast<void*>(Reset),reinterpret_cast<void*>(DeviceRelease),
-        reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>));
+        reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>),
+        ShaderConstantAuditHooks());
     skin_packet_capture::AuditDevice(*result,"create");
   }
   if(logFile) { fprintf(logFile,"{\"event\":\"create_device\",\"hr\":%ld}\n",hr); fflush(logFile); }

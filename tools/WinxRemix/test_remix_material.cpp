@@ -11,6 +11,7 @@
 #include <cmath>
 #include <string>
 #include <algorithm>
+#include <io.h>
 #define REMIX_ALLOW_X86
 #include <remix/remix_c.h>
 #include "winx_surface_material.h"
@@ -21,6 +22,14 @@ static IDirect3DDevice9* device;
 static HWND window;
 static remixapi_Interface api{};
 static unsigned frame;
+static bool OpenJournal() {
+  if(fopen_s(&journal,"fixture.jsonl","wb")||!journal)return false;
+  const auto handle=reinterpret_cast<HANDLE>(_get_osfhandle(_fileno(journal)));DWORD flags=0;
+  if(!SetHandleInformation(handle,HANDLE_FLAG_INHERIT,0)||!GetHandleInformation(handle,&flags)||(flags&HANDLE_FLAG_INHERIT)){
+    fclose(journal);journal=nullptr;return false;
+  }
+  fputs("{\"event\":\"journal\",\"handleInherited\":false}\n",journal);fflush(journal);return true;
+}
 static void Fail(const char* what,unsigned value) {
   fprintf(journal,"{\"event\":\"error\",\"what\":\"%s\",\"value\":%u,\"frame\":%u}\n",what,value,frame);
   fflush(journal);std::exit(1);
@@ -116,7 +125,7 @@ static void ChannelResources(unsigned c,const material_channels::Plan& plan,DWOR
   Api(api.CreateMesh(&mesh,&apiMesh),"channel mesh");
 }
 int main(int argc,char** argv) {
-  if(fopen_s(&journal,"fixture.jsonl","wb") || !journal)return 1;
+  if(!OpenJournal())return 1;
   bool system=false,combiner=false,channels=false;
   for(int i=1;i<argc;++i) {if(strcmp(argv[i],"--system")==0)system=true;else if(strcmp(argv[i],"--combiner")==0)combiner=true;else if(strcmp(argv[i],"--channels")==0)channels=true;else Fail("arguments",0);}
   if(channels&&combiner)Fail("exclusive fixture modes",0);

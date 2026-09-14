@@ -1,7 +1,8 @@
-param()
+param([ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name = ('check-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff')))
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$build=Join-Path $root 'local-data/rtx-remix/test-surface-material'
+$build=Join-Path $root "local-data/rtx-remix/test-surface-material/$Name"
+if (Test-Path -LiteralPath $build) { throw 'Use a fresh evidence directory' }
 $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
 $installation=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
 if (-not $installation) { throw 'MSVC x86 tools not found' }

@@ -10,6 +10,10 @@ struct Fixture;
 static Fixture* selected;
 static unsigned setters;
 static bool failSetter;
+static void (*duringConstantSet)();
+static UINT constantStart,constantCount;
+static const void* constantData;
+static unsigned constantIndex;
 static void (*afterReferenceRelease)();
 static std::vector<remixapi_HardcodedVertex> meshVertices;
 static remixapi_MaterialInfoOpaqueEXT materialOpaque{};
@@ -41,6 +45,10 @@ static HRESULT STDMETHODCALLTYPE GetSampler(IDirect3DDevice9*,DWORD,D3DSAMPLERST
 static ULONG STDMETHODCALLTYPE ReleaseBuffer(void*);
 static ULONG STDMETHODCALLTYPE ReleaseTexture(IDirect3DBaseTexture9*);
 template<class... A> static HRESULT STDMETHODCALLTYPE UnusedSet(IDirect3DDevice9*,A...){++setters;return failSetter?D3DERR_INVALIDCALL:D3D_OK;}
+template<class T> static HRESULT STDMETHODCALLTYPE ConstantSet(IDirect3DDevice9*,UINT start,const T* data,UINT count) {
+  ++setters;constantStart=start;constantData=data;constantCount=count;
+  if(duringConstantSet)duringConstantSet();return failSetter?D3DERR_INVALIDCALL:D3D_OK;
+}
 static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9*){return 1;}
 static HRESULT STDMETHODCALLTYPE DeviceReset(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*){return D3D_OK;}
 static HRESULT STDMETHODCALLTYPE GetVS(IDirect3DDevice9*,IDirect3DVertexShader9** p){++comCalls;*p=nullptr;return D3D_OK;}
@@ -62,8 +70,9 @@ struct Fixture : direct_test::Fixture {
   IDirect3DVertexDeclaration9* boundDecl=nullptr;IDirect3DBaseTexture9* boundTexture=nullptr;
   UINT streamOffset=0,streamStride=36;
   D3DMATRIX deviceWorld{};std::array<DWORD,14> sampler{};
-  Fixture() {
+  Fixture(bool auditConstants=false) {
     selected=this;setters=blockApplies=0;failSetter=false;afterReferenceRelease=nullptr;onBlockRelease=nullptr;meshVertices.clear();
+    duringConstantSet=nullptr;constantStart=constantCount=0;constantData=nullptr;
     source::selectedSubmitEnabled=true;source::keepSelectedForComparison=source::selectedSubmissionFailed=false;
     source::selectedAttempts=source::selectedCalls=source::selectedInstances=source::selectedRejected=source::selectedApiFailures=source::selectedReentries=source::selectedPostCommitFaults=0;
     source::selectedRunning=false;native_mesh_source::submitEnabled=native_material_source::submitEnabled=true;
@@ -88,13 +97,19 @@ struct Fixture : direct_test::Fixture {
     deviceTable[100]=reinterpret_cast<void*>(SetStream);deviceTable[101]=reinterpret_cast<void*>(GetStream);
     deviceTable[102]=reinterpret_cast<void*>(UnusedSet<UINT,UINT>);deviceTable[104]=reinterpret_cast<void*>(SetIndices);deviceTable[105]=reinterpret_cast<void*>(GetIndices);
     deviceTable[107]=reinterpret_cast<void*>(UnusedSet<IDirect3DPixelShader9*>);deviceTable[108]=reinterpret_cast<void*>(GetPS);
+    deviceTable[94]=deviceTable[109]=reinterpret_cast<void*>(ConstantSet<float>);
+    deviceTable[96]=deviceTable[111]=reinterpret_cast<void*>(ConstantSet<int>);
+    deviceTable[98]=deviceTable[113]=reinterpret_cast<void*>(ConstantSet<BOOL>);
     block.table=blockTable;blockTable[0]=reinterpret_cast<void*>(QueryBlock);blockTable[2]=reinterpret_cast<void*>(ReleaseBlock);blockTable[5]=reinterpret_cast<void*>(ApplyBlock);
     originals.erase(deviceTable);state::Retire(Device());
-    Check(state::Install(Device(),deviceTable[16],deviceTable[2]),"owned actual setter vtable is patched and covered");
+    auto audited=ShaderConstantAuditHooks();
+    if(auditConstants)for(size_t i=0;i<audited.size();++i)Patch(Device(),state::constantHooks[i].slot,audited[i]);
+    else audited={};
+    Check(state::Install(Device(),deviceTable[16],deviceTable[2],nullptr,nullptr,audited),"owned actual setter vtable is patched and covered");
     api.CreateMaterial=CreateMaterial;api.CreateMesh=CreateMesh;
   }
   ~Fixture() {
-    afterReferenceRelease=nullptr;onBlockRelease=nullptr;
+    afterReferenceRelease=nullptr;onBlockRelease=nullptr;duringConstantSet=nullptr;
     Check(refs[0]==1&&refs[1]==1&&refs[2]==1&&textureRefs==1&&target.refs==1,"all temporary selected COM references balanced");
     Check(source::selectedAttempts==source::selectedRejected+source::selectedCalls,"selected attempts partition into precommit rejection and API call");
     Check(source::selectedCalls==source::selectedInstances+source::selectedApiFailures,"postcommit faults never double-count successful API calls as errors");
@@ -254,6 +269,38 @@ static void StateTransitions() {
       std::unique_lock<std::recursive_mutex> lock(guard);state::Witness now{};Check(!state::Read(lock,f.Device(),now)&&!Submit(f),"active detached Reset invalidates reads and selected entry");}
     {std::unique_lock<std::recursive_mutex> lock(guard);Check(!state::Current(lock,before)&&!state::mutations,"Reset end closes active count but never revives pre-Reset witness");}}
 }
-static void Run(){Positive();Rejections();LateTransitions();CommitAndAllocation();AlphaNormalization();StateTransitions();Check(liveMeshes.empty()&&liveMaterials.empty(),"all selected recording API ownership retired");}
+static HRESULT InvokeConstant(IDirect3DDevice9* d,unsigned index) {
+  static const float floats[4]={.2f,.4f,.6f,.8f};static const int ints[4]={1,2,3,4};static const BOOL boolean=TRUE;
+  switch(index) {
+    case 0:return d->SetVertexShaderConstantF(23,floats,1);
+    case 1:return d->SetVertexShaderConstantI(23,ints,1);
+    case 2:return d->SetVertexShaderConstantB(23,&boolean,1);
+    case 3:return d->SetPixelShaderConstantF(23,floats,1);
+    case 4:return d->SetPixelShaderConstantI(23,ints,1);
+    default:return d->SetPixelShaderConstantB(23,&boolean,1);
+  }
+}
+static void ConstantTransitions() {
+  for(unsigned audit=0;audit<2;++audit)for(unsigned i=0;i<6;++i)for(unsigned failure=0;failure<2;++failure) {
+    Fixture f(audit!=0);std::unique_lock<std::recursive_mutex> lock(guard);state::Witness before{},after{};
+    Check(state::Read(lock,f.Device(),before),"constant test starts with a qualified read");
+    duringConstantSet=[](){std::unique_lock<std::recursive_mutex> nested(guard);state::Witness witness{};
+      Check(!state::Read(nested,selected->Device(),witness),"reentry inside either constant wrapper cannot qualify state");};
+    failSetter=failure!=0;const auto calls=setters;const auto observed=shaderConstants[i],failed=shaderConstantFailures[i];
+    Check(InvokeConstant(f.Device(),i)==(failure?D3DERR_INVALIDCALL:D3D_OK),"all six wrappers preserve original HRESULT");
+    Check(setters==calls+1&&constantStart==23&&constantCount==1&&constantData,"constant arguments reach original exactly once");
+    Check(shaderConstants[i]==observed+audit&&shaderConstantFailures[i]==failed+audit*failure,"audit counters remain enabled only on the audited path");
+    Check(!state::Current(lock,before)&&state::Read(lock,f.Device(),after),"success and failure invalidate previous constants without permanently blocking device");
+    const auto slot=state::constantHooks[i].slot;auto wrapper=f.deviceTable[slot];f.deviceTable[slot]=nullptr;
+    Check(!state::Read(lock,f.Device(),after),"replaced constant vtable slot invalidates coverage");f.deviceTable[slot]=wrapper;
+  }
+  for(unsigned i=0;i<6;++i)for(unsigned failure=0;failure<2;++failure) {
+    Fixture f(true);scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Prepare(scope);DrawScope draw(f);
+    constantIndex=i;failSetter=failure!=0;
+    onApi=[](char op,unsigned){if(op=='m')onTarget=[](){onTarget=nullptr;InvokeConstant(selected->Device(),constantIndex);};};
+    Check(!Submit(f)&&!drawCalls&&!source::selectedCalls,"late shader constant transition rejects before API draw and retains original fallback");
+  }
+}
+static void Run(){Positive();Rejections();LateTransitions();CommitAndAllocation();AlphaNormalization();StateTransitions();ConstantTransitions();Check(liveMeshes.empty()&&liveMaterials.empty(),"all selected recording API ownership retired");}
 }
 int main(){SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOGPFAULTERRORBOX);try{direct_test::Watchdog watchdog;selected_test::Run();printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"nativeGameCodeExecuted\":false,\"ownedComCalls\":%u}\n",direct_test::checks,direct_test::comCalls);return 0;}catch(const std::exception& e){fprintf(stderr,"FAIL %s\n",e.what());return 1;}}

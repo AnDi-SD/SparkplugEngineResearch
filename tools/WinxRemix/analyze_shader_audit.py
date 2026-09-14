@@ -14,7 +14,7 @@ import re
 import sys
 import xml.etree.ElementTree as ET
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'research'))
+
 from pc_shader_sdk import D3dx
 
 

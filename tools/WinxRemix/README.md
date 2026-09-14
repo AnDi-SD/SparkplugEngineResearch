@@ -27,5 +27,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Build-Probe.
 
 [Профили запуска, параметры и ограничения](docs/guide.md) · [Устройство адаптера](docs/development.md) · [Внешние компоненты](third-party/README.md).
 
-[Захват и replay пакетов Skin](docs/skin-packets.md) описывает общий входной
-контракт для переноса анимации и границу между наблюдением и submit.
+[Пакеты Skin](docs/skin-packets.md) описывают общий входной контракт,
+подготовку готовой геометрии с исходными весами, захват материалов и текстур,
+компактный API backend, получение текущего пакета без sampled журнала,
+подготовку ColorMode4 draw state и границу между наблюдением и игровым submit.
+[GPU-стенд](renderer-skinning-fix/README.md#сравнение-сохранённых-пакетов)
+сравнивает сохранённые пакеты с настоящим вычислительным ядром Remix.
