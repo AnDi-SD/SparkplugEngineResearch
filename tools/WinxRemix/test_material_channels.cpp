@@ -47,6 +47,7 @@ static std::vector<DWORD> Dds(const std::wstring& path) {
   fseek(file,0,SEEK_END);const auto length=ftell(file);rewind(file);Check(length>128&&length%4==0,"DDS payload size");
   std::vector<DWORD> words(size_t(length)/4);Check(fread(words.data(),4,words.size(),file)==words.size(),"complete DDS read");fclose(file);return words;
 }
+#include "test_unlit_face_normals.h"
 #if defined(_M_IX86)
 #include "test_native_material.h"
 static void NativeTexture(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS parameters) {
@@ -134,12 +135,12 @@ static void NativeTransport(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS param
   // COM refs; deliberately retained managed refs below belong to this caller.
   namespace transport=native_transport_source;
   const auto initialChecks=checks,beforeDraws=apiDraws,beforeSubmits=materialChannelsSubmitted;
-  Check(TransportDeviceHooked(device),"real device has both transport lifetime hooks");
   struct Resources {IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* declaration=nullptr;};
   const D3DVERTEXELEMENT9 elements[]={{0,0,D3DDECLTYPE_FLOAT3,0,D3DDECLUSAGE_POSITION,0},
     {0,12,D3DDECLTYPE_FLOAT2,0,D3DDECLUSAGE_TEXCOORD,0},{0xff,0,D3DDECLTYPE_UNUSED,0,0,0}};
   auto create=[&](Resources& resources) {
     Hr(device->CreateVertexBuffer(3*20,0,0,D3DPOOL_MANAGED,&resources.vb,nullptr),"transport actual VB Create");
+    Check(TransportDeviceHooked(device),"first real resource installs both transport lifetime hooks after CreateDevice returns");
     Hr(device->CreateIndexBuffer(3*2,0,D3DFMT_INDEX16,D3DPOOL_MANAGED,&resources.ib,nullptr),"transport actual IB Create");
     Hr(device->CreateVertexDeclaration(elements,&resources.declaration),"transport explicit declaration Create");
     Check((*reinterpret_cast<void***>(resources.vb))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>)&&
@@ -497,6 +498,7 @@ int main() {
 #if defined(_M_IX86)
   NativeSource(d,vb,ib,draw);
 #endif
+  UnlitFaceNormals(d,vb,vertices,draw);
   D3DMATERIAL9 material{};material.Diffuse={.6f,.4f,.2f,.5f};material.Ambient={.5f,.25f,.125f,1};material.Emissive={.1f,.2f,.3f,1};
   Hr(d->SetRenderState(D3DRS_LIGHTING,TRUE),"lit material");Hr(d->SetRenderState(D3DRS_COLORVERTEX,FALSE),"constant material sources");
   Hr(d->SetMaterial(&material),"lit coefficients");Hr(d->SetRenderState(D3DRS_AMBIENT,0xff408020),"lit ambient");

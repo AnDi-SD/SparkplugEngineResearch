@@ -381,10 +381,13 @@ static void RenderNode(Fixture& f) {
     "RenderNode destructor forwards complete receiver once and records the correct retirement kind");
   Check(!Qualify(packet)&&!capture(rejected),"RenderNode retirement invalidates packet and current cached registry epoch");
 }
+} // namespace owner_test
+#include "test_native_instance_lifetime.h"
+namespace owner_test {
 static void Run() {
   Fixture fixture;current=&fixture;source::enabled=true;source::ownerThread=GetCurrentThreadId();frameId=17;
   Check(!source::activeModel&&!source::activeSupport&&!scene_geometry::active&&!testRemixApi,"fresh CPU observer has no live device/API/scopes");
-  Wrappers(fixture);CaptureGuards(fixture);QualificationGuards(fixture);Lifetime(fixture);RenderNode(fixture);
+  Wrappers(fixture);CaptureGuards(fixture);QualificationGuards(fixture);Lifetime(fixture);RenderNode(fixture);Instances(fixture);
   Check(!source::activeModel&&!source::activeSupport&&!scene_geometry::active&&!native_mesh_source::active,
     "all normal and exceptional tests restore TLS and scene scopes");
   Check(source::used==0&&!testRemixApi,"owner capture and qualification never submit an API instance themselves");

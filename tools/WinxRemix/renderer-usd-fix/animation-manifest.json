@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": "animation-v1.patch",
+  "patchSha256": "20e6d20a1db7c2c59af23a9acd0cd1b772954827bd3d5c637378e5ff5ad155c3",
+  "requires": [
+    "api-usd-v1.patch"
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/lssusd/game_exporter.cpp",
+      "beforeLfSha256": "aa6e187b2e3ae04c770bb18837f603328c4e668633fa36a563d352fb445bce54",
+      "afterLfSha256": "c6cf3adf410d3e763d59a0bcda73244846e9540237176236226a290212d67425"
+    }
+  ],
+  "scope": "Create one transform op per sampled object, represent independent captured palette joints without invented parent, apply USD material binding schema.",
+  "qualification": "Own CPU exporter and composed USD readback: animated 1..4 explicit signed influences, 4-joint palette, uniform/nonuniform TRS, buffer reduction, visibility, 33 Opaque constants and 12 texture references. No renderer DLL/GPU/capturer/game qualification; arbitrary shear and lossless half scale storage are not claimed."
+}

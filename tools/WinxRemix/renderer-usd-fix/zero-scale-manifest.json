@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": "zero-scale-v1.patch",
+  "patchSha256": "da7d8fe76569de6f8eff8d3dc151f3e56f1769be0c82007fc5eb3753c08cd5cb",
+  "requires": [
+    "api-usd-v1.patch",
+    "animation-v1.patch",
+    "buffers-v1.patch"
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/lssusd/game_exporter.cpp",
+      "beforeLfSha256": "8a76715b7c138d8345de18d78d877f37994bf9604892279c1995b67e68c5acea",
+      "afterLfSha256": "e61ae7a910bbdbfe2d291b6f7c0e9fe68f4dfa8ca9221cfda30744976c3296e8"
+    }
+  ],
+  "scope": "Write exact zero-linear affine bones as zero TRS scale; preserve translation and all palette entries. Propagate failed animation authoring as capture failure.",
+  "qualification": "Public CPU EncodeSignedSkin -> actual exporter -> USD readback: B1..4 become B2..5, positive/negative/zero nine-bone palette, full/reduced buffers; three time samples and single-frame default-time poses. Translated zero-linear matrix preserved; rank-one authoring failure propagated. No GPU/capturer/roundtrip-render qualification; arbitrary singular/sheared matrices remain outside this special case."
+}

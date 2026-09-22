@@ -1,0 +1,63 @@
+--- a/bridge/meson.build
++++ b/bridge/meson.build
+@@ -22,7 +22,7 @@
+ 
+ project(
+   'bridge', ['c', 'cpp'],
+-  version : 'remix-main-skinwire-v1',
++  version : 'remix-main-skinwire-v1+material-v1',
+   meson_version : '>= 0.58',
+   default_options : ['werror=true', 'b_vscrt=static_from_buildtype', 'cpp_std=vc++17']
+ )
+--- a/bridge/src/util/util_remixapi.cpp
++++ b/bridge/src/util/util_remixapi.cpp
+@@ -487,7 +487,12 @@
+                                          subsurfaceTransmittanceColor, \
+                                          subsurfaceMeasurementDistance, \
+                                          subsurfaceSingleScatteringAlbedo, \
+-                                         subsurfaceVolumetricAnisotropy
++                                         subsurfaceVolumetricAnisotropy, \
++                                         subsurfaceDiffusionProfile, \
++                                         subsurfaceRadius, \
++                                         subsurfaceRadiusScale, \
++                                         subsurfaceMaxSampleRadius, \
++                                         subsurfaceRadiusTexture
+ uint32_t MaterialInfoOpaqueSubsurface::_calcSize() const {
+   return fold_helper::calcSize(MaterialInfoOpaqueSubsurfaceVars);
+ }
+@@ -495,13 +500,15 @@
+   fold_helper::serialize(pSerialize, MaterialInfoOpaqueSubsurfaceVars);
+ }
+ void MaterialInfoOpaqueSubsurface::_deserialize(void*& pDeserialize) {
+-  pNext = nullptr;
++  // Own wire extension: partial path decoding must remain safely destructible.
++  static_cast<remixapi_MaterialInfoOpaqueSubsurfaceEXT&>(*this) = {};
+   fold_helper::deserialize(pDeserialize, MaterialInfoOpaqueSubsurfaceVars);
+ }
+ void MaterialInfoOpaqueSubsurface::_dtor() {
+-  delete subsurfaceTransmittanceTexture;
+-  delete subsurfaceThicknessTexture;
+-  delete subsurfaceSingleScatteringAlbedoTexture;
++  delete[] subsurfaceTransmittanceTexture;
++  delete[] subsurfaceThicknessTexture;
++  delete[] subsurfaceSingleScatteringAlbedoTexture;
++  delete[] subsurfaceRadiusTexture;
+ }
+ 
+ 
+--- a/bridge/test/rtx/unit/test_remix_api_common.h
++++ b/bridge/test/rtx/unit/test_remix_api_common.h
+@@ -327,7 +327,12 @@
+                                          subsurfaceTransmittanceColor, \
+                                          subsurfaceMeasurementDistance, \
+                                          subsurfaceSingleScatteringAlbedo, \
+-                                         subsurfaceVolumetricAnisotropy
++                                         subsurfaceVolumetricAnisotropy, \
++                                         subsurfaceDiffusionProfile, \
++                                         subsurfaceRadius, \
++                                         subsurfaceRadiusScale, \
++                                         subsurfaceMaxSampleRadius, \
++                                         subsurfaceRadiusTexture
+ void MaterialInfoOpaqueSubsurface::init() {
+   sType = REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_SUBSURFACE_EXT;
+   pNext = nullptr;

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": {
+    "path": "tools/WinxRemix/renderer-alpha-fix/alpha-emission-v1.patch",
+    "bytes": 10191,
+    "sha256": "F7C021C67D41533CBDFABDF8AED106CC5ED3E532F106D12D17096EDA4F38AC1F"
+  },
+  "sourceFiles": [
+    {
+      "path": "src/dxvk/rtx_render/rtx_resources.h",
+      "beforeSha256": "cbcde8717750a4ca3b6efe1ae59a71bb386c672f513f63f870cd681d976316ba",
+      "afterSha256": "36f959d22400a08e2b1ce0d8a6c5e098eff0eebe9e0ab4b7abee93e901faede8"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_resources.cpp",
+      "beforeSha256": "89c5808815243a8aba0c8bd60f203c11986f7880bdecc95048046cc670cf1757",
+      "afterSha256": "ff6486a4317fa614fe738ad22bc8e15e76023a74e2bb052ab505b5b02fd7ab71"
+    },
+    {
+      "path": "src/dxvk/shaders/rtx/pass/gbuffer/gbuffer_binding_indices.h",
+      "beforeSha256": "64b039f191bccd2524842cb7be4dd8639472089bd3eaa6b817c44a9357602721",
+      "afterSha256": "81a5380ec82a1b56703c2e8fa340b8071f2f4eb4a52bd88f385c53595c6442f8"
+    },
+    {
+      "path": "src/dxvk/shaders/rtx/pass/gbuffer/gbuffer_bindings.slangh",
+      "beforeSha256": "7031208178f3cbbf9845c6e3f6d0fd28fe7640eaf7b298f6493330bca37391e3",
+      "afterSha256": "783ec3845bed04ccd35299d231130d72c41c521b050ed67d58584bd2626b70bf"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_pathtracer_gbuffer.cpp",
+      "beforeSha256": "505b8a8a6ec7127ed5d1e0ddd4f6f01e5654c1952fa93a14f6d34f004ca38fb9",
+      "afterSha256": "2ff096b842ba11e14be2a44a866c49f26fc6bfe5cafab4d339793d7b1e30249a"
+    },
+    {
+      "path": "src/dxvk/shaders/rtx/algorithm/geometry_resolver.slangh",
+      "beforeSha256": "d1afc6b8ea8b1e95aeea1e1e8e77bb6d6557380a307ab56b76817a83072fdb46",
+      "afterSha256": "8a12a9ad7969dafb91d3571f707b43da97fcbd508956e855ae4ddcdd06c6a0b1"
+    },
+    {
+      "path": "src/dxvk/shaders/rtx/pass/composite/composite_binding_indices.h",
+      "beforeSha256": "553616e6d19aa5d04c8cb78bcc0ecc0d22c4352d42c7a94204158638b6085dfb",
+      "afterSha256": "0fbdbf3c2a28a7ff55402cc9815708fa669fdea949b350b2e135dd95b123b976"
+    },
+    {
+      "path": "src/dxvk/shaders/rtx/pass/composite/composite_bindings.slangh",
+      "beforeSha256": "93890ad2d388ef09f196b1bfd86f765b53c9cf407ff252f442edc6811880811f",
+      "afterSha256": "3f8172c9d06bb6a9d36617411c9be42ffeeb596b925905c9cf18cdf87b8232ce"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_composite.cpp",
+      "beforeSha256": "acbe7653d1a435b01b1350ca0802108b697b327a805e675c01fb323485c35273",
+      "afterSha256": "f513597fb7778bf2d4709b93eb4d285f50e7cc6f2d55962a31a7363922725af2"
+    },
+    {
+      "path": "src/dxvk/shaders/rtx/pass/composite/composite.comp.slang",
+      "beforeSha256": "b5ab892671d341ae39e561ebf7fae93bcf705cc19a5727d0aede1facf99b9a4c",
+      "afterSha256": "9da6ffc49e8ec2d5a9a318d891a30af72fb82a1ac4decba42b26cc2190e1d87f"
+    }
+  ],
+  "sourceHashEncoding": "UTF-8 with LF line endings; normalize CRLF to LF before hashing.",
+  "scope": "Own upstream renderer adapter. Stochastic alpha emission accumulation; existing material and game semantics retained."
+}

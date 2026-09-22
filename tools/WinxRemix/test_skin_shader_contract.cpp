@@ -13,9 +13,10 @@ static std::vector<uint8_t> Read(const char* path) {
   if(size&&!file.read(reinterpret_cast<char*>(bytes.data()),size))throw std::runtime_error("incomplete fixture read");return bytes;
 }
 static void Store(std::vector<uint8_t>& bytes,size_t at,uint32_t value){std::memcpy(bytes.data()+at,&value,4);}
-static void Run(const std::vector<uint8_t>& bytes) {
+static size_t Run(const std::vector<uint8_t>& bytes) {
   shader::Catalog catalog;Check(catalog.Decode(bytes),"prepared catalog must decode");
-  Check(catalog.programs.size()==16,"all sixteen declared family variants must be present");
+  Check(catalog.programs.size()==16||catalog.programs.size()==32||catalog.programs.size()==160||catalog.programs.size()==320,"complete legacy or diffuse family with optional UV variants must be present");
+  if(catalog.programs.size()<=32)for(const auto& program:catalog.programs)Check(!program.key[1],"legacy subset contains only directional variants");
   size_t offset=44;std::vector<size_t> entries;
   for(const auto& expected:catalog.programs) {
     entries.push_back(offset);const auto length=shader::Word(bytes.data()+offset+8);offset+=12;
@@ -28,9 +29,22 @@ static void Run(const std::vector<uint8_t>& bytes) {
     altered=code;altered[code.size()-5]^=1;
     Check(!catalog.Match(expected.key,altered),"one changed final operand is rejected");
     auto wrongKey=expected.key;wrongKey[0]^=0x100;
-    Check(!catalog.Match(wrongKey,code),"UV transform variant cannot borrow the no-transform program");
-    wrongKey=expected.key;wrongKey[1]=1;
-    Check(!catalog.Match(wrongKey,code),"point-light key cannot borrow a directional program");
+    Check(!catalog.Match(wrongKey,code),"changing UV transform state cannot borrow the other program");
+    wrongKey=expected.key;wrongKey[1]^=1;
+    Check(!catalog.Match(wrongKey,code),"changed light types cannot borrow another program");
+    wrongKey=expected.key;wrongKey[1]|=1u<<6;
+    Check(!catalog.Match(wrongKey,code),"unused high light-type bits reject");
+    if((expected.key[0]>>20)&15){wrongKey=expected.key;wrongKey[1]|=3;
+      Check(!catalog.Match(wrongKey,code),"unknown light type rejects");}
+    for(const char* name:{"view_matrix","LightDir","LightPos","LightAttenuation","LightInner","LightOuter","LightMatDiff","UVTransform"}) {
+      if(!expected.Find(name))continue;
+      auto missing=expected;
+      missing.constants.erase(std::remove_if(missing.constants.begin(),missing.constants.end(),[&](const shader::Constant& c){return c.name==name;}),missing.constants.end());
+      Check(!shader::Layout(missing),"a required matrix or light array cannot disappear");
+      auto resized=expected;
+      for(auto& c:resized.constants)if(c.name==name)++c.count;
+      Check(!shader::Layout(resized),"light arrays retain their original slot extent");
+    }
     for(size_t end=0;end<code.size();end+=17) {
       shader::Program partial;Check(!shader::Parse(code.data(),end,partial),"truncated program never qualifies");
     }
@@ -66,17 +80,18 @@ static void Run(const std::vector<uint8_t>& bytes) {
   Store(duplicate,entries[1]+4,shader::Word(bytes.data()+entries[0]+4));shader::Catalog rejected;
   Check(!rejected.Decode(duplicate),"duplicate keys cannot override an existing contract");
   auto trailing=bytes;trailing.push_back(0);Check(!rejected.Decode(trailing),"trailing catalog data rejected");
+  return catalog.programs.size();
 }
 int main(int argc,char** argv) {
   try {
     if(argc!=2&&argc!=5)throw std::runtime_error("usage: test_skin_shader_contract CATALOG [MASK LIGHTS SHADER]");
-    const auto bytes=Read(argv[1]);Run(bytes);
+    const auto bytes=Read(argv[1]);const auto programs=Run(bytes);
     bool candidate=false;
     if(argc==5) {
       const std::array<uint32_t,2> key={uint32_t(std::stoul(argv[2])),uint32_t(std::stoul(argv[3]))};
       shader::Catalog catalog;Check(catalog.Decode(bytes),"candidate catalog loaded");
       Check(catalog.Match(key,Read(argv[4]))!=nullptr,"actual original shader must match code and complete register metadata");candidate=true;
     }
-    std::cout<<"{\"status\":\"PASS\",\"checks\":"<<checks<<",\"programs\":16,\"candidateMatched\":"<<(candidate?"true":"false")<<",\"gpu\":false}\n";return 0;
+    std::cout<<"{\"status\":\"PASS\",\"checks\":"<<checks<<",\"programs\":"<<programs<<",\"candidateMatched\":"<<(candidate?"true":"false")<<",\"gpu\":false}\n";return 0;
   }catch(const std::exception& error){std::cerr<<"FAIL "<<error.what()<<'\n';return 1;}
 }

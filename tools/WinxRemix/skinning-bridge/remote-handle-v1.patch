@@ -1,0 +1,15 @@
+--- a/bridge/src/util/util_process.cpp
++++ b/bridge/src/util/util_process.cpp
+@@ -77,10 +77,8 @@
+       }
+       CloseHandle(hProcess);
+     }
+-    // Also close the duplicate client process handle that we created for the server
+-    if (INVALID_HANDLE_VALUE != hDuplicate) {
+-      CloseHandle(hDuplicate);
+-    }
++    // Own bridge fix: hDuplicate belongs to the server's handle table.
++    // The server process releases that handle when it exits.
+   }
+ 
+   bool Process::RegisterExitCallback(ProcessExitCallback callback) {

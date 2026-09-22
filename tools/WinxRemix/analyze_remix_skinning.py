@@ -42,6 +42,8 @@ def compare(a, b):
 
 def analyze(run):
     launch = json.loads((run / 'launch.json').read_text(encoding='utf-8-sig'))
+    if launch.get('motionHistory'):
+        raise ValueError('Use analyze_skin_motion_history.py for the MotionHistory fixture')
     exit_info = json.loads((run / 'exit.json').read_text(encoding='utf-8-sig'))
     if exit_info['timeout'] or exit_info.get('memoryExceeded', False) or exit_info.get('systemPressure', False) or exit_info['exitCode'] != 0 or exit_info['pid'] != launch['pid']:
         raise ValueError('Fixture did not record a clean process exit')

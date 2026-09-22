@@ -1,0 +1,108 @@
+--- a/src/lssusd/game_exporter.cpp
++++ b/src/lssusd/game_exporter.cpp
+@@ -97,16 +97,11 @@
+   const size_t numBones = xforms.size();
+   pxr::VtMatrix4dArray sanitizedXforms;
+   sanitizedXforms.resize(numBones);
+-  pxr::GfMatrix4d worldFromRoot(1);
+-
+-  if (numBones > 0) {
+-    const pxr::GfMatrix4d rootFromWorld = bindPose[0] * xforms[0];
+-    worldFromRoot = rootFromWorld.GetInverse();
+-    sanitizedXforms[0] = rootFromWorld;
+-  }
+-  for (int i = 1; i < numBones; ++i) {
+-    const pxr::GfMatrix4d xformFromRoot = bindPose[i] * xforms[i] * worldFromRoot;
+-    sanitizedXforms[i] = xformFromRoot;
++  // Capture provides independent skinning matrices, with no source hierarchy.
++  // Making joint 0 the parent introduces shear when rotated joints have
++  // different nonuniform scales. UsdSkelAnimation's TRS cannot preserve it.
++  for (size_t i = 0; i < numBones; ++i) {
++    sanitizedXforms[i] = bindPose[i] * xforms[i];
+   }
+ 
+   return sanitizedXforms;
+@@ -139,30 +134,17 @@
+         }
+       }
+     }
+-    //Note: Bind pose is global transforms, restPose is local transforms.
+-
+-    pxr::GfVec3d rootBindPos(0);
+-    if (totalWeights[0] == 0) {
+-      output.bindPose[0].SetIdentity();
++  }
++  // Every palette entry is a root. Bind and rest transforms therefore share
++  // the same space; original palette order and vertex indices stay unchanged.
++  for (size_t i = 0; i < numBones; ++i) {
++    if (totalWeights[i] == 0) {
++      output.bindPose[i].SetIdentity();
+     } else {
+-      rootBindPos = weightedPosSums[0] / totalWeights[0];
+-      output.bindPose[0].SetTranslate(rootBindPos);
+-    }
+-    output.restPose[0] = output.bindPose[0];
+-
+-    for (int i = 1; i < numBones; ++i) {
+-      if (totalWeights[i] == 0) {
+-        output.bindPose[i].SetIdentity();
+-        output.restPose[i].SetIdentity();
+-      } else {
+-        output.bindPose[i].SetTranslate(weightedPosSums[i] / totalWeights[i]);
+-        output.restPose[i].SetTranslate(weightedPosSums[i] / totalWeights[i] - rootBindPos);
+-      }
+-    }
+-  }
+-  output.jointNames[0] = pxr::TfToken("root");
+-  for (int i = 1; i < numBones; ++i) {
+-    output.jointNames[i] = pxr::TfToken(dxvk::str::format("root/joint", i));
++      output.bindPose[i].SetTranslate(weightedPosSums[i] / totalWeights[i]);
++    }
++    output.restPose[i] = output.bindPose[i];
++    output.jointNames[i] = pxr::TfToken(dxvk::str::format("joint", i));
+   }
+   return output;
+ }
+@@ -725,7 +707,7 @@
+       const std::string fullMatStagePath = computeLocalPath(matLssReference.stagePath);
+       const std::string relMatRefStagePath = std::filesystem::relative(fullMatStagePath,fullMeshStagePath).string();
+       shaderMatUsdReferences.AddReference(relMatRefStagePath, matLssReference.ogSdfPath);
+-      pxr::UsdShadeMaterialBindingAPI(meshXformSchema.GetPrim()).Bind(shaderMatSchema);
++      pxr::UsdShadeMaterialBindingAPI::Apply(meshXformSchema.GetPrim()).Bind(shaderMatSchema);
+     }
+ 
+     meshStage->Save();
+@@ -757,7 +739,7 @@
+       if(bHasMat) {
+         const auto shaderMatInstanceSchema = pxr::UsdShadeMaterial::Get(ctx.instanceStage, matLssReference.instanceSdfPath);
+         assert(shaderMatInstanceSchema);
+-        pxr::UsdShadeMaterialBindingAPI(meshInstanceXformSchema.GetPrim()).Bind(shaderMatInstanceSchema);
++        pxr::UsdShadeMaterialBindingAPI::Apply(meshInstanceXformSchema.GetPrim()).Bind(shaderMatInstanceSchema);
+       }
+ 
+       meshLssReference.instanceSdfPath = meshInstanceXformSdfPath;
+@@ -909,7 +891,7 @@
+       const Reference& matLssReference = ctx.matReferences[instanceData.matId];
+       const auto shaderMatSchema = pxr::UsdShadeMaterial::Get(ctx.instanceStage, matLssReference.instanceSdfPath);
+       assert(shaderMatSchema);
+-      pxr::UsdShadeMaterialBindingAPI(instanceXformSchema.GetPrim()).Bind(shaderMatSchema);
++      pxr::UsdShadeMaterialBindingAPI::Apply(instanceXformSchema.GetPrim()).Bind(shaderMatSchema);
+     }
+ 
+     if (isSkeleton) {
+@@ -1209,6 +1191,7 @@
+   const bool isSingleFrame = meta.numFramesCaptured == 1;
+ 
+   auto geomXformable = pxr::UsdGeomXformable::Get(stage, sdfPath);
++  auto xformOp = geomXformable.AddTransformOp();
+   for(const auto& sampledXform : xforms) {
+     const pxr::UsdTimeCode timeCode = isSingleFrame ? pxr::UsdTimeCode::Default() : pxr::UsdTimeCode(sampledXform.time);
+ 
+@@ -1217,7 +1200,6 @@
+ 
+     xform = changeBasis ? dxvk::swapBasis(xform) : xform;
+ 
+-    auto xformOp = geomXformable.AddTransformOp();
+     xformOp.Set(xform, timeCode);
+   }
+ }

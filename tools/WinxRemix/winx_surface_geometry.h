@@ -36,7 +36,7 @@ static bool ExpandSurfaceGeometry(const SurfaceGeometryInput& input,
     if(e.Usage==D3DDECLUSAGE_TEXCOORD && e.UsageIndex==contract.coordinates && e.Type==D3DDECLTYPE_FLOAT2) uv=e.Offset;
   }
   if(pos<0 || color<0 || uv<0 || UINT(pos+12)>stride || UINT(color+4)>stride || UINT(uv+8)>stride ||
-     (channels&&normal<0)||(normal>=0 && UINT(normal+12)>stride)) return false;
+     (channels&&channels->lighting&&normal<0)||(normal>=0 && UINT(normal+12)>stride)) return false;
   const UINT indexCount=type==D3DPT_TRIANGLELIST?count*3:count+2;
   if(uint64_t(start+uint64_t(indexCount))*indexSize>indexBytes.size()) return false;
   const void* indexData=indexBytes.data()+start*indexSize;
@@ -69,6 +69,8 @@ static bool ExpandSurfaceGeometry(const SurfaceGeometryInput& input,
     }
     if(!valid) break;
     if(normal<0) {
+      // Original unlit FFP needs no normal. A geometric face normal is our RT
+      // shading policy; source positions, color, UV and winding stay intact.
       const auto a=triangle[0].position,b=triangle[1].position,c=triangle[2].position;
       const float x=(b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]);
       const float y=(b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]);

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "baseRevision": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "sourcePath": "bridge/src/util/util_process.cpp",
+  "patch": "remote-handle-v1.patch",
+  "patchSha256": "31c4d46642c6607524339fc7ddd1b4e46d3de89eaefba64c1b9a300ea2591051",
+  "requires": "child-shutdown-v1.patch",
+  "beforeLfSha256": "38382659767b5ba868040f58a0a6f18da24d02bc337fee2150bb2443b06e4e27",
+  "afterLfSha256": "4ae1526a497be34d99a0b3e77545c3254dc4d130b54c28778548ee12323e10ed",
+  "beforeMethodSha256": "654cdc5b4dc649ceee2f6a5125a517bb43b09739f7e772b12cef8b55573bf9c8",
+  "afterMethodSha256": "97f8face65d04da272dd0696ed516046033f99aa26090649092450f6562aaad6",
+  "wireVersionUnchanged": true,
+  "scope": "Remove client CloseHandle on server-table handle. Server exit owns its table cleanup. No callback, allocation or renderer change."
+}

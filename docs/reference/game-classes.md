@@ -4,8 +4,8 @@
 
 | Имя | Class ID | PC | PS2 | Описание | Исходники |
 | --- | --- | --- | --- | --- | --- |
-| `wxActionState` | `0x196333F8` | Да | Да | — | — |
-| `wxAIAction` | `0x490A6EB5` | Да | Да | — | — |
+| `wxActionState` | `0x196333F8` | Да | Да | [1](classes/wx-action-state.md) | [wxActionState.cpp](../../Winx/Code/wxActionState.cpp), [wxActionState.h](../../Winx/Code/wxActionState.h) |
+| `wxAIAction` | `0x490A6EB5` | Да | Да | [1](classes/wx-ai-action.md), [2](../game/ai/ai-action-family.md) | [wxAIAction.cpp](../../Winx/Code/wxAIAction.cpp), [wxAIAction.h](../../Winx/Code/wxAIAction.h) |
 | `wxAIManager` | `0x56887B3F` | Да | Да | — | — |
 | `wxAlfeaDoorTrigger` | `0x6AE9310E` | Да | Да | — | — |
 | `wxAlphaManager` | `0x41F81774` | Да | Да | — | — |
@@ -60,7 +60,7 @@
 | `wxCharacterMoveCtrl` | `0x680838E4` | Да | Да | — | — |
 | `wxCharacterPlacementManager` | `0x6C56254E` | Да | Да | — | — |
 | `wxCharacterRegistry` | `0x6EAA030D` | Да | Да | — | — |
-| `wxCharacterState` | `0x44817BC2` | Да | Да | — | — |
+| `wxCharacterState` | `0x44817BC2` | Да | Да | [1](classes/wx-character-state.md) | [wxCharacterState.cpp](../../Winx/Code/wxCharacterState.cpp), [wxCharacterState.h](../../Winx/Code/wxCharacterState.h) |
 | `wxCharacterStateMachine` | `0xD32F3AA1` | Да | Да | — | — |
 | `wxCharacterTraits` | `0x1BC6108E` | Да | Да | — | — |
 | `wxChargedAttackState` | `0x06C1726B` | Да | Да | — | — |

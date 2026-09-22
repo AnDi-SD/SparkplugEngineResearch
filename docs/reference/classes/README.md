@@ -153,6 +153,9 @@
 - [spZone](sp-zone.md).
 - [spZonePortal](sp-zone-portal.md).
 - [spZonePortalNode](sp-zone-portal-node.md).
+- [wxActionState](wx-action-state.md).
+- [wxAIAction](wx-ai-action.md).
+- [wxCharacterState](wx-character-state.md).
 - [wxGameFlowState](wx-game-flow-state.md).
 - [wxPCApp](wx-pc-app.md).
 - [wxPS2App](wx-ps2-app.md).

@@ -10,14 +10,21 @@ struct Prepared {
   std::vector<remixapi_Transform> transforms;
   DWORD cull=0;
 };
-inline bool Prepare(const skin_packet::Packet& source,const std::vector<uint32_t>& colors,DWORD cull,Prepared& output) {
+inline bool Prepare(const skin_packet::Packet& source,const std::vector<uint32_t>& colors,DWORD cull,Prepared& output,
+    const skin_packet::pc::FixedUvRegistersForAnalysis* uvTransform=nullptr) {
   if(colors.size()!=source.vertices.size()||cull<D3DCULL_NONE||cull>D3DCULL_CCW)return false;
   try {
     Prepared result;if(!skin_packet::EncodeSignedSkin(source,result.skin))return false;
     result.cull=cull;result.vertices.resize(source.vertices.size());result.indices=source.indices;
     for(size_t i=0;i<source.vertices.size();++i){const auto& input=source.vertices[i];auto& vertex=result.vertices[i];
       memcpy(vertex.position,input.skin.position.data(),12);memcpy(vertex.normal,input.skin.normal.data(),12);
-      memcpy(vertex.texcoord,input.uv.data(),8);vertex.color=colors[i];}
+      if(uvTransform) {
+        std::array<float,3> uv{};
+        if(!skin_packet::pc::TransformFixedUvForAnalysis(input.uv,*uvTransform,uv))return false;
+        // The qualified 2D sampler has projection disabled; use shader xy.
+        memcpy(vertex.texcoord,uv.data(),8);
+      }else memcpy(vertex.texcoord,input.uv.data(),8);
+      vertex.color=colors[i];}
     if(cull==D3DCULL_CW)for(size_t i=0;i<result.indices.size();i+=3)std::swap(result.indices[i],result.indices[i+1]);
     result.transforms.resize(result.skin.palette.size());
     for(size_t b=0;b<result.transforms.size();++b)for(unsigned row=0;row<3;++row)for(unsigned col=0;col<4;++col)

@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cerrno>
+#include "winx_scene_read_window.h"
 
 static FILE* sceneAuditFile;
 static unsigned sceneAuditCalls;
@@ -37,10 +38,7 @@ static NativeSelect originalSelect;
 static DWORD ownerThread;
 
 static bool Read(uintptr_t address, void* data, size_t size) {
-  SIZE_T got=0;
-  return address>=0x10000 && address<0x7fff0000 && size<=16384 &&
-    size<=0x7fff0000-address && ReadProcessMemory(GetCurrentProcess(),
-      reinterpret_cast<const void*>(address),data,size,&got) && got==size;
+  return winx_remix::scene_memory::Read(address,data,size);
 }
 static uint32_t Word(uintptr_t address) {
   uint32_t result=0; Read(address,&result,sizeof(result)); return result;
@@ -93,9 +91,12 @@ static LightRegistry ReadLights(uintptr_t scene) {
   uint32_t pointer=At(header,0x10), previous=0;
   std::set<uint32_t> visited;
   bool valid=true;
+  // One fresh window for this registry observation; no byte cache survives
+  // into the next Current check or an external API call.
+  winx_remix::scene_memory::ReadWindow window;
   for(unsigned i=0;i<count;++i) {
     LightRecord record{pointer,{}};
-    if(!pointer || !visited.insert(pointer).second || !Read(pointer,record.raw,sizeof(record.raw)) ||
+    if(!pointer || !visited.insert(pointer).second || !window.Read(pointer,record.raw,sizeof(record.raw)) ||
         At(record.raw,0)!=0x6f0c88 || At(record.raw,0x3c)!=scene || At(record.raw,0xb8)!=previous) {
       valid=false; break;
     }

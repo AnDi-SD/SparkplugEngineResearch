@@ -1,0 +1,2 @@
+option('baseline_source', type : 'string', description : 'Absolute path to the immutable skin-wire source without Subsurface extension')
+option('candidate_source', type : 'string', description : 'Absolute path to the immutable source with subsurface-wire-v1.patch')

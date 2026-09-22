@@ -48,22 +48,22 @@ static void Pressure(remixapi_Interface& recording) {
   auto shared=Material(1,0);Mesh(1,shared,0);Material(2,0);
   Check(EnsureSurfaceResourceRoom(1,128,1)&&deletions.empty(),"sufficient room preserves young and old cached resources");
   Check(!EnsureSurfaceResourceRoom(1,size_t(-1),0)&&deletions.empty(),"overflowing incoming byte request refuses without destroying resources");
-  Check(!EnsureSurfaceResourceRoom(513,0,0)&&!EnsureSurfaceResourceRoom(0,0,257)&&deletions.empty(),
+  Check(!EnsureSurfaceResourceRoom(surfaceMeshLimit+1,0,0)&&!EnsureSurfaceResourceRoom(0,0,257)&&deletions.empty(),
     "impossible count requests do not evict useful resources");Clean();
 
   frameId=2100;shared=Material(1,0);const auto pinned=Material(2,0);Material(3,0);
-  for(unsigned i=1;i<=512;++i)Mesh(i,shared,i==177?1700:2000);
+  for(unsigned i=1;i<=surfaceMeshLimit;++i)Mesh(i,shared,i==177?1700:2000);
   surfaceMeshes.at(17).frame=frameId;
   const auto meshesBefore=surfaceMeshDestroys,materialsBefore=surfaceMaterialDestroys;
-  Check(EnsureSurfaceResourceRoom(1,128,0,pinned),"full 512-mesh cache makes room before TTL expires");
+  Check(EnsureSurfaceResourceRoom(1,128,0,pinned),"full production mesh cache makes room before TTL expires");
   Check(deletions==std::vector<char>({'a','m'})&&!surfaceMaterials.count(3)&&!surfaceMeshes.count(177)&&surfaceMeshes.count(17),
     "pressure clears unused material first then the oldest eligible mesh, preserving current-frame mesh");
   Check(surfaceMaterials.at(2).handle==pinned&&modelMaterials.count(pinned)&&surfaceMaterials.count(1),
     "incoming mesh material is explicitly pinned and shared material retains its live users");
-  Check(surfaceMeshDestroys==meshesBefore+1&&surfaceMaterialDestroys==materialsBefore+1&&surfaceMeshBytes==511*128,
+  Check(surfaceMeshDestroys==meshesBefore+1&&surfaceMaterialDestroys==materialsBefore+1&&surfaceMeshBytes==(surfaceMeshLimit-1)*128,
     "pressure updates successful destruction and byte accounting exactly");
-  Mesh(600,pinned,frameId);surfaceMaterials.at(2).frame=frameId;
-  Check(surfaceMeshes.size()==512&&modelMeshes.count(reinterpret_cast<remixapi_MeshHandle>(600)),
+  Mesh(surfaceMeshLimit+1,pinned,frameId);surfaceMaterials.at(2).frame=frameId;
+  Check(surfaceMeshes.size()==surfaceMeshLimit&&modelMeshes.count(reinterpret_cast<remixapi_MeshHandle>(surfaceMeshLimit+1)),
     "new mesh can consume reclaimed slot and still-live pinned material");Clean();
 
   frameId=2200;
@@ -97,7 +97,7 @@ static void Pressure(remixapi_Interface& recording) {
     "unsigned age selects oldest mesh across frame-counter wrap");Clean();
 
   frameId=2500;shared=Material(1,frameId);
-  for(unsigned i=1;i<=512;++i)Mesh(i,shared,frameId);
+  for(unsigned i=1;i<=surfaceMeshLimit;++i)Mesh(i,shared,frameId);
   const auto blockedBytes=surfaceMeshBytes;
   Check(!EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.empty()&&materialAttempts.empty()&&surfaceMeshBytes==blockedBytes,
     "all-current-frame mesh pressure leaves fallback and ownership intact");
@@ -109,19 +109,19 @@ static void Pressure(remixapi_Interface& recording) {
     "material pressure does not destroy old meshes when every material is protected this frame");Clean();
 
   frameId=2700;shared=Material(1,frameId);
-  for(unsigned i=1;i<=512;++i)Mesh(i,shared,2600);
+  for(unsigned i=1;i<=surfaceMeshLimit;++i)Mesh(i,shared,2600);
   rejectMesh=true;const auto failedBefore=surfaceResourceFailures,destroyedBefore=surfaceMeshDestroys;
-  Check(!EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==512&&surfaceResourceFailures==failedBefore+512,
+  Check(!EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==surfaceMeshLimit&&surfaceResourceFailures==failedBefore+surfaceMeshLimit,
     "all failing mesh deletions make one bounded attempt per candidate");
-  Check(surfaceMeshes.size()==512&&surfaceMeshBytes==512*128&&surfaceMeshDestroys==destroyedBefore&&modelMeshes.size()==512,
+  Check(surfaceMeshes.size()==surfaceMeshLimit&&surfaceMeshBytes==surfaceMeshLimit*128&&surfaceMeshDestroys==destroyedBefore&&modelMeshes.size()==surfaceMeshLimit,
     "failed deletions retain complete ownership, dependencies and byte accounting");
-  rejectMesh=false;Check(!EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==512,
+  rejectMesh=false;Check(!EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==surfaceMeshLimit,
     "later draws do not retry failed mesh deletion in the same frame");
-  ++frameId;Check(EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==513&&surfaceMeshDestroys==destroyedBefore+1,
+  ++frameId;Check(EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==surfaceMeshLimit+1&&surfaceMeshDestroys==destroyedBefore+1,
     "next frame retries and reclaims one old mesh after API recovery");Clean();
 
   frameId=2800;shared=Material(1,frameId);
-  for(unsigned i=1;i<=512;++i)Mesh(i,shared,2700);
+  for(unsigned i=1;i<=surfaceMeshLimit;++i)Mesh(i,shared,2700);
   refusedMeshes.insert(surfaceMeshes.at(1).handle);
   Check(EnsureSurfaceResourceRoom(1,128,0,shared)&&meshAttempts.size()==2&&surfaceMeshes.count(1)&&!surfaceMeshes.count(2),
     "one oldest-mesh failure preserves its handle and proceeds to another eligible mesh");Clean();

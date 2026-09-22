@@ -44,12 +44,17 @@ template<class Serializer,class Input> static std::vector<uint8_t> Wire(uint32_t
  ++wireRecords;wireBytes+=size+8;return expected;
 }
 static void MeshWire(const remixapi_MeshInfo& input){
- uint32_t size=0;Check(wire::isSupportedMeshInfo(&input,&size),"real bridge preflight accepts unskinned compact mesh");
+ uint32_t size=0;Check(wire::isSupportedMeshInfo(&input,&size),"real bridge preflight accepts compact mesh");
  auto bytes=Wire<wire::serialize::MeshInfo>(1,input);Check(size==bytes.size()&&wire::validateMeshInfoPayload(bytes.data(),size),"real server mesh payload validation");
  wire::serialize::MeshInfo output(bytes.data());output.deserialize();
  Check(output.sType==input.sType&&output.hash==input.hash&&!output.pNext&&output.surfaces_count==1,"owning mesh decoder header");
  const auto& a=output.surfaces_values[0];const auto& b=input.surfaces_values[0];
- Check(a.vertices_count==b.vertices_count&&a.indices_count==b.indices_count&&a.material==b.material&&!a.skinning_hasvalue,"decoded topology/material and absent skinning");
+ Check(a.vertices_count==b.vertices_count&&a.indices_count==b.indices_count&&a.material==b.material&&a.skinning_hasvalue==b.skinning_hasvalue,"decoded topology/material and explicit skinning presence");
+ if(b.skinning_hasvalue){const auto& x=a.skinning_value;const auto& y=b.skinning_value;
+  Check(x.bonesPerVertex==y.bonesPerVertex&&x.blendWeights_count==y.blendWeights_count&&x.blendIndices_count==y.blendIndices_count,"decoded signed influence layout");
+  Check(!memcmp(x.blendWeights_values,y.blendWeights_values,size_t(y.blendWeights_count)*4)&&
+        !memcmp(x.blendIndices_values,y.blendIndices_values,size_t(y.blendIndices_count)*4),"all signed weights and indices survive owning decoder");
+ }
  for(size_t i=0;i<a.vertices_count;++i){const auto& x=a.vertices_values[i];const auto& y=b.vertices_values[i];
   Check(!memcmp(x.position,y.position,12)&&!memcmp(x.normal,y.normal,12)&&!memcmp(x.texcoord,y.texcoord,8)&&x.color==y.color,"all meaningful vertex bits survive real owning decoder");}
  Check(!memcmp(a.indices_values,b.indices_values,size_t(a.indices_count)*4),"all compact index bits survive real owning decoder");
@@ -66,6 +71,15 @@ static void InstanceWire(const remixapi_InstanceInfo& input,const remixapi_Insta
   decodedBlend.textureAlphaArg1Source==blend.textureAlphaArg1Source&&decodedBlend.textureAlphaArg2Source==blend.textureAlphaArg2Source&&decodedBlend.tFactor==blend.tFactor&&
   decodedBlend.isTextureFactorBlend==blend.isTextureFactorBlend&&decodedBlend.srcAlphaBlendFactor==blend.srcAlphaBlendFactor&&decodedBlend.dstAlphaBlendFactor==blend.dstAlphaBlendFactor&&
   decodedBlend.alphaBlendOp==blend.alphaBlendOp&&decodedBlend.writeMask==blend.writeMask&&decodedBlend.isVertexColorBakedLighting==blend.isVertexColorBakedLighting,"every blend field survives wire");
+}
+static void BonesWire(const remixapi_InstanceInfoBoneTransformsEXT& input) {
+ Check(wire::isSupportedBoneTransforms(&input),"real bridge accepts signed bone palette");
+ auto bytes=Wire<wire::serialize::InstanceInfoTransforms>(4,input);
+ Check(wire::validateBoneTransformsPayload(bytes.data(),uint32_t(bytes.size())),"real server validates signed palette extent");
+ wire::serialize::InstanceInfoTransforms output(bytes.data());output.deserialize();
+ Check(output.sType==input.sType&&output.boneTransforms_count==input.boneTransforms_count&&
+       !memcmp(output.boneTransforms_values,input.boneTransforms_values,size_t(input.boneTransforms_count)*48),"all pose matrix bits survive owning decoder");
+ Check(!wire::validateBoneTransformsPayload(bytes.data(),uint32_t(bytes.size()-1)),"truncated palette payload is rejected");
 }
 #endif
 struct Watchdog {
@@ -97,7 +111,7 @@ static remixapi_ErrorCode REMIXAPI_CALL CreateMesh(const remixapi_MeshInfo* info
  observedVertices.assign(surface.vertices_values,surface.vertices_values+surface.vertices_count);
  observedIndices.assign(surface.indices_values,surface.indices_values+surface.indices_count);
  for(const auto& v:observedVertices){Check(!v._pad0&&!v._pad1&&!v._pad2&&!v._pad3&&!v._pad4&&!v._pad5&&!v._pad6,"explicit API padding is zero");
-  const float length=v.normal[0]*v.normal[0]+v.normal[1]*v.normal[1]+v.normal[2]*v.normal[2];Check(std::fabs(length-1)<1e-5,"unit world normal");}
+  const float length=v.normal[0]*v.normal[0]+v.normal[1]*v.normal[1]+v.normal[2]*v.normal[2];Check(std::isfinite(length)&&(gpuMode||std::fabs(length-1)<1e-5),"finite authored normal or unit baked world normal");}
  for(auto i:observedIndices)Check(i<observedVertices.size(),"index addresses compact vertex");
  *out=reinterpret_cast<remixapi_MeshHandle>(next++);Check(meshes.emplace(*out,surface.material).second,"unique mesh owner");++creates;
  if(retireCreate)RetireSurfaceResources(true);
@@ -119,7 +133,7 @@ static remixapi_ErrorCode REMIXAPI_CALL DrawInstance(const remixapi_InstanceInfo
   blend->alphaTestReferenceValue==(drawState.test?drawState.reference:0)&&
   blend->srcColorBlendFactor==1&&blend->dstColorBlendFactor==0&&blend->textureColorOperation==3,"explicit opaque/alpha-test equation maps through common instance adapter");
 #ifdef WINX_SKIN_PACKET_WIRE_TEST
- if(wireStream.is_open())InstanceWire(*info,*blend);
+ if(wireStream.is_open()){InstanceWire(*info,*blend);if(gpuMode)BonesWire(*static_cast<const remixapi_InstanceInfoBoneTransformsEXT*>(info->pNext));}
 #endif
  if(reenterDraw){const auto before=draws;const auto nested=gpuMode?
    winx_remix::skin_gpu_submit::Draw(activeMesh,activeMaterial,*activeGpu,drawState,contract,[]{return true;}):
@@ -198,8 +212,20 @@ static packet::Packet Read(const std::string& path){std::ifstream stream(path,st
  std::vector<uint8_t> bytes(size_t(size),0);stream.seekg(0);Check(bool(stream.read(reinterpret_cast<char*>(bytes.data()),size)),"packet complete read");packet::Packet p;Check(packet::Decode(bytes,p),"SKP1 decode");return p;}
 static void Replay(const char* manifest){std::ifstream stream(manifest);Check(bool(stream),"manifest open");std::string path;size_t packets=0,vertices=0,indices=0,bytes=0;const auto material=Material(1000);
  while(std::getline(stream,path)){if(!path.empty()&&path.back()=='\r')path.pop_back();Check(!path.empty()&&path.size()<1024&&++packets<=128,"bounded manifest");
-  auto packet=Read(path);auto prepared=Prepare(packet);const auto mesh=submit::Resource(prepared,material);Check(mesh!=nullptr,"live packet resource");Payload(prepared);DrawOkay(prepared,mesh,material);
-  vertices+=prepared.vertices.size();indices+=prepared.indices.size();bytes+=prepared.vertices.size()*64+prepared.indices.size()*4;
+  auto packet=Read(path);
+  if(gpuMode){namespace gpu=winx_remix::skin_gpu_submit;gpu::Prepared input;
+   Check(gpu::Prepare(packet,std::vector<uint32_t>(packet.vertices.size(),0xffabcdef),D3DCULL_NONE,input),"captured signed packet prepares");
+   const auto mesh=gpu::Resource(input,material,packets);Check(mesh!=nullptr,"captured signed resource owned");
+   for(unsigned pose=0;pose<2;++pose){++frameId;if(pose)input.transforms[0].matrix[0][3]+=1;
+    Check(gpu::Resource(input,material,packets)==mesh,"second wire pose keeps the same immutable mesh");
+    const auto result=gpu::Draw(mesh,material,input,drawState,contract,[]{return true;});
+    Check(result.apiCalled&&result.apiSucceeded&&result.stateStable,"captured signed instance emitted once");
+   }
+   vertices+=input.vertices.size();indices+=input.indices.size();
+   bytes+=input.vertices.size()*64+input.indices.size()*4+input.skin.weights.size()*8;
+  }else {auto prepared=Prepare(packet);const auto mesh=submit::Resource(prepared,material);Check(mesh!=nullptr,"live packet resource");Payload(prepared);DrawOkay(prepared,mesh,material);
+   vertices+=prepared.vertices.size();indices+=prepared.indices.size();bytes+=prepared.vertices.size()*64+prepared.indices.size()*4;
+  }
  }
  Check(stream.eof()&&packets>0,"complete nonempty manifest");Clean();
  printf("{\"status\":\"PASS\",\"packets\":%zu,\"vertices\":%zu,\"indices\":%zu,\"compactBytes\":%zu,\"expandedBytes\":%zu,\"checks\":%u,\"gpu\":false,\"materialQualified\":false}\n",packets,vertices,indices,bytes,indices*68,checks);
@@ -264,6 +290,12 @@ static void StateTests(){
   bad=state;bad.stages[0][i]^=0x10;refuse(bad,plan::Error::Stage);}
  for(size_t i=0;i<std::size(SamplerKeys);++i){if(SamplerKeys[i]==D3DSAMP_BORDERCOLOR)continue;
   bad=state;bad.samplers[0][i]^=0x10;refuse(bad,plan::Error::Sampler);}
+ for(DWORD flags:{DWORD(D3DTTFF_COUNT1),DWORD(D3DTTFF_COUNT3),DWORD(D3DTTFF_COUNT4),DWORD(D3DTTFF_COUNT2|D3DTTFF_PROJECTED),DWORD(D3DTTFF_COUNT3|D3DTTFF_PROJECTED)}) {
+  bad=state;Set(StageKeys,bad.stages[0],D3DTSS_TEXTURETRANSFORMFLAGS,flags);refuse(bad,plan::Error::Stage);
+ }
+ bad=state;Set(StageKeys,bad.stages[0],D3DTSS_TEXTURETRANSFORMFLAGS,DWORD(D3DTTFF_COUNT2));bad.transform.fill(0xffffffff);
+ Check(plan::PrepareColor4(Quad(4),{1,1,1,1},bad,prepared)&&prepared.state.texture.transformFlags==D3DTTFF_DISABLE,
+   "observed COUNT2 with proven shader cannot apply the inactive FFP matrix again");
  // Inactive inputs are intentionally excluded from the material equation.
  bad=state;Set(StateKeys,bad.states,D3DRS_LIGHTING,DWORD(0));Set(StateKeys,bad.states,D3DRS_FOGCOLOR,DWORD(0x123456));
  Set(StateKeys,bad.states,D3DRS_SRCBLENDALPHA,DWORD(D3DBLEND_DESTALPHA));bad.transform.fill(0xffffffff);
@@ -348,8 +380,10 @@ int main(int argc,char** argv){try{using namespace submit_test;
 #endif
  remixapi_Interface api{};api.CreateMaterial=CreateMaterial;api.DestroyMaterial=DestroyMaterial;api.CreateMesh=CreateMesh;api.DestroyMesh=DestroyMesh;api.DrawInstance=DrawInstance;testRemixApi=&api;
 #ifdef WINX_SKIN_PACKET_WIRE_TEST
- if(argc==4&&(std::string(argv[1])=="--wire-write"||std::string(argv[1])=="--wire-read")){
-  wireReading=std::string(argv[1])=="--wire-read";
+ if(argc==4&&(std::string(argv[1])=="--wire-write"||std::string(argv[1])=="--wire-read"||
+              std::string(argv[1])=="--wire-signed-write"||std::string(argv[1])=="--wire-signed-read")){
+  wireReading=std::string(argv[1]).find("read")!=std::string::npos;
+  gpuMode=std::string(argv[1]).find("signed")!=std::string::npos;
   if(!wireReading){std::ifstream existing(argv[3],std::ios::binary);Check(!existing,"fresh wire file required");}
   wireStream.open(argv[3],std::ios::binary|(wireReading?std::ios::in:std::ios::out));Check(bool(wireStream),"wire file open");
   Replay(argv[2]);if(wireReading)Check(wireStream.peek()==std::char_traits<char>::eof(),"no extra wire records");else wireStream.flush();

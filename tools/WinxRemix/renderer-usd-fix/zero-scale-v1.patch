@@ -1,0 +1,56 @@
+--- a/src/lssusd/game_exporter.cpp
++++ b/src/lssusd/game_exporter.cpp
+@@ -107,6 +107,39 @@
+   return sanitizedXforms;
+ }
+ 
++// USD's matrix factorization rejects a zero linear part. It still has an
++// exact TRS representation: zero scale, identity rotation, original translation.
++// This also covers the explicit zero bone used by the signed-weight API adapter.
++bool setSkinningTransforms(const pxr::UsdSkelAnimation& animation,
++                          const pxr::VtMatrix4dArray& xforms,
++                          const pxr::UsdTimeCode time) {
++  pxr::VtMatrix4dArray decomposable = xforms;
++  std::vector<size_t> zeroScaleJoints;
++  for (size_t i = 0; i < xforms.size(); ++i) {
++    const auto& m = xforms[i];
++    bool zeroLinear = m[0][3] == 0 && m[1][3] == 0 && m[2][3] == 0 && m[3][3] == 1;
++    for (size_t row = 0; row < 3; ++row)
++      for (size_t column = 0; column < 3; ++column)
++        zeroLinear = zeroLinear && m[row][column] == 0;
++    if (zeroLinear) {
++      decomposable[i].SetIdentity();
++      decomposable[i].SetTranslateOnly(m.ExtractTranslation());
++      zeroScaleJoints.push_back(i);
++    }
++  }
++  if (!animation.SetTransforms(decomposable, time))
++    return false;
++  if (zeroScaleJoints.empty())
++    return true;
++  pxr::VtVec3hArray scales;
++  auto scalesAttr = animation.GetScalesAttr();
++  if (!scalesAttr.Get(&scales, time) || scales.size() != xforms.size())
++    return false;
++  for (const auto joint : zeroScaleJoints)
++    scales[joint] = pxr::GfVec3h(0);
++  return scalesAttr.Set(scales, time);
++}
++
+ lss::Skeleton generateSkeleton(const size_t numBones,
+                                const size_t bonesPerVertex,
+                                const lss::Buf<lss::Pos>& points,
+@@ -921,9 +954,11 @@
+ 
+       // set the rotations, scales, and translations attributes on the pose
+       for (auto sample : instanceData.boneXForms) {
+-        skelAnimationSchema.SetTransforms(
++        if (!setSkinningTransforms(skelAnimationSchema,
+             sanitizeBoneXforms(sample.xforms, skel.bindPose, exportData.meta),
+-            exportData.meta.numFramesCaptured == 1 ? pxr::UsdTimeCode::Default() : pxr::UsdTimeCode(sample.time));
++            exportData.meta.numFramesCaptured == 1 ? pxr::UsdTimeCode::Default() : pxr::UsdTimeCode(sample.time))) {
++          throwCaptureError(dxvk::str::format("Cannot write skinning animation for ", instanceName, " at ", sample.time));
++        }
+       }
+ 
+       pxr::UsdPrim skelPrim = ctx.instanceStage->GetPrimAtPath(skelSkelSdfPath);

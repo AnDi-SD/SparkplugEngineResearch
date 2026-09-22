@@ -104,9 +104,14 @@ static void State(IDirect3DDevice9* device,const char* phase){const auto t=*rein
     static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(t)),t[26]==reinterpret_cast<void*>(CreateVB)?"true":"false",t[27]==reinterpret_cast<void*>(CreateIB)?"true":"false",
     t[86]==reinterpret_cast<void*>(CreateDeclaration)?"true":"false",t[82]==reinterpret_cast<void*>(DrawIndexed)?"true":"false",native_transport_source::records.size(),native_transport_source::created[0]);fflush(stdout);
 }
-int main(){HWND window=nullptr;IDirect3D9* factory=nullptr;IDirect3DDevice9* device=nullptr;IDirect3DVertexBuffer9* vertices=nullptr;
+int main(int argc,char** argv){HWND window=nullptr;IDirect3D9* factory=nullptr;IDirect3DDevice9* device=nullptr;IDirect3DVertexBuffer9* vertices=nullptr;
   try {
     SetEnvironmentVariableW(L"WINX_REMIX_BACKEND",L"system");factory=ProxyCreate9(D3D_SDK_VERSION);Require(factory!=nullptr,"system factory");
+    Require(argc==1||(argc==2&&std::string(argv[1])=="--remix-condition"),"known fixture mode");
+    // Real system device, with the adapter's backend condition set to Remix.
+    // This verifies deferred hook placement independently of the bridge.
+    if(argc==2)systemBackend=false;
+    printf("{\"phase\":\"backend-condition\",\"system\":%s,\"actualSystemDevice\":true}\n",systemBackend?"true":"false");
     native_mesh_source::enabled=true;native_transport_source::enabled=true;skin_draw_source::enabled=true;
     window=CreateWindowW(L"STATIC",L"System skin transport fixture",WS_OVERLAPPED,0,0,64,64,nullptr,nullptr,GetModuleHandleW(nullptr),nullptr);Require(window!=nullptr,"owned hidden window");
     D3DPRESENT_PARAMETERS pp{};pp.Windowed=TRUE;pp.SwapEffect=D3DSWAPEFFECT_DISCARD;pp.hDeviceWindow=window;

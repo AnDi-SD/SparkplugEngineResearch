@@ -13,6 +13,7 @@ struct Input {
   D3DMATERIAL9 material{};
   RGB ambient;
   DWORD diffuseSource=0,ambientSource=0,emissiveSource=0;
+  DWORD lighting=TRUE; // Observed FFP mode, also qualifies missing-normal input.
 };
 struct Plan {
   RGB albedo,emission;
@@ -20,7 +21,7 @@ struct Plan {
   uint8_t alpha=255;
 };
 static inline Input UnlitInput(bool preserveUnlit) {
-  Input out{};out.material.Diffuse={1,1,1,1};out.diffuseSource=D3DMCS_COLOR1;
+  Input out{};out.lighting=FALSE;out.material.Diffuse={1,1,1,1};out.diffuseSource=D3DMCS_COLOR1;
   if(preserveUnlit)out.emissiveSource=D3DMCS_COLOR1;
   return out;
 }
@@ -43,6 +44,7 @@ static inline bool Read(IDirect3DDevice9* d,Input& out,bool preserveUnlit=false)
      FAILED(d->GetRenderState(D3DRS_DIFFUSEMATERIALSOURCE,&out.diffuseSource))||
      FAILED(d->GetRenderState(D3DRS_AMBIENTMATERIALSOURCE,&out.ambientSource))||
      FAILED(d->GetRenderState(D3DRS_EMISSIVEMATERIALSOURCE,&out.emissiveSource)))return false;
+  out.lighting=lighting;
   if(!colorVertex)out.diffuseSource=out.ambientSource=out.emissiveSource=D3DMCS_MATERIAL;
   for(unsigned i=0;i<8;++i) {
     BOOL enabled=FALSE;

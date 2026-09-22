@@ -45,6 +45,29 @@ static void Run() {
     Check(!submit::Draw(mesh,material,baked,drawState,contract).apiCalled,"baked instance cannot draw a skinned mesh without its palette");
     Clean();
   }
+  {
+    auto source=Quad(4);const auto untransformed=PrepareGpu(source);gpu::Prepared transformed;
+    packet::pc::FixedUvRegistersForAnalysis uv{{{0,-1,2,NAN},{1,0,3,NAN},{.5f,-.25f,0,NAN}}};
+    const auto colors=std::vector<uint32_t>(source.vertices.size(),0xffabcdef);
+    Check(gpu::Prepare(source,colors,D3DCULL_NONE,transformed,&uv),"qualified UV transform prepares original signed geometry");
+    for(size_t i=0;i<source.vertices.size();++i) {
+      const auto& v=transformed.vertices[i];
+      Check(v.texcoord[0]==source.vertices[i].uv[1]+.5f&&v.texcoord[1]==-source.vertices[i].uv[0]-.25f,"shader xy reaches API without homogeneous division");
+      Check(!memcmp(v.position,untransformed.vertices[i].position,24)&&v.color==untransformed.vertices[i].color,"UV transform does not deform positions, normals or colors");
+    }
+    Check(transformed.skin.weights==untransformed.skin.weights&&transformed.skin.indices==untransformed.skin.indices&&transformed.indices==untransformed.indices,"UV transform retains signed weights and topology");
+    const auto material=Material(2800);const auto mesh=gpu::Resource(transformed,material,7);
+    Check(mesh!=nullptr,"transformed UV mesh is owned");Payload(transformed);DrawOkay(transformed,mesh,material);
+    source.palette[0][0][3]+=2;gpu::Prepared pose;
+    Check(gpu::Prepare(source,colors,D3DCULL_NONE,pose,&uv)&&gpu::Resource(pose,material,7)==mesh,"bone animation reuses the transformed UV mesh");
+    uv[2][0]+=.25f;
+    Check(gpu::Prepare(source,colors,D3DCULL_NONE,pose,&uv)&&gpu::Resource(pose,material,7)!=mesh,"changed UV output creates a distinct immutable resource");
+    uv[2][0]-=.25f;
+    Check(gpu::Prepare(source,colors,D3DCULL_NONE,pose,&uv)&&gpu::Resource(pose,material,7)==mesh,"restoring UV output reuses its existing resource");
+    const auto previous=pose.vertices;uv[0][0]=NAN;
+    Check(!gpu::Prepare(source,colors,D3DCULL_NONE,pose,&uv)&&!memcmp(pose.vertices.data(),previous.data(),previous.size()*sizeof(previous[0])),"invalid UV preparation preserves prior output");
+    Clean();
+  }
   auto input=PrepareGpu(Quad(4));auto material=Material(2900);auto mesh=gpu::Resource(input,material,3);DrawOkay(input,mesh,material);
   const auto refused=[&](const gpu::Prepared& bad){const auto before=creates;const auto count=draws;
     Check(!gpu::Resource(bad,material,3)&&!gpu::Draw(mesh,material,bad,drawState,contract,[]{return true;}).apiCalled&&creates==before&&draws==count,"malformed signed input does not reach API");};

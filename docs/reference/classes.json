@@ -6127,8 +6127,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-action-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxActionState.cpp",
+        "Winx/Code/wxActionState.h"
+      ]
     },
     {
       "name": "wxAIAction",
@@ -6142,8 +6147,14 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ai-action.md",
+        "docs/game/ai/ai-action-family.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAIAction.cpp",
+        "Winx/Code/wxAIAction.h"
+      ]
     },
     {
       "name": "wxAIManager",
@@ -6967,8 +6978,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-character-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCharacterState.cpp",
+        "Winx/Code/wxCharacterState.h"
+      ]
     },
     {
       "name": "wxCharacterStateMachine",

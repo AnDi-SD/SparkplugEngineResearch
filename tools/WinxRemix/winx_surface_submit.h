@@ -27,7 +27,7 @@ static std::map<uint64_t,SurfaceMaterialEntry> surfaceMaterials;
 static size_t surfaceMeshBytes;
 static unsigned surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures;
 static unsigned surfacePressureRequests,surfacePressureMeshDestroys,surfacePressureMaterialDestroys,surfacePressureRejected;
-static constexpr size_t surfaceMeshLimit=512,surfaceMaterialLimit=256,surfaceMeshByteLimit=64*1024*1024;
+static constexpr size_t surfaceMeshLimit=1024,surfaceMaterialLimit=256,surfaceMeshByteLimit=64*1024*1024;
 
 // The existing recursive guard protects cache nodes; resource/API reentry is
 // rejected while an operation owns them. Retire requests are never discarded:

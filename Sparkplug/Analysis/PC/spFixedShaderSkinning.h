@@ -17,6 +17,33 @@ namespace sparkplug::evidence::pc
     // row-major 4x4 matrix or remixapi_Transform reinterpret_cast.
     using FixedSkinMatrix = std::array<FixedSkinVector, 3>;
 
+    // UVTransform is a column-major float3x3 in three float4 registers.
+    // Unlike the affine Skin palette above, each register contains a column.
+    // Its fourth lane is untouched by the original constant uploader and is
+    // not read by Fixed. Input UV.z is replaced with one before multiplication.
+    using FixedUvRegistersForAnalysis = std::array<FixedSkinVector, 3>;
+    [[nodiscard]] inline bool TransformFixedUvForAnalysis(
+        const std::array<float, 2>& input,
+        const FixedUvRegistersForAnalysis& columns,
+        std::array<float, 3>& output) noexcept
+    {
+        if (!std::isfinite(input[0]) || !std::isfinite(input[1])) return false;
+        std::array<float, 3> result{};
+        for (std::size_t coordinate = 0; coordinate < 3; ++coordinate)
+        {
+            for (const auto& column : columns)
+                if (!std::isfinite(column[coordinate])) return false;
+            const float vertical = input[1] * columns[1][coordinate];
+            const float linear = input[0] * columns[0][coordinate] + vertical;
+            result[coordinate] = linear + columns[2][coordinate];
+            if (!std::isfinite(result[coordinate])) return false;
+        }
+        // No division by the third output component is present in the shader.
+        // Finite-input/output checks are host guards; refusal preserves output.
+        output = result;
+        return true;
+    }
+
     struct FixedSkinVertexForAnalysis
     {
         FixedSkinVector position{};

@@ -2,6 +2,7 @@
 // execute unchanged. Borrowed identities below are not persistent instances.
 #pragma once
 #include "../../Sparkplug/Analysis/PC/SparkplugAbi.h"
+#include "winx_native_instance_lifetime.h"
 namespace native_owner_source {
 namespace abi=sparkplug::evidence::pc;
 struct Packet {
@@ -53,6 +54,7 @@ using NativeDraw=uint32_t(__thiscall*)(void*,uint32_t,uint32_t);
 using NativeDestroy=void(__thiscall*)(void*);
 static NativeDraw originalStatic,originalPartition,originalModel,originalRenderNode;
 static NativeDestroy originalSceneDestroy,originalNodeDestroy,originalRenderNodeDestroy;
+static NativeDestroy originalSkinDestroy;
 static uint32_t SupportAndRestore(SupportScope* scope,NativeDraw original,void* object,uint32_t camera,uint32_t force) {
   uint32_t result=0;
   __try {result=original(object,camera,force);}
@@ -83,26 +85,40 @@ static uint32_t __fastcall ModelDraw(void* model,void*,uint32_t camera,uint32_t 
   if(!(result&255))++modelFailures;
   return result;
 }
-static void Retire(uint32_t address,bool scene,bool renderNode=false) {
+static void Retire(uint32_t address,bool scene,bool renderNode=false,bool skin=false) {
   // A known retirement invalidates cached graph evidence even if another
   // thread initiates it. No native pointer is read during/after destruction.
   const auto mutation=scene_geometry::AdvanceMutationSerial();
+  native_instance_lifetime::Retire(address,scene?native_instance_lifetime::Kind::Scene:
+    skin?native_instance_lifetime::Kind::Skin:native_instance_lifetime::Kind::Owner,GetCurrentThreadId()==ownerThread);
   if(GetCurrentThreadId()!=ownerThread)return;
-  if(scene)++sceneRetirements;else if(renderNode)++renderNodeRetirements;else ++nodeRetirements;
+  if(scene)++sceneRetirements;else if(renderNode)++renderNodeRetirements;else if(!skin)++nodeRetirements;
   if(CanLog())fprintf(output,"{\"event\":\"retire\",\"frame\":%u,\"kind\":\"%s\",\"address\":%u,\"mutation\":%llu}\n",
-    frameId,scene?"scene":renderNode?"render_node":"partition_node",address,mutation);
+    frameId,scene?"scene":skin?"skin":renderNode?"render_node":"partition_node",address,mutation);
+}
+static void DestroyAndFinish(NativeDestroy original,void* object,bool observing) {
+  __try {original(object);}
+  __finally {if(observing)native_instance_lifetime::EndRetirement();}
 }
 static void __fastcall SceneDestroy(void* scene,void*) {
-  if(enabled)Retire(uint32_t(reinterpret_cast<uintptr_t>(scene)),true);
-  originalSceneDestroy(scene);
+  const bool observing=enabled;
+  if(observing){native_instance_lifetime::BeginRetirement();Retire(uint32_t(reinterpret_cast<uintptr_t>(scene)),true);}
+  DestroyAndFinish(originalSceneDestroy,scene,observing);
 }
 static void __fastcall NodeDestroy(void* node,void*) {
-  if(enabled)Retire(uint32_t(reinterpret_cast<uintptr_t>(node)),false);
-  originalNodeDestroy(node);
+  const bool observing=enabled;
+  if(observing){native_instance_lifetime::BeginRetirement();Retire(uint32_t(reinterpret_cast<uintptr_t>(node)),false);}
+  DestroyAndFinish(originalNodeDestroy,node,observing);
 }
 static void __fastcall RenderNodeDestroy(void* node,void*) {
-  if(enabled)Retire(uint32_t(reinterpret_cast<uintptr_t>(node)),false,true);
-  originalRenderNodeDestroy(node);
+  const bool observing=enabled;
+  if(observing){native_instance_lifetime::BeginRetirement();Retire(uint32_t(reinterpret_cast<uintptr_t>(node)),false,true);}
+  DestroyAndFinish(originalRenderNodeDestroy,node,observing);
+}
+static void __fastcall SkinDestroy(void* skin,void*) {
+  const bool observing=enabled;
+  if(observing){native_instance_lifetime::BeginRetirement();Retire(uint32_t(reinterpret_cast<uintptr_t>(skin)),false,false,true);}
+  DestroyAndFinish(originalSkinDestroy,skin,observing);
 }
 static bool SupportIdentity(const Packet& packet,const abi::spRenderSupportObservedLayout& support) {
   if(support.completeObject!=packet.object)return false;
@@ -192,45 +208,59 @@ static bool Qualify(Packet& packet,uint32_t mesh,uint32_t renderer,uint64_t subm
   ++qualified;return true;
 }
 struct Patch {
-  uintptr_t address;unsigned size;unsigned char expected[7],replacement[7];DWORD protection=0;
+  uintptr_t address;unsigned size;unsigned char expected[8],replacement[8];DWORD protection=0;
 };
+static std::array<Patch,8> installedPatches{};
+static bool lifetimeHooksInstalled;
+static bool LifetimeInstalled() {
+  if(!enabled||!lifetimeHooksInstalled||GetCurrentThreadId()!=ownerThread)return false;
+  unsigned char bytes[8]{};
+  for(const auto& patch:installedPatches)
+    if(!scene_geometry::Read(patch.address,bytes,patch.size)||memcmp(bytes,patch.replacement,patch.size)) {
+      native_instance_lifetime::Invalidate();return false;
+    }
+  return true;
+}
 static bool Install() {
-  Patch patches[7]={{0x6e6604,4},{0x6f4528,4},{0x6eaa7c,4},{0x6dcadc,4},{0x45e5d0,7},{0x4264d0,7},{0x425050,7}};
+  std::array<Patch,8> patches{{{0x6e6604,4},{0x6f4528,4},{0x6eaa7c,4},{0x6dcadc,4},{0x45e5d0,7},{0x4264d0,7},{0x425050,7},{abi::spSkinDestructor,8}}};
   const uint32_t entries[4]={0x44fc00,0x4d72c0,0x479dc0,0x424b60};
-  const uintptr_t hooks[7]={reinterpret_cast<uintptr_t>(&StaticDraw),reinterpret_cast<uintptr_t>(&PartitionDraw),
+  const uintptr_t hooks[8]={reinterpret_cast<uintptr_t>(&StaticDraw),reinterpret_cast<uintptr_t>(&PartitionDraw),
     reinterpret_cast<uintptr_t>(&ModelDraw),reinterpret_cast<uintptr_t>(&RenderNodeDraw),reinterpret_cast<uintptr_t>(&SceneDestroy),
-    reinterpret_cast<uintptr_t>(&NodeDestroy),reinterpret_cast<uintptr_t>(&RenderNodeDestroy)};
-  const unsigned char prefixes[3][7]={{0x6a,0xff,0x68,0x84,0x1f,0x6c,0},{0x6a,0xff,0x68,0x3a,0xfd,0x6b,0},{0x6a,0xff,0x68,0x3f,0xfc,0x6b,0}};
-  unsigned char observed[7]{};
-  for(unsigned i=0;i<7;++i){auto& p=patches[i];memcpy(p.expected,i<4?reinterpret_cast<const void*>(&entries[i]):prefixes[i-4],p.size);
+    reinterpret_cast<uintptr_t>(&NodeDestroy),reinterpret_cast<uintptr_t>(&RenderNodeDestroy),reinterpret_cast<uintptr_t>(&SkinDestroy)};
+  const unsigned char prefixes[4][8]={{0x6a,0xff,0x68,0x84,0x1f,0x6c,0},{0x6a,0xff,0x68,0x3a,0xfd,0x6b,0},{0x6a,0xff,0x68,0x3f,0xfc,0x6b,0},
+    {0x56,0x8b,0xf1,0x8b,0x46,0x68,0x85,0xc0}};
+  unsigned char observed[8]{};
+  for(unsigned i=0;i<8;++i){auto& p=patches[i];memcpy(p.expected,i<4?reinterpret_cast<const void*>(&entries[i]):prefixes[i-4],p.size);
     if(!scene_geometry::Read(p.address,observed,p.size)||memcmp(observed,p.expected,p.size))return false;}
-  unsigned char* trampolines[3]{};
-  for(unsigned i=0;i<3;++i){
-    auto& t=trampolines[i];t=static_cast<unsigned char*>(VirtualAlloc(nullptr,12,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE));
+  unsigned char* trampolines[4]{};
+  for(unsigned i=0;i<4;++i){
+    const auto size=patches[i+4].size;
+    auto& t=trampolines[i];t=static_cast<unsigned char*>(VirtualAlloc(nullptr,size+5,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE));
     if(!t){for(auto allocated:trampolines)if(allocated)VirtualFree(allocated,0,MEM_RELEASE);return false;}
-    memcpy(t,prefixes[i],7);t[7]=0xe9;const auto jump=uint32_t(patches[i+4].address+7-reinterpret_cast<uintptr_t>(t+12));memcpy(t+8,&jump,4);
-    DWORD previous=0;if(!VirtualProtect(t,12,PAGE_EXECUTE_READ,&previous)){
+    memcpy(t,prefixes[i],size);t[size]=0xe9;const auto jump=uint32_t(patches[i+4].address+size-reinterpret_cast<uintptr_t>(t+size+5));memcpy(t+size+1,&jump,4);
+    DWORD previous=0;if(!VirtualProtect(t,size+5,PAGE_EXECUTE_READ,&previous)){
       for(auto allocated:trampolines)if(allocated)VirtualFree(allocated,0,MEM_RELEASE);return false;}
-    FlushInstructionCache(GetCurrentProcess(),t,12);
+    FlushInstructionCache(GetCurrentProcess(),t,size+5);
   }
   unsigned writable=0;
-  for(;writable<7;++writable){auto& p=patches[writable];
+  for(;writable<8;++writable){auto& p=patches[writable];
     if(!VirtualProtect(reinterpret_cast<void*>(p.address),p.size,PAGE_EXECUTE_READWRITE,&p.protection))break;}
-  if(writable!=7){DWORD ignored=0;while(writable){auto& p=patches[--writable];VirtualProtect(reinterpret_cast<void*>(p.address),p.size,p.protection,&ignored);}
+  if(writable!=8){DWORD ignored=0;while(writable){auto& p=patches[--writable];VirtualProtect(reinterpret_cast<void*>(p.address),p.size,p.protection,&ignored);}
     for(auto t:trampolines)VirtualFree(t,0,MEM_RELEASE);return false;}
   originalStatic=reinterpret_cast<NativeDraw>(entries[0]);originalPartition=reinterpret_cast<NativeDraw>(entries[1]);originalModel=reinterpret_cast<NativeDraw>(entries[2]);
   originalRenderNode=reinterpret_cast<NativeDraw>(entries[3]);
   originalSceneDestroy=reinterpret_cast<NativeDestroy>(trampolines[0]);originalNodeDestroy=reinterpret_cast<NativeDestroy>(trampolines[1]);
   originalRenderNodeDestroy=reinterpret_cast<NativeDestroy>(trampolines[2]);
-  for(unsigned i=0;i<7;++i){auto& p=patches[i];if(i<4){const auto pointer=uint32_t(hooks[i]);memcpy(p.replacement,&pointer,4);}
-    else{memset(p.replacement,0x90,7);p.replacement[0]=0xe9;const auto jump=uint32_t(hooks[i]-p.address-5);memcpy(p.replacement+1,&jump,4);}
+  originalSkinDestroy=reinterpret_cast<NativeDestroy>(trampolines[3]);
+  for(unsigned i=0;i<8;++i){auto& p=patches[i];if(i<4){const auto pointer=uint32_t(hooks[i]);memcpy(p.replacement,&pointer,4);}
+    else{memset(p.replacement,0x90,p.size);p.replacement[0]=0xe9;const auto jump=uint32_t(hooks[i]-p.address-5);memcpy(p.replacement+1,&jump,4);}
     if(i<4)InterlockedExchangePointer(reinterpret_cast<void* volatile*>(p.address),reinterpret_cast<void*>(hooks[i]));
     else memcpy(reinterpret_cast<void*>(p.address),p.replacement,p.size);
   }
   // Some patches share a page. Restore protections in reverse acquisition order.
-  for(unsigned i=7;i;--i){auto& p=patches[i-1];DWORD ignored=0;VirtualProtect(reinterpret_cast<void*>(p.address),p.size,p.protection,&ignored);
+  for(unsigned i=8;i;--i){auto& p=patches[i-1];DWORD ignored=0;VirtualProtect(reinterpret_cast<void*>(p.address),p.size,p.protection,&ignored);
     FlushInstructionCache(GetCurrentProcess(),reinterpret_cast<void*>(p.address),p.size);}
-  return true;
+  installedPatches=patches;lifetimeHooksInstalled=true;return true;
 }
 #else
 static bool Qualify(Packet&,uint32_t,uint32_t,uint64_t,const D3DMATRIX&){return false;}

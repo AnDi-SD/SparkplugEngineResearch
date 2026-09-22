@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": "api-usd-v1.patch",
+  "patchSha256": "34e0a2c66ade44ea5231770901b5a13dc85d42a46ee7ded3e305c3c4ba9ba092",
+  "sourceFiles": [
+    {
+      "path": "src/dxvk/rtx_render/rtx_game_capturer.cpp",
+      "beforeLfSha256": "17361f763e27e3d23e90c9d8821b10559866d4f8b730241e9a3ff0eb63316f38",
+      "afterLfSha256": "f192edde9f91d1a1a4ab59ba7dccdc19f7591c952cd064eaac986f182e46b31c"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_game_capturer.h",
+      "beforeLfSha256": "a168c632045ff1e55d87ba806e066eea9d64b58a209eb1ad56a2015853d5b2f5",
+      "afterLfSha256": "33cebe08558d7fc452c30cfa143cd7db2d5b6bf4c967d83553673acf765048b4"
+    },
+    {
+      "path": "src/lssusd/game_exporter_types.h",
+      "beforeLfSha256": "8fb66ef1248e067f9834557b3d5ce06c30b753979db06830512844c3c448a792",
+      "afterLfSha256": "3741e81f6d03a32a88b0dd5f9ecbf02aec779aa7fc4e151bfb4f79627ad48678"
+    },
+    {
+      "path": "src/lssusd/game_exporter.cpp",
+      "beforeLfSha256": "b2d2eb7078a2dd7a702ec8fd6c6911a9e41ae86ec7dec572e621abc53807a64d",
+      "afterLfSha256": "aa6e187b2e3ae04c770bb18837f603328c4e668633fa36a563d352fb445bce54"
+    }
+  ],
+  "scope": "Own external Opaque material capture and explicit API skin weights in the pinned renderer. Separate from bridge wire and rendering shaders.",
+  "qualification": "Own rigid geometry, default Opaque constants, albedo/emission texture mip contents, and normalized static two-influence UsdSkel deformation. Full game capture and multi-frame animation are not qualified."
+}

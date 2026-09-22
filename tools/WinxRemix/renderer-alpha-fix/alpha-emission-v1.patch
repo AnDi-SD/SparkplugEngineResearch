@@ -1,0 +1,171 @@
+--- a/src/dxvk/rtx_render/rtx_resources.h
++++ b/src/dxvk/rtx_render/rtx_resources.h
+@@ -285,6 +285,7 @@
+       AliasedResource m_secondaryWorldPositionWorldTriangleNormal;
+       AliasedResource m_secondaryPositionError;
+       Resource m_alphaBlendGBuffer;
++      Resource m_alphaBlendEmissiveRadiance;
+       AliasedResource m_alphaBlendRadiance;
+ 
+       // Resource containing 1spp radiance from indirect pass - with each pixel containing {diffuse | specular} for a {primary | secondary} surface
+--- a/src/dxvk/rtx_render/rtx_resources.cpp
++++ b/src/dxvk/rtx_render/rtx_resources.cpp
+@@ -1081,6 +1081,7 @@
+     m_raytracingOutput.m_secondaryWorldPositionWorldTriangleNormal = AliasedResource(ctx, m_downscaledExtent, VK_FORMAT_R32G32B32A32_SFLOAT, "Secondary World Position World Triangle Normal", allowCompatibleFormatAliasing);
+     m_raytracingOutput.m_secondaryPositionError = AliasedResource(ctx, m_downscaledExtent, VK_FORMAT_R32_SFLOAT, "Secondary Position Error", allowCompatibleFormatAliasing);
+     m_raytracingOutput.m_alphaBlendGBuffer = createImageResource(ctx, "alpha blend gbuffer", m_downscaledExtent, VK_FORMAT_R32G32B32A32_UINT);
++    m_raytracingOutput.m_alphaBlendEmissiveRadiance = createImageResource(ctx, "alpha blend emission", m_downscaledExtent, VK_FORMAT_R16G16B16A16_SFLOAT);
+     m_raytracingOutput.m_alphaBlendRadiance = AliasedResource(m_raytracingOutput.m_secondaryVirtualMotionVector, ctx, m_downscaledExtent, VK_FORMAT_R16G16B16A16_SFLOAT, "Alpha Blend Radiance");
+     m_raytracingOutput.m_rayReconstructionParticleBuffer = createImageResource(ctx, "DLSS-RR particle buffer", m_downscaledExtent, VK_FORMAT_R16G16B16A16_SFLOAT);
+ 
+--- a/src/dxvk/shaders/rtx/pass/gbuffer/gbuffer_binding_indices.h
++++ b/src/dxvk/shaders/rtx/pass/gbuffer/gbuffer_binding_indices.h
+@@ -117,6 +117,8 @@
+ #define GBUFFER_BINDING_PRIMARY_OBJECT_PICKING_OUTPUT                           150
+ 
+ 
++#define GBUFFER_BINDING_ALPHA_BLEND_EMISSIVE_RADIANCE_OUTPUT             151
++
+ #define GBUFFER_MIN_BINDING                         GBUFFER_BINDING_LINEAR_WRAP_SAMPLER
+ 
+ #if GBUFFER_MIN_BINDING <= COMMON_MAX_BINDING
+--- a/src/dxvk/shaders/rtx/pass/gbuffer/gbuffer_bindings.slangh
++++ b/src/dxvk/shaders/rtx/pass/gbuffer/gbuffer_bindings.slangh
+@@ -181,6 +181,9 @@
+ layout(rgba32ui, binding = GBUFFER_BINDING_ALPHA_BLEND_GBUFFER_OUTPUT)
+ RWTexture2D<uint4> AlphaBlendGBuffer;
+ 
++layout(rgba16f, binding = GBUFFER_BINDING_ALPHA_BLEND_EMISSIVE_RADIANCE_OUTPUT)
++RWTexture2D<float4> AlphaBlendEmissiveRadiance;
++
+ layout(rgba16f, binding = GBUFFER_BINDING_PARTICLE_BUFFER_OUTPUT)
+ RWTexture2D<float4> ParticleBuffer;
+ 
+--- a/src/dxvk/rtx_render/rtx_pathtracer_gbuffer.cpp
++++ b/src/dxvk/rtx_render/rtx_pathtracer_gbuffer.cpp
+@@ -132,6 +132,7 @@
+         RW_TEXTURE2D(GBUFFER_BINDING_PRIMARY_DEPTH_OUTPUT)
+         RW_TEXTURE2D(GBUFFER_BINDING_SHARED_BIAS_CURRENT_COLOR_MASK_OUTPUT)
+         RW_TEXTURE2D(GBUFFER_BINDING_ALPHA_BLEND_GBUFFER_OUTPUT)
++        RW_TEXTURE2D(GBUFFER_BINDING_ALPHA_BLEND_EMISSIVE_RADIANCE_OUTPUT)
+         RW_TEXTURE2D(GBUFFER_BINDING_PARTICLE_BUFFER_OUTPUT)
+         SAMPLER2D(GBUFFER_BINDING_SKYMATTE)
+         SAMPLERCUBE(GBUFFER_BINDING_SKYPROBE)
+@@ -702,6 +703,7 @@
+     ctx->bindResourceView(GBUFFER_BINDING_SECONDARY_POSITION_ERROR_OUTPUT, rtOutput.m_secondaryPositionError.view(Resources::AccessType::Write), nullptr);
+     ctx->bindResourceView(GBUFFER_BINDING_SECONDARY_WORLD_POSITION_OUTPUT, rtOutput.m_secondaryWorldPositionWorldTriangleNormal.view(Resources::AccessType::Write), nullptr);
+     ctx->bindResourceView(GBUFFER_BINDING_ALPHA_BLEND_GBUFFER_OUTPUT, rtOutput.m_alphaBlendGBuffer.view, nullptr);
++    ctx->bindResourceView(GBUFFER_BINDING_ALPHA_BLEND_EMISSIVE_RADIANCE_OUTPUT, rtOutput.m_alphaBlendEmissiveRadiance.view, nullptr);
+     ctx->bindResourceView(GBUFFER_BINDING_PARTICLE_BUFFER_OUTPUT, rtOutput.m_rayReconstructionParticleBuffer.view, nullptr);
+ 
+     ctx->bindResourceView(GBUFFER_BINDING_REFLECTION_PSR_DATA_STORAGE_0, rtOutput.m_gbufferPSRData[0].view(Resources::AccessType::Write), nullptr);
+--- a/src/dxvk/shaders/rtx/algorithm/geometry_resolver.slangh
++++ b/src/dxvk/shaders/rtx/algorithm/geometry_resolver.slangh
+@@ -1855,6 +1855,12 @@
+     bool hasEmissive = any(geometryResolverState.radiance > 0);
+     
+     AlphaBlendSurface alphaBlendSurface = AlphaBlendSurface.createFromPacked(AlphaBlendGBuffer[geometryResolverState.pixelCoordinate], cb.alphaBlendSurfacePackMult);
++    // WinxRemix candidate: deterministic emission with front-to-back coverage.
++    // Stochastic surfaces continue before the ordinary GBuffer emission evaluation.
++    const vec3 layerEmission = polymorphicSurfaceMaterialInteractionEvalEmissiveRadiance(polymorphicSurfaceMaterialInteraction);
++    vec4 accumulatedEmission = AlphaBlendEmissiveRadiance[geometryResolverState.pixelCoordinate];
++    accumulatedEmission.xyz += layerEmission * alphaBlendColor.a * alphaBlendSurface.backgroundTransparency * geometryResolverState.attenuation;
++    AlphaBlendEmissiveRadiance[geometryResolverState.pixelCoordinate] = accumulatedEmission;
+     alphaBlendSurface.update(
+       alphaBlendColor, polymorphicSurfaceMaterialInteraction.shadingNormal, geometryResolverState.accumulatedHitDistance, surface.hashPacked, hasEmissive);
+     AlphaBlendGBuffer[geometryResolverState.pixelCoordinate] = alphaBlendSurface.pack(cb.alphaBlendSurfacePackMult);
+@@ -1962,7 +1968,9 @@
+   {
+     // Add in Emissive contribution
+ 
+-    const vec3 materialEmissiveRadiance = polymorphicSurfaceMaterialInteractionEvalEmissiveRadiance( polymorphicSurfaceMaterialInteraction);
++    // A stochastic layer can stop resolving when accumulated coverage is nearly one.
++    // Its emission was already accumulated separately above.
++    const vec3 materialEmissiveRadiance = isStochasticAlphaBlend ? vec3(0) : polymorphicSurfaceMaterialInteractionEvalEmissiveRadiance(polymorphicSurfaceMaterialInteraction);
+ 
+     gbufferSurfaceRadiance += materialEmissiveRadiance;
+ 
+@@ -2913,6 +2921,7 @@
+     AlphaBlendSurface alphaBlendSurface = AlphaBlendSurface.createEmpty();
+     alphaBlendSurface.randomThreshold = getNextSampleBlueNoise(randomState);
+     AlphaBlendGBuffer[pixelCoordinate] = alphaBlendSurface.pack(cb.alphaBlendSurfacePackMult);
++    AlphaBlendEmissiveRadiance[pixelCoordinate] = vec4(0);
+   }
+   if (GBUFFER_FEATURE_PARTICLE_LAYER && cb.outputParticleLayer)
+   {
+--- a/src/dxvk/shaders/rtx/pass/composite/composite_binding_indices.h
++++ b/src/dxvk/shaders/rtx/pass/composite/composite_binding_indices.h
+@@ -60,6 +60,8 @@
+ #define COMPOSITE_VALUE_NOISE_SAMPLER                               25
+ #define COMPOSITE_SKY_LIGHT_TEXTURE                                 26
+ 
++#define COMPOSITE_ALPHA_BLEND_EMISSIVE_RADIANCE_INPUT                 27
++
+ // Inputs/Outputs
+                                            
+ #define COMPOSITE_PRIMARY_ALBEDO_INPUT_OUTPUT                       30
+--- a/src/dxvk/shaders/rtx/pass/composite/composite_bindings.slangh
++++ b/src/dxvk/shaders/rtx/pass/composite/composite_bindings.slangh
+@@ -83,6 +83,9 @@
+ layout(rgba32ui, binding = COMPOSITE_ALPHA_GBUFFER_INPUT)
+ Texture2D<uint4> AlphaBlendGBuffer;
+ 
++layout(rgba16f, binding = COMPOSITE_ALPHA_BLEND_EMISSIVE_RADIANCE_INPUT)
++Texture2D<float4> AlphaBlendEmissiveRadiance;
++
+ layout(binding = COMPOSITE_BLUE_NOISE_TEXTURE)
+ Texture2DArray BlueNoise;
+ 
+--- a/src/dxvk/rtx_render/rtx_composite.cpp
++++ b/src/dxvk/rtx_render/rtx_composite.cpp
+@@ -71,6 +71,7 @@
+         SAMPLER3D(COMPOSITE_VOLUME_FILTERED_RADIANCE_Y_INPUT)
+         SAMPLER3D(COMPOSITE_VOLUME_FILTERED_RADIANCE_CO_CG_INPUT)
+         TEXTURE2D(COMPOSITE_ALPHA_GBUFFER_INPUT)
++        TEXTURE2D(COMPOSITE_ALPHA_BLEND_EMISSIVE_RADIANCE_INPUT)
+         TEXTURE2DARRAY(COMPOSITE_BLUE_NOISE_TEXTURE)
+         SAMPLER3D(COMPOSITE_VALUE_NOISE_SAMPLER)
+ 
+@@ -114,6 +115,7 @@
+         SAMPLER3D(COMPOSITE_VOLUME_FILTERED_RADIANCE_Y_INPUT)
+         SAMPLER3D(COMPOSITE_VOLUME_FILTERED_RADIANCE_CO_CG_INPUT)
+         TEXTURE2D(COMPOSITE_ALPHA_GBUFFER_INPUT)
++        TEXTURE2D(COMPOSITE_ALPHA_BLEND_EMISSIVE_RADIANCE_INPUT)
+         TEXTURE2DARRAY(COMPOSITE_BLUE_NOISE_TEXTURE)
+         SAMPLER3D(COMPOSITE_VALUE_NOISE_SAMPLER)
+         SAMPLER2D(COMPOSITE_SKY_LIGHT_TEXTURE)
+@@ -338,6 +340,7 @@
+     ctx->bindResourceView(COMPOSITE_BSDF_FACTOR_INPUT, rtOutput.m_bsdfFactor.view, nullptr);
+     ctx->bindResourceView(COMPOSITE_BSDF_FACTOR2_INPUT, restirGI.getBsdfFactor2().view, nullptr);
+     ctx->bindResourceView(COMPOSITE_ALPHA_GBUFFER_INPUT, rtOutput.m_alphaBlendGBuffer.view, nullptr);
++    ctx->bindResourceView(COMPOSITE_ALPHA_BLEND_EMISSIVE_RADIANCE_INPUT, rtOutput.m_alphaBlendEmissiveRadiance.view, nullptr);
+ 
+     // Note: Clamp to edge used to avoid interpolation to black on the edges of the view.
+     Rc<DxvkSampler> linearSampler = ctx->getResourceManager().getSampler(VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+--- a/src/dxvk/shaders/rtx/pass/composite/composite.comp.slang
++++ b/src/dxvk/shaders/rtx/pass/composite/composite.comp.slang
+@@ -331,6 +331,8 @@
+         totalLight.xyz = lerp(totalLight.xyz, multilayerLight.xyz, saturate(depthRange / surface.hitT / depthBandwidth));
+       }
+       alphaBlendOutput = totalLight.xyz;
++      // Emission already contains per-layer opacity and preceding transparency.
++      const vec3 alphaBlendEmission = AlphaBlendEmissiveRadiance[pixelCoordinate].xyz;
+ 
+       if (cb.volumeArgs.enable)
+       {
+@@ -347,6 +349,7 @@
+           alphaVolumetricPreintegratedRadiance, alphaVolumetricAttenuation);
+ 
+         alphaBlendOutput *= alphaVolumetricAttenuation * (1 - backgroundAlpha);
++        alphaBlendOutput += alphaBlendEmission * alphaVolumetricAttenuation;
+         alphaBlendOutput += alphaVolumetricPreintegratedRadiance * (1 - backgroundAlpha);
+       }
+       else
+@@ -354,6 +357,7 @@
+         const vec4 fogColor = calculateFog(surface.hitT);
+         alphaBlendOutput = alphaBlendOutput * (1.0f - fogColor.a) + fogColor.rgb * fogColor.a;
+         alphaBlendOutput *= (1 - backgroundAlpha);
++        alphaBlendOutput += alphaBlendEmission * (1.0f - fogColor.a);
+       }
+       
+       if (surface.hasEmissive)

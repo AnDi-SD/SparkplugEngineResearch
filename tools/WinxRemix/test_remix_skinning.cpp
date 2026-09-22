@@ -91,18 +91,27 @@ static void Begin(){Pump();Hr(device->Clear(0,nullptr,D3DCLEAR_TARGET|D3DCLEAR_Z
   Hr(device->BeginScene(),"begin");RenderPanel(0,0xffffffff,false,false);}
 static void End(){Hr(device->EndScene(),"end");Hr(device->Present(nullptr,nullptr,nullptr,nullptr),"present");++frame;}
 
+#include "test_skin_motion_history.h"
+#include "test_skin_motion_rotation.h"
+#include "test_skin_motion_islands.h"
+#include "test_skin_motion_camera.h"
+
 int main(int argc,char** argv) {
   if(!OpenJournal())return 1;
-  unsigned maximum=2,subdivisions=1,halfResolution=0,signedWeights=0;
+  unsigned maximum=2,subdivisions=1,halfResolution=0,signedWeights=0,motionHistory=0,motionKind=0;
   for(int i=1;i<argc;i+=2){if(i+1>=argc)Fail("arguments",0);
     if(strcmp(argv[i],"--max-bones")==0)maximum=unsigned(std::atoi(argv[i+1]));
     else if(strcmp(argv[i],"--subdivisions")==0)subdivisions=unsigned(std::atoi(argv[i+1]));
     else if(strcmp(argv[i],"--half-resolution")==0)halfResolution=unsigned(std::atoi(argv[i+1]));
+    else if(strcmp(argv[i],"--motion-history")==0)motionHistory=unsigned(std::atoi(argv[i+1]));
+    else if(strcmp(argv[i],"--motion-kind")==0)motionKind=unsigned(std::atoi(argv[i+1]));
     else if(strcmp(argv[i],"--signed-weights")==0)signedWeights=unsigned(std::atoi(argv[i+1]));else Fail("arguments",0);}
   if(maximum<1||maximum>4)Fail("bones range",maximum);
   if(subdivisions!=1&&subdivisions!=24)Fail("subdivision range",subdivisions);
   if(halfResolution>1)Fail("resolution profile",halfResolution);
   if(signedWeights>1)Fail("weight profile",signedWeights);
+  if(motionKind>3||(motionKind&&!motionHistory))Fail("motion kind",motionKind);
+  if(motionHistory>1||(motionHistory&&(subdivisions!=24||maximum!=2||halfResolution||signedWeights)))Fail("motion profile",motionHistory);
   SetProcessDPIAware();WNDCLASSW wc{};wc.lpfnWndProc=WindowProc;wc.hInstance=GetModuleHandleW(nullptr);wc.lpszClassName=L"WinxRemixSkinningFixture";
   if(!RegisterClassW(&wc))Fail("register window",GetLastError());RECT size{0,0,960,540};AdjustWindowRect(&size,WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU,FALSE);
   window=CreateWindowW(wc.lpszClassName,L"Remix skinning contract fixture",WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU,40,40,size.right-size.left,size.bottom-size.top,nullptr,nullptr,wc.hInstance,nullptr);
@@ -138,6 +147,21 @@ int main(int argc,char** argv) {
   remixapi_CameraInfo camera{};camera.sType=REMIXAPI_STRUCT_TYPE_CAMERA_INFO;camera.type=REMIXAPI_CAMERA_TYPE_WORLD;memcpy(camera.view,&identity,64);memcpy(camera.projection,&projection,64);
   std::vector<uint32_t> triangleIndices;std::vector<std::array<float,3>> barycentric;
   const auto baseInput=Triangle(subdivisions,triangleIndices,barycentric);
+  if(motionHistory) {
+    const auto captures=motionKind==1?MotionRotation(baseInput,triangleIndices,materialHandle,camera):
+      motionKind==2?MotionIslands(baseInput,triangleIndices,materialHandle,camera):
+      motionKind==3?MotionCamera(baseInput,triangleIndices,materialHandle,camera):
+      MotionHistory(baseInput,triangleIndices,materialHandle,camera);
+    Api(api.DestroyMaterial(materialHandle),"retire motion material");for(unsigned i=0;i<3;++i){Begin();End();}
+    IDirect3DQuery9* completion=nullptr;Hr(device->CreateQuery(D3DQUERYTYPE_EVENT,&completion),"motion completion query");
+    Hr(completion->Issue(D3DISSUE_END),"motion completion issue");const auto completionStart=GetTickCount64();unsigned polls=0;
+    for(;;){BOOL done=FALSE;const auto result=completion->GetData(&done,sizeof(done),D3DGETDATA_FLUSH);++polls;
+      Hr(result,"motion completion read");if(result==S_OK&&done)break;
+      if(GetTickCount64()-completionStart>10000)Fail("motion completion timeout",polls);Pump();Sleep(1);}
+    completion->Release();fprintf(journal,"{\"event\":\"deviceCompletion\",\"milliseconds\":%llu,\"polls\":%u}\n",GetTickCount64()-completionStart,polls);fflush(journal);
+    device->Release();d3d->Release();DestroyWindow(window);
+    fprintf(journal,"{\"event\":\"complete\",\"frames\":%u,\"captures\":%u,\"motionHistoryExperiment\":true}\n",frame,captures);fclose(journal);return 0;
+  }
   fprintf(journal,"{\"event\":\"contract\",\"maximumBonesPerVertex\":%u,\"vertices\":%zu,\"subdivisions\":%u,\"paletteCount\":4,\"signedWeights\":%s,\"paired\":true,\"referenceWorldTranslation\":[-1.5,-0.2,0],\"worldTranslation\":[1.5,-0.2,0],\"pixelSeparation\":288,\"view\":\"identity\",\"projection\":[1,1.77777778,1.001001,1,-0.1001001],\"debugView\":23}\n",maximum,baseInput.size(),subdivisions,signedWeights?"true":"false");fflush(journal);
   fprintf(journal,"{\"event\":\"mesh_topology\",\"indices\":[");for(size_t i=0;i<triangleIndices.size();++i)fprintf(journal,"%s%u",i?",":"",triangleIndices[i]);fprintf(journal,"]}\n");fflush(journal);
   const auto start=GetTickCount64();unsigned captures=0;

@@ -658,19 +658,19 @@ static HRESULT STDMETHODCALLTYPE TextureDeviceQuery(IDirect3DDevice9*,REFIID,voi
 static HRESULT STDMETHODCALLTYPE TextureAdditionalSwap(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*,IDirect3DSwapChain9**);
 static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9*,UINT,IDirect3DSwapChain9**);
 static void PrepareTransportDevice(IDirect3DDevice9* device) {
-  // System CreateDevice may return through a Windows compatibility wrapper
-  // which installs QueryInterface/Release/Reset and swap-chain access after our
-  // callback. Install at
-  // the first resource boundary, preserving that completed chain as Original.
+  // Both system D3D9 and Remix CreateDevice can return through apphelp, which
+  // installs QueryInterface/Release/Reset and swap-chain access after our
+  // callback. Install at the first resource boundary, preserving that
+  // completed chain as Original.
   // A later replacement still fails TransportDeviceHooked; never overwrite it.
-  if(systemBackend&&native_transport_source::enabled){
+  if(native_transport_source::enabled){
     Patch(device,0,reinterpret_cast<void*>(TextureDeviceQuery));
     Patch(device,2,reinterpret_cast<void*>(DeviceRelease));
     Patch(device,16,reinterpret_cast<void*>(Reset));
     Patch(device,13,reinterpret_cast<void*>(TextureAdditionalSwap));
     Patch(device,14,reinterpret_cast<void*>(GetSwapChain));
   }
-  if(skin_draw_source::Enabled()&&!d3d9_state_witness::devices.count(device))
+  if((skin_draw_source::Enabled()||independent_scene_source::selectedSubmitEnabled)&&!d3d9_state_witness::devices.count(device))
     d3d9_state_witness::Install(device,reinterpret_cast<void*>(Reset),reinterpret_cast<void*>(DeviceRelease),
       reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>),
       ShaderConstantAuditHooks());
@@ -753,7 +753,7 @@ static HRESULT STDMETHODCALLTYPE CreateDeclaration(IDirect3DDevice9* device,cons
 static ULONG STDMETHODCALLTYPE DeviceRelease(IDirect3DDevice9* device) {
   d3d9_state_witness::LifetimeCall lifetime;
   using F=ULONG(STDMETHODCALLTYPE*)(IDirect3DDevice9*);const auto references=Original<F>(device,2)(device);
-  if(!references){native_transport_source::RetireDevice(device);d3d9_state_witness::Retire(device);}
+  if(!references){native_instance_lifetime::RetireDevice(reinterpret_cast<uintptr_t>(device));native_transport_source::RetireDevice(device);d3d9_state_witness::Retire(device);}
   return references;
 }
 
@@ -1157,7 +1157,7 @@ static HRESULT STDMETHODCALLTYPE GetSwapChain(IDirect3DDevice9* d,UINT index,IDi
 }
 static HRESULT STDMETHODCALLTYPE Reset(IDirect3DDevice9* d,D3DPRESENT_PARAMETERS* p) {
   d3d9_state_witness::DetachedMutation mutation;
-  {std::lock_guard<std::recursive_mutex> lock(guard);native_transport_source::BeginReset(d);}
+  {std::lock_guard<std::recursive_mutex> lock(guard);native_instance_lifetime::RetireDevice(reinterpret_cast<uintptr_t>(d));native_transport_source::BeginReset(d);}
   native_camera_source::Reset();
   ResetSceneLights();
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,D3DPRESENT_PARAMETERS*);
@@ -1191,7 +1191,7 @@ static HRESULT STDMETHODCALLTYPE Draw(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,UIN
 static HRESULT STDMETHODCALLTYPE DrawIndexed(IDirect3DDevice9* d,D3DPRIMITIVETYPE t,INT base,UINT min,UINT num,UINT start,UINT count) {
   std::lock_guard<std::recursive_mutex> drawLock(guard);
   Observe(d,"DrawIndexedPrimitive",t,count);
-  skin_draw_source::Observe(d,{t,base,min,num,start,count});
+  if(skin_draw_source::Process(d,{t,base,min,num,start,count}))return D3D_OK;
   if(independent_scene_source::SkipDirectDraw(d,{t,base,min,num,start,count}))return D3D_OK;
   if(SkipLegacyProjectedShadow(d,t)) return D3D_OK;
   ScopedOpaqueAlphaTest alphaTest(d);
@@ -1282,18 +1282,17 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     RememberPresentation(*result,*p,window);
     // Server forwards game Present via its swap chain; sample that boundary on x64.
     if(sizeof(void*)==8) {
-      if(!systemBackend||!native_transport_source::enabled)Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
+      if(!native_transport_source::enabled)Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));
       IDirect3DSwapChain9* swap=nullptr;
       if(SUCCEEDED((*result)->GetSwapChain(0,&swap)) && swap) swap->Release();
     }
-    if(!systemBackend||!native_transport_source::enabled)Patch(*result,16,reinterpret_cast<void*>(Reset));
+    if(!native_transport_source::enabled)Patch(*result,16,reinterpret_cast<void*>(Reset));
     Patch(*result,17,reinterpret_cast<void*>(Present));
     Patch(*result,26,reinterpret_cast<void*>(CreateVB)); Patch(*result,27,reinterpret_cast<void*>(CreateIB));
     if(native_transport_source::enabled) {
       Patch(*result,86,reinterpret_cast<void*>(CreateDeclaration));
-      if(!systemBackend)Patch(*result,2,reinterpret_cast<void*>(DeviceRelease));
-      if(!systemBackend)Patch(*result,0,reinterpret_cast<void*>(TextureDeviceQuery));
-      if(!systemBackend){Patch(*result,13,reinterpret_cast<void*>(TextureAdditionalSwap));Patch(*result,14,reinterpret_cast<void*>(GetSwapChain));}
+      // Lifetime/alias slots are installed at the first resource boundary,
+      // after the outer Windows compatibility layer has completed its chain.
       Patch(*result,33,reinterpret_cast<void*>(TextureFrontBuffer));Patch(*result,64,reinterpret_cast<void*>(ChannelGetTexture));
       IDirect3DSwapChain9* swap=nullptr;
       if(SUCCEEDED((*result)->GetSwapChain(0,&swap))&&swap) {
@@ -1304,10 +1303,6 @@ static HRESULT STDMETHODCALLTYPE CreateDevice(IDirect3D9* d,UINT adapter,D3DDEVT
     Patch(*result,51,reinterpret_cast<void*>(SetLight));
     Patch(*result,81,reinterpret_cast<void*>(Draw)); Patch(*result,82,reinterpret_cast<void*>(DrawIndexed));
     Patch(*result,83,reinterpret_cast<void*>(DrawUP)); Patch(*result,84,reinterpret_cast<void*>(DrawIndexedUP));
-    if(independent_scene_source::selectedSubmitEnabled)
-      d3d9_state_witness::Install(*result,reinterpret_cast<void*>(Reset),reinterpret_cast<void*>(DeviceRelease),
-        reinterpret_cast<void*>(AuditSetShader<IDirect3DVertexShader9,92>),reinterpret_cast<void*>(AuditSetShader<IDirect3DPixelShader9,107>),
-        ShaderConstantAuditHooks());
     skin_packet_capture::AuditDevice(*result,"create");
   }
   if(logFile) { fprintf(logFile,"{\"event\":\"create_device\",\"hr\":%ld}\n",hr); fflush(logFile); }

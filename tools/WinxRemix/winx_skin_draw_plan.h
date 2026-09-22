@@ -43,8 +43,12 @@ inline bool Describe(const skin_draw_state::Snapshot& input,State& output,Error*
   if(stage(0,D3DTSS_COLOROP)!=D3DTOP_MODULATE||stage(0,D3DTSS_COLORARG1)!=D3DTA_TEXTURE||
      stage(0,D3DTSS_COLORARG2)!=D3DTA_CURRENT||stage(0,D3DTSS_ALPHAOP)!=D3DTOP_MODULATE||
      stage(0,D3DTSS_ALPHAARG1)!=D3DTA_TEXTURE||stage(0,D3DTSS_ALPHAARG2)!=D3DTA_CURRENT||
-     stage(0,D3DTSS_RESULTARG)!=D3DTA_CURRENT||stage(0,D3DTSS_TEXCOORDINDEX)!=0||
-     stage(0,D3DTSS_TEXTURETRANSFORMFLAGS)!=D3DTTFF_DISABLE)return Fail(error,Error::Stage);
+     stage(0,D3DTSS_RESULTARG)!=D3DTA_CURRENT||stage(0,D3DTSS_TEXCOORDINDEX)!=0)return Fail(error,Error::Stage);
+  const auto transformFlags=stage(0,D3DTSS_TEXTURETRANSFORMFLAGS);
+  if(transformFlags!=D3DTTFF_DISABLE&&transformFlags!=D3DTTFF_COUNT2)return Fail(error,Error::Stage);
+  // The qualified vertex shader already emits UV. The original COUNT2 state
+  // does not apply the FFP matrix again; projected sampling remains separate.
+  // Keep result.texture.transformFlags disabled for our prepared coordinates.
   // Initial policy has only the already exercised repeat/linear mip contract.
   // Do not silently collapse anisotropy, LOD bias or mixed min/mag/mip filters.
   if(sampler(D3DSAMP_ADDRESSU)!=D3DTADDRESS_WRAP||sampler(D3DSAMP_ADDRESSV)!=D3DTADDRESS_WRAP||

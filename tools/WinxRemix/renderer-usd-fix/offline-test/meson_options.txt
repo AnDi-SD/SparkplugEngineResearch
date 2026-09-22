@@ -1,0 +1,4 @@
+option('renderer_source', type : 'string', value : '', description : 'Immutable patched renderer source tree')
+option('renderer_build', type : 'string', value : '', description : 'Matching _Comp64Release build with util, Tracy and lssUsd libraries')
+option('usd_directory', type : 'string', value : '', description : 'Pinned Windows USD distribution root with include, lib and bin')
+option('exporter_object', type : 'string', value : '', description : 'Optional matching game_exporter.cpp object for a one-file candidate')

@@ -14,6 +14,9 @@ param(
     [switch]$NativeOwnerSource,
     [switch]$NativeSkinSource,
     [switch]$NativeSkinPackets,
+    [switch]$SkinDrawAudit,
+    [switch]$SkinSubmit,
+    [string]$SkinShaderContracts,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
@@ -31,6 +34,11 @@ param(
     [ValidateScript({ $_ -eq 0 -or ($_ -ge 1 -and $_ -le 37) -or ($_ -ge 41 -and $_ -le 49) })][int]$StartLevel=0
 )
 $ErrorActionPreference='Stop'
+if ($SkinSubmit) {
+    if ($Mode -ne 'RTX') { throw 'SkinSubmit requires RTX and the skinning bridge/renderer extensions' }
+    $SkinDrawAudit=$true; $NativeCameraSubmit=$true; $NativeLightSubmit=$true; $AutoSurfaceRoles=$true; $MaterialChannels=$true
+}
+if ($SkinDrawAudit) { $NativeSkinPackets=$true; $NativeUpdateSource=$true }
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
 if ($NativeSkinPackets) { $NativeSkinSource=$true }
@@ -66,6 +74,8 @@ if ($NativeMaterialSubmit) { $options.NativeMaterialSubmit=$true }
 if ($NativeOwnerSource) { $options.NativeOwnerSource=$true }
 if ($NativeSkinSource) { $options.NativeSkinSource=$true }
 if ($NativeSkinPackets) { $options.NativeSkinPackets=$true }
+if ($SkinDrawAudit) { $options.SkinDrawAudit=$true; $options.SkinShaderContracts=$SkinShaderContracts }
+if ($SkinSubmit) { $options.SkinSubmit=$true }
 if ($NativeUpdateSource) { $options.NativeUpdateSource=$true }
 if ($IndependentSceneSource) { $options.IndependentSceneSource=$true }
 if ($IndependentSceneSubmit) { $options.IndependentSceneSubmit=$true }

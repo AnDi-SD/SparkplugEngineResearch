@@ -9,6 +9,7 @@ namespace pc=sparkplug::evidence::pc;
 namespace packet=winx_remix::skin_packet;
 static unsigned checks;
 static void Check(bool okay,const char* reason){++checks;if(!okay)throw std::runtime_error(reason);}
+#include "test_fixed_diffuse.h"
 static void Tests(){
     pc::FixedDirectionalLightingForAnalysis p;
     p.ambient={.1f,.2f,.3f,.4f};p.materialDiffuse={.6f,.7f,.8f,.75f};p.constantColor={.125f,.25f,.5f,1};
@@ -31,11 +32,48 @@ static void Tests(){
     p.lightCount=9;Check(!pc::ShadeFixedDirectionalForAnalysis(normal,color,p,out),"original directional array bound");
     p.lightCount=1;p.lights[0].direction[0]=INFINITY;
     Check(!pc::ShadeFixedDirectionalForAnalysis(normal,color,p,out),"nonfinite light refuses");
+    pc::FixedDiffuseLightingForAnalysis local;local.lightCount=1;
+    auto& light=local.lights[0];light.type=1;light.position={0,0,2,1};light.attenuation={2,1,0,0};
+    const auto saved=out;
+    light.type=3;Check(!pc::ShadeFixedDiffuseForAnalysis({0,0,1,1},{0,0,1},color,local,out),"unknown diffuse shader type refuses");
+    light.type=1;light.position={0,0,1,1};
+    Check(!pc::ShadeFixedDiffuseForAnalysis({0,0,1,1},{0,0,1},color,local,out),"zero homogeneous light direction refuses");
+    light.position={0,0,2,1};light.attenuation={0,0,0,0};
+    Check(!pc::ShadeFixedDiffuseForAnalysis({0,0,1,1},{0,0,1},color,local,out),"positive point with zero attenuation denominator refuses");
+    light.type=2;light.inner=light.outer=.5f;
+    Check(!pc::ShadeFixedDiffuseForAnalysis({0,0,1,1},{0,0,1},color,local,out),"zero spotlight cone width refuses");
+    Check(out.color==saved.color&&out.viewNormal==saved.viewNormal,"local light refusal preserves caller output");
 }
 static std::vector<uint8_t> Read(const char* path,size_t bound){
     std::ifstream stream(path,std::ios::binary|std::ios::ate);Check(bool(stream),"input file open");const auto size=stream.tellg();
     Check(size>=0&&uint64_t(size)<=bound,"file size bound");std::vector<uint8_t> bytes(size_t(size),0);stream.seekg(0);
     Check(bool(stream.read(reinterpret_cast<char*>(bytes.data()),size)),"complete file read");return bytes;
+}
+#include "test_fixed_uv.h"
+static void ReplayDiffuse(const char* source,const char* destination){
+    // Own DLP1 fixture: header, six float4 inputs, eight 76-byte light records.
+    // Explicit fields avoid depending on the C++ parameter structure's padding.
+    const auto bytes=Read(source,720);Check(bytes.size()==720,"DLP1 constant layout");
+    uint32_t header[4]{};memcpy(header,bytes.data(),16);
+    Check(header[0]==0x31504c44&&header[1]==1,"DLP1 magic and version");
+    pc::FixedDiffuseLightingForAnalysis parameters;parameters.colorMode=header[2];parameters.lightCount=header[3];
+    size_t offset=16;auto take=[&](auto& vector){memcpy(vector.data(),bytes.data()+offset,16);offset+=16;};
+    pc::FixedSkinVector position{},normal{},color{};
+    take(position);take(normal);take(color);take(parameters.ambient);take(parameters.materialDiffuse);take(parameters.constantColor);
+    for(auto& light:parameters.lights){
+        memcpy(&light.type,bytes.data()+offset,4);offset+=4;
+        take(light.direction);take(light.diffuse);take(light.position);take(light.attenuation);
+        memcpy(&light.inner,bytes.data()+offset,4);memcpy(&light.outer,bytes.data()+offset+4,4);offset+=8;
+    }
+    Check(offset==bytes.size(),"DLP1 records consume whole input");
+    pc::FixedLightingOutputForAnalysis output;
+    Check(pc::ShadeFixedDiffuseForAnalysis(position,{normal[0],normal[1],normal[2]},color,parameters,output),"shared Fixed diffuse evaluation");
+    std::array<float,7> values{};
+    std::copy(output.viewNormal.begin(),output.viewNormal.end(),values.begin());
+    std::copy(output.color.begin(),output.color.end(),values.begin()+3);
+    std::ofstream stream(destination,std::ios::binary);Check(bool(stream),"diffuse output file open");
+    stream.write(reinterpret_cast<const char*>(values.data()),sizeof(values));stream.close();Check(bool(stream),"complete diffuse output and close");
+    printf("{\"status\":\"PASS\",\"stride\":28,\"gpu\":false}\n");
 }
 static void Replay(const char* source,const char* constantFile,const char* destination){
     packet::Packet p;Check(packet::Decode(Read(source,packet::MaximumWireBytes),p),"bounded SKP1 decode");
@@ -57,7 +95,9 @@ static void Replay(const char* source,const char* constantFile,const char* desti
     printf("{\"status\":\"PASS\",\"vertices\":%zu,\"stride\":28,\"gpu\":false}\n",p.vertices.size());
 }
 int main(int argc,char** argv){try{
+    if(argc==4&&std::string(argv[1])=="--uv"){ReplayUv(argv[2],argv[3]);return 0;}
+    if(argc==4&&std::string(argv[1])=="--diffuse"){ReplayDiffuse(argv[2],argv[3]);return 0;}
     if(argc==5&&std::string(argv[1])=="--packet"){Replay(argv[2],argv[3],argv[4]);return 0;}
-    Check(argc==1,"usage: test_fixed_lighting [--packet packet.skp params.flp output.bin]");Tests();
+    Check(argc==1,"usage: test_fixed_lighting [--packet packet.skp params.flp output.bin | --diffuse params.dlp output.bin | --uv params.fuv output.bin]");Tests();DiffuseFixtures();UvFixtures();
     printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false}\n",checks);return 0;
 }catch(const std::exception& error){fprintf(stderr,"FAIL %s\n",error.what());return 1;}}

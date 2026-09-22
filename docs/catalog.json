@@ -1982,6 +1982,21 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-action-state.md",
+      "title": "wxActionState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ai-action.md",
+      "title": "wxAIAction",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-character-state.md",
+      "title": "wxCharacterState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-engine-core.md",
       "title": "spEngineCore / wxEngineCore",
       "category": "reference/classes"

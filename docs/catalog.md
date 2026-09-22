@@ -477,6 +477,9 @@
 - [spZone](reference/classes/sp-zone.md).
 - [spZonePortal](reference/classes/sp-zone-portal.md).
 - [spZonePortalNode](reference/classes/sp-zone-portal-node.md).
+- [wxActionState](reference/classes/wx-action-state.md).
+- [wxAIAction](reference/classes/wx-ai-action.md).
+- [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxGameFlowState](reference/classes/wx-game-flow-state.md).
 - [wxPCApp](reference/classes/wx-pc-app.md).
 - [wxPS2App](reference/classes/wx-ps2-app.md).

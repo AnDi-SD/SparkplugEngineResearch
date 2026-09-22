@@ -61,13 +61,17 @@ static void Focus() {
   fprintf(journal,"{\"event\":\"focus\",\"frame\":%u}\n",frame);fflush(journal);
 }
 static void Capture(const char* name) {
-  if(GetForegroundWindow()!=window)Fail("fixture lost foreground",0);
+  if(!IsWindowVisible(window)||IsIconic(window)||GetForegroundWindow()!=window)Fail("fixture is not visibly foreground",0);
   RECT r{};if(!GetClientRect(window,&r))Fail("client rectangle",GetLastError());
   const int width=r.right,height=r.bottom;
   if(width!=960 || height!=540)Fail("unexpected client dimensions",0);
   // DWM's per-window redirection bitmap can remain stale with Vulkan presents.
   // Copy only this foreground window's client rectangle from the desktop DC.
   POINT origin{};if(!ClientToScreen(window,&origin))Fail("client origin",GetLastError());
+  for(const POINT offset: {POINT{1,1},POINT{width-2,1},POINT{1,height-2},POINT{width-2,height-2},POINT{width/2,height/2}}) {
+    const POINT pixel{origin.x+offset.x,origin.y+offset.y};
+    if(GetAncestor(WindowFromPoint(pixel),GA_ROOT)!=window)Fail("owned client is covered",0);
+  }
   HDC source=GetDC(nullptr),memory=CreateCompatibleDC(source);
   BITMAPINFO info{};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);
   info.bmiHeader.biWidth=width;info.bmiHeader.biHeight=-height;info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;
@@ -135,7 +139,9 @@ int main(int argc,char** argv) {
   RECT size{0,0,960,540};AdjustWindowRect(&size,WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU,FALSE);
   window=CreateWindowW(wc.lpszClassName,system?L"Winx material fixture - system D3D9":L"Winx material fixture - stock RTX Remix",
     WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU,40,40,size.right-size.left,size.bottom-size.top,nullptr,nullptr,wc.hInstance,nullptr);
-  if(!window)Fail("window creation",GetLastError());ShowWindow(window,SW_SHOW);SetForegroundWindow(window);
+  // The hidden console launch supplies STARTUPINFO.wShowWindow to the first
+  // call. Explicitly show our graphics window after consuming that startup flag.
+  if(!window)Fail("window creation",GetLastError());ShowWindow(window,SW_SHOW);ShowWindow(window,SW_SHOW);SetForegroundWindow(window);
   auto runtime=system?LoadLibraryExW(L"d3d9.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32):LoadLibraryW(L".\\d3d9.dll");
   if(!runtime)Fail("runtime load",GetLastError());
   auto factory=reinterpret_cast<IDirect3D9*(WINAPI*)(UINT)>(GetProcAddress(runtime,"Direct3DCreate9"));

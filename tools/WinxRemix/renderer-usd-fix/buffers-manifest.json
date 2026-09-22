@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": "buffers-v1.patch",
+  "patchSha256": "dbfb1e2fc63f41aa929de7c4367a88a857144c188e4921176c13836ce40bd043",
+  "requires": [
+    "api-usd-v1.patch",
+    "animation-v1.patch"
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/lssusd/game_exporter.cpp",
+      "beforeLfSha256": "c6cf3adf410d3e763d59a0bcda73244846e9540237176236226a290212d67425",
+      "afterLfSha256": "8a76715b7c138d8345de18d78d877f37994bf9604892279c1995b67e68c5acea"
+    }
+  ],
+  "scope": "Stable vertex mapping and source sample lengths for reduction; owned scratch, independent color/opacity samples, constant mesh colors, time-sampled face counts and default D3D9 joint indices matching exported vertices.",
+  "qualification": "Public CPU dynamic geometry, variable rigid/Skin array lengths, changing triangle counts, constant and per-vertex colors, explicit/default joint indices and animated signed-weight skin/material regression pass. No GPU/capturer/game qualification; switching color interpolation mode remains unqualified."
+}

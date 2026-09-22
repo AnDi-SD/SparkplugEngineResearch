@@ -1,0 +1,13 @@
+--- a/bridge/src/util/util_process.cpp
++++ b/bridge/src/util/util_process.cpp
+@@ -70,8 +70,8 @@
+     if (INVALID_HANDLE_VALUE != hProcess) {
+       UnregisterExitCallback();
+ 
+-      // Give the child process 3 seconds to terminate on its own before we kill it
+-      DWORD result = WaitForSingleObject(hProcess, 3'000);
++      // Give the child process 10 seconds to terminate on its own before we kill it
++      DWORD result = WaitForSingleObject(hProcess, 10'000);
+       if (result == WAIT_TIMEOUT) {
+         TerminateProcess(hProcess, 1);
+       }

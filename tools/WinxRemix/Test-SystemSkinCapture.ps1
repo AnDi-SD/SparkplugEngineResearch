@@ -1,4 +1,5 @@
-param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name, [switch]$SkipRun)
+param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name, [switch]$SkipRun,
+      [ValidateSet('system','remix')][string]$BackendCondition='system')
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $toolRoot=$PSScriptRoot
@@ -39,6 +40,7 @@ try {
     $exe=Join-Path $build 'test_system_skin_capture.exe'
     $process=New-Object System.Diagnostics.Process
     $process.StartInfo.FileName=$exe
+    if($BackendCondition -eq 'remix'){$process.StartInfo.Arguments='--remix-condition'}
     $process.StartInfo.WorkingDirectory=$build
     $process.StartInfo.UseShellExecute=$false
     $process.StartInfo.CreateNoWindow=$true
@@ -60,7 +62,7 @@ try {
     [IO.File]::WriteAllText((Join-Path $build 'result.json'),$stdoutTask.GetAwaiter().GetResult(),[Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $build 'stderr.log'),$stderrTask.GetAwaiter().GetResult(),[Text.UTF8Encoding]::new($false))
     @{exitCode=$exitCode;limited=$limited;elapsedMilliseconds=$started.ElapsedMilliseconds;
-      sampledPeakWorkingBytes=$peakWorking;sampledPeakPrivateBytes=$peakPrivate;backend='system';
+      sampledPeakWorkingBytes=$peakWorking;sampledPeakPrivateBytes=$peakPrivate;backend='system';adapterBackendCondition=$BackendCondition;
       executableSha256=(Get-FileHash -LiteralPath $exe).Hash} |
       ConvertTo-Json | Set-Content -LiteralPath (Join-Path $build 'execution.json') -Encoding UTF8
     $process.Dispose()

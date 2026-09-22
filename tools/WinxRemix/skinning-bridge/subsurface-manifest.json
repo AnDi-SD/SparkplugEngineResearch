@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "baseRevision": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": "subsurface-wire-v1.patch",
+  "patchSha256": "7f23a7d798604970bd44c35566b81ee85d1a6494134399ac4d8bc928dbc84c3b",
+  "requires": [
+    {
+      "patch": "skinning-wire-v1-full.patch",
+      "sha256": "12c506264b7dbcbc856f2915df1f2a4c29a13ce2b5ec7920d579caefd1bb1767"
+    },
+    {
+      "patch": "child-shutdown-v1.patch",
+      "sha256": "13ebd7099903bca69ac44ea383d434eca63139a511242db18ff47f98b665a971"
+    },
+    {
+      "patch": "remote-handle-v1.patch",
+      "sha256": "31c4d46642c6607524339fc7ddd1b4e46d3de89eaefba64c1b9a300ea2591051"
+    }
+  ],
+  "wireVersion": "remix-main-skinwire-v1+material-v1",
+  "requiresMatchingPair": true,
+  "sourceFiles": [
+    {
+      "path": "bridge/meson.build",
+      "beforeLfSha256": "7419f9454c065dbd1787e637feba9f07b4ed34a76fdb8eb1a2a3e3f0ec5fdc7b",
+      "afterLfSha256": "1938e2bf18132d532c7c919b4d7fd825d58d7ef77a1378c7087ffda2676d2960"
+    },
+    {
+      "path": "bridge/src/util/util_remixapi.cpp",
+      "beforeLfSha256": "30a9808adc6cfff0404052241cb3ae456b3ba897228520151c594821dfca7859",
+      "afterLfSha256": "c6dd7099e2bdaab344b9407563aeb0d09634d7a2841960ff2dd194944e5122ef"
+    },
+    {
+      "path": "bridge/test/rtx/unit/test_remix_api_common.h",
+      "beforeLfSha256": "8467b5ac0226a35265d443f921272229a53559f66fca1339a79f6095031c5ff3",
+      "afterLfSha256": "ced36a7c68dbc357068229e41a2ceef2330b57947d586f5b284abcf5673c9e90"
+    }
+  ],
+  "scope": "Complete Opaque Subsurface values and four owned paths. Version changes on both sides. No general malformed-payload validation.",
+  "qualification": "Cross-architecture CPU serializer and allocation-failure checks passed. Full matching pair built. GPU material capture remains pending."
+}

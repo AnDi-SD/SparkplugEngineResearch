@@ -13,6 +13,7 @@
 
 namespace winx_remix::skin_shader {
 constexpr size_t MaximumCodeBytes=16384,MaximumCatalogBytes=1024*1024;
+constexpr unsigned MaximumPrograms=512;
 constexpr std::array<uint8_t,32> SourceDigest={0xac,0x67,0x85,0x42,0x8b,0xa8,0x51,0xde,0xa8,0x8e,0x3a,0x6c,0xdd,0xc0,0x3f,0xdf,
   0x62,0x0f,0xa0,0x6d,0x82,0x06,0x3d,0xb8,0x31,0x76,0x59,0x81,0x40,0x80,0x3d,0xb1};
 struct Constant {
@@ -35,7 +36,10 @@ inline uint32_t Word(const uint8_t* bytes){uint32_t value;std::memcpy(&value,byt
 inline uint16_t Half(const uint8_t* bytes){uint16_t value;std::memcpy(&value,bytes,2);return value;}
 inline bool Family(const std::array<uint32_t,2>& key) {
   const auto bones=key[0]&15,lights=(key[0]>>20)&15;
-  return bones>=1&&bones<=4&&lights<=3&&key[1]==0&&key[0]==(bones|0x10u|0x40000u|(lights<<20));
+  if(bones<1||bones>4||lights>3||(key[0]&~0x100u)!=(bones|0x10u|0x40000u|(lights<<20)))return false;
+  if(key[1]>>(2*lights))return false;
+  for(unsigned i=0;i<lights;++i)if(((key[1]>>(2*i))&3)>2)return false;
+  return true;
 }
 inline bool Parse(const uint8_t* bytes,size_t size,Program& output) {
   if(!bytes||size<48||size>MaximumCodeBytes||size%4||Word(bytes)!=0xfffe0101||Word(bytes+size-4)!=0xffff)return false;
@@ -78,18 +82,37 @@ inline bool Layout(const Program& program) {
      !vp||vp->kind!=3||vp->rows!=4||vp->columns!=4||vp->elements!=1||vp->count!=4||
      !diffuse||diffuse->kind!=1||diffuse->rows!=1||diffuse->columns!=4||diffuse->elements!=1||diffuse->count!=1)return false;
   const unsigned lights=(program.key[0]>>20)&15;
+  unsigned directions=0,positions=0,attenuations=0,cones=0;
+  for(unsigned i=0;i<lights;++i) {
+    const auto type=(program.key[1]>>(2*i))&3;
+    if(type==0||type==2)directions=i+1;
+    if(type==1||type==2)positions=i+1;
+    if(type==1)attenuations=i+1;
+    if(type==2)cones=i+1;
+  }
   for(const auto& value:program.constants) {
     if(value.name!="BlendMatrices"&&value.name!="VPTransform"&&value.name!="MatDiffuse"&&value.name!="AmbientCol"&&
-       value.name!="view_matrix"&&value.name!="LightDir"&&value.name!="LightMatDiff")return false;
+       value.name!="view_matrix"&&value.name!="LightDir"&&value.name!="LightMatDiff"&&value.name!="LightPos"&&
+       value.name!="LightAttenuation"&&value.name!="LightInner"&&value.name!="LightOuter"&&value.name!="UVTransform")return false;
   }
+  const auto uv=program.Find("UVTransform");
+  if(program.key[0]&0x100) {
+    if(!uv||uv->kind!=3||uv->rows!=3||uv->columns!=3||uv->elements!=8||uv->count!=3)return false;
+  }else if(uv)return false;
   const auto ambient=program.Find("AmbientCol");
   if(!ambient||ambient->kind!=1||ambient->rows!=1||ambient->columns!=4||ambient->elements!=1||ambient->count!=1)return false;
   if(lights) {
-    const auto view=program.Find("view_matrix"),direction=program.Find("LightDir"),color=program.Find("LightMatDiff");
-    if(!view||view->kind!=3||view->rows!=4||view->columns!=4||view->elements!=1||view->count!=3||
-       !direction||direction->kind!=1||direction->rows!=1||direction->columns!=4||direction->elements!=8||direction->count!=lights||
-       !color||color->kind!=1||color->rows!=1||color->columns!=4||color->elements!=8||color->count!=lights)return false;
-  }else if(program.Find("view_matrix")||program.Find("LightDir")||program.Find("LightMatDiff"))return false;
+    const auto view=program.Find("view_matrix");
+    if(!view||view->kind!=3||view->rows!=4||view->columns!=4||view->elements!=1||view->count!=(positions?4:3))return false;
+  }else if(program.Find("view_matrix"))return false;
+  // Optimized array extents end after the highest referenced original slot,
+  // not after the number of lights of that type. Order is part of the key.
+  const auto array=[&](const char* name,unsigned count,bool scalar=false) {
+    const auto value=program.Find(name);if(!count)return !value;
+    return value&&value->kind==(scalar?0:1)&&value->rows==1&&value->columns==(scalar?1:4)&&value->elements==8&&value->count==count;
+  };
+  if(!array("LightDir",directions)||!array("LightPos",positions)||!array("LightAttenuation",attenuations)||
+     !array("LightMatDiff",lights)||!array("LightInner",cones,true)||!array("LightOuter",cones,true))return false;
   return true;
 }
 struct Catalog {
@@ -97,7 +120,7 @@ struct Catalog {
   bool Decode(const std::vector<uint8_t>& bytes) {
     if(bytes.size()<44||bytes.size()>MaximumCatalogBytes||Word(bytes.data())!=0x31465357||Word(bytes.data()+4)!=1||
        std::memcmp(bytes.data()+12,SourceDigest.data(),SourceDigest.size()))return false;
-    const auto count=Word(bytes.data()+8);if(!count||count>64)return false;
+    const auto count=Word(bytes.data()+8);if(!count||count>MaximumPrograms)return false;
     std::vector<Program> result;std::set<std::array<uint32_t,2>> keys;size_t offset=44;
     for(unsigned i=0;i<count;++i) {
       if(bytes.size()-offset<12)return false;

@@ -11,6 +11,7 @@ static std::vector<scene_audit::ConvertedLight> submitted;
 static void Check(bool value,const char* message) {
   ++checks;if(!value) {fprintf(stderr,"FAIL: %s\n",message);std::exit(1);}
 }
+#include "test_scene_read_window.h"
 static remixapi_ErrorCode REMIXAPI_CALL TestCreate(const remixapi_LightInfo* info,remixapi_LightHandle* out) {
   if(failCreate) return REMIXAPI_ERROR_CODE_GENERAL_FAILURE;
   scene_audit::ConvertedLight state{};state.radiance=info->radiance;
@@ -61,6 +62,7 @@ struct Fixture {
 };
 int main() {
   using namespace scene_audit;
+  SceneReadWindowTests();
   remixapi_Interface api{};api.CreateLight=TestCreate;api.DestroyLight=TestDestroy;api.DrawLightInstance=TestDraw;api.SetConfigVariable=TestConfig;
   testRemixApi=&api;sceneLightsEnabled=true;Fixture a;
   Check(ReadLights(a.address()).valid,"valid complete linked scene registry");

@@ -1,0 +1,276 @@
+--- a/src/dxvk/rtx_render/rtx_game_capturer.cpp
++++ b/src/dxvk/rtx_render/rtx_game_capturer.cpp
+@@ -30,6 +30,7 @@
+ #include "rtx_instance_manager.h"
+ #include "rtx_scene_manager.h"
+ #include "rtx_materials.h"
++#include "rtx_asset_replacer.h"
+ 
+ #include "../dxvk_device.h"
+ 
+@@ -462,6 +463,72 @@
+     }
+   }
+ 
++  static lss::Material captureExternalOpaqueMaterial(const Rc<DxvkContext>& ctx,
++      AssetExporter& exporter, const OpaqueMaterialData& material,
++      const XXH64_hash_t materialHash, const bool enableOpacity) {
++    lss::Material result;
++    result.matName = hashToString(materialHash);
++    result.enableOpacity = enableOpacity;
++    const auto captureTexture = [&](const char* token, const TextureRef& texture) {
++      const auto* view = texture.getImageView();
++      if (view == nullptr) {
++        if (texture.isValid()) {
++          Logger::warn(str::format("[GameCapturer] External texture is not resident: ", result.matName, " ", token));
++        }
++        return;
++      }
++      const std::string filename = result.matName + "_" + std::string(token + 7) + lss::ext::dds;
++      exporter.dumpImageToFile(ctx, BASE_DIR + lss::commonDirName::texDir, filename, view->image());
++      result.textureInputs[token] = str::format(BASE_DIR + lss::commonDirName::texDir, filename);
++    };
++    result.shaderInputs["inputs:anisotropy"] = pxr::VtValue(material.getAnisotropyConstant());
++    result.shaderInputs["inputs:emissive_intensity"] = pxr::VtValue(material.getEmissiveIntensity());
++    result.shaderInputs["inputs:diffuse_color_constant"] = pxr::VtValue(pxr::GfVec3f(material.getAlbedoConstant().x, material.getAlbedoConstant().y, material.getAlbedoConstant().z));
++    result.shaderInputs["inputs:opacity_constant"] = pxr::VtValue(material.getOpacityConstant());
++    result.shaderInputs["inputs:reflection_roughness_constant"] = pxr::VtValue(material.getRoughnessConstant());
++    result.shaderInputs["inputs:metallic_constant"] = pxr::VtValue(material.getMetallicConstant());
++    result.shaderInputs["inputs:emissive_color_constant"] = pxr::VtValue(pxr::GfVec3f(material.getEmissiveColorConstant().x, material.getEmissiveColorConstant().y, material.getEmissiveColorConstant().z));
++    result.shaderInputs["inputs:enable_emission"] = pxr::VtValue(material.getEnableEmission());
++    result.shaderInputs["inputs:sprite_sheet_rows"] = pxr::VtValue(static_cast<unsigned int>(material.getSpriteSheetRows()));
++    result.shaderInputs["inputs:sprite_sheet_cols"] = pxr::VtValue(static_cast<unsigned int>(material.getSpriteSheetCols()));
++    result.shaderInputs["inputs:sprite_sheet_fps"] = pxr::VtValue(static_cast<unsigned int>(material.getSpriteSheetFPS()));
++    result.shaderInputs["inputs:enable_thin_film"] = pxr::VtValue(material.getEnableThinFilm());
++    result.shaderInputs["inputs:thin_film_thickness_from_albedo_alpha"] = pxr::VtValue(material.getAlphaIsThinFilmThickness());
++    result.shaderInputs["inputs:thin_film_thickness_constant"] = pxr::VtValue(material.getThinFilmThicknessConstant());
++    result.shaderInputs["inputs:use_legacy_alpha_state"] = pxr::VtValue(material.getUseLegacyAlphaState());
++    result.shaderInputs["inputs:blend_enabled"] = pxr::VtValue(material.getBlendEnabled());
++    result.shaderInputs["inputs:blend_type"] = pxr::VtValue(static_cast<unsigned int>(material.getBlendType()));
++    result.shaderInputs["inputs:inverted_blend"] = pxr::VtValue(material.getInvertedBlend());
++    result.shaderInputs["inputs:alpha_test_type"] = pxr::VtValue(static_cast<unsigned int>(material.getAlphaTestType()));
++    result.shaderInputs["inputs:alpha_test_reference_value"] = pxr::VtValue(static_cast<unsigned int>(material.getAlphaTestReferenceValue()));
++    result.shaderInputs["inputs:displace_in"] = pxr::VtValue(material.getDisplaceIn());
++    result.shaderInputs["inputs:displace_out"] = pxr::VtValue(material.getDisplaceOut());
++    result.shaderInputs["inputs:subsurface_transmittance_color"] = pxr::VtValue(pxr::GfVec3f(material.getSubsurfaceTransmittanceColor().x, material.getSubsurfaceTransmittanceColor().y, material.getSubsurfaceTransmittanceColor().z));
++    result.shaderInputs["inputs:subsurface_measurement_distance"] = pxr::VtValue(material.getSubsurfaceMeasurementDistance());
++    result.shaderInputs["inputs:subsurface_single_scattering_albedo"] = pxr::VtValue(pxr::GfVec3f(material.getSubsurfaceSingleScatteringAlbedo().x, material.getSubsurfaceSingleScatteringAlbedo().y, material.getSubsurfaceSingleScatteringAlbedo().z));
++    result.shaderInputs["inputs:subsurface_volumetric_anisotropy"] = pxr::VtValue(material.getSubsurfaceVolumetricAnisotropy());
++    result.shaderInputs["inputs:subsurface_diffusion_profile"] = pxr::VtValue(material.getSubsurfaceDiffusionProfile());
++    result.shaderInputs["inputs:subsurface_radius"] = pxr::VtValue(pxr::GfVec3f(material.getSubsurfaceRadius().x, material.getSubsurfaceRadius().y, material.getSubsurfaceRadius().z));
++    result.shaderInputs["inputs:subsurface_radius_scale"] = pxr::VtValue(material.getSubsurfaceRadiusScale());
++    result.shaderInputs["inputs:subsurface_max_sample_radius"] = pxr::VtValue(material.getSubsurfaceMaxSampleRadius());
++    result.shaderInputs["inputs:filter_mode"] = pxr::VtValue(static_cast<unsigned int>(material.getFilterMode()));
++    result.shaderInputs["inputs:wrap_mode_u"] = pxr::VtValue(static_cast<unsigned int>(material.getWrapModeU()));
++    result.shaderInputs["inputs:wrap_mode_v"] = pxr::VtValue(static_cast<unsigned int>(material.getWrapModeV()));
++    captureTexture("inputs:diffuse_texture", material.getAlbedoOpacityTexture());
++    captureTexture("inputs:normalmap_texture", material.getNormalTexture());
++    captureTexture("inputs:tangent_texture", material.getTangentTexture());
++    captureTexture("inputs:height_texture", material.getHeightTexture());
++    captureTexture("inputs:reflectionroughness_texture", material.getRoughnessTexture());
++    captureTexture("inputs:metallic_texture", material.getMetallicTexture());
++    captureTexture("inputs:emissive_mask_texture", material.getEmissiveColorTexture());
++    captureTexture("inputs:subsurface_transmittance_texture", material.getSubsurfaceTransmittanceTexture());
++    captureTexture("inputs:subsurface_thickness_texture", material.getSubsurfaceThicknessTexture());
++    captureTexture("inputs:subsurface_single_scattering_texture", material.getSubsurfaceSingleScatteringAlbedoTexture());
++    captureTexture("inputs:subsurface_radius_texture", material.getSubsurfaceRadiusTexture());
++    captureTexture("inputs:secondary_texture", material.getSecondaryTexture());
++    return result;
++  }
++
+   void GameCapturer::newInstance(const Rc<DxvkContext> ctx, const RtInstance& rtInstance) {
+     const BlasEntry* pBlas = rtInstance.getBlas();
+     assert(pBlas != nullptr);
+@@ -473,7 +540,17 @@
+ 
+     const bool bIsNewMat = (matHash != 0x0) && (m_pCap->materials.count(matHash) == 0);
+     if (bIsNewMat) {
+-      captureMaterial(ctx, material, !rtInstance.surface.alphaState.isFullyOpaque);
++      const auto handle = pBlas->input.getGeometryData().externalMaterial;
++      const MaterialData* external = m_sceneManager.getAssetReplacer()->accessExternalMaterial(handle);
++      if (external != nullptr && external->getType() == MaterialDataType::Opaque) {
++        m_pCap->materials[matHash].lssData = captureExternalOpaqueMaterial(ctx, m_exporter,
++          external->getOpaqueMaterialData(), matHash, !rtInstance.surface.alphaState.isFullyOpaque);
++      } else {
++        if (external != nullptr) {
++          Logger::warn("[GameCapturer] External material type is not supported by the Opaque capture adapter.");
++        }
++        captureMaterial(ctx, material, !rtInstance.surface.alphaState.isFullyOpaque);
++      }
+     }
+ 
+     bool bIsNewMesh = false;
+@@ -510,19 +587,21 @@
+     lssMat.matName = matName;
+     // Export Textures
+     const std::string albedoTexFilename(matName + lss::ext::dds);
+-    m_exporter.dumpImageToFile(ctx, BASE_DIR + lss::commonDirName::texDir,
+-                               albedoTexFilename,
+-                               materialData.getColorTexture().getImageView()->image());
+-    const std::string albedoTexPath = str::format(BASE_DIR + lss::commonDirName::texDir, albedoTexFilename);
+-    lssMat.albedoTexPath = albedoTexPath;
++    if (const auto* view = materialData.getColorTexture().getImageView()) {
++      m_exporter.dumpImageToFile(ctx, BASE_DIR + lss::commonDirName::texDir,
++                                 albedoTexFilename, view->image());
++      lssMat.albedoTexPath = str::format(BASE_DIR + lss::commonDirName::texDir, albedoTexFilename);
++    }
+     // Opacity
+     lssMat.enableOpacity = bEnableOpacity;
+     // Collect sampler info
+-    const auto& samplerCreateInfo = materialData.getSampler()->info();
+-    lssMat.sampler.addrModeU = samplerCreateInfo.addressModeU;
+-    lssMat.sampler.addrModeV = samplerCreateInfo.addressModeV;
+-    lssMat.sampler.filter = samplerCreateInfo.magFilter;
+-    lssMat.sampler.borderColor = samplerCreateInfo.borderColor;
++    if (materialData.getSampler() != nullptr) {
++      const auto& samplerCreateInfo = materialData.getSampler()->info();
++      lssMat.sampler.addrModeU = samplerCreateInfo.addressModeU;
++      lssMat.sampler.addrModeV = samplerCreateInfo.addressModeV;
++      lssMat.sampler.filter = samplerCreateInfo.magFilter;
++      lssMat.sampler.borderColor = samplerCreateInfo.borderColor;
++    }
+ 
+     // Set populated LSS Material in our cache
+     m_pCap->materials[materialData.getHash()].lssData = lssMat;
+@@ -578,7 +657,8 @@
+       pMesh->lssData.numIndices = numIndices;
+       pMesh->lssData.isDoubleSided = isDoubleSided;
+       pMesh->lssData.numBones = skinData.numBones;
+-      pMesh->lssData.bonesPerVertex = skinData.numBonesPerVertex;
++      // Own capture fix: geometry carries the actual submesh influence count.
++      pMesh->lssData.bonesPerVertex = rasterGeomData.numBonesPerVertex;
+       pMesh->lssData.isLhs = isLhs;
+       Logger::debug("[GameCapturer][" + m_pCap->idStr + "][Mesh:" + pMesh->lssData.meshName + "] New");
+     }
+@@ -612,7 +692,12 @@
+     }
+ 
+     if (bIsNewMesh && skinData.numBones > 0) {
+-      captureMeshBlending(ctx, rasterGeomData, m_pCap->currentFrameNum, pMesh);
++      // At this pinned API version, instance conversion builds SkinningData before
++      // attaching submesh geometry: the legacy influence count remains zero.
++      // Native D3D9 finalizeSkinningData populates that count. API buffers store
++      // every weight explicitly, including the final weight and signed values.
++      const bool explicitWeights = skinData.numBonesPerVertex == 0;
++      captureMeshBlending(ctx, rasterGeomData, explicitWeights, m_pCap->currentFrameNum, pMesh);
+       pMesh->lssData.boneXForms = matrix4VecToGfMatrix4dVec(skinData.pBoneMatrices);
+     }
+   }
+@@ -852,16 +937,21 @@
+ 
+   void GameCapturer::captureMeshBlending(const Rc<DxvkContext> ctx,
+                                          const RasterGeometry& geomData,
++                                         const bool explicitWeights,
+                                          const float currentFrameNum,
+                                          std::shared_ptr<Mesh> pMesh) {
+-    AssetExporter::BufferCallback captureMeshBlendWeightsAsync = [ctx, geomData, currentFrameNum, pMesh](Rc<DxvkBuffer> inBuf) {
++    AssetExporter::BufferCallback captureMeshBlendWeightsAsync = [ctx, geomData, explicitWeights, currentFrameNum, pMesh](Rc<DxvkBuffer> inBuf) {
+       // Prep helper vars
+       const size_t numVertices = geomData.vertexCount;
+       const size_t bonesPerVertex = pMesh->lssData.bonesPerVertex;
++      assert(bonesPerVertex > 0);
++      const size_t storedWeights = explicitWeights ? bonesPerVertex : bonesPerVertex - 1;
+       const size_t stride = geomData.blendWeightBuffer.stride() / sizeof(float);
+       const DxvkBufferSlice bufferSlice(inBuf, 0, inBuf->info().size);
+       const VkFormat format = geomData.blendWeightBuffer.vertexFormat();
+-      if (bonesPerVertex <= 2) {
++      if (explicitWeights) {
++        assert(format == VK_FORMAT_R32_SFLOAT);
++      } else if (bonesPerVertex <= 2) {
+         assert(format == VK_FORMAT_R32_SFLOAT || format == VK_FORMAT_R32G32_SFLOAT || format == VK_FORMAT_R32G32B32_SFLOAT);
+       } else if (bonesPerVertex == 3) {
+         assert(format == VK_FORMAT_R32G32_SFLOAT || format == VK_FORMAT_R32G32B32_SFLOAT);
+@@ -869,7 +959,7 @@
+         assert(format == VK_FORMAT_R32G32B32_SFLOAT);
+       }
+       // Ensure no reads are out of bounds
+-      assert(((size_t) (numVertices - 1) * (size_t) geomData.blendWeightBuffer.stride() + sizeof(float) * bonesPerVertex) <=
++      assert(((size_t) (numVertices - 1) * (size_t) geomData.blendWeightBuffer.stride() + sizeof(float) * storedWeights) <=
+              (bufferSlice.length() - geomData.blendWeightBuffer.offsetFromSlice()));
+       // Get copied-to-CPU GPU buffer
+       const float* pVkBwBuf = (float*) bufferSlice.mapPtr((size_t) geomData.blendWeightBuffer.offsetFromSlice());
+@@ -879,13 +969,13 @@
+       targetBuffer.reserve(numVertices * bonesPerVertex);
+       for (size_t idx = 0; idx < numVertices; ++idx) {
+         float lastWeight = 1.0;
+-        for (size_t bone_idx = 0; bone_idx < bonesPerVertex - 1; ++bone_idx) {
++        for (size_t bone_idx = 0; bone_idx < storedWeights; ++bone_idx) {
+           float thisWeight = pVkBwBuf[idx * stride + bone_idx];
+           lastWeight -= thisWeight;
+           targetBuffer.push_back(thisWeight);
+         }
+         // D3D9 only stores bonesPerVertex - 1 weights. The last weight is 1 minus the other weights.
+-        targetBuffer.push_back(lastWeight);
++        if (!explicitWeights) targetBuffer.push_back(lastWeight);
+       }
+       assert(targetBuffer.size() > 0);
+       // Create comparison function that returns float
+--- a/src/dxvk/rtx_render/rtx_game_capturer.h
++++ b/src/dxvk/rtx_render/rtx_game_capturer.h
+@@ -246,6 +246,7 @@
+                         std::shared_ptr<Mesh> pMesh);
+   void captureMeshBlending(const Rc<DxvkContext> ctx,
+                            const RasterGeometry& geomData,
++                           const bool explicitWeights,
+                            const float currentCaptureTime,
+                            std::shared_ptr<Mesh> pMesh);
+   template <typename T, typename CompareTReturnBool>
+--- a/src/lssusd/game_exporter_types.h
++++ b/src/lssusd/game_exporter_types.h
+@@ -27,6 +27,7 @@
+ #include "usd_include_begin.h"
+ #include <pxr/base/gf/matrix4d.h>
+ #include <pxr/usd/sdf/types.h>
++#include <pxr/base/vt/value.h>
+ #include <pxr/usd/sdf/path.h>
+ #include "usd_include_end.h"
+ 
+@@ -115,11 +116,14 @@
+   std::string matName;
+   std::string albedoTexPath;
+   bool        enableOpacity = false;
++  // Captured external Opaque material data owns its values after API retirement.
++  std::map<std::string, pxr::VtValue> shaderInputs;
++  std::map<std::string, std::string> textureInputs;
+   struct Sampler {
+-    VkSamplerAddressMode addrModeU;
+-    VkSamplerAddressMode addrModeV;
+-    VkFilter             filter;
+-    VkClearColorValue    borderColor;
++    VkSamplerAddressMode addrModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
++    VkSamplerAddressMode addrModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
++    VkFilter             filter = VK_FILTER_LINEAR;
++    VkClearColorValue    borderColor = {};
+   } sampler;
+   // TODO: std::string normalTexPath;
+   // TODO: etc...
+--- a/src/lssusd/game_exporter.cpp
++++ b/src/lssusd/game_exporter.cpp
+@@ -416,10 +416,23 @@
+     pxr::UsdModelAPI(shader).SetKind(kTokMaterial);
+ 
+     // Create and set textures asset paths on material
+-    const auto relToMaterialsTexPath =
+-      std::filesystem::relative(computeLocalPath(matData.albedoTexPath), fullMaterialBasePath).string();
+-    ASSERT_OR_EXECUTE(shaderAttrs[ShaderAttr::DiffuseTex].Set(pxr::SdfAssetPath(relToMaterialsTexPath)));
+-    shaderAttrs[ShaderAttr::DiffuseTex].SetColorSpace(pxr::TfToken("auto"));
++    if (!matData.albedoTexPath.empty()) {
++      const auto relToMaterialsTexPath =
++        std::filesystem::relative(computeLocalPath(matData.albedoTexPath), fullMaterialBasePath).string();
++      ASSERT_OR_EXECUTE(shaderAttrs[ShaderAttr::DiffuseTex].Set(pxr::SdfAssetPath(relToMaterialsTexPath)));
++      shaderAttrs[ShaderAttr::DiffuseTex].SetColorSpace(pxr::TfToken("auto"));
++    }
++    for (const auto& [name, path] : matData.textureInputs) {
++      const auto relativePath = std::filesystem::relative(computeLocalPath(path), fullMaterialBasePath).string();
++      auto attr = shaderPrim.CreateAttribute(pxr::TfToken(name), pxr::SdfValueTypeNames->Asset, false);
++      ASSERT_OR_EXECUTE(attr.Set(pxr::SdfAssetPath(relativePath)));
++      attr.SetColorSpace(pxr::TfToken("auto"));
++    }
++    for (const auto& [name, value] : matData.shaderInputs) {
++      const auto type = pxr::SdfGetValueTypeNameForValue(value);
++      auto attr = shaderPrim.CreateAttribute(pxr::TfToken(name), type, false);
++      ASSERT_OR_EXECUTE(attr.Set(value));
++    }
+ 
+     // Create and set OmniPBR MDL boilerplate attributes on shader
+     ASSERT_OR_EXECUTE(shaderAttrs[ShaderAttr::ImplSrc].Set(pxr::TfToken("sourceAsset")));

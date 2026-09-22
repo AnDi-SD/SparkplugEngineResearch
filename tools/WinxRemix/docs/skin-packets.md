@@ -191,7 +191,7 @@ instance: повторное применение костей или world tran
 `Resource` использует общий Surface cache с индексированным входом. Ключ
 включает все вершины, индексы и material handle. Новая поза создаёт новый
 immutable mesh; API UpdateMesh здесь нет. Skinning отключён, instance transform
-единичный. Лимиты общего cache остаются 512 meshes, 64 МиБ геометрии и 256
+единичный. Лимиты общего cache: 1024 meshes, 64 МиБ геометрии и 256
 материалов; память считается по компактным массивам. Материал должен уже
 принадлежать этому cache, а освобождение меша предшествует его материалу.
 В используемом Remix API повторная регистрация прежнего handle не обновляет
@@ -279,7 +279,9 @@ declaration и поколения ресурсов. Хеши исходных VB
 - Поддерживаются три cull mode и общая таблица alpha compare; cull задаёт
   порядок индексов и `doubleSided`, alpha state переносится в instance.
 - Единственная текстура использует `MODULATE(TEXTURE,CURRENT)` для RGB/alpha,
-  UV0 без преобразования, repeat и linear min/mag/mip без LOD bias и sRGB.
+  UV0 из доказанного shader, repeat и linear min/mag/mip без LOD bias и sRGB.
+  Texture transform flags `DISABLE` и `COUNT2` принимаются без повторного
+  преобразования shader-координат; проективная выборка отклоняется.
 - Pixel shader, дополнительные текстуры, fog, stencil, scissor и specular
   отклоняются. `D3DRS_LIGHTING` не трактуется как свет для уже доказанного VS.
 
@@ -288,6 +290,9 @@ instance state. Ошибка содержит причину и сохраняе
 Имена моделей и уровней не участвуют в допуске. Эта подготовка не создаёт
 ресурсы и не подменяет игровой draw: проверка shader bytes/register layout,
 текущей камеры, света и texture ownership остаётся отдельным этапом.
+Преобразование UV внутри доказанной программы Fixed не является FFP state.
+Его отдельно квалифицирует [текущий источник draw](skin-draw-source.md),
+передавая загруженную матрицу в общий расчёт текстурных координат.
 
 CPU-проверка этой политики с параметрами FLP1:
 
@@ -320,8 +325,8 @@ Remix: вычитает первые B−1 весов последователь
 ## Общая проверка directional/color
 
 [Test-FixedLighting.ps1](../Test-FixedLighting.ps1) проверяет общую
-[directional/color-формулу Fixed](../../../docs/engine/materials/shader-contract.md)
-и собирает небольшой CPU replay:
+[формулу света и цвета Fixed](../../../docs/engine/materials/shader-contract.md),
+включая directional, point и spot без specular, и собирает небольшой CPU replay:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FixedLighting.ps1 -Name fresh-lighting-check -Platform x64
@@ -340,3 +345,30 @@ CTAB конкретного shader; число и тип света провер
 завершается до сообщения PASS. Направление и цвет до упаковки — разные
 результаты: совпадение packed ARGB после насыщения не доказывает совпадение
 исходного float-цвета или нормали. Этот CPU replay сам не исполняет bytecode.
+
+Для одного входа, уже преобразованного в пространство камеры, доступен
+`test_fixed_lighting.exe --diffuse parameters.dlp output.bin`. Собственный
+формат `DLP1` занимает 720 байт little-endian. Его заголовок — четыре uint32:
+magic `0x31504C44`, version 1, ColorMode 0–7, число источников 0–8. Далее идут
+шесть float4: PosView, линейно преобразованная view-нормаль (w не используется),
+vertex color, AmbientCol, MatDiffuse, ConstColor.
+
+Каждая из восьми следующих записей занимает 76 байт: uint32 типа света
+(0 directional, 1 point, 2 spot), четыре float4 LightDir, LightMatDiff,
+LightPos, LightAttenuation, затем float32 inner и outer. В этой ветви view-нормаль
+нормализуется общим кодом; матрица камеры и SKP1 не читаются. Выход — те же
+семь float32 для одной вершины. Этот режим проверяет общую формулу, а допуск
+игрового Skin draw и построение RT-материала остаются отдельными операциями.
+
+Тот же replay проверяет общий расчёт UV через
+`test_fixed_lighting.exe --uv parameters.fuv output.bin`. Собственный формат
+`FUV1` начинается с трёх uint32 little-endian: magic `0x31565546`, version 1,
+число записей 1–256. Каждая запись занимает 60 байт: uint32 включения матрицы
+(0 или 1), два float32 исходных UV, затем три float4-регистра UVTransform.
+Это столбцы, прочитанные по CTAB; четвёртая компонента регистра не используется.
+
+При включённой матрице общий код вычисляет `u*C0.xyz + v*C1.xyz + C2.xyz`;
+при выключенной возвращает `(u,v,1)`. Выход содержит три float32 на запись,
+без деления на третью компоненту. Размер файла, режим, конечность входных UV
+и используемых компонентов матрицы проверяются до завершения записи результата.
+Этот режим не создаёт D3D-устройство и не проверяет текстурную выборку.

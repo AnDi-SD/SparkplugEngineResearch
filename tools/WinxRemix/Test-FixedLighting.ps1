@@ -8,7 +8,7 @@ $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/v
 $installation=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
 if (-not $installation) { throw 'MSVC tools not found' }
 $environmentScript=Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
-$files=@('tools/WinxRemix/winx_skin_packet.h','tools/WinxRemix/test_fixed_lighting.cpp',
+$files=@('tools/WinxRemix/winx_skin_packet.h','tools/WinxRemix/test_fixed_lighting.cpp','tools/WinxRemix/test_fixed_diffuse.h','tools/WinxRemix/test_fixed_uv.h',
     'Sparkplug/Analysis/PC/spFixedShaderLighting.h',
     'Sparkplug/Analysis/PC/spFixedShaderSkinning.h','Sparkplug/Code/SparkplugPC/spPCVertexDeclarationElements.h')
 $hashes=@()

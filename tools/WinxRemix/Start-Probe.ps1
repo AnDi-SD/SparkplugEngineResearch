@@ -32,6 +32,7 @@ param(
     [switch]$NativeSkinSource,
     [switch]$NativeSkinPackets,
     [switch]$SkinDrawAudit,
+    [switch]$SkinSubmit,
     [string]$SkinShaderContracts,
     [switch]$NativeUpdateSource,
     [switch]$IndependentSceneSource,
@@ -53,6 +54,11 @@ param(
     [hashtable]$ConfigOverride = @{}
 )
 $ErrorActionPreference = 'Stop'
+if ($SkinSubmit) {
+    if ($Backend -ne 'remix' -or -not $Raytracing) { throw 'SkinSubmit requires the RTX backend with the skinning bridge and renderer extensions' }
+    $SkinDrawAudit=$true; $NativeCameraSubmit=$true; $NativeLightSubmit=$true; $MaterialChannels=$true
+    $AutoSurfaceRoles=$true; $OpaqueAlphaTest=$true
+}
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
 if ($SkinDrawAudit) { $NativeSkinPackets=$true; $NativeUpdateSource=$true }
@@ -231,6 +237,7 @@ $values = @{
     WINX_REMIX_NATIVE_SKIN_PACKETS=$(if ($NativeSkinPackets) { Join-Path $run 'skin-packets' } else { $null })
     WINX_REMIX_SKIN_DRAW_AUDIT=$(if ($SkinDrawAudit) { Join-Path $run 'skin-draw-source.jsonl' } else { $null })
     WINX_REMIX_SKIN_SHADER_CONTRACT=$(if ($SkinDrawAudit) { Join-Path $run 'skin-shaders.wsf' } else { $null })
+    WINX_REMIX_SKIN_SUBMIT=$(if ($SkinSubmit) { '1' } else { $null })
     WINX_REMIX_NATIVE_UPDATE_SOURCE=$(if ($NativeUpdateSource) { Join-Path $run 'native-update-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'independent-scene-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SUBMIT=$(if ($IndependentSceneSubmit) { Join-Path $run 'independent-scene-submit.jsonl' } else { $null })
@@ -280,6 +287,7 @@ try {
         nativeSkinSource=$NativeSkinSource.IsPresent
         nativeSkinPackets=$NativeSkinPackets.IsPresent
         skinDrawAudit=$SkinDrawAudit.IsPresent
+        skinSubmit=$SkinSubmit.IsPresent
         skinShaderContractsSha256=$(if ($SkinDrawAudit) { (Get-FileHash -LiteralPath (Join-Path $run 'skin-shaders.wsf')).Hash } else { $null })
         sceneObserveOnly=$skinPacketSystemCapture
         nativeUpdateSource=$NativeUpdateSource.IsPresent

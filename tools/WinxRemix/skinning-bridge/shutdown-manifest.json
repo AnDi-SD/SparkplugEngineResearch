@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "baseRevision": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "sourcePath": "bridge/src/util/util_process.cpp",
+  "patch": "child-shutdown-v1.patch",
+  "patchSha256": "13ebd7099903bca69ac44ea383d434eca63139a511242db18ff47f98b665a971",
+  "beforeLfSha256": "6133cd28371d72efc8eae58cf3f5cf32b9848d39974a1683a47dba63ff9ba7c3",
+  "afterLfSha256": "38382659767b5ba868040f58a0a6f18da24d02bc337fee2150bb2443b06e4e27",
+  "beforeMethodSha256": "8025af6072f6d607e40410b277acfc5ff15980096a9637e65cea35b5098129dd",
+  "afterMethodSha256": "654cdc5b4dc649ceee2f6a5125a517bb43b09739f7e772b12cef8b55573bf9c8",
+  "wireVersionUnchanged": true,
+  "previousWaitMs": 3000,
+  "childWaitMs": 10000,
+  "scope": "Bounded client wait after server shutdown ACK. Existing timeout termination retained; no callback, remote handle or renderer teardown change."
+}

@@ -1,5 +1,7 @@
 # `wxAIAction`: общий контракт и 35 производных действий
 
+Подробная карточка базы и граница текущей переносимой реализации: [wxAIAction](../../reference/classes/wx-ai-action.md).
+
 Семейство из36 классов независимо присутствует в PC и PS2. PC: все36 factory
 и clone вернулись;35 классов прошли удаление clone и original. В36-м, Icy,
 сохранён отдельный teardown failure. Всего178 вернувшихся class operations;

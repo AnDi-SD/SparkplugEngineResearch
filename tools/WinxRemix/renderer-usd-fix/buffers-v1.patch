@@ -1,0 +1,150 @@
+--- a/src/lssusd/game_exporter.cpp
++++ b/src/lssusd/game_exporter.cpp
+@@ -620,12 +620,15 @@
+     assert(orientationAttr);
+     orientationAttr.Set(pxr::VtValue(pxr::UsdGeomTokens->rightHanded));
+ 
+-    // Create corresponding attribute arrays using above populated VtArrays
+-    pxr::VtArray<int> faceVertexCounts;
+-    faceVertexCounts.assign(mesh.numIndices / 3, 3);
++    // Face counts follow the actual triangle index samples, not the count
++    // cached when the mesh first appeared. Both topology arrays use the same times.
++    BufSet<int> faceVertexCounts;
++    for (const auto& [timeCode, indices] : mesh.buffers.idxBufs) {
++      faceVertexCounts[timeCode] = Buf<int>(indices.size() / 3, 3);
++    }
+     auto faceVertexCountsAttr = meshSchema.CreateFaceVertexCountsAttr();
+     assert(faceVertexCountsAttr);
+-    faceVertexCountsAttr.Set(faceVertexCounts);
++    exportBufferSet(faceVertexCounts, faceVertexCountsAttr);
+ 
+     for (auto& pair : mesh.categoryFlags) {
+       const auto attribute = meshSchema.GetPrim().CreateAttribute(pxr::TfToken(pair.first), pxr::SdfValueTypeNames->Bool, true, pxr::SdfVariabilityUniform);
+@@ -633,8 +636,22 @@
+     }
+ 
+     // Indices
+-    const bool reduce = exportData.meta.bReduceMeshBuffers;
+-    ReducedIdxBufSet reducedIdxBufSet = reduce ? reduceIdxBufferSet(mesh.buffers.idxBufs) : ReducedIdxBufSet();
++    ReducedIdxBufSet reducedIdxBufSet = exportData.meta.bReduceMeshBuffers ? reduceIdxBufferSet(mesh.buffers.idxBufs) : ReducedIdxBufSet();
++    // A single vertex mapping must apply at every attribute sample, including
++    // interpolated values between sparse samples. Changing the used vertex set
++    // requires the original buffers; per-frame remapping corrupts interpolation.
++    // USD holds values between unequal-length array samples. Compacting them
++    // to equal lengths would introduce interpolation that the source did not have.
++    const auto constantSize = [](const auto& samples) {
++      return samples.empty() || std::all_of(samples.cbegin(), samples.cend(),
++        [&](const auto& sample) { return sample.second.size() == samples.cbegin()->second.size(); });
++    };
++    const bool reduce = !reducedIdxBufSet.redToOgSet.empty() &&
++      std::all_of(reducedIdxBufSet.redToOgSet.cbegin(), reducedIdxBufSet.redToOgSet.cend(),
++        [&](const auto& sample) { return sample.second == reducedIdxBufSet.redToOgSet.cbegin()->second; }) &&
++      constantSize(mesh.buffers.positionBufs) && constantSize(mesh.buffers.normalBufs) &&
++      constantSize(mesh.buffers.texcoordBufs) && constantSize(mesh.buffers.colorBufs) &&
++      constantSize(mesh.buffers.blendWeightBufs) && constantSize(mesh.buffers.blendIndicesBufs);
+     const BufSet<Index>& idxBufSet = reduce ? reducedIdxBufSet.bufSet : mesh.buffers.idxBufs;
+     auto indexAttr = meshSchema.CreateFaceVertexIndicesAttr();
+     assert(indexAttr);
+@@ -664,12 +681,14 @@
+       auto displayOpacityPrimvar = meshSchema.CreateDisplayOpacityPrimvar(pxr::UsdGeomTokens->vertex);
+       assert(displayColorPrimvar);
+       assert(displayOpacityPrimvar);
+-      if (mesh.buffers.colorBufs.cbegin()->second.size() == 1) {
++      const bool constantColor = mesh.buffers.colorBufs.cbegin()->second.size() == 1;
++      if (constantColor) {
+         // Constant Color
+         displayColorPrimvar.SetInterpolation(pxr::UsdGeomTokens->constant);
+         displayOpacityPrimvar.SetInterpolation(pxr::UsdGeomTokens->constant);
+       }
+-      exportColorOpacityBufferSet(reduce ? reduceBufferSet(mesh.buffers.colorBufs, reducedIdxBufSet) : mesh.buffers.colorBufs, displayColorPrimvar, displayOpacityPrimvar);
++      // A constant color has one value for the entire mesh, not one per vertex.
++      exportColorOpacityBufferSet(reduce && !constantColor ? reduceBufferSet(mesh.buffers.colorBufs, reducedIdxBufSet) : mesh.buffers.colorBufs, displayColorPrimvar, displayOpacityPrimvar);
+     }
+     
+     if (isSkeleton) {
+@@ -685,13 +704,20 @@
+         exportBufferSet(reduce ? reduceBufferSet(mesh.buffers.blendIndicesBufs, reducedIdxBufSet, mesh.bonesPerVertex) : mesh.buffers.blendIndicesBufs, jointIndicesAttr);
+       } else {
+         // D3D9 allows for default bone indices of "0, 1, ... bonesPerVertex" if no joint indices are set.
+-        pxr::VtArray<int> defaultIndices(mesh.bonesPerVertex * mesh.numVertices);
+-        for (int i = 0; i < mesh.numVertices; ++i) {
+-          for (int j = 0; j < mesh.bonesPerVertex; ++j) {
+-            defaultIndices[i * mesh.bonesPerVertex + j] = j;
++        // Match the exported vertex count, including compaction and changing
++        // position-buffer lengths. The palette order is still 0..N-1 per vertex.
++        BufSet<BlendIdx> defaultIndices;
++        for (const auto& [timeCode, positions] : posBufs) {
++          const size_t vertexCount = reduce ? reducedIdxBufSet.redToOgSet.cbegin()->second.size() : positions.size();
++          Buf<BlendIdx> indices(mesh.bonesPerVertex * vertexCount);
++          for (size_t i = 0; i < vertexCount; ++i) {
++            for (size_t j = 0; j < mesh.bonesPerVertex; ++j) {
++              indices[i * mesh.bonesPerVertex + j] = static_cast<BlendIdx>(j);
++            }
+           }
++          defaultIndices[timeCode] = std::move(indices);
+         }
+-        jointIndicesAttr.Set(defaultIndices);
++        exportBufferSet(defaultIndices, jointIndicesAttr);
+       }
+ 
+       auto skelRel = skelBind.CreateSkeletonRel();
+@@ -772,36 +798,23 @@
+ template<typename T>
+ BufSet<T> GameExporter::reduceBufferSet(const BufSet<T>& bufSet, const ReducedIdxBufSet& reducedIdxBufSet, size_t elemsPerIdx) {
+   BufSet<T> reducedBufSet;
+-  for(const auto& [timeCode, buf] : bufSet) {
+-    // There may not be a 1:1 mapping in timecodes b/w index buffers and other buffers
+-    float idxBufTimeCode = -1.f;
+-    if(reducedIdxBufSet.bufSet.size() > 1) {
+-      const auto iPair_timeCode_idxBuf = reducedIdxBufSet.bufSet.lower_bound(timeCode);
+-      assert(iPair_timeCode_idxBuf != reducedIdxBufSet.bufSet.cend());
+-      const float idxTimeCode = iPair_timeCode_idxBuf->first;
+-      idxBufTimeCode = iPair_timeCode_idxBuf->first;
+-    } else {
+-      idxBufTimeCode = reducedIdxBufSet.bufSet.cbegin()->first;
+-    }
+-    assert(idxBufTimeCode >= 0.f);
+-
+-    // Create a scratch space to assign values for new, reduce VtArray, in case there are holes in the indices
+-    const auto& redIdxToOgIdx = reducedIdxBufSet.redToOgSet.at(idxBufTimeCode);
+-    const int numIdxs = redIdxToOgIdx.size();
+-    const size_t numElems = numIdxs * elemsPerIdx;
+-    T* const reducedBufScratch = new T[numElems];
+-    
+-    // Init potential holes to 0
+-    memset(reducedBufScratch, 0, sizeof(T) * numElems);
+-    for(const auto [redIndex,ogIndex] : redIdxToOgIdx) {
+-      for (int elemNum = 0; elemNum < elemsPerIdx; ++elemNum) {
+-        const auto ogIdx = (ogIndex * elemsPerIdx) + elemNum;
+-        const auto redIdx = (redIndex * elemsPerIdx) + elemNum;
++  if (bufSet.empty()) return reducedBufSet;
++  assert(!reducedIdxBufSet.redToOgSet.empty());
++  // exportMeshes selects reduction only when this mapping is time invariant.
++  const auto& redIdxToOgIdx = reducedIdxBufSet.redToOgSet.cbegin()->second;
++  const size_t numElems = redIdxToOgIdx.size() * elemsPerIdx;
++  for (const auto& [timeCode, buf] : bufSet) {
++    // Own the temporary array; no raw allocation survives the copy into USD.
++    Buf<T> reducedBuf(numElems);
++    for (const auto [redIndex, ogIndex] : redIdxToOgIdx) {
++      for (size_t elemNum = 0; elemNum < elemsPerIdx; ++elemNum) {
++        const auto ogIdx = ogIndex * elemsPerIdx + elemNum;
++        const auto redIdx = redIndex * elemsPerIdx + elemNum;
+         assert(redIdx <= ogIdx);
+-        reducedBufScratch[redIdx] = buf[ogIdx];
++        reducedBuf[redIdx] = buf[ogIdx];
+       }
+     }
+-    reducedBufSet[timeCode] = pxr::VtArray<T>(reducedBufScratch, reducedBufScratch + numElems);
++    reducedBufSet[timeCode] = std::move(reducedBuf);
+   }
+   return reducedBufSet;
+ }
+@@ -831,6 +844,8 @@
+     opacity.Set(opacityArray);
+   } else {
+     for (const auto& [timeCode, buf] : bufSet) {
++      colorArray.clear();
++      opacityArray.clear();
+       for (const Color& element : buf) {
+         colorArray.emplace_back(pxr::GfVec3f(element[0], element[1], element[2]));
+         opacityArray.emplace_back(element[3]);

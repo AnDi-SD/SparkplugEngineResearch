@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,
-      [Parameter(Mandatory=$true)][string]$Manifest)
+      [Parameter(Mandatory=$true)][string]$Manifest, [switch]$SignedWeights)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
 $tool=Join-Path $root 'tools/WinxRemix'
@@ -63,7 +63,8 @@ foreach($writer in @('x86','x64')) {
   $process=New-Object Diagnostics.Process
   $process.StartInfo.FileName=Join-Path $output "$platform/test_skin_packet_wire.exe"
   $process.StartInfo.WorkingDirectory=$root
-  $process.StartInfo.Arguments='--wire-{0} "{1}" "{2}"' -f $operation,(Join-Path $output 'packets.txt'),$wire
+  $mode=if($SignedWeights){"signed-$operation"}else{$operation}
+  $process.StartInfo.Arguments='--wire-{0} "{1}" "{2}"' -f $mode,(Join-Path $output 'packets.txt'),$wire
   $process.StartInfo.UseShellExecute=$false;$process.StartInfo.CreateNoWindow=$true
   $process.StartInfo.RedirectStandardOutput=$true;$process.StartInfo.RedirectStandardError=$true
   if(-not $process.Start()){throw 'Owned wire fixture did not start'}
@@ -84,7 +85,7 @@ foreach($writer in @('x86','x64')) {
 $x86=(Get-FileHash -LiteralPath (Join-Path $output 'x86.bin')).Hash
 $x64=(Get-FileHash -LiteralPath (Join-Path $output 'x64.bin')).Hash
 if($x86 -ne $x64){throw 'Cross-architecture bytes differ'}
-$report=@{status='PASS';scope='Shared baked API consumer and real Mesh/Instance/Blend serializers and owning decoders. File exchange, no IPC, renderer, GPU or native game execution.';
+$report=@{status='PASS';signedWeights=[bool]$SignedWeights;scope='Shared API consumer and real Mesh/Instance/Blend serializers and owning decoders; signed mode also covers two palettes through BoneTransforms. File exchange, no IPC, renderer, GPU or native game execution.';
  identicalWire=$true;wireSha256=$x86;wireBytes=(Get-Item -LiteralPath (Join-Path $output 'x86.bin')).Length;results=$results}
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $output 'report.json') -Encoding UTF8
 [pscustomobject]$report | Select-Object status,identicalWire,wireSha256,wireBytes | ConvertTo-Json
