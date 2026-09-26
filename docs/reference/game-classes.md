@@ -6,13 +6,13 @@
 | --- | --- | --- | --- | --- | --- |
 | `wxActionState` | `0x196333F8` | Да | Да | [1](classes/wx-action-state.md) | [wxActionState.cpp](../../Winx/Code/wxActionState.cpp), [wxActionState.h](../../Winx/Code/wxActionState.h) |
 | `wxAIAction` | `0x490A6EB5` | Да | Да | [1](classes/wx-ai-action.md), [2](../game/ai/ai-action-family.md) | [wxAIAction.cpp](../../Winx/Code/wxAIAction.cpp), [wxAIAction.h](../../Winx/Code/wxAIAction.h) |
-| `wxAIManager` | `0x56887B3F` | Да | Да | — | — |
-| `wxAlfeaDoorTrigger` | `0x6AE9310E` | Да | Да | — | — |
-| `wxAlphaManager` | `0x41F81774` | Да | Да | — | — |
-| `wxAnimationController` | `0xCD2B2876` | Да | Да | — | — |
-| `wxAnimationLoader` | `0x7ABF4B41` | Да | Да | — | — |
-| `wxAnimationManager` | `0x9816352C` | Да | Да | — | — |
-| `wxAppHelper` | `0x41EB3DB5` | Да | Да | — | — |
+| `wxAIManager` | `0x56887B3F` | Да | Да | [1](classes/wx-ai-manager.md) | [wxAIManager.cpp](../../Winx/Code/wxAIManager.cpp), [wxAIManager.h](../../Winx/Code/wxAIManager.h) |
+| `wxAlfeaDoorTrigger` | `0x6AE9310E` | Да | Да | [1](classes/wx-alfea-door-trigger.md) | [wxAlfeaDoorTrigger.cpp](../../Winx/Code/wxAlfeaDoorTrigger.cpp), [wxAlfeaDoorTrigger.h](../../Winx/Code/wxAlfeaDoorTrigger.h) |
+| `wxAlphaManager` | `0x41F81774` | Да | Да | [1](classes/wx-alpha-manager.md) | [wxAlphaManager.cpp](../../Winx/Code/wxAlphaManager.cpp), [wxAlphaManager.h](../../Winx/Code/wxAlphaManager.h) |
+| `wxAnimationController` | `0xCD2B2876` | Да | Да | [1](classes/wx-animation-controller.md) | [wxAnimationController.cpp](../../Winx/Code/wxAnimationController.cpp), [wxAnimationController.h](../../Winx/Code/wxAnimationController.h) |
+| `wxAnimationLoader` | `0x7ABF4B41` | Да | Да | [1](classes/wx-animation-loader.md) | [wxAnimationLoader.cpp](../../Winx/Code/wxAnimationLoader.cpp), [wxAnimationLoader.h](../../Winx/Code/wxAnimationLoader.h) |
+| `wxAnimationManager` | `0x9816352C` | Да | Да | [1](classes/wx-animation-manager.md) | [wxAnimationManager.cpp](../../Winx/Code/wxAnimationManager.cpp), [wxAnimationManager.h](../../Winx/Code/wxAnimationManager.h) |
+| `wxAppHelper` | `0x41EB3DB5` | Да | Да | [1](classes/wx-app-helper.md) | [wxAppHelper.cpp](../../Winx/Code/wxAppHelper.cpp), [wxAppHelper.h](../../Winx/Code/wxAppHelper.h) |
 | `wxArrowTrap` | `0x31AE6FA8` | Да | Да | — | — |
 | `wxAssetManager` | `0x46E341B9` | Да | Да | — | — |
 | `wxAttackAIAction` | `0x6515353D` | Да | Да | — | — |

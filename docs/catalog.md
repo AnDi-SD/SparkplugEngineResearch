@@ -479,6 +479,13 @@
 - [spZonePortalNode](reference/classes/sp-zone-portal-node.md).
 - [wxActionState](reference/classes/wx-action-state.md).
 - [wxAIAction](reference/classes/wx-ai-action.md).
+- [wxAIManager](reference/classes/wx-ai-manager.md).
+- [wxAlfeaDoorTrigger](reference/classes/wx-alfea-door-trigger.md).
+- [wxAlphaManager](reference/classes/wx-alpha-manager.md).
+- [wxAnimationController](reference/classes/wx-animation-controller.md).
+- [wxAnimationLoader](reference/classes/wx-animation-loader.md).
+- [wxAnimationManager](reference/classes/wx-animation-manager.md).
+- [wxAppHelper](reference/classes/wx-app-helper.md).
 - [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxGameFlowState](reference/classes/wx-game-flow-state.md).
 - [wxPCApp](reference/classes/wx-pc-app.md).

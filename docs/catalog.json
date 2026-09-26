@@ -1992,6 +1992,41 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ai-manager.md",
+      "title": "wxAIManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-alfea-door-trigger.md",
+      "title": "wxAlfeaDoorTrigger",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-alpha-manager.md",
+      "title": "wxAlphaManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-animation-controller.md",
+      "title": "wxAnimationController",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-animation-loader.md",
+      "title": "wxAnimationLoader",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-animation-manager.md",
+      "title": "wxAnimationManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-app-helper.md",
+      "title": "wxAppHelper",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state.md",
       "title": "wxCharacterState",
       "category": "reference/classes"

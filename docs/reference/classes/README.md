@@ -155,6 +155,13 @@
 - [spZonePortalNode](sp-zone-portal-node.md).
 - [wxActionState](wx-action-state.md).
 - [wxAIAction](wx-ai-action.md).
+- [wxAIManager](wx-ai-manager.md).
+- [wxAlfeaDoorTrigger](wx-alfea-door-trigger.md).
+- [wxAlphaManager](wx-alpha-manager.md).
+- [wxAnimationController](wx-animation-controller.md).
+- [wxAnimationLoader](wx-animation-loader.md).
+- [wxAnimationManager](wx-animation-manager.md).
+- [wxAppHelper](wx-app-helper.md).
 - [wxCharacterState](wx-character-state.md).
 - [wxGameFlowState](wx-game-flow-state.md).
 - [wxPCApp](wx-pc-app.md).

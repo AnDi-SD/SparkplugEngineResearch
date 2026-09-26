@@ -6168,8 +6168,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ai-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAIManager.cpp",
+        "Winx/Code/wxAIManager.h"
+      ]
     },
     {
       "name": "wxAlfeaDoorTrigger",
@@ -6183,8 +6188,13 @@
         "pc": "0x4AC3694A",
         "ps2": "0x4AC3694A"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-alfea-door-trigger.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAlfeaDoorTrigger.cpp",
+        "Winx/Code/wxAlfeaDoorTrigger.h"
+      ]
     },
     {
       "name": "wxAlphaManager",
@@ -6198,8 +6208,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-alpha-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAlphaManager.cpp",
+        "Winx/Code/wxAlphaManager.h"
+      ]
     },
     {
       "name": "wxAnimationController",
@@ -6213,8 +6228,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-animation-controller.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAnimationController.cpp",
+        "Winx/Code/wxAnimationController.h"
+      ]
     },
     {
       "name": "wxAnimationLoader",
@@ -6228,8 +6248,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-animation-loader.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAnimationLoader.cpp",
+        "Winx/Code/wxAnimationLoader.h"
+      ]
     },
     {
       "name": "wxAnimationManager",
@@ -6243,8 +6268,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-animation-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAnimationManager.cpp",
+        "Winx/Code/wxAnimationManager.h"
+      ]
     },
     {
       "name": "wxAppHelper",
@@ -6258,8 +6288,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-app-helper.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAppHelper.cpp",
+        "Winx/Code/wxAppHelper.h"
+      ]
     },
     {
       "name": "wxArrowTrap",
