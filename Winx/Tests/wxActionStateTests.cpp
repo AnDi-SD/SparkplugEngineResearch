@@ -192,12 +192,12 @@ int main(int argc, char** argv)
     state.vfunc_40_ResetForAnalysis();
     Require(Flags(state) == 7 && !state.GetPendingHandleForAnalysis()
         && state.GetStateSelectorForAnalysis() == 25, "reset preserves transition enables and selector");
-    Require(state.vfunc_34(request) && !state.vfunc_38(request), "constant permission slots");
+    Require(state.vfunc_34(request.packedKey) && !state.vfunc_38(request.packedKey), "constant permission slots");
 
     wxCharacterState base;
     Require(base.GetStateSelectorForAnalysis() == 0 && base.vfunc_1C(request)
         && base.vfunc_20(request), "base default hooks");
-    base.vfunc_24(); base.vfunc_28(request); base.vfunc_2C(request); base.vfunc_3C(request);
+    base.vfunc_24(); base.vfunc_28(request); base.vfunc_2C(request); base.vfunc_3C(&request);
     Require(base.Clone()->IsExactly(wxCharacterState::ClassID), "base clone type");
 
     // Every bit of the caller-owned key is covered independently. Repeated

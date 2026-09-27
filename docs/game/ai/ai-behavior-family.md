@@ -1,5 +1,8 @@
 # Семейство wxBaseAIBehavior: конструкция и выбор действий
 
+Переносимая реализация проверенного выбора и первого потомка описана в
+[wxBacoAIBehavior](../../reference/classes/wx-baco-ai-behavior.md).
+
 ## Общая база
 
 | Назначение по использованию | PC offset | PS2 offset |

@@ -13,18 +13,18 @@
 | `wxAnimationLoader` | `0x7ABF4B41` | Да | Да | [1](classes/wx-animation-loader.md) | [wxAnimationLoader.cpp](../../Winx/Code/wxAnimationLoader.cpp), [wxAnimationLoader.h](../../Winx/Code/wxAnimationLoader.h) |
 | `wxAnimationManager` | `0x9816352C` | Да | Да | [1](classes/wx-animation-manager.md) | [wxAnimationManager.cpp](../../Winx/Code/wxAnimationManager.cpp), [wxAnimationManager.h](../../Winx/Code/wxAnimationManager.h) |
 | `wxAppHelper` | `0x41EB3DB5` | Да | Да | [1](classes/wx-app-helper.md) | [wxAppHelper.cpp](../../Winx/Code/wxAppHelper.cpp), [wxAppHelper.h](../../Winx/Code/wxAppHelper.h) |
-| `wxArrowTrap` | `0x31AE6FA8` | Да | Да | — | — |
-| `wxAssetManager` | `0x46E341B9` | Да | Да | — | — |
-| `wxAttackAIAction` | `0x6515353D` | Да | Да | — | — |
-| `wxAttackingState` | `0x11B50C8E` | Да | Да | — | — |
-| `wxAudioEmitter` | `0xCCABEFEA` | Да | Да | — | — |
-| `wxAudioListener` | `0x0982734A` | Да | Да | — | — |
-| `wxBacoAIBehavior` | `0x11EE770A` | Да | Да | — | — |
-| `wxBacoAttackAIAction` | `0x013B1195` | Да | Да | — | — |
+| `wxArrowTrap` | `0x31AE6FA8` | Да | Да | [1](classes/wx-arrow-trap.md) | [wxArrowTrap.cpp](../../Winx/Code/wxArrowTrap.cpp), [wxArrowTrap.h](../../Winx/Code/wxArrowTrap.h) |
+| `wxAssetManager` | `0x46E341B9` | Да | Да | [1](classes/wx-asset-manager.md) | [wxAssetManager.cpp](../../Winx/Code/wxAssetManager.cpp), [wxAssetManager.h](../../Winx/Code/wxAssetManager.h) |
+| `wxAttackAIAction` | `0x6515353D` | Да | Да | [1](classes/wx-attack-ai-action.md) | [wxAttackAIAction.cpp](../../Winx/Code/wxAttackAIAction.cpp), [wxAttackAIAction.h](../../Winx/Code/wxAttackAIAction.h) |
+| `wxAttackingState` | `0x11B50C8E` | Да | Да | [1](classes/wx-attacking-state.md) | [wxAttackingState.cpp](../../Winx/Code/wxAttackingState.cpp), [wxAttackingState.h](../../Winx/Code/wxAttackingState.h) |
+| `wxAudioEmitter` | `0xCCABEFEA` | Да | Да | [1](classes/wx-audio-emitter.md) | [wxAudioEmitter.cpp](../../Winx/Code/wxAudioEmitter.cpp), [wxAudioEmitter.h](../../Winx/Code/wxAudioEmitter.h) |
+| `wxAudioListener` | `0x0982734A` | Да | Да | [1](classes/wx-audio-listener.md) | [wxAudioListener.cpp](../../Winx/Code/wxAudioListener.cpp), [wxAudioListener.h](../../Winx/Code/wxAudioListener.h) |
+| `wxBacoAIBehavior` | `0x11EE770A` | Да | Да | [1](classes/wx-baco-ai-behavior.md) | [wxBacoAIBehavior.cpp](../../Winx/Code/wxBacoAIBehavior.cpp), [wxBacoAIBehavior.h](../../Winx/Code/wxBacoAIBehavior.h) |
+| `wxBacoAttackAIAction` | `0x013B1195` | Да | Да | [1](classes/wx-baco-attack-ai-action.md) | [wxBacoAttackAIAction.cpp](../../Winx/Code/wxBacoAttackAIAction.cpp), [wxBacoAttackAIAction.h](../../Winx/Code/wxBacoAttackAIAction.h) |
 | `wxBacoManager` | `0x352C4347` | Да | Да | — | — |
 | `wxBacoProjectileManager` | `0x6F925DB7` | Да | Да | — | — |
 | `wxBacoStateMachine` | `0x78603414` | Да | Да | — | — |
-| `wxBaseAIBehavior` | `0x457334F1` | Да | Да | — | — |
+| `wxBaseAIBehavior` | `0x457334F1` | Да | Да | [1](classes/wx-baco-ai-behavior.md) | [wxBaseAIBehavior.cpp](../../Winx/Code/wxBaseAIBehavior.cpp), [wxBaseAIBehavior.h](../../Winx/Code/wxBaseAIBehavior.h) |
 | `wxBasicMovingState` | `0x1D533B89` | Да | Да | — | — |
 | `wxBattleChallengeGameFlowState` | `0x422D0D1D` | Да | Да | — | — |
 | `wxBeforeTrollFightState` | `0x3EFE78B7` | Да | Да | — | — |

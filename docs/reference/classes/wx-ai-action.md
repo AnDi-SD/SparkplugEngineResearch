@@ -72,4 +72,4 @@ PC slot `40` принимает целевую позицию. Он ставит
 
 PC slot `3C` работает с целевым объектом и порогом расстояния: читает обе позиции, учитывает текущую цель owner, collision/visibility helper, path helper и угловую коррекцию команды движения. Его полный контракт и общий helper `58EA90` ещё требуют отдельных входных графов и differential-проверок. В переносимом классе эти два virtual slots намеренно отсутствуют: успешная заглушка исказила бы поведение потомков.
 
-Portable-класс не совместим с native layout и не предназначен для подстановки в память игры. Реальные scene root, navigation graph, owner/character/movement records и derived AIAction остаются внешней границей текущей реализации.
+Portable-класс не совместим с native layout и не предназначен для подстановки в память игры. Реальные scene root, navigation graph, owner/character/movement records и большинство derived AIAction остаются внешней границей текущей реализации. Проверенная часть [wxAttackAIAction](wx-attack-ai-action.md) восстановлена отдельно.

@@ -11,9 +11,14 @@ add_library(WinxCharacterStates STATIC
     Code/wxCharacterState.h
     Code/wxActionState.cpp
     Code/wxActionState.h
+    Code/wxAttackingState.cpp
+    Code/wxAttackingState.h
     Analysis/PC/wxCharacterStateAbi.h
     Analysis/PS2/wxCharacterStateAbi.h
+    Analysis/PC/wxAttackingStateAbi.h
+    Analysis/PS2/wxAttackingStateAbi.h
     Analysis/Host/wxCharacterStateHost.h
+    Analysis/Host/wxAttackingStateHost.h
 )
 target_include_directories(WinxCharacterStates PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxCharacterStates PUBLIC SparkBase)
@@ -24,13 +29,23 @@ else()
     target_compile_options(WinxCharacterStates PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Recovered AI-action base behavior. Complex movement slots remain a separately
-# documented boundary and do not pull engine/scene adapters into this target.
+# Recovered AI-action base and verified Attack/Baco subsets. Complex movement
+# slots and active state bodies remain documented boundaries.
 add_library(WinxAIActions STATIC
     Code/wxAIAction.cpp
     Code/wxAIAction.h
+    Code/wxAttackAIAction.cpp
+    Code/wxAttackAIAction.h
+    Code/wxBacoAttackAIAction.cpp
+    Code/wxBacoAttackAIAction.h
     Analysis/PC/wxAIActionAbi.h
     Analysis/PS2/wxAIActionAbi.h
+    Analysis/PC/wxAttackAIActionAbi.h
+    Analysis/PS2/wxAttackAIActionAbi.h
+    Analysis/Host/wxAttackAIActionHost.h
+    Analysis/PC/wxBacoAttackAIActionAbi.h
+    Analysis/PS2/wxBacoAttackAIActionAbi.h
+    Analysis/Host/wxBacoAttackAIActionHost.h
 )
 target_include_directories(WinxAIActions PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxAIActions PUBLIC SparkBase)
@@ -39,6 +54,24 @@ if(MSVC)
     target_compile_options(WinxAIActions PRIVATE /W4 /permissive- /utf-8)
 else()
     target_compile_options(WinxAIActions PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Verified wxBaseAIBehavior selection/gate and Baco construction contract.
+add_library(WinxAIBehaviors STATIC
+    Code/wxBaseAIBehavior.cpp
+    Code/wxBaseAIBehavior.h
+    Code/wxBacoAIBehavior.cpp
+    Code/wxBacoAIBehavior.h
+    Analysis/PC/wxBacoAIBehaviorAbi.h
+    Analysis/PS2/wxBacoAIBehaviorAbi.h
+)
+target_include_directories(WinxAIBehaviors PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxAIBehaviors PUBLIC WinxAIActions)
+target_compile_features(WinxAIBehaviors PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxAIBehaviors PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxAIBehaviors PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_library(WinxAIManagers STATIC
@@ -106,6 +139,38 @@ else()
     target_compile_options(WinxAnimationControllers PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+add_library(WinxAudioEmitters STATIC
+    Code/wxAudioEmitter.cpp
+    Code/wxAudioEmitter.h
+    Analysis/Host/wxAudioEmitterHost.h
+    Analysis/PC/wxAudioEmitterAbi.h
+    Analysis/PS2/wxAudioEmitterAbi.h
+)
+target_include_directories(WinxAudioEmitters PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxAudioEmitters PUBLIC SparkBase)
+target_compile_features(WinxAudioEmitters PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxAudioEmitters PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxAudioEmitters PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_library(WinxAudioListeners STATIC
+    Code/wxAudioListener.cpp
+    Code/wxAudioListener.h
+    Analysis/Host/wxAudioListenerHost.h
+    Analysis/PC/wxAudioListenerAbi.h
+    Analysis/PS2/wxAudioListenerAbi.h
+)
+target_include_directories(WinxAudioListeners PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxAudioListeners PUBLIC SparkBase)
+target_compile_features(WinxAudioListeners PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxAudioListeners PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxAudioListeners PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 add_library(WinxAnimationLoaders STATIC
     Code/wxAnimationLoader.cpp
     Code/wxAnimationLoader.h
@@ -155,12 +220,44 @@ else()
     target_compile_options(WinxAppHelpers PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+add_library(WinxAssetManagers STATIC
+    Code/wxAssetManager.cpp
+    Code/wxAssetManager.h
+    Analysis/Host/wxAssetManagerHost.h
+    Analysis/PC/wxAssetManagerAbi.h
+    Analysis/PS2/wxAssetManagerAbi.h
+)
+target_include_directories(WinxAssetManagers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxAssetManagers PUBLIC SparkBase)
+target_compile_features(WinxAssetManagers PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxAssetManagers PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxAssetManagers PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_library(WinxArrowTraps STATIC
+    Code/wxArrowTrap.cpp
+    Code/wxArrowTrap.h
+    Analysis/Host/wxArrowTrapHost.h
+    Analysis/PC/wxArrowTrapAbi.h
+    Analysis/PS2/wxArrowTrapAbi.h
+)
+target_include_directories(WinxArrowTraps PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxArrowTraps PUBLIC SparkBase)
+target_compile_features(WinxArrowTraps PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxArrowTraps PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxArrowTraps PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 add_library(WinxGameCore STATIC
     Code/wxFaceData.cpp
     Code/wxFaceData.h
 )
 target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxCharacterStates WinxAIActions WinxAIManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers)
+target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxCharacterStates WinxAIActions WinxAIBehaviors WinxAIManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
 target_compile_features(WinxGameCore PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
@@ -204,10 +301,30 @@ if(BUILD_TESTING)
     add_test(NAME WinxActionStateTests COMMAND WinxActionStateTests)
     set_tests_properties(WinxActionStateTests PROPERTIES TIMEOUT 20)
 
+    add_executable(WinxAttackingStateTests Tests/wxAttackingStateTests.cpp)
+    target_link_libraries(WinxAttackingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxAttackingStateTests COMMAND WinxAttackingStateTests)
+    set_tests_properties(WinxAttackingStateTests PROPERTIES TIMEOUT 20)
+
     add_executable(WinxAIActionTests Tests/wxAIActionTests.cpp)
     target_link_libraries(WinxAIActionTests PRIVATE WinxAIActions)
     add_test(NAME WinxAIActionTests COMMAND WinxAIActionTests)
     set_tests_properties(WinxAIActionTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxAttackAIActionTests Tests/wxAttackAIActionTests.cpp)
+    target_link_libraries(WinxAttackAIActionTests PRIVATE WinxAIActions)
+    add_test(NAME WinxAttackAIActionTests COMMAND WinxAttackAIActionTests)
+    set_tests_properties(WinxAttackAIActionTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBacoAttackAIActionTests Tests/wxBacoAttackAIActionTests.cpp)
+    target_link_libraries(WinxBacoAttackAIActionTests PRIVATE WinxAIActions)
+    add_test(NAME WinxBacoAttackAIActionTests COMMAND WinxBacoAttackAIActionTests)
+    set_tests_properties(WinxBacoAttackAIActionTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBacoAIBehaviorTests Tests/wxBacoAIBehaviorTests.cpp)
+    target_link_libraries(WinxBacoAIBehaviorTests PRIVATE WinxAIBehaviors)
+    add_test(NAME WinxBacoAIBehaviorTests COMMAND WinxBacoAIBehaviorTests)
+    set_tests_properties(WinxBacoAIBehaviorTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxAIManagerTests Tests/wxAIManagerTests.cpp)
     target_link_libraries(WinxAIManagerTests PRIVATE WinxAIManagers)
@@ -229,6 +346,16 @@ if(BUILD_TESTING)
     add_test(NAME WinxAnimationControllerTests COMMAND WinxAnimationControllerTests)
     set_tests_properties(WinxAnimationControllerTests PROPERTIES TIMEOUT 20)
 
+    add_executable(WinxAudioEmitterTests Tests/wxAudioEmitterTests.cpp)
+    target_link_libraries(WinxAudioEmitterTests PRIVATE WinxAudioEmitters)
+    add_test(NAME WinxAudioEmitterTests COMMAND WinxAudioEmitterTests)
+    set_tests_properties(WinxAudioEmitterTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxAudioListenerTests Tests/wxAudioListenerTests.cpp)
+    target_link_libraries(WinxAudioListenerTests PRIVATE WinxAudioListeners)
+    add_test(NAME WinxAudioListenerTests COMMAND WinxAudioListenerTests)
+    set_tests_properties(WinxAudioListenerTests PROPERTIES TIMEOUT 20)
+
     add_executable(WinxAnimationLoaderTests Tests/wxAnimationLoaderTests.cpp)
     target_link_libraries(WinxAnimationLoaderTests PRIVATE WinxAnimationLoaders)
     add_test(NAME WinxAnimationLoaderTests COMMAND WinxAnimationLoaderTests)
@@ -243,4 +370,14 @@ if(BUILD_TESTING)
     target_link_libraries(WinxAppHelperTests PRIVATE WinxAppHelpers)
     add_test(NAME WinxAppHelperTests COMMAND WinxAppHelperTests)
     set_tests_properties(WinxAppHelperTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxAssetManagerTests Tests/wxAssetManagerTests.cpp)
+    target_link_libraries(WinxAssetManagerTests PRIVATE WinxAssetManagers)
+    add_test(NAME WinxAssetManagerTests COMMAND WinxAssetManagerTests)
+    set_tests_properties(WinxAssetManagerTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxArrowTrapTests Tests/wxArrowTrapTests.cpp)
+    target_link_libraries(WinxArrowTrapTests PRIVATE WinxArrowTraps)
+    add_test(NAME WinxArrowTrapTests COMMAND WinxArrowTrapTests)
+    set_tests_properties(WinxArrowTrapTests PROPERTIES TIMEOUT 20)
 endif()

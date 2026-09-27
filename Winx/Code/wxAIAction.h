@@ -59,6 +59,8 @@ namespace winx::reconstruction
         void SetOwnerForAnalysis(void* owner) noexcept;
         void SetField24ForAnalysis(void* value) noexcept;
         void SetClearableWordForAnalysis(std::uint32_t value) noexcept;
+        void SetDurationMillisecondsForAnalysis(std::uint32_t value) noexcept;
+        void SetPathIndexForAnalysis(std::uint32_t value) noexcept;
 
         [[nodiscard]] wxAIAction* GetCurrentActionForAnalysis() const noexcept;
         [[nodiscard]] std::size_t GetOwnedActionCountForAnalysis() const noexcept;

@@ -118,6 +118,16 @@ namespace winx::reconstruction
         clearableWord_ = value;
     }
 
+    void wxAIAction::SetDurationMillisecondsForAnalysis(const std::uint32_t value) noexcept
+    {
+        durationMilliseconds_ = value;
+    }
+
+    void wxAIAction::SetPathIndexForAnalysis(const std::uint32_t value) noexcept
+    {
+        zeroWords_[0] = value;
+    }
+
     wxAIAction* wxAIAction::GetCurrentActionForAnalysis() const noexcept
     {
         return currentAction_;

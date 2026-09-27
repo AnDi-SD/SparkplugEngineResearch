@@ -6,6 +6,7 @@
 
 ## Статьи
 
+- [`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`](wx-baco-ai-behavior.md).
 - [spActor](sp-actor.md).
 - [spAnimation / spAnimationSerializer](sp-animation.md).
 - [spAnimationManager](sp-animation-manager.md).
@@ -162,6 +163,13 @@
 - [wxAnimationLoader](wx-animation-loader.md).
 - [wxAnimationManager](wx-animation-manager.md).
 - [wxAppHelper](wx-app-helper.md).
+- [wxArrowTrap](wx-arrow-trap.md).
+- [wxAssetManager](wx-asset-manager.md).
+- [wxAttackAIAction](wx-attack-ai-action.md).
+- [wxAttackingState](wx-attacking-state.md).
+- [wxAudioEmitter](wx-audio-emitter.md).
+- [wxAudioListener](wx-audio-listener.md).
+- [wxBacoAttackAIAction](wx-baco-attack-ai-action.md).
 - [wxCharacterState](wx-character-state.md).
 - [wxGameFlowState](wx-game-flow-state.md).
 - [wxPCApp](wx-pc-app.md).

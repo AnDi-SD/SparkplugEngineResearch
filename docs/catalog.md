@@ -330,6 +330,7 @@
 
 ## Справочник / Карточки классов
 
+- [`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`](reference/classes/wx-baco-ai-behavior.md).
 - [spActor](reference/classes/sp-actor.md).
 - [spAnimation / spAnimationSerializer](reference/classes/sp-animation.md).
 - [spAnimationManager](reference/classes/sp-animation-manager.md).
@@ -486,6 +487,13 @@
 - [wxAnimationLoader](reference/classes/wx-animation-loader.md).
 - [wxAnimationManager](reference/classes/wx-animation-manager.md).
 - [wxAppHelper](reference/classes/wx-app-helper.md).
+- [wxArrowTrap](reference/classes/wx-arrow-trap.md).
+- [wxAssetManager](reference/classes/wx-asset-manager.md).
+- [wxAttackAIAction](reference/classes/wx-attack-ai-action.md).
+- [wxAttackingState](reference/classes/wx-attacking-state.md).
+- [wxAudioEmitter](reference/classes/wx-audio-emitter.md).
+- [wxAudioListener](reference/classes/wx-audio-listener.md).
+- [wxBacoAttackAIAction](reference/classes/wx-baco-attack-ai-action.md).
 - [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxGameFlowState](reference/classes/wx-game-flow-state.md).
 - [wxPCApp](reference/classes/wx-pc-app.md).

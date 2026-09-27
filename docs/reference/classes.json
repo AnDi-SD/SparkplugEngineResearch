@@ -6308,8 +6308,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-arrow-trap.md"
+      ],
+      "sources": [
+        "Winx/Code/wxArrowTrap.cpp",
+        "Winx/Code/wxArrowTrap.h"
+      ]
     },
     {
       "name": "wxAssetManager",
@@ -6323,8 +6328,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-asset-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAssetManager.cpp",
+        "Winx/Code/wxAssetManager.h"
+      ]
     },
     {
       "name": "wxAttackAIAction",
@@ -6338,8 +6348,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAttackAIAction.cpp",
+        "Winx/Code/wxAttackAIAction.h"
+      ]
     },
     {
       "name": "wxAttackingState",
@@ -6353,8 +6368,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-attacking-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAttackingState.cpp",
+        "Winx/Code/wxAttackingState.h"
+      ]
     },
     {
       "name": "wxAudioEmitter",
@@ -6368,8 +6388,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-audio-emitter.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAudioEmitter.cpp",
+        "Winx/Code/wxAudioEmitter.h"
+      ]
     },
     {
       "name": "wxAudioListener",
@@ -6383,8 +6408,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-audio-listener.md"
+      ],
+      "sources": [
+        "Winx/Code/wxAudioListener.cpp",
+        "Winx/Code/wxAudioListener.h"
+      ]
     },
     {
       "name": "wxBacoAIBehavior",
@@ -6398,8 +6428,13 @@
         "pc": "0x457334F1",
         "ps2": "0x457334F1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-baco-ai-behavior.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBacoAIBehavior.cpp",
+        "Winx/Code/wxBacoAIBehavior.h"
+      ]
     },
     {
       "name": "wxBacoAttackAIAction",
@@ -6413,8 +6448,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-baco-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBacoAttackAIAction.cpp",
+        "Winx/Code/wxBacoAttackAIAction.h"
+      ]
     },
     {
       "name": "wxBacoManager",
@@ -6473,8 +6513,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-baco-ai-behavior.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBaseAIBehavior.cpp",
+        "Winx/Code/wxBaseAIBehavior.h"
+      ]
     },
     {
       "name": "wxBasicMovingState",

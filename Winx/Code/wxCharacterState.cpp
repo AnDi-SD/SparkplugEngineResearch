@@ -84,19 +84,17 @@ namespace winx::reconstruction
     }
     void wxCharacterState::vfunc_30(wxAnimationRequestForAnalysis&) {}
 
-    bool wxCharacterState::vfunc_34(
-        const wxAnimationRequestForAnalysis&) const noexcept
+    bool wxCharacterState::vfunc_34(std::uint32_t) const
     {
         return true;
     }
 
-    bool wxCharacterState::vfunc_38(
-        const wxAnimationRequestForAnalysis&) const noexcept
+    bool wxCharacterState::vfunc_38(std::uint32_t) const noexcept
     {
         return false;
     }
 
-    void wxCharacterState::vfunc_3C(wxAnimationRequestForAnalysis&) noexcept {}
+    void wxCharacterState::vfunc_3C(const void*) {}
 
     void wxCharacterState::vfunc_40_ResetForAnalysis() noexcept
     {

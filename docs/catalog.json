@@ -2027,6 +2027,46 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-arrow-trap.md",
+      "title": "wxArrowTrap",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-asset-manager.md",
+      "title": "wxAssetManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-attack-ai-action.md",
+      "title": "wxAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-attacking-state.md",
+      "title": "wxAttackingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-audio-emitter.md",
+      "title": "wxAudioEmitter",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-audio-listener.md",
+      "title": "wxAudioListener",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-baco-ai-behavior.md",
+      "title": "`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-baco-attack-ai-action.md",
+      "title": "wxBacoAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state.md",
       "title": "wxCharacterState",
       "category": "reference/classes"

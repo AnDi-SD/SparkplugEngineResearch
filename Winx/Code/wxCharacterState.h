@@ -53,11 +53,10 @@ namespace winx::reconstruction
         virtual void vfunc_28(wxAnimationRequestForAnalysis& request);
         virtual void vfunc_2C(wxAnimationRequestForAnalysis& request);
         virtual void vfunc_30(wxAnimationRequestForAnalysis& request);
-        [[nodiscard]] virtual bool vfunc_34(
-            const wxAnimationRequestForAnalysis& request) const noexcept;
-        [[nodiscard]] virtual bool vfunc_38(
-            const wxAnimationRequestForAnalysis& request) const noexcept;
-        virtual void vfunc_3C(wxAnimationRequestForAnalysis& request) noexcept;
+        [[nodiscard]] virtual bool vfunc_34(std::uint32_t code) const;
+        [[nodiscard]] virtual bool vfunc_38(std::uint32_t code) const noexcept;
+        // The native argument of slot 0x3c is an external event object.
+        virtual void vfunc_3C(const void* event);
         virtual void vfunc_40_ResetForAnalysis() noexcept;
 
         void SetBindingsForAnalysis(void* owner, void* completionConsumer,
