@@ -331,6 +331,7 @@
 ## Справочник / Карточки классов
 
 - [`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`](reference/classes/wx-baco-ai-behavior.md).
+- [`wxBacoManager`](reference/classes/wx-baco-manager.md).
 - [spActor](reference/classes/sp-actor.md).
 - [spAnimation / spAnimationSerializer](reference/classes/sp-animation.md).
 - [spAnimationManager](reference/classes/sp-animation-manager.md).

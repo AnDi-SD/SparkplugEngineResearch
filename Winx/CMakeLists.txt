@@ -77,9 +77,14 @@ endif()
 add_library(WinxAIManagers STATIC
     Code/wxAIManager.cpp
     Code/wxAIManager.h
+    Code/wxBacoManager.cpp
+    Code/wxBacoManager.h
     Analysis/Host/wxAIManagerHost.h
+    Analysis/Host/wxBacoManagerHost.h
     Analysis/PC/wxAIManagerAbi.h
+    Analysis/PC/wxBacoManagerAbi.h
     Analysis/PS2/wxAIManagerAbi.h
+    Analysis/PS2/wxBacoManagerAbi.h
 )
 target_include_directories(WinxAIManagers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxAIManagers PUBLIC SparkBase)
@@ -330,6 +335,11 @@ if(BUILD_TESTING)
     target_link_libraries(WinxAIManagerTests PRIVATE WinxAIManagers)
     add_test(NAME WinxAIManagerTests COMMAND WinxAIManagerTests)
     set_tests_properties(WinxAIManagerTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBacoManagerTests Tests/wxBacoManagerTests.cpp)
+    target_link_libraries(WinxBacoManagerTests PRIVATE WinxAIManagers)
+    add_test(NAME WinxBacoManagerTests COMMAND WinxBacoManagerTests)
+    set_tests_properties(WinxBacoManagerTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxAlfeaDoorTriggerTests Tests/wxAlfeaDoorTriggerTests.cpp)
     target_link_libraries(WinxAlfeaDoorTriggerTests PRIVATE WinxDoorTriggers)

@@ -2067,6 +2067,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-baco-manager.md",
+      "title": "`wxBacoManager`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state.md",
       "title": "wxCharacterState",
       "category": "reference/classes"

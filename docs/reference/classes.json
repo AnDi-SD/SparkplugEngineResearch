@@ -6468,8 +6468,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-baco-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBacoManager.cpp",
+        "Winx/Code/wxBacoManager.h"
+      ]
     },
     {
       "name": "wxBacoProjectileManager",
