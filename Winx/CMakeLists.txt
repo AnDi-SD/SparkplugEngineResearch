@@ -13,6 +13,8 @@ add_library(WinxCharacterStates STATIC
     Code/wxActionState.h
     Code/wxAttackingState.cpp
     Code/wxAttackingState.h
+    Code/wxBasicMovingState.cpp
+    Code/wxBasicMovingState.h
     Analysis/PC/wxCharacterStateAbi.h
     Analysis/PS2/wxCharacterStateAbi.h
     Analysis/PC/wxAttackingStateAbi.h
@@ -29,8 +31,56 @@ else()
     target_compile_options(WinxCharacterStates PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Baco's verified leaf behavior uses an explicit adapter for the missing
-# character state machine and the four concrete state factories.
+add_library(WinxEntities STATIC
+    Code/wxEntity.cpp
+    Code/wxEntity.h
+    Analysis/Host/wxEntityHost.h
+    Analysis/PC/wxEntityAbi.h
+    Analysis/PS2/wxEntityAbi.h
+)
+target_include_directories(WinxEntities PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxEntities PUBLIC SparkEntities)
+target_compile_features(WinxEntities PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxEntities PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxEntities PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_library(WinxCharacters STATIC
+    Code/wxCharacter.cpp
+    Code/wxCharacter.h
+    Analysis/Host/wxCharacterHost.h
+    Analysis/PC/wxCharacterAbi.h
+    Analysis/PS2/wxCharacterAbi.h
+)
+target_include_directories(WinxCharacters PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxCharacters PUBLIC SparkBase)
+target_compile_features(WinxCharacters PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxCharacters PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxCharacters PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_library(WinxCharacterStateMachines STATIC
+    Code/wxCharacterStateMachine.cpp
+    Code/wxCharacterStateMachine.h
+    Analysis/Host/wxCharacterStateMachineHost.h
+    Analysis/PC/wxCharacterStateMachineAbi.h
+    Analysis/PS2/wxCharacterStateMachineAbi.h
+)
+target_include_directories(WinxCharacterStateMachines PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxCharacterStateMachines PUBLIC WinxCharacterStates)
+target_compile_features(WinxCharacterStateMachines PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxCharacterStateMachines PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxCharacterStateMachines PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Baco's verified leaf behavior still uses an explicit adapter for scene
+# setup and the four concrete state factories.
 add_library(WinxBacoStateMachines STATIC
     Code/wxBacoStateMachine.cpp
     Code/wxBacoStateMachine.h
@@ -39,7 +89,7 @@ add_library(WinxBacoStateMachines STATIC
     Analysis/PS2/wxBacoStateMachineAbi.h
 )
 target_include_directories(WinxBacoStateMachines PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(WinxBacoStateMachines PUBLIC WinxCharacterStates)
+target_link_libraries(WinxBacoStateMachines PUBLIC WinxCharacterStateMachines)
 target_compile_features(WinxBacoStateMachines PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(WinxBacoStateMachines PRIVATE /W4 /permissive- /utf-8)
@@ -104,6 +154,7 @@ add_library(WinxAIManagers STATIC
     Analysis/PS2/wxAIManagerAbi.h
     Analysis/PS2/wxBacoManagerAbi.h
 )
+
 target_include_directories(WinxAIManagers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxAIManagers PUBLIC SparkBase)
 target_compile_features(WinxAIManagers PUBLIC cxx_std_17)
@@ -111,6 +162,45 @@ if(MSVC)
     target_compile_options(WinxAIManagers PRIVATE /W4 /permissive- /utf-8)
 else()
     target_compile_options(WinxAIManagers PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Confirmed projectile Copy; native Actor and references are host services.
+add_library(WinxProjectiles STATIC
+    Code/wxProjectile.cpp
+    Code/wxProjectile.h
+    Analysis/Host/wxProjectileHost.h
+    Analysis/PC/wxProjectileAbi.h
+    Analysis/PS2/wxProjectileAbi.h
+)
+target_include_directories(WinxProjectiles PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxProjectiles PUBLIC WinxEntities)
+target_compile_features(WinxProjectiles PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxProjectiles PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxProjectiles PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Common projectile manager and confirmed Baco leaf behavior.
+add_library(WinxProjectileManagers STATIC
+    Code/wxProjectileManager.cpp
+    Code/wxProjectileManager.h
+    Analysis/Host/wxProjectileManagerHost.h
+    Analysis/PC/wxProjectileManagerAbi.h
+    Analysis/PS2/wxProjectileManagerAbi.h
+    Code/wxBacoProjectileManager.cpp
+    Code/wxBacoProjectileManager.h
+    Analysis/Host/wxBacoProjectileManagerHost.h
+    Analysis/PC/wxBacoProjectileManagerAbi.h
+    Analysis/PS2/wxBacoProjectileManagerAbi.h
+)
+target_include_directories(WinxProjectileManagers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxProjectileManagers PUBLIC WinxEntities)
+target_compile_features(WinxProjectileManagers PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxProjectileManagers PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxProjectileManagers PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_library(WinxDoorTriggers STATIC
@@ -280,7 +370,7 @@ add_library(WinxGameCore STATIC
     Code/wxFaceData.h
 )
 target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxCharacterStates WinxBacoStateMachines WinxAIActions WinxAIBehaviors WinxAIManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
+target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxEntities WinxCharacterStates WinxCharacterStateMachines WinxCharacters WinxBacoStateMachines WinxAIActions WinxAIBehaviors WinxAIManagers WinxProjectiles WinxProjectileManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
 target_compile_features(WinxGameCore PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
@@ -354,6 +444,11 @@ if(BUILD_TESTING)
     add_test(NAME WinxBacoStateMachineTests COMMAND WinxBacoStateMachineTests)
     set_tests_properties(WinxBacoStateMachineTests PROPERTIES TIMEOUT 20)
 
+    add_executable(WinxCharacterStateMachineTests Tests/wxCharacterStateMachineTests.cpp)
+    target_link_libraries(WinxCharacterStateMachineTests PRIVATE WinxCharacterStateMachines)
+    add_test(NAME WinxCharacterStateMachineTests COMMAND WinxCharacterStateMachineTests)
+    set_tests_properties(WinxCharacterStateMachineTests PROPERTIES TIMEOUT 20)
+
     add_executable(WinxAIManagerTests Tests/wxAIManagerTests.cpp)
     target_link_libraries(WinxAIManagerTests PRIVATE WinxAIManagers)
     add_test(NAME WinxAIManagerTests COMMAND WinxAIManagerTests)
@@ -363,6 +458,21 @@ if(BUILD_TESTING)
     target_link_libraries(WinxBacoManagerTests PRIVATE WinxAIManagers)
     add_test(NAME WinxBacoManagerTests COMMAND WinxBacoManagerTests)
     set_tests_properties(WinxBacoManagerTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBacoProjectileManagerTests Tests/wxBacoProjectileManagerTests.cpp)
+    target_link_libraries(WinxBacoProjectileManagerTests PRIVATE WinxProjectileManagers)
+    add_test(NAME WinxBacoProjectileManagerTests COMMAND WinxBacoProjectileManagerTests)
+    set_tests_properties(WinxBacoProjectileManagerTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxProjectileManagerTests Tests/wxProjectileManagerTests.cpp)
+    target_link_libraries(WinxProjectileManagerTests PRIVATE WinxProjectileManagers)
+    add_test(NAME WinxProjectileManagerTests COMMAND WinxProjectileManagerTests)
+    set_tests_properties(WinxProjectileManagerTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxProjectileTests Tests/wxProjectileTests.cpp)
+    target_link_libraries(WinxProjectileTests PRIVATE WinxProjectiles)
+    add_test(NAME WinxProjectileTests COMMAND WinxProjectileTests)
+    set_tests_properties(WinxProjectileTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxAlfeaDoorTriggerTests Tests/wxAlfeaDoorTriggerTests.cpp)
     target_link_libraries(WinxAlfeaDoorTriggerTests PRIVATE WinxDoorTriggers)
@@ -413,4 +523,19 @@ if(BUILD_TESTING)
     target_link_libraries(WinxArrowTrapTests PRIVATE WinxArrowTraps)
     add_test(NAME WinxArrowTrapTests COMMAND WinxArrowTrapTests)
     set_tests_properties(WinxArrowTrapTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxCharacterTests Tests/wxCharacterTests.cpp)
+    target_link_libraries(WinxCharacterTests PRIVATE WinxCharacters)
+    add_test(NAME WinxCharacterTests COMMAND WinxCharacterTests)
+    set_tests_properties(WinxCharacterTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxEntityTests Tests/wxEntityTests.cpp)
+    target_link_libraries(WinxEntityTests PRIVATE WinxEntities)
+    add_test(NAME WinxEntityTests COMMAND WinxEntityTests)
+    set_tests_properties(WinxEntityTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBasicMovingStateTests Tests/wxBasicMovingStateTests.cpp)
+    target_link_libraries(WinxBasicMovingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxBasicMovingStateTests COMMAND WinxBasicMovingStateTests)
+    set_tests_properties(WinxBasicMovingStateTests PROPERTIES TIMEOUT 20)
 endif()

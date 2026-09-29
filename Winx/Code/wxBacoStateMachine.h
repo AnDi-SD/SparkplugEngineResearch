@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Code/SparkBase/spBaseObject.h"
+#include "wxCharacterStateMachine.h"
 #include "Code/wxCharacterState.h"
 #include "Analysis/Host/wxBacoStateMachineHost.h"
 
@@ -10,9 +10,9 @@
 
 namespace winx::reconstruction
 {
-    // The native physical parent is wxCharacterStateMachine. Its portable
-    // implementation is pending; the RTTI chain keeps the measured ancestry.
-    class wxBacoStateMachine final : public sparkplug::reconstruction::spNamedObject
+    // The native parent and the portable parent are the same common machine.
+    // Scene setup still uses a host until the full binding is known.
+    class wxBacoStateMachine final : public wxCharacterStateMachine
     {
     public:
         static constexpr sparkplug::reconstruction::spClassID ClassID = 0x78603414;
@@ -23,6 +23,7 @@ namespace winx::reconstruction
             0x54F716CC, // wxSpiderHurtState
             0xBCC87DA1  // wxDyingState
         };
+        static constexpr std::array<std::size_t, 4> StateSlots = {0, 3, 10, 11};
 
         struct ControlFlagsForAnalysis final
         {

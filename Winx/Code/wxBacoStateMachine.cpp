@@ -1,4 +1,5 @@
 #include "wxBacoStateMachine.h"
+#include "wxCharacterStateMachine.h"
 
 #include <stdexcept>
 
@@ -8,18 +9,13 @@ namespace winx::reconstruction
 
     namespace
     {
-        const spRTTIRecord entityRecord{0x22875AA1, spNamedObject::ClassID,
-            "spEntity", &spNamedObject::StaticRTTI(), nullptr, nullptr};
-        const spRTTIRecord wxEntityRecord{0x796A1869, 0x22875AA1,
-            "wxEntity", &entityRecord, nullptr, nullptr};
-        const spRTTIRecord machineRecord{0xD32F3AA1, 0x796A1869,
-            "wxCharacterStateMachine", &wxEntityRecord, nullptr, nullptr};
         std::unique_ptr<spBaseObject> CreateBacoStateMachine()
         {
             return std::make_unique<wxBacoStateMachine>();
         }
         const spRTTIRecord record{wxBacoStateMachine::ClassID, 0xD32F3AA1,
-            "wxBacoStateMachine", &machineRecord, &CreateBacoStateMachine, nullptr};
+            "wxBacoStateMachine", &wxCharacterStateMachine::StaticRTTI(),
+            &CreateBacoStateMachine, nullptr};
         const bool registered = spRTTIManager::Instance().RegisterDeferredForAnalysis(record);
     }
 
@@ -44,12 +40,11 @@ namespace winx::reconstruction
     }
 
     bool wxBacoStateMachine::vfunc_14(spBaseObject& destination,
-        spCloneManager&) const
+        spCloneManager& manager) const
     {
         auto* other = dynamic_cast<wxBacoStateMachine*>(&destination);
         if (!other || setup_ || sourceFlags_ || computedFlags_) return false;
-        CopyNameToForAnalysis(*other);
-        return true;
+        return wxCharacterStateMachine::vfunc_14(*other, manager);
     }
 
     std::uint32_t wxBacoStateMachine::ClassifyRequestForAnalysis(
@@ -96,6 +91,7 @@ namespace winx::reconstruction
             if (!state) throw std::logic_error("Baco state factory returned null");
             host.BindStateForAnalysis(*state, *this);
             states_[slot] = std::move(state);
+            SetStateForAnalysis(StateSlots[slot], states_[slot].get());
         }
         setup_ = true;
     }

@@ -48,6 +48,22 @@ endif()
 target_include_directories(SparkBase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(SparkBase PUBLIC cxx_std_17)
 
+add_library(SparkEntities STATIC
+    Code/Sparkplug/spEntity.cpp
+    Code/Sparkplug/spEntity.h
+    Analysis/Host/spEntityHost.h
+    Analysis/PC/spEntityAbi.h
+    Analysis/PS2/spEntityAbi.h
+)
+target_include_directories(SparkEntities PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SparkEntities PUBLIC SparkBase)
+target_compile_features(SparkEntities PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(SparkEntities PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(SparkEntities PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 # The original source path places this layer in Code/Sparkplug rather than
 # SparkBase.  Keep the reconstructed target boundary explicit as well.
 add_library(SparkplugEngine STATIC
@@ -472,7 +488,7 @@ if(WIN32)
 endif()
 target_include_directories(SparkplugEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(SparkplugEngine PUBLIC cxx_std_17)
-target_link_libraries(SparkplugEngine PUBLIC SparkBase)
+target_link_libraries(SparkplugEngine PUBLIC SparkBase SparkEntities)
 
 if(MSVC)
     target_compile_options(SparkBase PUBLIC /EHsc)
@@ -488,6 +504,11 @@ if(BUILD_TESTING)
     add_executable(SparkBaseTests Tests/spBaseObjectTests.cpp)
     target_link_libraries(SparkBaseTests PRIVATE SparkBase)
     add_test(NAME SparkBaseTests COMMAND SparkBaseTests)
+
+    add_executable(SparkEntityTests Tests/spEntityTests.cpp)
+    target_link_libraries(SparkEntityTests PRIVATE SparkEntities)
+    add_test(NAME SparkEntityTests COMMAND SparkEntityTests)
+    set_tests_properties(SparkEntityTests PROPERTIES TIMEOUT 20)
 
     add_executable(SparkplugEngineTests Tests/spEngineCoreTests.cpp)
     target_link_libraries(SparkplugEngineTests PRIVATE SparkplugEngine)

@@ -55,6 +55,7 @@ int main()
     Require(machine.vfunc_18().classID == wxBacoStateMachine::ClassID
         && machine.IsKindOf(0xD32F3AA1)
         && machine.IsKindOf(0x796A1869)
+        && dynamic_cast<wxCharacterStateMachine*>(&machine) != nullptr
         && wxBacoStateMachine::MachineKind == 17,
         "native identity and registration ancestry");
     auto created = spRTTIManager::Instance().Create(wxBacoStateMachine::ClassID);
@@ -108,6 +109,10 @@ int main()
     for (std::size_t slot = 0; slot < 4; ++slot)
         Require(empty.GetStateForAnalysis(slot) == host.bindings[slot],
             "state ownership and binding order");
+    for (std::size_t slot = 0; slot < 4; ++slot)
+        Require(static_cast<wxCharacterStateMachine&>(empty).GetStateForAnalysis(
+            wxBacoStateMachine::StateSlots[slot]) == host.bindings[slot],
+            "states connect to common machine slots");
     Require(empty.GetStateForAnalysis(4) == nullptr,
         "state slot bound");
     Require(empty.HandleMessageForAnalysis(0x2717, host)

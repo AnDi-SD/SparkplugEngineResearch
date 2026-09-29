@@ -8,7 +8,10 @@
 
 - [`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`](wx-baco-ai-behavior.md).
 - [`wxBacoManager`](wx-baco-manager.md).
+- [`wxBacoProjectileManager`](wx-baco-projectile-manager.md).
 - [`wxBacoStateMachine`](wx-baco-state-machine.md).
+- [`wxProjectile`](wx-projectile.md).
+- [`wxProjectileManager`](wx-projectile-manager.md).
 - [spActor](sp-actor.md).
 - [spAnimation / spAnimationSerializer](sp-animation.md).
 - [spAnimationManager](sp-animation-manager.md).
@@ -44,6 +47,7 @@
 - [spDXVertexDeclaration / spPCVertexDeclaration](sp-vertex-declaration.md).
 - [spEngineCore](sp-engine-core.md).
 - [spEngineCore / wxEngineCore](wx-engine-core.md).
+- [spEntity](sp-entity.md).
 - [spEntityManager](sp-entity-manager.md).
 - [spError](sp-error.md).
 - [spErrorManager](sp-error-manager.md).
@@ -172,7 +176,11 @@
 - [wxAudioEmitter](wx-audio-emitter.md).
 - [wxAudioListener](wx-audio-listener.md).
 - [wxBacoAttackAIAction](wx-baco-attack-ai-action.md).
+- [wxBasicMovingState](wx-basic-moving-state.md).
+- [wxCharacter](wx-character.md).
 - [wxCharacterState](wx-character-state.md).
+- [wxCharacterStateMachine](wx-character-state-machine.md).
+- [wxEntity](wx-entity.md).
 - [wxGameFlowState](wx-game-flow-state.md).
 - [wxPCApp](wx-pc-app.md).
 - [wxPS2App](wx-ps2-app.md).

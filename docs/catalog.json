@@ -1422,6 +1422,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-entity.md",
+      "title": "spEntity",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-error-manager.md",
       "title": "spErrorManager",
       "category": "reference/classes"
@@ -2072,8 +2077,23 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-baco-projectile-manager.md",
+      "title": "`wxBacoProjectileManager`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-baco-state-machine.md",
       "title": "`wxBacoStateMachine`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-basic-moving-state.md",
+      "title": "wxBasicMovingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-character-state-machine.md",
+      "title": "wxCharacterStateMachine",
       "category": "reference/classes"
     },
     {
@@ -2082,8 +2102,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-character.md",
+      "title": "wxCharacter",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-engine-core.md",
       "title": "spEngineCore / wxEngineCore",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-entity.md",
+      "title": "wxEntity",
       "category": "reference/classes"
     },
     {
@@ -2094,6 +2124,16 @@
     {
       "path": "docs/reference/classes/wx-pc-app.md",
       "title": "wxPCApp",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-projectile-manager.md",
+      "title": "`wxProjectileManager`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-projectile.md",
+      "title": "`wxProjectile`",
       "category": "reference/classes"
     },
     {

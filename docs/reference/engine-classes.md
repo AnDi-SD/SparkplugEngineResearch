@@ -116,7 +116,7 @@
 | `spDXVertexShader` | `0x7A6743A9` | Да | — | — | [spDXVertexShader.h](../../Sparkplug/Code/SparkplugDX/spDXVertexShader.h) |
 | `spEditBox` | `0x253C432D` | Да | Да | — | — |
 | `spEngineCore` | `0x0E9F6B8C` | Да | Да | [1](classes/sp-engine-core.md), [2](classes/wx-engine-core.md) | [spEngineCore.h](../../Sparkplug/Code/Sparkplug/spEngineCore.h) |
-| `spEntity` | `0x22875AA1` | Да | Да | — | — |
+| `spEntity` | `0x22875AA1` | Да | Да | [1](classes/sp-entity.md) | [spEntity.cpp](../../Sparkplug/Code/Sparkplug/spEntity.cpp), [spEntity.h](../../Sparkplug/Code/Sparkplug/spEntity.h) |
 | `spEntityManager` | `0x48A15BCB` | Да | Да | [1](classes/sp-entity-manager.md) | [spEntityManager.h](../../Sparkplug/Code/Sparkplug/spEntityManager.h) |
 | `spEnvironmentMapLayer` | `0x427C7480` | Да | Да | [1](classes/sp-material-render-target-texture.md) | — |
 | `spError` | `0x789B29B9` | Да | Да | [1](classes/sp-error.md) | [spErrorManager.h](../../Sparkplug/Code/SparkBase/spErrorManager.h) |

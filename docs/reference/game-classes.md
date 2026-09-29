@@ -22,10 +22,10 @@
 | `wxBacoAIBehavior` | `0x11EE770A` | Да | Да | [1](classes/wx-baco-ai-behavior.md) | [wxBacoAIBehavior.cpp](../../Winx/Code/wxBacoAIBehavior.cpp), [wxBacoAIBehavior.h](../../Winx/Code/wxBacoAIBehavior.h) |
 | `wxBacoAttackAIAction` | `0x013B1195` | Да | Да | [1](classes/wx-baco-attack-ai-action.md) | [wxBacoAttackAIAction.cpp](../../Winx/Code/wxBacoAttackAIAction.cpp), [wxBacoAttackAIAction.h](../../Winx/Code/wxBacoAttackAIAction.h) |
 | `wxBacoManager` | `0x352C4347` | Да | Да | [1](classes/wx-baco-manager.md) | [wxBacoManager.cpp](../../Winx/Code/wxBacoManager.cpp), [wxBacoManager.h](../../Winx/Code/wxBacoManager.h) |
-| `wxBacoProjectileManager` | `0x6F925DB7` | Да | Да | — | — |
+| `wxBacoProjectileManager` | `0x6F925DB7` | Да | Да | [1](classes/wx-baco-projectile-manager.md) | [wxBacoProjectileManager.cpp](../../Winx/Code/wxBacoProjectileManager.cpp), [wxBacoProjectileManager.h](../../Winx/Code/wxBacoProjectileManager.h) |
 | `wxBacoStateMachine` | `0x78603414` | Да | Да | [1](classes/wx-baco-state-machine.md) | [wxBacoStateMachine.cpp](../../Winx/Code/wxBacoStateMachine.cpp), [wxBacoStateMachine.h](../../Winx/Code/wxBacoStateMachine.h) |
 | `wxBaseAIBehavior` | `0x457334F1` | Да | Да | [1](classes/wx-baco-ai-behavior.md) | [wxBaseAIBehavior.cpp](../../Winx/Code/wxBaseAIBehavior.cpp), [wxBaseAIBehavior.h](../../Winx/Code/wxBaseAIBehavior.h) |
-| `wxBasicMovingState` | `0x1D533B89` | Да | Да | — | — |
+| `wxBasicMovingState` | `0x1D533B89` | Да | Да | [1](classes/wx-basic-moving-state.md) | [wxBasicMovingState.cpp](../../Winx/Code/wxBasicMovingState.cpp), [wxBasicMovingState.h](../../Winx/Code/wxBasicMovingState.h) |
 | `wxBattleChallengeGameFlowState` | `0x422D0D1D` | Да | Да | — | — |
 | `wxBeforeTrollFightState` | `0x3EFE78B7` | Да | Да | — | — |
 | `wxBGMenusGameFlowState` | `0x4C9A0DE6` | Да | Да | — | — |
@@ -56,12 +56,12 @@
 | `wxChallengeParams` | `0x347F5242` | Да | Да | — | — |
 | `wxChangeCharacterPlacement` | `0x69A72576` | Да | Да | — | — |
 | `wxChangeLevelTrigger` | `0x56235DEA` | Да | Да | — | — |
-| `wxCharacter` | `0x0003CC73` | Да | Да | — | — |
+| `wxCharacter` | `0x0003CC73` | Да | Да | [1](classes/wx-character.md) | [wxCharacter.cpp](../../Winx/Code/wxCharacter.cpp), [wxCharacter.h](../../Winx/Code/wxCharacter.h) |
 | `wxCharacterMoveCtrl` | `0x680838E4` | Да | Да | — | — |
 | `wxCharacterPlacementManager` | `0x6C56254E` | Да | Да | — | — |
 | `wxCharacterRegistry` | `0x6EAA030D` | Да | Да | — | — |
 | `wxCharacterState` | `0x44817BC2` | Да | Да | [1](classes/wx-character-state.md) | [wxCharacterState.cpp](../../Winx/Code/wxCharacterState.cpp), [wxCharacterState.h](../../Winx/Code/wxCharacterState.h) |
-| `wxCharacterStateMachine` | `0xD32F3AA1` | Да | Да | — | — |
+| `wxCharacterStateMachine` | `0xD32F3AA1` | Да | Да | [1](classes/wx-character-state-machine.md) | [wxCharacterStateMachine.cpp](../../Winx/Code/wxCharacterStateMachine.cpp), [wxCharacterStateMachine.h](../../Winx/Code/wxCharacterStateMachine.h) |
 | `wxCharacterTraits` | `0x1BC6108E` | Да | Да | — | — |
 | `wxChargedAttackState` | `0x06C1726B` | Да | Да | — | — |
 | `wxChestTrigger` | `0x6FAF5309` | Да | Да | — | — |
@@ -115,7 +115,7 @@
 | `wxDroidWanderAIAction` | `0x34154F9E` | Да | Да | — | — |
 | `wxDyingState` | `0xBCC87DA1` | Да | Да | — | — |
 | `wxEngineCore` | `0x34B85918` | Да | Да | [1](classes/wx-engine-core.md) | [wxEngineCore.h](../../Winx/Code/wxEngineCore.h) |
-| `wxEntity` | `0x796A1869` | Да | Да | — | — |
+| `wxEntity` | `0x796A1869` | Да | Да | [1](classes/wx-entity.md) | [wxEntity.cpp](../../Winx/Code/wxEntity.cpp), [wxEntity.h](../../Winx/Code/wxEntity.h) |
 | `wxEntityManager` | `0x54DE268F` | Да | Да | — | — |
 | `wxEyeBallSentry` | `0x22762BEE` | Да | Да | — | — |
 | `wxFaceData` | `0x313C4C17` | Да | Да | — | [wxFaceData.h](../../Winx/Code/wxFaceData.h) |
@@ -305,8 +305,8 @@
 | `wxProcessBufferPC` | `0x76FC3DBB` | Да | — | — | — |
 | `wxProcessBufferPS2` | `0x40CA1DBA` | — | Да | — | — |
 | `wxProfiler` | `0x62B445E9` | Да | Да | — | — |
-| `wxProjectile` | `0x1ACF3C70` | Да | Да | — | — |
-| `wxProjectileManager` | `0x7DB63B02` | Да | Да | — | — |
+| `wxProjectile` | `0x1ACF3C70` | Да | Да | [1](classes/wx-projectile.md) | [wxProjectile.cpp](../../Winx/Code/wxProjectile.cpp), [wxProjectile.h](../../Winx/Code/wxProjectile.h) |
+| `wxProjectileManager` | `0x7DB63B02` | Да | Да | [1](classes/wx-projectile-manager.md) | [wxProjectileManager.cpp](../../Winx/Code/wxProjectileManager.cpp), [wxProjectileManager.h](../../Winx/Code/wxProjectileManager.h) |
 | `wxPromptDeleteGameFlowState` | `0x555E5014` | Да | Да | — | — |
 | `wxPromptSaveGameFlowState` | `0x5129496B` | Да | Да | — | — |
 | `wxPS2App` | `0x36973698` | — | Да | [1](classes/wx-ps2-app.md) | [wxPS2App.h](../../Winx/Code/PS2/wxPS2App.h) |

@@ -1784,8 +1784,13 @@
         "pc": "0x44DE07FD",
         "ps2": "0x44DE07FD"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-entity.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spEntity.cpp",
+        "Sparkplug/Code/Sparkplug/spEntity.h"
+      ]
     },
     {
       "name": "spEntityManager",
@@ -6488,8 +6493,13 @@
         "pc": "0x7DB63B02",
         "ps2": "0x7DB63B02"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-baco-projectile-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBacoProjectileManager.cpp",
+        "Winx/Code/wxBacoProjectileManager.h"
+      ]
     },
     {
       "name": "wxBacoStateMachine",
@@ -6543,8 +6553,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-basic-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBasicMovingState.cpp",
+        "Winx/Code/wxBasicMovingState.h"
+      ]
     },
     {
       "name": "wxBattleChallengeGameFlowState",
@@ -7008,8 +7023,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-character.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCharacter.cpp",
+        "Winx/Code/wxCharacter.h"
+      ]
     },
     {
       "name": "wxCharacterMoveCtrl",
@@ -7088,8 +7108,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-character-state-machine.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCharacterStateMachine.cpp",
+        "Winx/Code/wxCharacterStateMachine.h"
+      ]
     },
     {
       "name": "wxCharacterTraits",
@@ -7900,8 +7925,13 @@
         "pc": "0x22875AA1",
         "ps2": "0x22875AA1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-entity.md"
+      ],
+      "sources": [
+        "Winx/Code/wxEntity.cpp",
+        "Winx/Code/wxEntity.h"
+      ]
     },
     {
       "name": "wxEntityManager",
@@ -10740,8 +10770,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-projectile.md"
+      ],
+      "sources": [
+        "Winx/Code/wxProjectile.cpp",
+        "Winx/Code/wxProjectile.h"
+      ]
     },
     {
       "name": "wxProjectileManager",
@@ -10755,8 +10790,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-projectile-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxProjectileManager.cpp",
+        "Winx/Code/wxProjectileManager.h"
+      ]
     },
     {
       "name": "wxPromptDeleteGameFlowState",

@@ -1,0 +1,71 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build native viewer bridge",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/tools/SparkplugViewer.Native/Build-Native.ps1",
+        "-Configuration", "Release",
+        "-BuildWorkers", "1"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Build SmoViewer",
+      "type": "process",
+      "command": "dotnet.exe",
+      "args": [
+        "build", "${workspaceFolder}/tools/SmoViewer/SmoViewer/SmoViewer.csproj",
+        "-c", "Release", "-m:1", "-nr:false",
+        "-p:UseSharedCompilation=false", "-p:SkipSparkplugNativeBuild=true"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "Build FBX bridge",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "${workspaceFolder}/tools/FbxBridge.Native/Build-Native.ps1",
+        "-Configuration", "Release"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Build SMOTextureTool",
+      "type": "process",
+      "command": "dotnet.exe",
+      "args": [
+        "build", "${workspaceFolder}/tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj",
+        "-c", "Release", "-m:1", "-nr:false",
+        "-p:UseSharedCompilation=false", "-p:SkipSparkplugNativeBuild=true"
+      ],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "Build applications",
+      "dependsOn": [
+        "Build native viewer bridge",
+        "Build SmoViewer",
+        "Build SMOTextureTool"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    }
+  ]
+}

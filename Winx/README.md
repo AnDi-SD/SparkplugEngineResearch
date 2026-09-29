@@ -8,7 +8,19 @@
 
 ## Состояния персонажа
 
+`WinxCharacters` содержит подтверждённую часть [wxCharacter](../docs/reference/classes/wx-character.md): создание и удаление, Copy/clone, RTTI, проверку flags и одну ветку уведомления. Привязка к частично восстановленному `wxEntity` и игровой сцене пока передана через `wxCharacterHost`. Цель проверки — `WinxCharacterTests`.
+
 `WinxCharacterStates` содержит общую реализацию [wxActionState](../docs/reference/classes/wx-action-state.md) и используемых hooks [wxCharacterState](../docs/reference/classes/wx-character-state.md). Она зависит только от `SparkBase`; `WinxGameCore` подключает её публично. Внешние объекты анимации передаются через наш [host-интерфейс](Analysis/Host/wxCharacterStateHost.h), без реализации по умолчанию. Это компонент, не готовая state machine игры.
+
+`WinxEntities` содержит подтверждённые constructor, Copy и флаги [wxEntity](../docs/reference/classes/wx-entity.md). Маршрут между engine/game менеджерами и связанные объекты передаются через `wxEntityHost`. Узкая цель — `WinxEntityTests`.
+
+`WinxProjectileManagers` содержит общий частично восстановленный [wxProjectileManager](../docs/reference/classes/wx-projectile-manager.md): Notify, 14 слов Copy, выбор ячейки pool и Tick. Внешние операции передаются `wxProjectileManagerHost`; проверка — `WinxProjectileManagerTests`. В том же модуле [wxBacoProjectileManager](../docs/reference/classes/wx-baco-projectile-manager.md) сохраняет проверенную собственную логику, пока её scene adapter не привязан к общей базе.
+
+`WinxProjectiles` содержит частичный [wxProjectile](../docs/reference/classes/wx-projectile.md): подтверждённые поля Copy, четыре счётчика ссылок и замену `spActor` при Copy. Внешние объекты передаются `wxProjectileHost`; проверка — `WinxProjectileTests`.
+
+Также восстановлены constructor/RTTI и проверка разрешения перехода [wxBasicMovingState](../docs/reference/classes/wx-basic-moving-state.md). Его отдельная цель — `WinxBasicMovingStateTests`; обработчик движения остаётся открытым.
+
+`WinxCharacterStateMachines` содержит подтверждённый общий протокол [wxCharacterStateMachine](../docs/reference/classes/wx-character-state-machine.md): вход, reset, выбор, стек переходов, сообщения и фильтр flags. Состояния и наблюдатель приходят через отдельный host. `wxBacoStateMachine` использует эту общую базу и подключает четыре собственных состояния к установленным слотам. Цель проверки общей базы — `WinxCharacterStateMachineTests`.
 
 Сборка и проверки из корня репозитория в терминале с настроенным C++ toolchain:
 

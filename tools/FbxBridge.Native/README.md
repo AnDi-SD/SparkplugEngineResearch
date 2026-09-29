@@ -4,7 +4,7 @@ Native x64 bridge between the .NET SMO tools and Autodesk FBX SDK 2020.3.10.
 It reads and writes a private versioned binary scene payload; GLB, Blender and
 Python are not involved.
 
-Build on Windows with Visual Studio C++ tools and the Autodesk FBX SDK:
+Build on Windows with Visual Studio C++ tools (including standalone Build Tools) and the Autodesk FBX SDK. The script finds CMake through `PATH` or `vswhere` and refreshes a cached CMake configuration when the selected Visual Studio instance changes:
 
 ```powershell
 .\Build-Native.ps1

@@ -2,7 +2,7 @@
 
 ## Объекты снарядов
 
-Десять классов: `wxProjectile`, `wxFetidBreathProjectile`,
+Десять классов: [базовый `wxProjectile`](../../reference/classes/wx-projectile.md), `wxFetidBreathProjectile`,
 `wxGolemLitProjectile`, `wxGolemShockwaveProjectile`, `wxPiercingWindProjectile`,
 `wxStarsProjectile`, `wxStingerProjectile`, `wxStompProjectile`, `wxTidalFlame`,
 `wxWebSpitProjectile`. Это отдельные варианты снаряда; траектории, урон и
@@ -45,8 +45,12 @@ member20 не является глубокой копией runtime source Acto
 `wxGoopMonsterProjectileManager`, `wxIceGargoyleProjectileManager`,
 `wxKnutProjectileManager`, `wxMosquitoProjectileManager`,
 `wxSpiderProjectileManager`, `wxTrollProjectileManager`, `wxYetiProjectileManager`.
-Изученный общий участок управляет записями эффектов/снарядов; индивидуальные
+Изученный общий участок [wxProjectileManager](../../reference/classes/wx-projectile-manager.md)
+управляет записями эффектов/снарядов; индивидуальные
 команды стрельбы и выбор траектории ещё открыты.
+Для `wxBacoProjectileManager` отдельно восстановлены выбор одного из двух
+снарядов и направление выстрела в игрока; контракт и его границы описаны
+в [разборе класса](../../reference/classes/wx-baco-projectile-manager.md).
 
 ### Общие методы:35 пар
 

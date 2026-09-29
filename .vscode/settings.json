@@ -1,0 +1,8 @@
+{
+  "cmake.sourceDirectory": "${workspaceFolder}/Winx",
+  "cmake.buildDirectory": "${workspaceFolder}/.codex-tmp/vscode-winx",
+  "cmake.generator": "Ninja",
+  "cmake.configureSettings": {
+    "BUILD_TESTING": "ON"
+  }
+}
