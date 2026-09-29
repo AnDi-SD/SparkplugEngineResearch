@@ -6503,8 +6503,13 @@
         "pc": "0xD32F3AA1",
         "ps2": "0xD32F3AA1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-baco-state-machine.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBacoStateMachine.cpp",
+        "Winx/Code/wxBacoStateMachine.h"
+      ]
     },
     {
       "name": "wxBaseAIBehavior",

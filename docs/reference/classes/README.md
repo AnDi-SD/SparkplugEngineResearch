@@ -8,6 +8,7 @@
 
 - [`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`](wx-baco-ai-behavior.md).
 - [`wxBacoManager`](wx-baco-manager.md).
+- [`wxBacoStateMachine`](wx-baco-state-machine.md).
 - [spActor](sp-actor.md).
 - [spAnimation / spAnimationSerializer](sp-animation.md).
 - [spAnimationManager](sp-animation-manager.md).

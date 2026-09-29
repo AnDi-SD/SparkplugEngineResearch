@@ -23,7 +23,7 @@
 | `wxBacoAttackAIAction` | `0x013B1195` | Да | Да | [1](classes/wx-baco-attack-ai-action.md) | [wxBacoAttackAIAction.cpp](../../Winx/Code/wxBacoAttackAIAction.cpp), [wxBacoAttackAIAction.h](../../Winx/Code/wxBacoAttackAIAction.h) |
 | `wxBacoManager` | `0x352C4347` | Да | Да | [1](classes/wx-baco-manager.md) | [wxBacoManager.cpp](../../Winx/Code/wxBacoManager.cpp), [wxBacoManager.h](../../Winx/Code/wxBacoManager.h) |
 | `wxBacoProjectileManager` | `0x6F925DB7` | Да | Да | — | — |
-| `wxBacoStateMachine` | `0x78603414` | Да | Да | — | — |
+| `wxBacoStateMachine` | `0x78603414` | Да | Да | [1](classes/wx-baco-state-machine.md) | [wxBacoStateMachine.cpp](../../Winx/Code/wxBacoStateMachine.cpp), [wxBacoStateMachine.h](../../Winx/Code/wxBacoStateMachine.h) |
 | `wxBaseAIBehavior` | `0x457334F1` | Да | Да | [1](classes/wx-baco-ai-behavior.md) | [wxBaseAIBehavior.cpp](../../Winx/Code/wxBaseAIBehavior.cpp), [wxBaseAIBehavior.h](../../Winx/Code/wxBaseAIBehavior.h) |
 | `wxBasicMovingState` | `0x1D533B89` | Да | Да | — | — |
 | `wxBattleChallengeGameFlowState` | `0x422D0D1D` | Да | Да | — | — |

@@ -2072,6 +2072,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-baco-state-machine.md",
+      "title": "`wxBacoStateMachine`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state.md",
       "title": "wxCharacterState",
       "category": "reference/classes"

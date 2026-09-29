@@ -29,6 +29,24 @@ else()
     target_compile_options(WinxCharacterStates PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+# Baco's verified leaf behavior uses an explicit adapter for the missing
+# character state machine and the four concrete state factories.
+add_library(WinxBacoStateMachines STATIC
+    Code/wxBacoStateMachine.cpp
+    Code/wxBacoStateMachine.h
+    Analysis/Host/wxBacoStateMachineHost.h
+    Analysis/PC/wxBacoStateMachineAbi.h
+    Analysis/PS2/wxBacoStateMachineAbi.h
+)
+target_include_directories(WinxBacoStateMachines PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxBacoStateMachines PUBLIC WinxCharacterStates)
+target_compile_features(WinxBacoStateMachines PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxBacoStateMachines PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxBacoStateMachines PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 # Recovered AI-action base and verified Attack/Baco subsets. Complex movement
 # slots and active state bodies remain documented boundaries.
 add_library(WinxAIActions STATIC
@@ -262,7 +280,7 @@ add_library(WinxGameCore STATIC
     Code/wxFaceData.h
 )
 target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxCharacterStates WinxAIActions WinxAIBehaviors WinxAIManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
+target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxCharacterStates WinxBacoStateMachines WinxAIActions WinxAIBehaviors WinxAIManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
 target_compile_features(WinxGameCore PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
@@ -330,6 +348,11 @@ if(BUILD_TESTING)
     target_link_libraries(WinxBacoAIBehaviorTests PRIVATE WinxAIBehaviors)
     add_test(NAME WinxBacoAIBehaviorTests COMMAND WinxBacoAIBehaviorTests)
     set_tests_properties(WinxBacoAIBehaviorTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBacoStateMachineTests Tests/wxBacoStateMachineTests.cpp)
+    target_link_libraries(WinxBacoStateMachineTests PRIVATE WinxBacoStateMachines)
+    add_test(NAME WinxBacoStateMachineTests COMMAND WinxBacoStateMachineTests)
+    set_tests_properties(WinxBacoStateMachineTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxAIManagerTests Tests/wxAIManagerTests.cpp)
     target_link_libraries(WinxAIManagerTests PRIVATE WinxAIManagers)
