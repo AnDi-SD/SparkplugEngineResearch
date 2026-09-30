@@ -62,10 +62,9 @@ namespace winx::reconstruction
         return clone;
     }
 
-    void wxProjectile::TransferReferenceForAnalysis(wxProjectile& target,
-        const std::size_t offset) const
+    void wxProjectile::TransferReferenceWordForAnalysis(
+        const std::uint32_t oldToken, const std::uint32_t newToken) const
     {
-        const auto oldToken = ReadWord(target.bytes_, offset);
         if (oldToken)
         {
             const auto count = static_cast<std::uint16_t>(
@@ -73,11 +72,17 @@ namespace winx::reconstruction
             host_.SetReferenceCountForAnalysis(oldToken, count);
             if (!count) host_.DeleteReferenceForAnalysis(oldToken);
         }
-        const auto newToken = ReadWord(bytes_, offset);
         if (newToken)
             host_.SetReferenceCountForAnalysis(newToken,
                 static_cast<std::uint16_t>(
                     host_.ReferenceCountForAnalysis(newToken) + 1u));
+    }
+
+    void wxProjectile::TransferReferenceForAnalysis(wxProjectile& target,
+        const std::size_t offset) const
+    {
+        const auto newToken = ReadWord(bytes_, offset);
+        TransferReferenceWordForAnalysis(ReadWord(target.bytes_, offset), newToken);
         PutWord(target.bytes_, offset, newToken);
     }
 

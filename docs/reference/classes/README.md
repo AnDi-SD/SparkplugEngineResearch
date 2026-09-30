@@ -12,6 +12,8 @@
 - [`wxBacoStateMachine`](wx-baco-state-machine.md).
 - [`wxProjectile`](wx-projectile.md).
 - [`wxProjectileManager`](wx-projectile-manager.md).
+- [`wxStingerProjectile`](wx-stinger-projectile.md).
+- [`wxWebSpitProjectile`](wx-web-spit-projectile.md).
 - [spActor](sp-actor.md).
 - [spAnimation / spAnimationSerializer](sp-animation.md).
 - [spAnimationManager](sp-animation-manager.md).

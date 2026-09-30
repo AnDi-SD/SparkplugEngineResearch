@@ -2,7 +2,10 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
+#include <vector>
+#include <string>
 
 using namespace winx::reconstruction;
 using namespace sparkplug::reconstruction;
@@ -14,15 +17,45 @@ namespace
         if (!condition) { std::cerr << message << '\n'; std::exit(EXIT_FAILURE); }
     }
 
-    struct Host final : wxCharacterStateHost
+    struct Host final : wxBasicMovingStateHost
     {
         unsigned queries = 0;
         bool result = false;
-        void* ResolveAnimationForAnalysis(void*, std::uint32_t) override { return nullptr; }
+        float magnitude = 0.0f;
+        bool movementFlag = false;
+        void* resolved = reinterpret_cast<void*>(0x400);
+        std::uint32_t resolvedKey = 0;
+        std::vector<std::string> calls;
+        float MovementMagnitudeForAnalysis(void* owner) override
+        {
+            Require(owner == reinterpret_cast<void*>(0x100), "movement owner");
+            calls.emplace_back("magnitude");
+            return magnitude;
+        }
+        bool MovementFlagForAnalysis(void* owner) override
+        {
+            Require(owner == reinterpret_cast<void*>(0x100), "movement flag owner");
+            calls.emplace_back("flag");
+            return movementFlag;
+        }
+        void* ResolveAnimationForAnalysis(void* owner, std::uint32_t key) override
+        {
+            Require(owner == reinterpret_cast<void*>(0x100), "animation owner");
+            calls.emplace_back("resolve");
+            resolvedKey = key;
+            return resolved;
+        }
         bool OwnerPredicateForAnalysis(void*) override { return false; }
         void ResetCompletionForAnalysis(void*, void*) override {}
-        void StartAnimationForAnalysis(void*, void*, bool, std::uint32_t, bool) override {}
-        void StopAnimationForAnalysis(void*, void*) override {}
+        void StartAnimationForAnalysis(void*, void* handle, bool mode,
+            std::uint32_t fade, bool interrupt) override
+        {
+            Require(handle == resolved && mode && fade == 0 && interrupt,
+                "movement start args");
+            calls.emplace_back("start");
+        }
+        void StopAnimationForAnalysis(void*, void*) override
+        { calls.emplace_back("stop"); }
         void FadeAnimationForAnalysis(void*, void*, float) override {}
         bool IsPendingAnimationCompleteForAnalysis(void* receiver, void* handle,
             bool consume) override
@@ -71,5 +104,41 @@ int main()
     try { state->vfunc_30(request); }
     catch (const std::logic_error&) { explicitBoundary = true; }
     Require(explicitBoundary, "unrecovered movement body stays explicit");
+
+    Require(wxBasicMovingState::ComposeMovingKeyForAnalysis(
+        0xFFFFFFFF, 0.1f, false) == 0xF01F800F
+        && wxBasicMovingState::ComposeMovingKeyForAnalysis(
+            0xFFFFFFFF, 0.1f, true) == 0xF09F800F
+        && wxBasicMovingState::ComposeMovingKeyForAnalysis(
+            0xFFFFFFFF, 0.2f, true) == 0xF01F805F
+        && wxBasicMovingState::ComposeMovingKeyForAnalysis(
+            0xFFFFFFFF, 0.5f, false) == 0xF09F805F
+        && wxBasicMovingState::ComposeMovingKeyForAnalysis(
+            0xFFFFFFFF, std::numeric_limits<float>::quiet_NaN(), false)
+            == 0xF09F805F,
+        "PC/PS2 movement thresholds and packed masks");
+    state->SetCurrentSelectorForAnalysis(0);
+    state->SetMovementBindingsForAnalysis(reinterpret_cast<void*>(0x100),
+        reinterpret_cast<void*>(0x200), &host);
+    state->SetPendingHandleForAnalysis(reinterpret_cast<void*>(0x300));
+    host.magnitude = 0.1f;
+    host.movementFlag = true;
+    host.calls.clear();
+    request.packedKey = 0xFFFFFFFF;
+    state->vfunc_30(request);
+    Require(request.packedKey == 0xF09F800F
+        && host.resolvedKey == request.packedKey
+        && state->GetPendingHandleForAnalysis() == host.resolved,
+        "movement request resolves and stores new handle");
+    Require(host.calls == std::vector<std::string>{
+        "magnitude", "flag", "resolve", "stop", "start"},
+        "movement callback order");
+    host.magnitude = 0.2f;
+    host.calls.clear();
+    request.packedKey = 0xFFFFFFFF;
+    state->vfunc_30(request);
+    Require(request.packedKey == 0xF01F805F
+        && host.calls == std::vector<std::string>{"magnitude", "resolve"},
+        "equal pending handle skips replay and high speed skips flag read");
     std::cout << "wxBasicMovingState checks passed\n";
 }

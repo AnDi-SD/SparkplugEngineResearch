@@ -44,9 +44,39 @@ namespace winx::reconstruction
         return clone;
     }
 
-    void wxBasicMovingState::vfunc_30(wxAnimationRequestForAnalysis&)
+    std::uint32_t wxBasicMovingState::ComposeMovingKeyForAnalysis(
+        const std::uint32_t input, const float magnitude,
+        const bool flag) noexcept
     {
-        throw std::logic_error("wxBasicMovingState movement request is not recovered");
+        auto key = input & 0xFFFF807Fu;
+        if (magnitude < 0.2f)
+        {
+            key &= 0xF07FFF8Fu;
+            if (flag) key = (key & 0xF0FFFFFFu) | 0x00800000u;
+        }
+        else if (magnitude < 0.5f)
+            key = (key & 0xF07FFFDFu) | 0x50u;
+        else
+            key = (key & 0xF0FFFFDFu) | 0x00800050u;
+        return key & 0xFF9FFFFFu;
+    }
+
+    void wxBasicMovingState::vfunc_30(wxAnimationRequestForAnalysis& request)
+    {
+        if (!movementHost_ || GetStateSelectorForAnalysis() == 9)
+            throw std::logic_error("wxBasicMovingState requires a measured movement binding");
+        void* const owner = GetOwnerForAnalysis();
+        const float magnitude = movementHost_->MovementMagnitudeForAnalysis(owner);
+        const bool flag = magnitude < 0.2f
+            && movementHost_->MovementFlagForAnalysis(owner);
+        request.packedKey = ComposeMovingKeyForAnalysis(request.packedKey,
+            magnitude, flag);
+        void* const handle = movementHost_->ResolveAnimationForAnalysis(
+            owner, request.packedKey);
+        if (handle == GetPendingHandleForAnalysis()) return;
+        ReleasePendingFromState();
+        QueuePendingFromState(handle, true, true);
+        SetPendingHandleFromState(handle);
     }
 
     bool wxBasicMovingState::vfunc_34(const std::uint32_t target) const

@@ -336,6 +336,8 @@
 - [`wxBacoStateMachine`](reference/classes/wx-baco-state-machine.md).
 - [`wxProjectile`](reference/classes/wx-projectile.md).
 - [`wxProjectileManager`](reference/classes/wx-projectile-manager.md).
+- [`wxStingerProjectile`](reference/classes/wx-stinger-projectile.md).
+- [`wxWebSpitProjectile`](reference/classes/wx-web-spit-projectile.md).
 - [spActor](reference/classes/sp-actor.md).
 - [spAnimation / spAnimationSerializer](reference/classes/sp-animation.md).
 - [spAnimationManager](reference/classes/sp-animation-manager.md).

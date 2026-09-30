@@ -18,7 +18,11 @@
 
 `WinxProjectiles` содержит частичный [wxProjectile](../docs/reference/classes/wx-projectile.md): подтверждённые поля Copy, четыре счётчика ссылок и замену `spActor` при Copy. Внешние объекты передаются `wxProjectileHost`; проверка — `WinxProjectileTests`.
 
-Также восстановлены constructor/RTTI и проверка разрешения перехода [wxBasicMovingState](../docs/reference/classes/wx-basic-moving-state.md). Его отдельная цель — `WinxBasicMovingStateTests`; обработчик движения остаётся открытым.
+В том же модуле [wxStingerProjectile](../docs/reference/classes/wx-stinger-projectile.md) сохраняет подтверждённый собственный Copy двух ссылок и слова без копирования общего payload; проверка — `WinxStingerProjectileTests`.
+
+Для [wxWebSpitProjectile](../docs/reference/classes/wx-web-spit-projectile.md) восстановлены собственные поля Copy и порядок освобождения двух ссылок; проверка — `WinxWebSpitProjectileTests`.
+
+Также восстановлены constructor/RTTI, проверка разрешения перехода и ветвь движения [wxBasicMovingState](../docs/reference/classes/wx-basic-moving-state.md) при selector, отличном от `9`. Его отдельная цель — `WinxBasicMovingStateTests`; путь selector `9` остаётся открытым.
 
 `WinxCharacterStateMachines` содержит подтверждённый общий протокол [wxCharacterStateMachine](../docs/reference/classes/wx-character-state-machine.md): вход, reset, выбор, стек переходов, сообщения и фильтр flags. Состояния и наблюдатель приходят через отдельный host. `wxBacoStateMachine` использует эту общую базу и подключает четыре собственных состояния к установленным слотам. Цель проверки общей базы — `WinxCharacterStateMachineTests`.
 

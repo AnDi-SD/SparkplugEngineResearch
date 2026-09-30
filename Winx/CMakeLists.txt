@@ -20,6 +20,7 @@ add_library(WinxCharacterStates STATIC
     Analysis/PC/wxAttackingStateAbi.h
     Analysis/PS2/wxAttackingStateAbi.h
     Analysis/Host/wxCharacterStateHost.h
+    Analysis/Host/wxBasicMovingStateHost.h
     Analysis/Host/wxAttackingStateHost.h
 )
 target_include_directories(WinxCharacterStates PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -168,9 +169,17 @@ endif()
 add_library(WinxProjectiles STATIC
     Code/wxProjectile.cpp
     Code/wxProjectile.h
+    Code/wxStingerProjectile.cpp
+    Code/wxStingerProjectile.h
+    Code/wxWebSpitProjectile.cpp
+    Code/wxWebSpitProjectile.h
     Analysis/Host/wxProjectileHost.h
     Analysis/PC/wxProjectileAbi.h
     Analysis/PS2/wxProjectileAbi.h
+    Analysis/PC/wxStingerProjectileAbi.h
+    Analysis/PS2/wxStingerProjectileAbi.h
+    Analysis/PC/wxWebSpitProjectileAbi.h
+    Analysis/PS2/wxWebSpitProjectileAbi.h
 )
 target_include_directories(WinxProjectiles PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxProjectiles PUBLIC WinxEntities)
@@ -473,6 +482,16 @@ if(BUILD_TESTING)
     target_link_libraries(WinxProjectileTests PRIVATE WinxProjectiles)
     add_test(NAME WinxProjectileTests COMMAND WinxProjectileTests)
     set_tests_properties(WinxProjectileTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxStingerProjectileTests Tests/wxStingerProjectileTests.cpp)
+    target_link_libraries(WinxStingerProjectileTests PRIVATE WinxProjectiles)
+    add_test(NAME WinxStingerProjectileTests COMMAND WinxStingerProjectileTests)
+    set_tests_properties(WinxStingerProjectileTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxWebSpitProjectileTests Tests/wxWebSpitProjectileTests.cpp)
+    target_link_libraries(WinxWebSpitProjectileTests PRIVATE WinxProjectiles)
+    add_test(NAME WinxWebSpitProjectileTests COMMAND WinxWebSpitProjectileTests)
+    set_tests_properties(WinxWebSpitProjectileTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxAlfeaDoorTriggerTests Tests/wxAlfeaDoorTriggerTests.cpp)
     target_link_libraries(WinxAlfeaDoorTriggerTests PRIVATE WinxDoorTriggers)

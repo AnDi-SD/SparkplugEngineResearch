@@ -36,6 +36,11 @@ namespace winx::reconstruction
         [[nodiscard]] const BytesForAnalysis& GetBytesForAnalysis() const noexcept { return bytes_; }
         [[nodiscard]] void* GetActorForAnalysis() const noexcept { return actor_; }
 
+    protected:
+        [[nodiscard]] wxProjectileHost& GetHostForAnalysis() const noexcept { return host_; }
+        void TransferReferenceWordForAnalysis(std::uint32_t oldToken,
+            std::uint32_t newToken) const;
+
     private:
         void TransferReferenceForAnalysis(wxProjectile& target,
             std::size_t offset) const;

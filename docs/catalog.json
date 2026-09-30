@@ -2142,6 +2142,16 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-stinger-projectile.md",
+      "title": "`wxStingerProjectile`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-web-spit-projectile.md",
+      "title": "`wxWebSpitProjectile`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/engine-classes.md",
       "title": "Классы движка",
       "category": "reference"

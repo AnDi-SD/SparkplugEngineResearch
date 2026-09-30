@@ -11652,8 +11652,13 @@
         "pc": "0x1ACF3C70",
         "ps2": "0x1ACF3C70"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-stinger-projectile.md"
+      ],
+      "sources": [
+        "Winx/Code/wxStingerProjectile.cpp",
+        "Winx/Code/wxStingerProjectile.h"
+      ]
     },
     {
       "name": "wxStompProjectile",
@@ -12250,8 +12255,13 @@
         "pc": "0x1ACF3C70",
         "ps2": "0x1ACF3C70"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-web-spit-projectile.md"
+      ],
+      "sources": [
+        "Winx/Code/wxWebSpitProjectile.cpp",
+        "Winx/Code/wxWebSpitProjectile.h"
+      ]
     },
     {
       "name": "wxWinxFlyAIAction",

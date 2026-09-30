@@ -363,7 +363,7 @@
 | `wxStellaRingTrigger` | `0x686665FA` | Да | Да | — | — |
 | `wxStickingLeftState` | `0x5A907EA0` | Да | Да | — | — |
 | `wxStickingRightState` | `0x5C5147D6` | Да | Да | — | — |
-| `wxStingerProjectile` | `0x206A45A2` | Да | Да | — | — |
+| `wxStingerProjectile` | `0x206A45A2` | Да | Да | [1](classes/wx-stinger-projectile.md) | [wxStingerProjectile.cpp](../../Winx/Code/wxStingerProjectile.cpp), [wxStingerProjectile.h](../../Winx/Code/wxStingerProjectile.h) |
 | `wxStompProjectile` | `0x5DC941A2` | Да | Да | — | — |
 | `wxStormyAttackAIAction` | `0x32957C4C` | Да | Да | — | — |
 | `wxStrafingState` | `0x22474D5C` | Да | Да | — | — |
@@ -403,7 +403,7 @@
 | `wxWandringNPCStateMachine` | `0x084C5660` | Да | Да | — | — |
 | `wxWandringNPCWaitState` | `0x4D9470B5` | Да | Да | — | — |
 | `wxWayToGoState` | `0x4623876A` | Да | Да | — | — |
-| `wxWebSpitProjectile` | `0x5CE65EBF` | Да | Да | — | — |
+| `wxWebSpitProjectile` | `0x5CE65EBF` | Да | Да | [1](classes/wx-web-spit-projectile.md) | [wxWebSpitProjectile.cpp](../../Winx/Code/wxWebSpitProjectile.cpp), [wxWebSpitProjectile.h](../../Winx/Code/wxWebSpitProjectile.h) |
 | `wxWinxFlyAIAction` | `0x67AF3520` | Да | Да | — | — |
 | `wxWinxHelpAIBehavior` | `0x423845B1` | Да | Да | — | — |
 | `wxWinxHelpStateMachine` | `0x5F303566` | Да | Да | — | — |

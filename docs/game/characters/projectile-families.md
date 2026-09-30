@@ -4,8 +4,8 @@
 
 Десять классов: [базовый `wxProjectile`](../../reference/classes/wx-projectile.md), `wxFetidBreathProjectile`,
 `wxGolemLitProjectile`, `wxGolemShockwaveProjectile`, `wxPiercingWindProjectile`,
-`wxStarsProjectile`, `wxStingerProjectile`, `wxStompProjectile`, `wxTidalFlame`,
-`wxWebSpitProjectile`. Это отдельные варианты снаряда; траектории, урон и
+`wxStarsProjectile`, [wxStingerProjectile](../../reference/classes/wx-stinger-projectile.md), `wxStompProjectile`, `wxTidalFlame`,
+[`wxWebSpitProjectile`](../../reference/classes/wx-web-spit-projectile.md). Это отдельные варианты снаряда; траектории, урон и
 полный игровой эффект каждого пока не закрыты. Их размеры совпадают между
 PC/PS2: соответственно236,272,268,328,476,552,248,340,424,256 байт.
 
