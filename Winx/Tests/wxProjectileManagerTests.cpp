@@ -3,8 +3,10 @@
 #include "Code/wxProjectileManager.h"
 
 #include <cstdlib>
+#include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,7 +31,9 @@ namespace
         mutable std::vector<std::string> calls;
         bool paused = false;
         std::uint32_t now = 100;
+        bool changeTimeOnDisable = false;
         void* registeredPayload = nullptr;
+        std::vector<std::unique_ptr<wxProjectileManagerRecordForAnalysis>> records;
         void AddToEngineManagerForAnalysis(spEntity&) override
         { calls.emplace_back("engine-add"); }
         void MoveFromEngineToGameForAnalysis(wxEntity&) override
@@ -56,14 +60,33 @@ namespace
         { calls.emplace_back("pause"); return paused; }
         std::uint32_t GameTimeForAnalysis() const noexcept override
         { calls.emplace_back("time"); return now; }
+        void BeforePoolTeardownForAnalysis(wxProjectileManager&) noexcept override
+        { calls.emplace_back("before-pool-teardown"); }
         void SetupProjectileManagerForAnalysis(wxProjectileManager&) noexcept override
         { calls.emplace_back("setup"); }
-        void BeginPoolRegistrationForAnalysis(wxProjectileManager&,
-            std::size_t group, std::size_t slot, void* payload) noexcept override
+        wxProjectileManagerRecordForAnalysis* AllocatePoolRecordForAnalysis(
+            wxProjectileManager&) noexcept override
         {
-            calls.emplace_back("register" + std::to_string(group) + ":" +
-                std::to_string(slot));
+            calls.emplace_back("allocate");
+            records.push_back(std::make_unique<wxProjectileManagerRecordForAnalysis>());
+            return records.back().get();
+        }
+        void InitializePoolPayloadForAnalysis(void* payload,
+            float scale) noexcept override
+        {
+            Require(scale == 1.0f, "group-three scale");
+            calls.emplace_back("initialize");
             registeredPayload = payload;
+        }
+        void FreePoolRecordForAnalysis(
+            wxProjectileManagerRecordForAnalysis& record) noexcept override
+        {
+            Require(!record.payload, "record payload cleared before free");
+            calls.emplace_back("free");
+            const auto found = std::find_if(records.begin(), records.end(),
+                [&record](const auto& owned) { return owned.get() == &record; });
+            Require(found != records.end(), "free allocated record");
+            records.erase(found);
         }
         void UpdatePoolRecordForAnalysis(wxProjectileManager&,
             std::size_t group, std::size_t slot) noexcept override
@@ -75,6 +98,12 @@ namespace
             Require(payload == registeredPayload && enabled == 0 && immediate == 1,
                 "expired payload callback args");
             calls.emplace_back("disable");
+            if (changeTimeOnDisable) now = 200;
+        }
+        void ResetPoolPayloadPositionForAnalysis(void* payload) noexcept override
+        {
+            Require(payload == registeredPayload, "reset reloaded payload");
+            calls.emplace_back("reset-position");
         }
     };
 }
@@ -135,8 +164,14 @@ int main()
     Require(host.calls.empty(), "full registration returns before allocation");
     pool[3][0] = nullptr;
     object->vfunc_0C(&message);
-    Require(host.calls == std::vector<std::string>{"register3:0"}
-        && host.registeredPayload == &occupied, "allocation boundary callback");
+    Require(host.calls == std::vector<std::string>{"allocate", "initialize"}
+        && host.registeredPayload == &occupied && pool[3][0]
+        && pool[3][0]->payload == &occupied && !pool[3][0]->active
+        && !pool[3][0]->deadline, "registration initializes and inserts record");
+    auto* registered = pool[3][0];
+    pool[3][0] = nullptr;
+    registered->payload = nullptr;
+    host.FreePoolRecordForAnalysis(*registered);
     host.calls.clear();
     message.code = 0x1C;
     object->vfunc_0C(&message);
@@ -163,12 +198,48 @@ int main()
         && equal.deadline == 100 && equal.active == 255,
         "strict unsigned expiration and mutation");
     Require(host.calls == std::vector<std::string>{
-        "pause", "time", "disable", "update3:4"}, "scan and callback order");
+        "pause", "time", "disable", "reset-position", "time", "update3:4"},
+        "scan, per-entry time read and expiration callback order");
+    pool = {};
+    host.calls.clear();
+    Require(object->TickForAnalysis()
+        && host.calls == std::vector<std::string>{"pause"},
+        "empty enabled pool avoids timer read");
+    pool[0][0] = &inactive;
+    host.calls.clear();
+    Require(object->TickForAnalysis()
+        && host.calls == std::vector<std::string>{"pause"},
+        "inactive records avoid timer read");
+    expired = {99, 1, &occupied};
+    equal = {100, 1, &occupied};
+    pool[0][1] = &expired;
+    pool[3][4] = &equal;
+    host.changeTimeOnDisable = true;
+    host.calls.clear();
+    Require(object->TickForAnalysis() && !equal.active && !equal.deadline,
+        "later slot sees time changed during earlier callback");
+    Require(host.calls == std::vector<std::string>{"pause", "time", "disable",
+        "reset-position", "time", "disable", "reset-position"},
+        "both expirations complete in row-major order");
+    host.changeTimeOnDisable = false;
     object->SetEnabledForAnalysis(0);
     host.calls.clear();
     Require(object->TickForAnalysis()
         && host.calls == std::vector<std::string>{"pause"},
         "disabled returns true without timer read");
+    pool = {};
+    host.calls.clear();
+    {
+        wxProjectileManager disposable(host);
+        wxProjectileManagerMessageForAnalysis ownedMessage{0x273F, 3, &occupied};
+        disposable.vfunc_0C(&ownedMessage);
+        Require(disposable.GetPoolForAnalysis()[3][0] != nullptr,
+            "registration is visible before manager destruction");
+        host.calls.clear();
+    }
+    Require(host.calls == std::vector<std::string>{
+        "before-pool-teardown", "free", "game-remove", "engine-remove"},
+        "own manager call precedes record free and inherited teardown");
     wxProjectileManager::SetFactoryHostForAnalysis(nullptr);
     std::cout << "wxProjectileManager checks passed\n";
 }

@@ -92,7 +92,10 @@ int main()
     machine.UpdateFlagsForAnalysis(0, flags);
     Require(machine.GetComputedFlagsForAnalysis() == 0x18400u,
         "computed flags are stored");
-    Require(!machine.Clone(), "modified copy contract remains unknown");
+    auto changedClone = machine.Clone();
+    auto* freshBaco = dynamic_cast<wxBacoStateMachine*>(changedClone.get());
+    Require(freshBaco && freshBaco->GetComputedFlagsForAnalysis() == 0,
+        "inherited Copy leaves derived flags at constructor defaults");
 
     wxBacoStateMachine empty;
     TraceHost host;
@@ -121,6 +124,12 @@ int main()
     try { empty.SetupForAnalysis(host); }
     catch (const std::logic_error&) { repeated = true; }
     Require(repeated, "repeat setup is not guessed");
-    Require(!empty.Clone(), "setup state is not silently cloned");
+    auto setupClone = empty.Clone();
+    auto* freshSetup = dynamic_cast<wxBacoStateMachine*>(setupClone.get());
+    Require(freshSetup && !freshSetup->GetStateForAnalysis(0)
+        && !freshSetup->GetStateForAnalysis(1)
+        && !freshSetup->GetStateForAnalysis(2)
+        && !freshSetup->GetStateForAnalysis(3),
+        "inherited Copy does not share constructed states");
     return EXIT_SUCCESS;
 }

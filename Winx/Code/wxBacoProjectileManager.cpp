@@ -43,8 +43,10 @@ namespace winx::reconstruction
     bool wxBacoProjectileManager::vfunc_14(spBaseObject& destination, spCloneManager&) const
     {
         auto* other = dynamic_cast<wxBacoProjectileManager*>(&destination);
-        // Native empty clone is measured. Copying live pool ownership is not.
-        if (!other || setup_ || projectiles_[0] || projectiles_[1]) return false;
+        // PC 50F6B0 / PS2 2FE380 call wxEntity Copy directly and do not
+        // transfer this leaf's projectile/emitter pointers. The destination
+        // retains its constructor state even when the source is live.
+        if (!other) return false;
         CopyNameToForAnalysis(*other);
         other->host_ = host_;
         return true;

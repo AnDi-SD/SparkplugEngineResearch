@@ -1,6 +1,5 @@
 #include "wxCharacterStateMachine.h"
 
-#include <algorithm>
 #include <stdexcept>
 
 namespace winx::reconstruction
@@ -47,30 +46,11 @@ namespace winx::reconstruction
         spCloneManager&) const
     {
         auto* other = dynamic_cast<wxCharacterStateMachine*>(&destination);
-        if (!other || !IsFactoryDefaultForAnalysis()) return false;
+        // Native PC 6F6680 / PS2 49B490 Copy slot points straight to
+        // wxEntity::Copy. Its own machine state is not transferred.
+        if (!other) return false;
         CopyNameToForAnalysis(*other);
         return true;
-    }
-
-    bool wxCharacterStateMachine::IsFactoryDefaultForAnalysis() const noexcept
-    {
-        const SnapshotForAnalysis defaults{};
-        return host_ == nullptr
-            && runtime_.current == defaults.current
-            && runtime_.previous == defaults.previous
-            && runtime_.gate == defaults.gate
-            && runtime_.previousData == defaults.previousData
-            && runtime_.currentData == defaults.currentData
-            && runtime_.nextData == defaults.nextData
-            && runtime_.depth == defaults.depth
-            && runtime_.mode == defaults.mode
-            && runtime_.lastFlag == defaults.lastFlag
-            && std::all_of(states_.begin(), states_.end(),
-                [](wxCharacterState* state) { return state == nullptr; })
-            && std::all_of(savedStates_.begin(), savedStates_.end(),
-                [](std::uint32_t value) { return value == 0; })
-            && std::all_of(savedData_.begin(), savedData_.end(),
-                [](std::uint32_t value) { return value == 0; });
     }
 
     void wxCharacterStateMachine::SetStateForAnalysis(

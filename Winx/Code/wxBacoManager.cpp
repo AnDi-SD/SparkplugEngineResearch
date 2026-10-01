@@ -46,12 +46,9 @@ namespace winx::reconstruction
     bool wxBacoManager::vfunc_14(spBaseObject& destination, spCloneManager&) const
     {
         auto* other = dynamic_cast<wxBacoManager*>(&destination);
-        if (!other || sceneSetup_ || !members_.empty() || state_.nextProximityCheck
-            || state_.reachedFirst || state_.reachedSecond
-            || state_.waveFirst || state_.waveSecond
-            || state_.firstCount || state_.secondCount) return false;
-        for (auto deadline : state_.deadlines)
-            if (deadline) return false;
+        // PC 572D20 / PS2 2FDF10 invoke wxEntity::Copy directly. No Baco
+        // timers, members or scene pointers are transferred by this slot.
+        if (!other) return false;
         CopyNameToForAnalysis(*other);
         return true;
     }

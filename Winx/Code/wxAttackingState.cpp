@@ -233,7 +233,7 @@ namespace winx::reconstruction
         }
     }
 
-    bool wxAttackingState::vfunc_34(const std::uint32_t code) const
+    bool wxAttackingState::vfunc_34(const std::uint32_t code)
     {
         // PC 513E70 / PS2 2C76F0.
         if (code == 1

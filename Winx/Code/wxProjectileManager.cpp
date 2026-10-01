@@ -1,6 +1,7 @@
 #include "wxProjectileManager.h"
 
 #include <cstring>
+#include <exception>
 #include <stdexcept>
 
 namespace winx::reconstruction
@@ -28,6 +29,13 @@ namespace winx::reconstruction
         {
             std::memcpy(bytes.data() + offset - 0x124, &value, sizeof(value));
         }
+        std::uint32_t GetWord(const wxProjectileManager::OwnBytesForAnalysis& bytes,
+            std::size_t offset) noexcept
+        {
+            std::uint32_t value;
+            std::memcpy(&value, bytes.data() + offset - 0x124, sizeof(value));
+            return value;
+        }
     }
 
     wxProjectileManager::wxProjectileManager(wxProjectileManagerHost& host)
@@ -49,6 +57,22 @@ namespace winx::reconstruction
         PutWord(ownBytes_, 0x164, 0x40000000);
         PutWord(ownBytes_, 0x168, 0x3F800000);
         PutWord(ownBytes_, 0x16C, 0x3F800000);
+    }
+
+    wxProjectileManager::~wxProjectileManager()
+    {
+        // PC 505E2F / PS2 2C6654: external manager call before the pool.
+        host_.BeforePoolTeardownForAnalysis(*this);
+        PutWord(ownBytes_, 0x130, 0);
+        // PC 505E50 / PS2 2C6678: row-major traversal of all 20 entries.
+        for (auto& group : pool_)
+            for (auto*& record : group)
+                if (record)
+                {
+                    record->payload = nullptr;
+                    host_.FreePoolRecordForAnalysis(*record);
+                    record = nullptr;
+                }
     }
 
     void wxProjectileManager::SetFactoryHostForAnalysis(wxProjectileManagerHost* host) noexcept
@@ -89,11 +113,19 @@ namespace winx::reconstruction
         case 0x1C: host_.SetupProjectileManagerForAnalysis(*this); break;
         case 0x1E: (void)TickForAnalysis(); break;
         case 0x273F:
-            // Original reaches a 12-byte allocator after this search. Record
-            // creation and ownership need a separate observed contract.
             if (const auto slot = FindFreeSlotForAnalysis(message.group))
-                host_.BeginPoolRegistrationForAnalysis(*this, message.group,
-                    *slot, message.payload);
+            {
+                auto* const record = host_.AllocatePoolRecordForAnalysis(*this);
+                if (!record) std::terminate();
+                record->deadline = 0;
+                record->active = 0;
+                record->payload = message.payload;
+                const auto scaleBits = GetWord(ownBytes_, 0x160 + 4*message.group);
+                float scale;
+                std::memcpy(&scale, &scaleBits, sizeof(scale));
+                host_.InitializePoolPayloadForAnalysis(message.payload, scale);
+                pool_[message.group][*slot] = record;
+            }
             break;
         default: break;
         }
@@ -113,17 +145,20 @@ namespace winx::reconstruction
         if (host_.IsGamePausedForAnalysis()) return false;
         if (enabled_)
         {
-            const auto now = host_.GameTimeForAnalysis();
             for (std::size_t group = 0; group < pool_.size(); ++group)
                 for (std::size_t slot = 0; slot < pool_[group].size(); ++slot)
                 {
                     auto* entry = pool_[group][slot];
                     if (!entry || !entry->active) continue;
-                    if (entry->deadline < now)
+                    // The original reads time for each active entry, after
+                    // callbacks for preceding slots, rather than once per Tick.
+                    if (entry->deadline < host_.GameTimeForAnalysis())
                     {
-                        entry->deadline = 0;
                         entry->active = 0;
+                        entry->deadline = 0;
                         host_.DisablePoolPayloadForAnalysis(entry->payload, 0, 1);
+                        host_.ResetPoolPayloadPositionForAnalysis(
+                            pool_[group][slot]->payload);
                     }
                     else host_.UpdatePoolRecordForAnalysis(*this, group, slot);
                 }

@@ -74,7 +74,6 @@ namespace winx::reconstruction
     private:
         [[nodiscard]] wxCharacterState& RequireStateForAnalysis(std::uint32_t index) const;
         [[nodiscard]] wxCharacterStateMachineHost& RequireHostForAnalysis() const;
-        [[nodiscard]] bool IsFactoryDefaultForAnalysis() const noexcept;
 
         SnapshotForAnalysis runtime_{};
         std::array<wxCharacterState*, StateCount> states_{}; // borrowed

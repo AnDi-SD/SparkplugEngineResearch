@@ -15,6 +15,71 @@ add_library(WinxCharacterStates STATIC
     Code/wxAttackingState.h
     Code/wxBasicMovingState.cpp
     Code/wxBasicMovingState.h
+    Code/wxWayToGoState.cpp
+    Code/wxWayToGoState.h
+    Code/wxMinotaurStunnedState.cpp
+    Code/wxMinotaurStunnedState.h
+    Code/wxCrouchingState.cpp
+    Code/wxCrouchingState.h
+    Code/wxDialogueState.cpp
+    Code/wxDialogueState.h
+    Code/wxDispelState.cpp
+    Code/wxDispelState.h
+    Code/wxShadowBeastJumpingState.cpp
+    Code/wxShadowBeastJumpingState.h
+    Code/wxBirdMovingState.cpp
+    Code/wxBirdMovingState.h
+    Code/wxGlyphState.cpp
+    Code/wxGlyphState.h
+    Code/wxSpiritAwayState.cpp
+    Code/wxSpiritAwayState.h
+    Code/wxFrogHurtState.cpp
+    Code/wxFrogHurtState.h
+    Code/wxShadowBeastHurtState.cpp
+    Code/wxShadowBeastHurtState.h
+    Code/wxDroidInactiveState.cpp
+    Code/wxDroidInactiveState.h
+    Code/wxMosquitoMovingState.cpp
+    Code/wxMosquitoMovingState.h
+    Analysis/Host/wxMosquitoMovingStateHost.h
+    Code/wxDroidMovingState.cpp
+    Code/wxDroidMovingState.h
+    Code/wxSpiderMovingState.cpp
+    Code/wxSpiderMovingState.h
+    Code/wxIceBatIdleState.cpp
+    Code/wxIceBatIdleState.h
+    Code/wxSpiritFollowState.cpp
+    Code/wxSpiritFollowState.h
+    Code/wxMosquitoHurtState.cpp
+    Code/wxMosquitoHurtState.h
+    Analysis/Host/wxCharacterMotionStateHost.h
+    Analysis/Host/wxCharacterSpeedStateHost.h
+    Code/wxFlyingState.cpp
+    Code/wxFlyingState.h
+    Code/wxTry2HoistState.cpp
+    Code/wxTry2HoistState.h
+    Analysis/Host/wxTry2HoistStateHost.h
+    Code/wxFishMovingState.cpp
+    Code/wxFishMovingState.h
+    Code/wxIceBatFlyingState.cpp
+    Code/wxIceBatFlyingState.h
+    Code/wxDateIdleState.cpp
+    Code/wxDateIdleState.h
+    Code/wxDateTalkingState.cpp
+    Code/wxDateTalkingState.h
+    Code/wxDateReactionState.cpp
+    Code/wxDateReactionState.h
+    Code/wxDateStateOperationsForAnalysis.h
+    Analysis/Host/wxDateStateHost.h
+    Code/wxBossMovingState.cpp
+    Code/wxBossMovingState.h
+    Analysis/Host/wxBossMovingStateHost.h
+    Analysis/Host/wxGlyphStateHost.h
+    Analysis/Host/wxBirdMovingStateHost.h
+    Analysis/Host/wxCharacterControlStateHost.h
+    Analysis/Host/wxCrouchingStateHost.h
+    Analysis/Host/wxDialogueStateHost.h
+    Analysis/Host/wxDispelStateHost.h
     Analysis/PC/wxCharacterStateAbi.h
     Analysis/PS2/wxCharacterStateAbi.h
     Analysis/PC/wxAttackingStateAbi.h
@@ -427,6 +492,66 @@ if(BUILD_TESTING)
     target_link_libraries(WinxAttackingStateTests PRIVATE WinxCharacterStates)
     add_test(NAME WinxAttackingStateTests COMMAND WinxAttackingStateTests)
     set_tests_properties(WinxAttackingStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxControlStateTests Tests/wxControlStateTests.cpp)
+    target_link_libraries(WinxControlStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxControlStateTests COMMAND WinxControlStateTests)
+    set_tests_properties(WinxControlStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxCrouchingStateTests Tests/wxCrouchingStateTests.cpp)
+    target_link_libraries(WinxCrouchingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxCrouchingStateTests COMMAND WinxCrouchingStateTests)
+    set_tests_properties(WinxCrouchingStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxDialogueStateTests Tests/wxDialogueStateTests.cpp)
+    target_link_libraries(WinxDialogueStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxDialogueStateTests COMMAND WinxDialogueStateTests)
+    set_tests_properties(WinxDialogueStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxDispelStateTests Tests/wxDispelStateTests.cpp)
+    target_link_libraries(WinxDispelStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxDispelStateTests COMMAND WinxDispelStateTests)
+    set_tests_properties(WinxDispelStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxShadowBeastJumpingStateTests Tests/wxShadowBeastJumpingStateTests.cpp)
+    target_link_libraries(WinxShadowBeastJumpingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxShadowBeastJumpingStateTests COMMAND WinxShadowBeastJumpingStateTests)
+    set_tests_properties(WinxShadowBeastJumpingStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxBirdMovingStateTests Tests/wxBirdMovingStateTests.cpp)
+    target_link_libraries(WinxBirdMovingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxBirdMovingStateTests COMMAND WinxBirdMovingStateTests)
+    set_tests_properties(WinxBirdMovingStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxGlyphSpiritStateTests Tests/wxGlyphSpiritStateTests.cpp)
+    target_link_libraries(WinxGlyphSpiritStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxGlyphSpiritStateTests COMMAND WinxGlyphSpiritStateTests)
+    set_tests_properties(WinxGlyphSpiritStateTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxDroidMosquitoStateTests Tests/wxDroidMosquitoStateTests.cpp)
+    target_link_libraries(WinxDroidMosquitoStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxDroidMosquitoStateTests COMMAND WinxDroidMosquitoStateTests)
+    set_tests_properties(WinxDroidMosquitoStateTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxAdditionalCharacterStateTests Tests/wxAdditionalCharacterStateTests.cpp)
+    target_link_libraries(WinxAdditionalCharacterStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxAdditionalCharacterStateTests COMMAND WinxAdditionalCharacterStateTests)
+    set_tests_properties(WinxAdditionalCharacterStateTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxFlyingHoistStateTests Tests/wxFlyingHoistStateTests.cpp)
+    target_link_libraries(WinxFlyingHoistStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxFlyingHoistStateTests COMMAND WinxFlyingHoistStateTests)
+    set_tests_properties(WinxFlyingHoistStateTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxFishIceBatStateTests Tests/wxFishIceBatStateTests.cpp)
+    target_link_libraries(WinxFishIceBatStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxFishIceBatStateTests COMMAND WinxFishIceBatStateTests)
+    set_tests_properties(WinxFishIceBatStateTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxDateStateTests Tests/wxDateStateTests.cpp)
+    target_link_libraries(WinxDateStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxDateStateTests COMMAND WinxDateStateTests)
+    set_tests_properties(WinxDateStateTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxBossMovingStateTests Tests/wxBossMovingStateTests.cpp)
+    target_link_libraries(WinxBossMovingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxBossMovingStateTests COMMAND WinxBossMovingStateTests)
+    set_tests_properties(WinxBossMovingStateTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxAIActionTests Tests/wxAIActionTests.cpp)
     target_link_libraries(WinxAIActionTests PRIVATE WinxAIActions)

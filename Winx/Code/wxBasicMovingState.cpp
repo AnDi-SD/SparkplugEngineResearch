@@ -61,10 +61,40 @@ namespace winx::reconstruction
         return key & 0xFF9FFFFFu;
     }
 
+    std::uint32_t wxBasicMovingState::ComposeRandomMovingKeyForAnalysis(
+        const std::uint32_t input, const bool belowHalf) noexcept
+    {
+        const auto key = belowHalf
+            ? ((input & 0xFFFFFFBFu) | 0x30u)
+            : ((input & 0xFFFFFFCFu) | 0x40u);
+        return (key & 0xF01F81FFu) | 0x180u;
+    }
+
     void wxBasicMovingState::vfunc_30(wxAnimationRequestForAnalysis& request)
     {
-        if (!movementHost_ || GetStateSelectorForAnalysis() == 9)
+        if (!movementHost_)
             throw std::logic_error("wxBasicMovingState requires a measured movement binding");
+        if (GetStateSelectorForAnalysis() == 9)
+        {
+            if (GetTransitionFlag1D())
+            {
+                movementHost_->PrepareRandomMovementForAnalysis(*this);
+                ClearTransitionFlag1D();
+                request.packedKey = ComposeRandomMovingKeyForAnalysis(
+                    request.packedKey,
+                    movementHost_->RandomMovementBelowHalfForAnalysis());
+                void* const handle = movementHost_->ResolveAnimationForAnalysis(
+                    GetOwnerForAnalysis(), request.packedKey);
+                if (handle != GetPendingHandleForAnalysis())
+                {
+                    ReleasePendingFromState();
+                    QueuePendingFromState(handle, false, true);
+                    SetPendingHandleFromState(handle);
+                }
+            }
+            movementHost_->FinishRandomMovementForAnalysis(*this);
+            return;
+        }
         void* const owner = GetOwnerForAnalysis();
         const float magnitude = movementHost_->MovementMagnitudeForAnalysis(owner);
         const bool flag = magnitude < 0.2f
@@ -79,7 +109,7 @@ namespace winx::reconstruction
         SetPendingHandleFromState(handle);
     }
 
-    bool wxBasicMovingState::vfunc_34(const std::uint32_t target) const
+    bool wxBasicMovingState::vfunc_34(const std::uint32_t target)
     {
         if (target == 10 || target == 11 || GetStateSelectorForAnalysis() != 9
             || !GetPendingHandleForAnalysis())

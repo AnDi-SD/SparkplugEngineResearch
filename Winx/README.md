@@ -12,9 +12,27 @@
 
 `WinxCharacterStates` содержит общую реализацию [wxActionState](../docs/reference/classes/wx-action-state.md) и используемых hooks [wxCharacterState](../docs/reference/classes/wx-character-state.md). Она зависит только от `SparkBase`; `WinxGameCore` подключает её публично. Внешние объекты анимации передаются через наш [host-интерфейс](Analysis/Host/wxCharacterStateHost.h), без реализации по умолчанию. Это компонент, не готовая state machine игры.
 
+В этом же модуле восстановлены собственные hooks [wxWayToGoState](../docs/reference/classes/wx-way-to-go-state.md), [wxMinotaurStunnedState](../docs/reference/classes/wx-minotaur-stunned-state.md), [wxCrouchingState](../docs/reference/classes/wx-crouching-state.md), [wxDialogueState](../docs/reference/classes/wx-dialogue-state.md) и [wxDispelState](../docs/reference/classes/wx-dispel-state.md): вход/выход, управление анимацией, записи control, сообщения и условия переходов. Их проверки — `WinxControlStateTests`, `WinxCrouchingStateTests`, `WinxDialogueStateTests` и `WinxDispelStateTests`. Игровые анимационные и сценовые службы подключаются отдельными host-контрактами.
+
 `WinxEntities` содержит подтверждённые constructor, Copy и флаги [wxEntity](../docs/reference/classes/wx-entity.md). Маршрут между engine/game менеджерами и связанные объекты передаются через `wxEntityHost`. Узкая цель — `WinxEntityTests`.
 
-`WinxProjectileManagers` содержит общий частично восстановленный [wxProjectileManager](../docs/reference/classes/wx-projectile-manager.md): Notify, 14 слов Copy, выбор ячейки pool и Tick. Внешние операции передаются `wxProjectileManagerHost`; проверка — `WinxProjectileManagerTests`. В том же модуле [wxBacoProjectileManager](../docs/reference/classes/wx-baco-projectile-manager.md) сохраняет проверенную собственную логику, пока её scene adapter не привязан к общей базе.
+В `WinxCharacterStates` также находятся [wxShadowBeastJumpingState](../docs/reference/classes/wx-shadow-beast-jumping-state.md) и [wxBirdMovingState](../docs/reference/classes/wx-bird-moving-state.md): управление pending-анимацией, потребление completion-записей, выбор анимации через игровой RNG и события jump/land. Проверки — `WinxShadowBeastJumpingStateTests` и `WinxBirdMovingStateTests`; внешние игровые объекты и RNG передаются через host.
+
+[wxGlyphState](../docs/reference/classes/wx-glyph-state.md) выбирает вариант ключа по внешнему слову owner, а [wxSpiritAwayState](../docs/reference/classes/wx-spirit-away-state.md) использует все поведенческие hooks общей базы без собственного алгоритма. Их регистрация, clone и операции проверяются в `WinxGlyphSpiritStateTests`.
+
+[wxFrogHurtState](../docs/reference/classes/wx-frog-hurt-state.md) и [wxShadowBeastHurtState](../docs/reference/classes/wx-shadow-beast-hurt-state.md) сохраняют вход hurt-анимации и consuming completion; только Frog очищает control byte `1A`. Они проверяются в `WinxControlStateTests`. [wxDroidInactiveState](../docs/reference/classes/wx-droid-inactive-state.md) ждёт завершения анимации выхода, а [wxMosquitoMovingState](../docs/reference/classes/wx-mosquito-moving-state.md) выбирает ключ по порогу motion и сохраняет порядок очистки control. Проверка — `WinxDroidMosquitoStateTests`.
+
+[wxDroidMovingState](../docs/reference/classes/wx-droid-moving-state.md) и [wxSpiderMovingState](../docs/reference/classes/wx-spider-moving-state.md) сохраняют разные ветви равенства порогу motion. [wxIceBatIdleState](../docs/reference/classes/wx-ice-bat-idle-state.md) и [wxSpiritFollowState](../docs/reference/classes/wx-spirit-follow-state.md) используют одноразовые флаги и сохраняют pending до playback. [wxMosquitoHurtState](../docs/reference/classes/wx-mosquito-hurt-state.md) меняет скорость consumer на входе/выходе. Проверка — `WinxAdditionalCharacterStateTests`; motion и setter скорости подключаются через явно обозначенные host-интерфейсы.
+
+[wxFlyingState](../docs/reference/classes/wx-flying-state.md) использует общие вход/выход и собственную маску обновления; [wxTry2HoistState](../docs/reference/classes/wx-try2-hoist-state.md) включает consuming query и выбор внешнего helper по unsigned-полю владельца. Проверка — `WinxFlyingHoistStateTests`; `wxTry2HoistStateHost` подключает ещё не восстановленные методы владельца.
+
+[wxFishMovingState](../docs/reference/classes/wx-fish-moving-state.md) сохраняет флаг `1D` и выбирает playback mode по подполю ключа; [wxIceBatFlyingState](../docs/reference/classes/wx-ice-bat-flying-state.md) запускает анимацию однократно до Reset. Проверка — `WinxFishIceBatStateTests`.
+
+[wxDateIdleState](../docs/reference/classes/wx-date-idle-state.md), [wxDateTalkingState](../docs/reference/classes/wx-date-talking-state.md) и [wxDateReactionState](../docs/reference/classes/wx-date-reaction-state.md) используют общий выход с уведомлением и сохраняют разные условия запуска анимации. Проверка — `WinxDateStateTests`; `wxDateStateHost` предоставляет внешнюю доставку сообщения.
+
+[wxBossMovingState](../docs/reference/classes/wx-boss-moving-state.md) выбирает animation mode по двум float motion с условным вторым чтением. Проверка — `WinxBossMovingStateTests`; PC-ветви восстановлены, область соответствия PS2 пока ограничена нормальными конечными float и знаковыми нулями.
+
+`WinxProjectileManagers` содержит общий частично восстановленный [wxProjectileManager](../docs/reference/classes/wx-projectile-manager.md): Notify, 14 слов Copy, регистрация и освобождение записей pool, Tick. Внешние операции передаются `wxProjectileManagerHost`; проверка — `WinxProjectileManagerTests`. В том же модуле [wxBacoProjectileManager](../docs/reference/classes/wx-baco-projectile-manager.md) сохраняет проверенную собственную логику и clone без переноса живых указателей хвоста, пока её scene adapter не привязан к общей базе.
 
 `WinxProjectiles` содержит частичный [wxProjectile](../docs/reference/classes/wx-projectile.md): подтверждённые поля Copy, четыре счётчика ссылок и замену `spActor` при Copy. Внешние объекты передаются `wxProjectileHost`; проверка — `WinxProjectileTests`.
 
@@ -22,9 +40,9 @@
 
 Для [wxWebSpitProjectile](../docs/reference/classes/wx-web-spit-projectile.md) восстановлены собственные поля Copy и порядок освобождения двух ссылок; проверка — `WinxWebSpitProjectileTests`.
 
-Также восстановлены constructor/RTTI, проверка разрешения перехода и ветвь движения [wxBasicMovingState](../docs/reference/classes/wx-basic-moving-state.md) при selector, отличном от `9`. Его отдельная цель — `WinxBasicMovingStateTests`; путь selector `9` остаётся открытым.
+Также восстановлены constructor/RTTI, проверка разрешения перехода и обе ветви запроса движения [wxBasicMovingState](../docs/reference/classes/wx-basic-moving-state.md). Для selector `9` подготовка сцены, RNG и завершающая служба передаются host; PC и PS2 различаются на границе округления RNG. Его отдельная цель — `WinxBasicMovingStateTests`.
 
-`WinxCharacterStateMachines` содержит подтверждённый общий протокол [wxCharacterStateMachine](../docs/reference/classes/wx-character-state-machine.md): вход, reset, выбор, стек переходов, сообщения и фильтр flags. Состояния и наблюдатель приходят через отдельный host. `wxBacoStateMachine` использует эту общую базу и подключает четыре собственных состояния к установленным слотам. Цель проверки общей базы — `WinxCharacterStateMachineTests`.
+`WinxCharacterStateMachines` содержит подтверждённый общий протокол [wxCharacterStateMachine](../docs/reference/classes/wx-character-state-machine.md): вход, reset, выбор, стек переходов, сообщения, фильтр flags и clone без переноса собственных состояний. Состояния и наблюдатель приходят через отдельный host. `wxBacoStateMachine` использует эту общую базу и подключает четыре собственных состояния к установленным слотам. Цель проверки общей базы — `WinxCharacterStateMachineTests`.
 
 Сборка и проверки из корня репозитория в терминале с настроенным C++ toolchain:
 

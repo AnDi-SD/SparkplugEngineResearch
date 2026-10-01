@@ -83,7 +83,12 @@ int main()
     machine->SetHostForAnalysis(&host);
     machine->SetStateForAnalysis(0, &zero);
     machine->SetStateForAnalysis(2, &two);
-    Require(machine->Clone() == nullptr, "bound state clone remains open");
+    auto boundClone = machine->Clone();
+    auto* freshMachine = dynamic_cast<wxCharacterStateMachine*>(boundClone.get());
+    Require(freshMachine && freshMachine->GetStateForAnalysis(0) == nullptr
+        && freshMachine->GetStateForAnalysis(2) == nullptr
+        && freshMachine->GetRuntimeForAnalysis().gate == 1,
+        "inherited Copy keeps new machine state at constructor defaults");
 
     machine->SetRuntimeForAnalysis(Fixture());
     two.accept = false;

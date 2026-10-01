@@ -5,8 +5,7 @@
 
 namespace winx::reconstruction
 {
-    // PC/PS2 state selector zero. The non-nine movement request path is
-    // recovered; selector nine still requires original random/service calls.
+    // PC/PS2 state selector zero. External scene and RNG calls use the host.
     class wxBasicMovingState final : public wxCharacterState
     {
     public:
@@ -27,10 +26,12 @@ namespace winx::reconstruction
         }
         [[nodiscard]] static std::uint32_t ComposeMovingKeyForAnalysis(
             std::uint32_t input, float magnitude, bool flag) noexcept;
+        [[nodiscard]] static std::uint32_t ComposeRandomMovingKeyForAnalysis(
+            std::uint32_t input, bool belowHalf) noexcept;
 
         // Native slots 12 and 13. Slot 13 is the measured permission branch.
         void vfunc_30(wxAnimationRequestForAnalysis& request) override;
-        [[nodiscard]] bool vfunc_34(std::uint32_t target) const override;
+        [[nodiscard]] bool vfunc_34(std::uint32_t target) override;
 
     private:
         wxBasicMovingStateHost* movementHost_ = nullptr;

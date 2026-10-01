@@ -53,7 +53,9 @@ namespace winx::reconstruction
         virtual void vfunc_28(wxAnimationRequestForAnalysis& request);
         virtual void vfunc_2C(wxAnimationRequestForAnalysis& request);
         virtual void vfunc_30(wxAnimationRequestForAnalysis& request);
-        [[nodiscard]] virtual bool vfunc_34(std::uint32_t code) const;
+        // Native permission hooks may consume completion records and release
+        // the state's own pending handle (for example MinotaurStunned).
+        [[nodiscard]] virtual bool vfunc_34(std::uint32_t code);
         [[nodiscard]] virtual bool vfunc_38(std::uint32_t code) const noexcept;
         // The native argument of slot 0x3c is an external event object.
         virtual void vfunc_3C(const void* event);
@@ -81,10 +83,12 @@ namespace winx::reconstruction
         void QueuePendingFromState(void* handle, bool mode, bool interrupt);
 
         [[nodiscard]] bool GetTransitionFlag1C() const noexcept;
+        [[nodiscard]] bool GetTransitionFlag1D() const noexcept;
         [[nodiscard]] bool GetTransitionFlag1E() const noexcept;
         [[nodiscard]] bool GetTransitionFlag1F() const noexcept;
         [[nodiscard]] bool GetTransitionFlag20() const noexcept;
         void ClearTransitionFlag1C() noexcept;
+        void ClearTransitionFlag1D() noexcept;
         void ClearTransitionFlag1E() noexcept;
 
     private:

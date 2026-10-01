@@ -6633,8 +6633,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-bird-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBirdMovingState.cpp",
+        "Winx/Code/wxBirdMovingState.h"
+      ]
     },
     {
       "name": "wxBirdStateMachine",
@@ -6783,8 +6788,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-boss-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBossMovingState.cpp",
+        "Winx/Code/wxBossMovingState.h"
+      ]
     },
     {
       "name": "wxBreakableBarrel",
@@ -7323,8 +7333,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-crouching-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCrouchingState.cpp",
+        "Winx/Code/wxCrouchingState.h"
+      ]
     },
     {
       "name": "wxCT02OpenDoor",
@@ -7443,8 +7458,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-date-idle-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDateIdleState.cpp",
+        "Winx/Code/wxDateIdleState.h"
+      ]
     },
     {
       "name": "wxDateReactionState",
@@ -7458,8 +7478,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-date-reaction-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDateReactionState.cpp",
+        "Winx/Code/wxDateReactionState.h"
+      ]
     },
     {
       "name": "wxDateSelectionGameFlowState",
@@ -7488,8 +7513,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-date-talking-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDateTalkingState.cpp",
+        "Winx/Code/wxDateTalkingState.h"
+      ]
     },
     {
       "name": "wxDeadTree",
@@ -7591,8 +7621,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-dialogue-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDialogueState.cpp",
+        "Winx/Code/wxDialogueState.h"
+      ]
     },
     {
       "name": "wxDialogWindow",
@@ -7681,8 +7716,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-dispel-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDispelState.cpp",
+        "Winx/Code/wxDispelState.h"
+      ]
     },
     {
       "name": "wxDispelTrigger",
@@ -7831,8 +7871,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-droid-inactive-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDroidInactiveState.cpp",
+        "Winx/Code/wxDroidInactiveState.h"
+      ]
     },
     {
       "name": "wxDroidMovingState",
@@ -7846,8 +7891,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-droid-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDroidMovingState.cpp",
+        "Winx/Code/wxDroidMovingState.h"
+      ]
     },
     {
       "name": "wxDroidStateMachine",
@@ -8142,8 +8192,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-fish-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFishMovingState.cpp",
+        "Winx/Code/wxFishMovingState.h"
+      ]
     },
     {
       "name": "wxFishStateMachine",
@@ -8217,8 +8272,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-flying-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFlyingState.cpp",
+        "Winx/Code/wxFlyingState.h"
+      ]
     },
     {
       "name": "wxFlyingWanderAIAction",
@@ -8322,8 +8382,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-frog-hurt-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFrogHurtState.cpp",
+        "Winx/Code/wxFrogHurtState.h"
+      ]
     },
     {
       "name": "wxFrogJumpingState",
@@ -8684,8 +8749,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-glyph-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGlyphState.cpp",
+        "Winx/Code/wxGlyphState.h"
+      ]
     },
     {
       "name": "wxGolemAIBehavior",
@@ -8999,8 +9069,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-bat-flying-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceBatFlyingState.cpp",
+        "Winx/Code/wxIceBatFlyingState.h"
+      ]
     },
     {
       "name": "wxIceBatIdleState",
@@ -9014,8 +9089,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-bat-idle-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceBatIdleState.cpp",
+        "Winx/Code/wxIceBatIdleState.h"
+      ]
     },
     {
       "name": "wxIceBatStateMachine",
@@ -10071,8 +10151,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-minotaur-stunned-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMinotaurStunnedState.cpp",
+        "Winx/Code/wxMinotaurStunnedState.h"
+      ]
     },
     {
       "name": "wxMissileState",
@@ -10161,8 +10246,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-mosquito-hurt-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMosquitoHurtState.cpp",
+        "Winx/Code/wxMosquitoHurtState.h"
+      ]
     },
     {
       "name": "wxMosquitoMovingState",
@@ -10176,8 +10266,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-mosquito-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMosquitoMovingState.cpp",
+        "Winx/Code/wxMosquitoMovingState.h"
+      ]
     },
     {
       "name": "wxMosquitoProjectileManager",
@@ -11097,8 +11192,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-shadow-beast-hurt-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxShadowBeastHurtState.cpp",
+        "Winx/Code/wxShadowBeastHurtState.h"
+      ]
     },
     {
       "name": "wxShadowBeastJumpingState",
@@ -11112,8 +11212,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-shadow-beast-jumping-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxShadowBeastJumpingState.cpp",
+        "Winx/Code/wxShadowBeastJumpingState.h"
+      ]
     },
     {
       "name": "wxShadowBeastMovingState",
@@ -11442,8 +11547,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-spider-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiderMovingState.cpp",
+        "Winx/Code/wxSpiderMovingState.h"
+      ]
     },
     {
       "name": "wxSpiderProjectileManager",
@@ -11502,8 +11612,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-spirit-away-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiritAwayState.cpp",
+        "Winx/Code/wxSpiritAwayState.h"
+      ]
     },
     {
       "name": "wxSpiritFollowState",
@@ -11517,8 +11632,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-spirit-follow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiritFollowState.cpp",
+        "Winx/Code/wxSpiritFollowState.h"
+      ]
     },
     {
       "name": "wxStableLamp",
@@ -12075,8 +12195,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-try2-hoist-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxTry2HoistState.cpp",
+        "Winx/Code/wxTry2HoistState.h"
+      ]
     },
     {
       "name": "wxUpsieDaisyGuardAIBehavior",
@@ -12240,8 +12365,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-way-to-go-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxWayToGoState.cpp",
+        "Winx/Code/wxWayToGoState.h"
+      ]
     },
     {
       "name": "wxWebSpitProjectile",

@@ -91,7 +91,13 @@ int main()
             && host.firedSlot == 1 && Near(host.firedDirection[2], 1.0f),
             "second available slot and direction normalization");
         Require(!manager.FireDirectionForAnalysis({1.0f, 0.0f, 0.0f}), "full pool");
-        Require(manager.Clone() == nullptr, "live pool clone boundary");
+        auto cloned = manager.Clone();
+        auto* clone = dynamic_cast<wxBacoProjectileManager*>(cloned.get());
+        Require(clone && !clone->GetProjectileForAnalysis(0)
+            && !clone->GetProjectileForAnalysis(1)
+            && !clone->GetEmitterForAnalysis(0)
+            && !clone->GetEmitterForAnalysis(1),
+            "live source clone retains constructor-empty leaf pointers");
     }
     Require(host.calls[host.calls.size()-2] == 20 && host.calls.back() == 21,
         "owned projectiles destroyed in order");

@@ -84,7 +84,7 @@ namespace winx::reconstruction
     }
     void wxCharacterState::vfunc_30(wxAnimationRequestForAnalysis&) {}
 
-    bool wxCharacterState::vfunc_34(std::uint32_t) const
+    bool wxCharacterState::vfunc_34(std::uint32_t)
     {
         return true;
     }
@@ -221,6 +221,11 @@ namespace winx::reconstruction
         return transitionFlag1C_;
     }
 
+    bool wxCharacterState::GetTransitionFlag1D() const noexcept
+    {
+        return transitionFlag1D_;
+    }
+
     bool wxCharacterState::GetTransitionFlag1E() const noexcept
     {
         return transitionFlag1E_;
@@ -239,6 +244,11 @@ namespace winx::reconstruction
     void wxCharacterState::ClearTransitionFlag1C() noexcept
     {
         transitionFlag1C_ = false;
+    }
+
+    void wxCharacterState::ClearTransitionFlag1D() noexcept
+    {
+        transitionFlag1D_ = false;
     }
 
     void wxCharacterState::ClearTransitionFlag1E() noexcept

@@ -104,7 +104,13 @@ int main()
         && !state.waveFirst && state.firstCount == 1
         && state.deadlines[0] == 8012,
         "first wave stops after half the members");
-    Require(manager.Clone() == nullptr, "modified clone boundary");
+    auto changedClone = manager.Clone();
+    auto* freshManager = dynamic_cast<wxBacoManager*>(changedClone.get());
+    Require(freshManager && freshManager->GetMembersForAnalysis().empty()
+        && !freshManager->GetStateForAnalysis().nextProximityCheck
+        && !freshManager->GetStateForAnalysis().firstCount
+        && !freshManager->GetStateForAnalysis().secondCount,
+        "inherited Copy retains constructor-empty manager state");
 
     Host pollingHost;
     wxBacoManager polling;

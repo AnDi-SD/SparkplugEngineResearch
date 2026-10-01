@@ -35,7 +35,7 @@ namespace winx::reconstruction
             wxProjectileManagerRecordForAnalysis*, 5>, 4>;
 
         explicit wxProjectileManager(wxProjectileManagerHost& host);
-        ~wxProjectileManager() override = default;
+        ~wxProjectileManager() override;
         wxProjectileManager(const wxProjectileManager&) = delete;
         wxProjectileManager& operator=(const wxProjectileManager&) = delete;
 
@@ -61,7 +61,7 @@ namespace winx::reconstruction
     private:
         wxProjectileManagerHost& host_;
         OwnBytesForAnalysis ownBytes_{};
-        PoolForAnalysis pool_{}; // borrowed: native allocation lifecycle remains external
+        PoolForAnalysis pool_{}; // record storage allocated/freed by host
         std::uint8_t enabled_ = 0;
     };
 }

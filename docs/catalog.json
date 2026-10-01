@@ -2092,6 +2092,16 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-bird-moving-state.md",
+      "title": "`wxBirdMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-boss-moving-state.md",
+      "title": "`wxBossMovingState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state-machine.md",
       "title": "wxCharacterStateMachine",
       "category": "reference/classes"
@@ -2107,6 +2117,46 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-crouching-state.md",
+      "title": "`wxCrouchingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-date-idle-state.md",
+      "title": "`wxDateIdleState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-date-reaction-state.md",
+      "title": "`wxDateReactionState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-date-talking-state.md",
+      "title": "`wxDateTalkingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-dialogue-state.md",
+      "title": "`wxDialogueState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-dispel-state.md",
+      "title": "`wxDispelState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-droid-inactive-state.md",
+      "title": "`wxDroidInactiveState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-droid-moving-state.md",
+      "title": "`wxDroidMovingState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-engine-core.md",
       "title": "spEngineCore / wxEngineCore",
       "category": "reference/classes"
@@ -2117,8 +2167,53 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-fish-moving-state.md",
+      "title": "`wxFishMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-flying-state.md",
+      "title": "`wxFlyingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-frog-hurt-state.md",
+      "title": "`wxFrogHurtState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-game-flow-state.md",
       "title": "wxGameFlowState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-glyph-state.md",
+      "title": "`wxGlyphState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-bat-flying-state.md",
+      "title": "`wxIceBatFlyingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-bat-idle-state.md",
+      "title": "`wxIceBatIdleState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-minotaur-stunned-state.md",
+      "title": "`wxMinotaurStunnedState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-mosquito-hurt-state.md",
+      "title": "`wxMosquitoHurtState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-mosquito-moving-state.md",
+      "title": "`wxMosquitoMovingState`",
       "category": "reference/classes"
     },
     {
@@ -2142,8 +2237,43 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-shadow-beast-hurt-state.md",
+      "title": "`wxShadowBeastHurtState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-shadow-beast-jumping-state.md",
+      "title": "`wxShadowBeastJumpingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-spider-moving-state.md",
+      "title": "`wxSpiderMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-spirit-away-state.md",
+      "title": "`wxSpiritAwayState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-spirit-follow-state.md",
+      "title": "`wxSpiritFollowState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-stinger-projectile.md",
       "title": "`wxStingerProjectile`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-try2-hoist-state.md",
+      "title": "`wxTry2HoistState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-way-to-go-state.md",
+      "title": "`wxWayToGoState`",
       "category": "reference/classes"
     },
     {

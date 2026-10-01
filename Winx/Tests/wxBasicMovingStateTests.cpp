@@ -23,6 +23,7 @@ namespace
         bool result = false;
         float magnitude = 0.0f;
         bool movementFlag = false;
+        bool randomBelowHalf = false;
         void* resolved = reinterpret_cast<void*>(0x400);
         std::uint32_t resolvedKey = 0;
         std::vector<std::string> calls;
@@ -46,13 +47,14 @@ namespace
             return resolved;
         }
         bool OwnerPredicateForAnalysis(void*) override { return false; }
-        void ResetCompletionForAnalysis(void*, void*) override {}
+        void ResetCompletionForAnalysis(void*, void*) override
+        { calls.emplace_back("reset completion"); }
         void StartAnimationForAnalysis(void*, void* handle, bool mode,
             std::uint32_t fade, bool interrupt) override
         {
-            Require(handle == resolved && mode && fade == 0 && interrupt,
+            Require(handle == resolved && fade == 0 && interrupt,
                 "movement start args");
-            calls.emplace_back("start");
+            calls.emplace_back(mode ? "start movement" : "start random");
         }
         void StopAnimationForAnalysis(void*, void*) override
         { calls.emplace_back("stop"); }
@@ -67,6 +69,12 @@ namespace
             return result;
         }
         void ClearOwnerActionControlForAnalysis(void*) override {}
+        void PrepareRandomMovementForAnalysis(wxBasicMovingState&) override
+        { calls.emplace_back("prepare random"); }
+        bool RandomMovementBelowHalfForAnalysis() override
+        { calls.emplace_back("draw random"); return randomBelowHalf; }
+        void FinishRandomMovementForAnalysis(wxBasicMovingState&) override
+        { calls.emplace_back("finish random"); }
     };
 }
 
@@ -131,7 +139,7 @@ int main()
         && state->GetPendingHandleForAnalysis() == host.resolved,
         "movement request resolves and stores new handle");
     Require(host.calls == std::vector<std::string>{
-        "magnitude", "flag", "resolve", "stop", "start"},
+        "magnitude", "flag", "resolve", "stop", "start movement"},
         "movement callback order");
     host.magnitude = 0.2f;
     host.calls.clear();
@@ -140,5 +148,40 @@ int main()
     Require(request.packedKey == 0xF01F805F
         && host.calls == std::vector<std::string>{"magnitude", "resolve"},
         "equal pending handle skips replay and high speed skips flag read");
+    Require(wxBasicMovingState::ComposeRandomMovingKeyForAnalysis(
+        0xFFFFFFFF, true) == 0xF01F81BF
+        && wxBasicMovingState::ComposeRandomMovingKeyForAnalysis(
+            0xFFFFFFFF, false) == 0xF01F81CF,
+        "random movement packed masks");
+    state->SetCurrentSelectorForAnalysis(9);
+    state->SetTransitionFlagsForAnalysis(true, true, true, true, true);
+    state->SetPendingHandleForAnalysis(reinterpret_cast<void*>(0x300));
+    host.randomBelowHalf = true;
+    host.calls.clear();
+    request.packedKey = 0xFFFFFFFF;
+    state->vfunc_30(request);
+    Require(request.packedKey == 0xF01F81BF
+        && state->GetPendingHandleForAnalysis() == host.resolved
+        && !state->GetTransitionFlagsForAnalysis()[1],
+        "random branch changes request, handle and once flag");
+    Require(host.calls == std::vector<std::string>{"prepare random", "draw random",
+        "resolve", "stop", "reset completion", "start random", "finish random"},
+        "random branch callback order");
+    host.calls.clear();
+    request.packedKey = 0x12345678;
+    state->vfunc_30(request);
+    Require(request.packedKey == 0x12345678
+        && host.calls == std::vector<std::string>{"finish random"},
+        "random branch is one shot but always finishes");
+    state->SetTransitionFlagsForAnalysis(true, true, true, true, true);
+    state->SetPendingHandleForAnalysis(host.resolved);
+    host.randomBelowHalf = false;
+    host.calls.clear();
+    request.packedKey = 0xFFFFFFFF;
+    state->vfunc_30(request);
+    Require(request.packedKey == 0xF01F81CF
+        && host.calls == std::vector<std::string>{
+            "prepare random", "draw random", "resolve", "finish random"},
+        "second random branch and equal pending handle");
     std::cout << "wxBasicMovingState checks passed\n";
 }

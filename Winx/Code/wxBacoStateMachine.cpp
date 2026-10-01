@@ -43,7 +43,9 @@ namespace winx::reconstruction
         spCloneManager& manager) const
     {
         auto* other = dynamic_cast<wxBacoStateMachine*>(&destination);
-        if (!other || setup_ || sourceFlags_ || computedFlags_) return false;
+        // Native Copy slot is the inherited wxEntity::Copy. No Baco state
+        // slots, runtime flags or owned states are copied by that method.
+        if (!other) return false;
         return wxCharacterStateMachine::vfunc_14(*other, manager);
     }
 
