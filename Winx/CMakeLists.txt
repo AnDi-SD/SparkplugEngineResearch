@@ -7,6 +7,15 @@ endif()
 
 # Recovered states have no renderer or application/bootstrap dependency.
 add_library(WinxCharacterStates STATIC
+    Code/wxDroidHurtState.cpp
+    Code/wxDroidHurtState.h
+    Analysis/Host/wxDroidHurtStateHost.h
+    Code/wxVulnerableState.cpp
+    Code/wxVulnerableState.h
+    Analysis/Host/wxVulnerableStateHost.h
+    Code/wxBirdFlyingState.cpp
+    Code/wxBirdFlyingState.h
+    Analysis/Host/wxBirdFlyingStateHost.h
     Code/wxCharacterState.cpp
     Code/wxCharacterState.h
     Code/wxActionState.cpp
@@ -563,6 +572,14 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(WinxDroidHurtStateTests Tests/wxDroidHurtStateTests.cpp)
+    target_link_libraries(WinxDroidHurtStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxDroidHurtStateTests COMMAND WinxDroidHurtStateTests)
+    set_tests_properties(WinxDroidHurtStateTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxVulnerableStateTests Tests/wxVulnerableStateTests.cpp)
+    target_link_libraries(WinxVulnerableStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxVulnerableStateTests COMMAND WinxVulnerableStateTests)
+    set_tests_properties(WinxVulnerableStateTests PROPERTIES TIMEOUT 20)
     add_executable(WinxAppTests Tests/wxAppTests.cpp)
     target_link_libraries(WinxAppTests PRIVATE WinxBootstrap)
     add_test(NAME WinxAppTests COMMAND WinxAppTests)
@@ -602,6 +619,9 @@ if(BUILD_TESTING)
     add_test(NAME WinxShadowBeastJumpingStateTests COMMAND WinxShadowBeastJumpingStateTests)
     set_tests_properties(WinxShadowBeastJumpingStateTests PROPERTIES TIMEOUT 20)
 
+    add_executable(WinxBirdFlyingStateTests Tests/wxBirdFlyingStateTests.cpp)
+    target_link_libraries(WinxBirdFlyingStateTests PRIVATE WinxCharacterStates)
+    add_test(NAME WinxBirdFlyingStateTests COMMAND WinxBirdFlyingStateTests)
     add_executable(WinxBirdMovingStateTests Tests/wxBirdMovingStateTests.cpp)
     target_link_libraries(WinxBirdMovingStateTests PRIVATE WinxCharacterStates)
     add_test(NAME WinxBirdMovingStateTests COMMAND WinxBirdMovingStateTests)

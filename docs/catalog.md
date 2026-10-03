@@ -507,6 +507,7 @@
 - [spSerializerManager](reference/classes/sp-serializer-manager.md).
 - [spSkin / spSkinSerializer](reference/classes/sp-skin.md).
 - [spSkyBox](reference/classes/sp-sky-box.md).
+- [spSocketStream](reference/classes/sp-socket-stream.md).
 - [spSphereBV](reference/classes/sp-sphere-bv.md).
 - [spSphereBVSerializer](reference/classes/sp-sphere-bv-serializer.md).
 - [spStaticRenderObject](reference/classes/sp-static-render-object.md).

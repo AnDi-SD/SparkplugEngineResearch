@@ -1887,6 +1887,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-socket-stream.md",
+      "title": "spSocketStream",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-sphere-bv-serializer.md",
       "title": "spSphereBVSerializer",
       "category": "reference/classes"

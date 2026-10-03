@@ -324,7 +324,7 @@
 | `spSkinSerializer` | `0x120D33C7` | Да | Да | [1](classes/sp-skin.md) | [spSkinSerializer.h](../../Sparkplug/Code/Sparkplug/spSkinSerializer.h) |
 | `spSkyBox` | `0x7A7124AF` | Да | Да | [1](classes/sp-sky-box.md) | [spSkyBox.h](../../Sparkplug/Code/Sparkplug/spSkyBox.h) |
 | `spSkyBoxManager` | `0x61C23595` | Да | Да | — | — |
-| `spSocketStream` | `0x1ED8677D` | Да | — | [1](classes/sp-stream.md) | — |
+| `spSocketStream` | `0x1ED8677D` | Да | — | [1](classes/sp-socket-stream.md), [2](classes/sp-stream.md) | [spSocketStream.h](../../Sparkplug/Code/SparkBase/spSocketStream.h) |
 | `spSphereBV` | `0x390946D2` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-sphere-bv.md) | [spSphereBV.h](../../Sparkplug/Code/Sparkplug/spSphereBV.h) |
 | `spSphereBVSerializer` | `0x7294634F` | Да | Да | [1](classes/sp-sphere-bv-serializer.md) | [spSphereBVSerializer.h](../../Sparkplug/Code/Sparkplug/spSphereBVSerializer.h) |
 | `spStaticRenderObject` | `0x56D67170` | Да | Да | [1](classes/sp-static-render-object.md) | [spStaticRenderObject.h](../../Sparkplug/Code/Sparkplug/spStaticRenderObject.h) |

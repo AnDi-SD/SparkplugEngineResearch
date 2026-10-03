@@ -183,6 +183,7 @@
 - [spSerializerManager](sp-serializer-manager.md).
 - [spSkin / spSkinSerializer](sp-skin.md).
 - [spSkyBox](sp-sky-box.md).
+- [spSocketStream](sp-socket-stream.md).
 - [spSphereBV](sp-sphere-bv.md).
 - [spSphereBVSerializer](sp-sphere-bv-serializer.md).
 - [spStaticRenderObject](sp-static-render-object.md).

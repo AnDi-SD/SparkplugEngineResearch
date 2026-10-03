@@ -32,6 +32,11 @@ record 00762F30, Clone 004A1BF0 возвращает null.
 
 ## NetworkPacket и MemoryStream
 
+Общая реализация [spNetworkPacket](../../reference/classes/sp-network-packet.md)
+сохраняет раздельные scalar transfers, частично прочитанный заголовок,
+закрытие stream при ошибке записи и неизвестные поля конструктора.
+Подробный контракт и переносимые границы находятся в карточке класса.
+
 Read 004996D0 и Write 00499850 используют заголовок из **17 байт**:
 
 | Порядок | Поле | Ширина |
@@ -83,3 +88,9 @@ memory stream и socket stream, обрабатывает входящие дан
 Открыты session/state protocols, buffers и queues с данными,
 ошибки всех сетевых операций, thread interactions, полный packet error path,
 размерные ограничения в callers и работа SocketStream с настоящим сокетом.
+
+[spSocketStream](../../reference/classes/sp-socket-stream.md) содержит
+открытие, приём и отправку сырых данных, принятие и замену сетевого объекта,
+clone и удаление. Он сохраняет цикл приёма по 500 байт и успешные пустые
+virtual операции. Его внешние сетевые зависимости подключаются через
+обязательный host, общий memory stream не дублируется.

@@ -49,6 +49,18 @@ target_include_directories(SparkBase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(SparkBase PUBLIC cxx_std_17)
 
 add_library(SparkNetwork STATIC
+    Code/Sparkplug/spNetworkStateCtrl.cpp
+    Code/Sparkplug/spNetworkStateCtrl.h
+    Analysis/Host/spNetworkStateCtrlHost.h
+    Analysis/PC/spNetworkStateCtrlAbi.h
+    Code/Sparkplug/spNetworkPacket.cpp
+    Code/Sparkplug/spNetworkPacket.h
+    Analysis/Host/spNetworkPacketHost.h
+    Analysis/PC/spNetworkPacketAbi.h
+    Code/SparkBase/spSocketStream.cpp
+    Code/SparkBase/spSocketStream.h
+    Analysis/Host/spSocketStreamHost.h
+    Analysis/PC/spSocketStreamAbi.h
     Code/Sparkplug/spNetworkMatchmaking.cpp
     Code/Sparkplug/spNetworkMatchmaking.h
     Analysis/Host/spNetworkMatchmakingHost.h
@@ -531,6 +543,18 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(SparkplugNetworkStateCtrlTests Tests/spNetworkStateCtrlTests.cpp)
+    target_link_libraries(SparkplugNetworkStateCtrlTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkStateCtrlTests COMMAND SparkplugNetworkStateCtrlTests)
+    set_tests_properties(SparkplugNetworkStateCtrlTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkPacketTests Tests/spNetworkPacketTests.cpp)
+    target_link_libraries(SparkplugNetworkPacketTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkPacketTests COMMAND SparkplugNetworkPacketTests)
+    set_tests_properties(SparkplugNetworkPacketTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugSocketStreamTests Tests/spSocketStreamTests.cpp)
+    target_link_libraries(SparkplugSocketStreamTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugSocketStreamTests COMMAND SparkplugSocketStreamTests)
+    set_tests_properties(SparkplugSocketStreamTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugNetworkMatchmakingTests Tests/spNetworkMatchmakingTests.cpp)
     target_link_libraries(SparkplugNetworkMatchmakingTests PRIVATE SparkNetwork)
     add_test(NAME SparkplugNetworkMatchmakingTests COMMAND SparkplugNetworkMatchmakingTests)

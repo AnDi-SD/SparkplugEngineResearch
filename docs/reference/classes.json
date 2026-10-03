@@ -3116,8 +3116,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-packet.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkPacket.h"
+      ]
     },
     {
       "name": "spNetworkPeer",
@@ -3155,8 +3159,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-state-ctrl.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkStateCtrl.h"
+      ]
     },
     {
       "name": "spNode",
@@ -5239,9 +5247,12 @@
         "pc": "0x6CC80D8A"
       },
       "documentation": [
+        "docs/reference/classes/sp-socket-stream.md",
         "docs/reference/classes/sp-stream.md"
       ],
-      "sources": []
+      "sources": [
+        "Sparkplug/Code/SparkBase/spSocketStream.h"
+      ]
     },
     {
       "name": "spSphereBV",
@@ -6644,8 +6655,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-bird-flying-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBirdFlyingState.h"
+      ]
     },
     {
       "name": "wxBirdMovingState",
@@ -7889,8 +7904,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-droid-hurt-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDroidHurtState.h"
+      ]
     },
     {
       "name": "wxDroidInactiveState",
@@ -12443,8 +12462,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-vulnerable-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxVulnerableState.h"
+      ]
     },
     {
       "name": "wxWanderAIAction",
