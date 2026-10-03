@@ -70,6 +70,16 @@ namespace winx::reconstruction
         [[nodiscard]] std::uint32_t GetStateSelectorForAnalysis() const noexcept;
         [[nodiscard]] void* GetPendingHandleForAnalysis() const noexcept;
         [[nodiscard]] std::array<bool, 5> GetTransitionFlagsForAnalysis() const noexcept;
+        struct MovementFieldsForAnalysis final
+        {
+            void* field28;
+            bool field2C;
+            std::array<float, 3> resetValues;
+        };
+        [[nodiscard]] MovementFieldsForAnalysis GetMovementFieldsForAnalysis() const noexcept
+        { return {field28_, field2C_, resetValues_}; }
+        void SetMovementFieldsForAnalysis(void* node, bool lookedUp, const std::array<float, 3>& values) noexcept
+        { field28_ = node; field2C_ = lookedUp; resetValues_ = values; }
 
     protected:
         void SetStateSelectorForConstruction(std::uint32_t selector) noexcept;
@@ -81,6 +91,10 @@ namespace winx::reconstruction
         void ClearOwnerActionControlFromState();
         void ReleasePendingFromState(bool forceStop = false);
         void QueuePendingFromState(void* handle, bool mode, bool interrupt);
+        // PC513280/513300, PS22C89E0/2C8870. Native cache lives in this
+        // base's existing fields28/2C/30..38, never in a separate host copy.
+        void PrepareMovementFromState(bool clearCache);
+        void FinishMovementFromState(bool verticalOnly);
 
         [[nodiscard]] bool GetTransitionFlag1C() const noexcept;
         [[nodiscard]] bool GetTransitionFlag1D() const noexcept;

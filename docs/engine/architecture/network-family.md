@@ -60,6 +60,26 @@ ReadData/WriteData потока. Clone 004999C0 создает свежие head
 
 ## Оценка и открытые части
 
-Открыты connection/session/state protocols, buffers и queues с данными,
+Сокетные методы `spDXNetwork`, создание, Clone и освобождение восстановлены
+как общий компонент с явным платформенным адаптером. Layout, операции,
+общие наборы и особенности ошибок описаны в [карточке класса](../../reference/classes/sp-dx-network.md).
+Базовый constructor, два интерфейса, null методы, копирование имени и
+освобождение описаны отдельно для [spNetwork](../../reference/classes/sp-network.md).
+Журнал, дамп пакетов, экранная диагностика и порядок освобождения
+восстановлены для [spNetworkDebug](../../reference/classes/sp-network-debug.md).
+Его переносимые операции используют явные часы, блокировку, поток и службы вывода.
+
+[spNetworkManager](../../reference/classes/sp-network-manager.md) связывает server,
+peer, matchmaking, controller, timer и debug. Восстановлены запуск, остановка,
+ошибки, обработка очереди до 25 пакетов за вызов, probe/Hello, рассылка и ввод.
+Особенности владения оставшимися пакетами при остановке сохранены и описаны в карточке.
+
+[spNetworkMatchmaking](../../reference/classes/sp-network-matchmaking.md) владеет
+memory stream и socket stream, обрабатывает входящие данные и синхронно рассылает
+буфер уведомлением `0x22`. Нулевой успешный ответ закрывает соединение; при отказе
+приёма закрывается только буфер. Жизненный цикл, порядок журнала и особенности
+заимствованных данных описаны в карточке класса.
+
+Открыты session/state protocols, buffers и queues с данными,
 ошибки всех сетевых операций, thread interactions, полный packet error path,
 размерные ограничения в callers и работа SocketStream с настоящим сокетом.

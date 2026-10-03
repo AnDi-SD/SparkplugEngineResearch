@@ -89,7 +89,7 @@
 | `spDXMeshSerializer` | `0xE712BCAD` | Да | — | [1](classes/sp-dx-mesh-serializer.md) | [spDXMeshSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXMeshSerializer.h) |
 | `spDXMirrorLayer` | `0x39FA6E0B` | Да | — | — | — |
 | `spDXMouse` | `0x72F650C7` | Да | — | — | — |
-| `spDXNetwork` | `0x41FB6C73` | Да | — | — | — |
+| `spDXNetwork` | `0x41FB6C73` | Да | — | [1](classes/sp-dx-network.md) | [spDXNetwork.h](../../Sparkplug/Code/SparkplugDX/spDXNetwork.h) |
 | `spDXPixelShader` | `0x2B5D52DF` | Да | — | — | — |
 | `spDXRenderer` | `0x46004EE1` | Да | — | [1](classes/sp-renderer.md) | [spDXRenderer.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer.h) |
 | `spDXRenderTarget` | `0x189A4642` | Да | — | — | [spDXRenderTarget.h](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget.h) |
@@ -186,10 +186,10 @@
 | `spNavigationPortalSerializer` | `0x33695A39` | Да | Да | — | [spNavigationPortalSerializer.h](../../Sparkplug/Code/Sparkplug/spNavigationPortalSerializer.h) |
 | `spNavigationSet` | `0x74F9013E` | Да | Да | — | [spNavigationSet.h](../../Sparkplug/Code/Sparkplug/spNavigationSet.h) |
 | `spNavigationSetSerializer` | `0x5C2C4113` | Да | Да | — | [spNavigationSetSerializer.h](../../Sparkplug/Code/Sparkplug/spNavigationSetSerializer.h) |
-| `spNetwork` | `0x18B4576A` | Да | — | — | — |
-| `spNetworkDebug` | `0x178ABAB6` | Да | — | — | — |
-| `spNetworkManager` | `0x0546DEC1` | Да | — | — | — |
-| `spNetworkMatchmaking` | `0x18B864AC` | Да | — | — | — |
+| `spNetwork` | `0x18B4576A` | Да | — | [1](classes/sp-network.md) | [spNetwork.h](../../Sparkplug/Code/Sparkplug/spNetwork.h) |
+| `spNetworkDebug` | `0x178ABAB6` | Да | — | [1](classes/sp-network-debug.md) | [spNetworkDebug.h](../../Sparkplug/Code/Sparkplug/spNetworkDebug.h) |
+| `spNetworkManager` | `0x0546DEC1` | Да | — | [1](classes/sp-network-manager.md) | [spNetworkManager.h](../../Sparkplug/Code/Sparkplug/spNetworkManager.h) |
+| `spNetworkMatchmaking` | `0x18B864AC` | Да | — | [1](classes/sp-network-matchmaking.md) | [spNetworkMatchmaking.cpp](../../Sparkplug/Code/Sparkplug/spNetworkMatchmaking.cpp), [spNetworkMatchmaking.h](../../Sparkplug/Code/Sparkplug/spNetworkMatchmaking.h) |
 | `spNetworkPacket` | `0x0546DE34` | Да | — | — | — |
 | `spNetworkPeer` | `0x18B4576B` | Да | — | — | — |
 | `spNetworkServer` | `0x7259443E` | Да | — | — | — |

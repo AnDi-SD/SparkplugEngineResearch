@@ -1402,6 +1402,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-dx-network.md",
+      "title": "`spDXNetwork`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-dx-shared-mesh-data.md",
       "title": "spDXSharedMeshData",
       "category": "reference/classes"
@@ -1609,6 +1614,26 @@
     {
       "path": "docs/reference/classes/sp-navigation-portal.md",
       "title": "spNavigationPortal",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network-debug.md",
+      "title": "`spNetworkDebug`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network-manager.md",
+      "title": "`spNetworkManager`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network-matchmaking.md",
+      "title": "`spNetworkMatchmaking`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network.md",
+      "title": "`spNetwork`",
       "category": "reference/classes"
     },
     {
@@ -2092,6 +2117,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-before-troll-fight-state.md",
+      "title": "wxBeforeTrollFightState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-bird-moving-state.md",
       "title": "`wxBirdMovingState`",
       "category": "reference/classes"
@@ -2099,6 +2129,11 @@
     {
       "path": "docs/reference/classes/wx-boss-moving-state.md",
       "title": "`wxBossMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-butterfly-moving-state.md",
+      "title": "wxButterflyMovingState",
       "category": "reference/classes"
     },
     {
@@ -2134,6 +2169,11 @@
     {
       "path": "docs/reference/classes/wx-date-talking-state.md",
       "title": "`wxDateTalkingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-defending-state.md",
+      "title": "wxDefendingState",
       "category": "reference/classes"
     },
     {
@@ -2177,8 +2217,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-frog-back-flip-state.md",
+      "title": "wxFrogBackFlipState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-frog-hurt-state.md",
       "title": "`wxFrogHurtState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-frog-moving-state.md",
+      "title": "`wxFrogMovingState`",
       "category": "reference/classes"
     },
     {
@@ -2187,8 +2237,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ghoul-attack-state.md",
+      "title": "`wxGhoulAttackState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-glyph-state.md",
       "title": "`wxGlyphState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-hanging-state.md",
+      "title": "wxHangingState",
       "category": "reference/classes"
     },
     {
@@ -2199,6 +2259,51 @@
     {
       "path": "docs/reference/classes/wx-ice-bat-idle-state.md",
       "title": "`wxIceBatIdleState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-gargoyle-attack-state.md",
+      "title": "`wxIceGargoyleAttackState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-gargoyle-moving-state.md",
+      "title": "`wxIceGargoyleMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-worm-holes-state.md",
+      "title": "`wxIceWormHolesState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-worm-moving-state.md",
+      "title": "`wxIceWormMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-knut-attack-state.md",
+      "title": "wxKnutAttackState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-mikael-waiting-state.md",
+      "title": "`wxMikaelWaitingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-minotaur-attack-state.md",
+      "title": "wxMinotaurAttackState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-minotaur-defense-state.md",
+      "title": "wxMinotaurDefenseState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-minotaur-moving-state.md",
+      "title": "`wxMinotaurMovingState`",
       "category": "reference/classes"
     },
     {
@@ -2214,6 +2319,16 @@
     {
       "path": "docs/reference/classes/wx-mosquito-moving-state.md",
       "title": "`wxMosquitoMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-npc-states.md",
+      "title": "`wxMikaelOpenGateState`, `wxMikaelWandringState`, `wxWandringNPCWaitState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-open-gate-state.md",
+      "title": "`wxOpenGateState`",
       "category": "reference/classes"
     },
     {
@@ -2237,6 +2352,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-shadow-beast-defense-state.md",
+      "title": "wxShadowBeastDefenseState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-shadow-beast-hurt-state.md",
       "title": "`wxShadowBeastHurtState`",
       "category": "reference/classes"
@@ -2244,6 +2364,11 @@
     {
       "path": "docs/reference/classes/wx-shadow-beast-jumping-state.md",
       "title": "`wxShadowBeastJumpingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-shadow-beast-moving-state.md",
+      "title": "`wxShadowBeastMovingState`",
       "category": "reference/classes"
     },
     {
@@ -2262,13 +2387,38 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-sticking-states.md",
+      "title": "wxStickingLeftState и wxStickingRightState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-stinger-projectile.md",
       "title": "`wxStingerProjectile`",
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-strafing-state.md",
+      "title": "wxStrafingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-struggling-state.md",
+      "title": "`wxStrugglingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-trix-attack-state.md",
+      "title": "`wxTrixAttackState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-try2-hoist-state.md",
       "title": "`wxTry2HoistState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-vine-climbing-state.md",
+      "title": "wxVineClimbingState",
       "category": "reference/classes"
     },
     {
@@ -2279,6 +2429,11 @@
     {
       "path": "docs/reference/classes/wx-web-spit-projectile.md",
       "title": "`wxWebSpitProjectile`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-yeti-attack-state.md",
+      "title": "`wxYetiAttackState`",
       "category": "reference/classes"
     },
     {

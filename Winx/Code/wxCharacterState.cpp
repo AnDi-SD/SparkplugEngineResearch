@@ -1,4 +1,6 @@
 #include "wxCharacterState.h"
+#include "Analysis/Host/wxCharacterMovementStateHost.h"
+#include "Analysis/PC/spNodeTransformMath.h"
 #include <stdexcept>
 
 namespace winx::reconstruction
@@ -208,6 +210,100 @@ namespace winx::reconstruction
         }
         const auto fade = host.OwnerPredicateForAnalysis(owner_) ? 2u : 0u;
         host.StartAnimationForAnalysis(completionConsumer_, handle, mode, fade, interrupt);
+    }
+
+    void wxCharacterState::PrepareMovementFromState(const bool clearCache)
+    {
+        auto* host = dynamic_cast<wxCharacterMovementStateHost*>(&RequireHostForAnalysis());
+        if (!host) throw std::logic_error("movement preparation requires a node host");
+        if (!field2C_)
+        {
+            field28_ = host->FindMovementNodeForAnalysis(owner_, "movement_tracker", true, false);
+            field2C_ = true;
+        }
+        if (field28_)
+        {
+            for (std::uint32_t offset : {0x20u, 0x24u, 0x28u})
+                host->WriteNodePositionWordForAnalysis(field28_, offset, 0.0f);
+            host->MarkMovementNodeDirtyForAnalysis(field28_);
+        }
+        if (clearCache)
+        {
+            field28_ = nullptr;
+            field2C_ = false;
+        }
+        resetValues_ = {};
+    }
+
+    void wxCharacterState::FinishMovementFromState(const bool verticalOnly)
+    {
+        if (!field28_) return;
+        auto* host = dynamic_cast<wxCharacterMovementStateHost*>(&RequireHostForAnalysis());
+        if (!host) throw std::logic_error("movement finish requires a node host");
+        const bool ps2 = host->MovementNumericProfileForAnalysis() == wxCharacterMovementNumericProfileForAnalysis::PS2Finite;
+        std::array<float, 3> position{};
+        if (ps2)
+        {
+            position[2] = host->ReadNodePositionWordForAnalysis(field28_, 0x28);
+            position[1] = host->ReadNodePositionWordForAnalysis(field28_, 0x24);
+            position[0] = host->ReadNodePositionWordForAnalysis(field28_, 0x20);
+        }
+        else
+        {
+            position[0] = host->ReadNodePositionWordForAnalysis(field28_, 0x20);
+            position[2] = host->ReadNodePositionWordForAnalysis(field28_, 0x28);
+            position[1] = host->ReadNodePositionWordForAnalysis(field28_, 0x24);
+        }
+        std::array<float, 3> delta{};
+        for (std::size_t c = 0; c < 3; ++c)
+            delta[c] = static_cast<float>(double(position[c]) - double(resetValues_[c]));
+        if (ps2) resetValues_ = position;
+        else
+        {
+            // PC rereads X/Y, but stores the initially captured raw Z word.
+            const float x = host->ReadNodePositionWordForAnalysis(field28_, 0x20);
+            const float y = host->ReadNodePositionWordForAnalysis(field28_, 0x24);
+            resetValues_ = {x, y, position[2]};
+        }
+        void* target = host->OwnerMovementTargetForAnalysis(owner_);
+        if (!verticalOnly)
+        {
+            const auto matrix = host->ReadMovementTargetOrientationForAnalysis(target);
+            delta = ps2 ? host->TransformPS2MovementDeltaForAnalysis(delta, matrix)
+                : sparkplug::evidence::pc::node_math::Transform4203B0ForAnalysis(delta, matrix);
+            if (ps2) target = host->OwnerMovementTargetForAnalysis(owner_);
+            else
+            {
+                delta[0] = -delta[0];
+                delta[2] = -delta[2];
+            }
+        }
+        std::array<float, 3> result{};
+        if (!ps2 && verticalOnly)
+        {
+            result[0] = host->ReadNodePositionWordForAnalysis(target, 0x20);
+            result[2] = host->ReadNodePositionWordForAnalysis(target, 0x28);
+            result[1] = static_cast<float>(double(delta[1]) + double(host->ReadNodePositionWordForAnalysis(target, 0x24)));
+        }
+        else if (ps2 && !verticalOnly)
+        {
+            // EE uses SUB.S for X/Z, not ADD.S with a negated operand.
+            // The distinction also preserves the signed-zero branch.
+            result[0] = host->ReadNodePositionWordForAnalysis(target, 0x20) - delta[0];
+            result[1] = host->ReadNodePositionWordForAnalysis(target, 0x24) + delta[1];
+            result[2] = host->ReadNodePositionWordForAnalysis(target, 0x28) - delta[2];
+        }
+        else
+            for (std::size_t c = 0; c < 3; ++c)
+                result[c] = static_cast<float>(double(host->ReadNodePositionWordForAnalysis(target, 0x20u + std::uint32_t(c) * 4u))
+                    + double(verticalOnly && c != 1 ? 0.0f : delta[c]));
+        if (ps2)
+            for (std::size_t c = 0; c < 3; ++c)
+                host->WriteNodePositionWordForAnalysis(target, 0x20u + std::uint32_t(c) * 4u, result[c]);
+        else
+            for (std::size_t c : {std::size_t{2}, std::size_t{0}, std::size_t{1}})
+                host->WriteNodePositionWordForAnalysis(target, 0x20u + std::uint32_t(c) * 4u, result[c]);
+        host->MarkMovementNodeDirtyForAnalysis(target);
     }
 
     std::array<bool, 5> wxCharacterState::GetTransitionFlagsForAnalysis() const noexcept

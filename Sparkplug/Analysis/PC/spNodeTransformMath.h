@@ -58,6 +58,17 @@ namespace sparkplug::evidence::pc::node_math
                 + double(v[1]) * m[3 + c]) + double(v[0]) * m[c]);
         return result;
     }
+    inline Vector3 Transform4203B0ForAnalysis(const Vector3& v, const Matrix3& m)
+    {
+        // PC4203B0: X accumulates Y,Z,X; Y/Z accumulate X,Y,Z. All three
+        // inputs are read before output stores, including aliased arguments.
+        // Preserve this helper's order instead of using PC420350's order.
+        Vector3 result{};
+        result[0] = static_cast<float>((double(v[1]) * m[3] + double(v[2]) * m[6]) + double(v[0]) * m[0]);
+        for (std::size_t c = 1; c < 3; ++c)
+            result[c] = static_cast<float>((double(v[0]) * m[c] + double(v[1]) * m[3 + c]) + double(v[2]) * m[6 + c]);
+        return result;
+    }
     inline Matrix3 Multiply(const Matrix3& a, const Matrix3& b)
     {
         Matrix3 result{};

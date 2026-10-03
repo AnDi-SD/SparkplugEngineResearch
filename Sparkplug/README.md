@@ -4,6 +4,14 @@
 
 `SparkEntities` содержит подтверждённые создание, RTTI и назначение ссылки [spEntity](../docs/reference/classes/sp-entity.md). Менеджер и составной destructor передаются явному host; узкая проверка — `SparkEntityTests`.
 
+`SparkNetwork` содержит [spDXNetwork](../docs/reference/classes/sp-dx-network.md) и [базу spNetwork](../docs/reference/classes/sp-network.md): сокетные методы PC, общий copy имени и жизненный цикл. Вызовы WinSock предоставляет явный общий host. Независимые проверки базы — `SparkplugNetworkTests`, платформенного класса — `SparkplugDXNetworkTests`. Компонент входит в зависимости `SparkplugEngine`.
+
+В `SparkNetwork` также находится [spNetworkDebug](../docs/reference/classes/sp-network-debug.md): PC-журнал, дамп пакета, частота кадров и жизненный цикл. Внешние часы, поток, блокировка и вывод назначаются через отдельный host. Проверка — `SparkplugNetworkDebugTests`.
+
+[spNetworkManager](../docs/reference/classes/sp-network-manager.md) восстанавливает PC-запуск и остановку сетевых служб, ошибки, очередь, probe/Hello, уведомления и ввод matchmaking. Внешние службы предоставляет `spNetworkManagerHost`; проверка — `SparkplugNetworkManagerTests`.
+
+[spNetworkMatchmaking](../docs/reference/classes/sp-network-matchmaking.md) содержит PC-жизненный цикл, закрытие соединения и обработку входящих данных с уведомлением `0x22`. Он использует общий `spMemoryStream` и явный `spNetworkMatchmakingHost` для socket service и вывода; проверка — `SparkplugNetworkMatchmakingTests`.
+
 | Каталог | Содержание |
 | --- | --- |
 | `Code/SparkBase` | Базовые объекты, память, потоки и служебные типы |

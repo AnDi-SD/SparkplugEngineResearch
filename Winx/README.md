@@ -8,6 +8,37 @@
 
 ## Состояния персонажа
 
+[wxStrafingState](../docs/reference/classes/wx-strafing-state.md) ?????????
+???????? cached observer, ???????????? ?????????? ??? ?????? ??????, ???????
+?????????????? ????? ? ????? ??????????? ?? ???? ?????. EE normalization
+???????????? ????????? ???????????? ???????. ???????? ? `WinxStrafingStateTests`.
+
+[wxDefendingState](../docs/reference/classes/wx-defending-state.md) ?????????
+???? shield, ????? ??? ??????????? stage ??????, ????????? animation ?? completion
+? hit deadline ? ????????? ???????????. PC ? PS2 ?????????? ?????? ???????
+?????????? ???????; ??????? node/message/particle/scalar ?????? ????????????
+????? ????? host. ???????? ? `WinxDefendingStateTests`.
+
+[wxHangingState](../docs/reference/classes/wx-hanging-state.md) сохраняет счётчик
+update, варианты входа/выхода, интервалы угла, speed и завершение движения с
+передачей position в actor control. Owner/control/node службы подключаются
+через обязательный host, общий cache хранится в базе состояния.
+Проверка — `WinxHangingStateTests`.
+
+[wxVineClimbingState](../docs/reference/classes/wx-vine-climbing-state.md)
+содержит вход/выход, выбор направления, общий movement cache и ранний выход
+с перемещением node. Сохраняет проверенную PC-границу x87 для разности высот;
+PS2 использует отдельный конечный численный профиль и обязательные host-службы
+для matrix/accumulator операций. Проверка — `WinxVineClimbingStateTests`.
+
+[wxBeforeTrollFightState](../docs/reference/classes/wx-before-troll-fight-state.md)
+содержит подтверждённые вход, update, сообщения, выбор анимации, срок и удаление
+подписок. `BindForAnalysis` задаёт явный жизненный цикл с заимствованными owner,
+consumer и host; фабрика/clone до привязки являются аналитическими объектами.
+PC и PS2 сохраняют различие округления RNG и ветвей сброса node/объекта.
+Проверка — `WinxBeforeTrollFightStateTests`, включая доставку через общий
+менеджер подписок и отписку при уничтожении.
+
 `WinxCharacters` содержит подтверждённую часть [wxCharacter](../docs/reference/classes/wx-character.md): создание и удаление, Copy/clone, RTTI, проверку flags и одну ветку уведомления. Привязка к частично восстановленному `wxEntity` и игровой сцене пока передана через `wxCharacterHost`. Цель проверки — `WinxCharacterTests`.
 
 `WinxCharacterStates` содержит общую реализацию [wxActionState](../docs/reference/classes/wx-action-state.md) и используемых hooks [wxCharacterState](../docs/reference/classes/wx-character-state.md). Она зависит только от `SparkBase`; `WinxGameCore` подключает её публично. Внешние объекты анимации передаются через наш [host-интерфейс](Analysis/Host/wxCharacterStateHost.h), без реализации по умолчанию. Это компонент, не готовая state machine игры.
@@ -32,7 +63,39 @@
 
 [wxBossMovingState](../docs/reference/classes/wx-boss-moving-state.md) выбирает animation mode по двум float motion с условным вторым чтением. Проверка — `WinxBossMovingStateTests`; PC-ветви восстановлены, область соответствия PS2 пока ограничена нормальными конечными float и знаковыми нулями.
 
+[wxIceGargoyleMovingState](../docs/reference/classes/wx-ice-gargoyle-moving-state.md) сохраняет action-dependent update и выход с consuming completion query. [wxStickingLeftState и wxStickingRightState](../docs/reference/classes/wx-sticking-states.md) сохраняют двухфазные переходы, различные выходные variant-ветви, общий movement cache и разные численные пороги Left на PC/PS2. Первый вход заменяет pending без старого release. Проверка — `WinxStickingStateTests`.
+
+[wxFrogBackFlipState](../docs/reference/classes/wx-frog-back-flip-state.md) использует общий кэш движения `wxCharacterState`, consuming query даже при null и update движения перед очисткой control. Проверка — `WinxFrogBackFlipStateTests`; вращение PS2 требует отдельного EE-адаптера.
+
+[wxFrogMovingState](../docs/reference/classes/wx-frog-moving-state.md) сохраняет threshold update без release старого handle и dispatch события `event_hop_end`. Их проверки — `WinxIceGargoyleMovingStateTests` и `WinxFrogMovingStateTests`; внешние поля и доставка сообщения используют отдельные обязательные host-адаптеры.
+
+[wxMikaelWaitingState](../docs/reference/classes/wx-mikael-waiting-state.md) и [wxShadowBeastMovingState](../docs/reference/classes/wx-shadow-beast-moving-state.md) выполняют два update при входе, с базовым release между ними. Mikael сбрасывает control перед базовым entry; ShadowBeast выбирает animation mode по двум порогам и сохраняет отличия чтений PC/PS2. Проверки — `WinxMikaelWaitingStateTests` и `WinxShadowBeastMovingStateTests`. Область соответствия PS2 для motion пока ограничена стабильными normal finite float32 и знаковыми нулями.
+
+[wxMikaelOpenGateState, wxMikaelWandringState и wxWandringNPCWaitState](../docs/reference/classes/wx-npc-states.md) сохраняют кэш владельца при входе, порядок двух update и нулевой byte и неинициализированный pointer конструктора. Wandring откладывает замену незавершённой анимации и пишет control `0.1`. Проверка — `WinxNPCStateTests`; внешний кэш и control word подключает `wxNPCStateHost`.
+
 `WinxProjectileManagers` содержит общий частично восстановленный [wxProjectileManager](../docs/reference/classes/wx-projectile-manager.md): Notify, 14 слов Copy, регистрация и освобождение записей pool, Tick. Внешние операции передаются `wxProjectileManagerHost`; проверка — `WinxProjectileManagerTests`. В том же модуле [wxBacoProjectileManager](../docs/reference/classes/wx-baco-projectile-manager.md) сохраняет проверенную собственную логику и clone без переноса живых указателей хвоста, пока её scene adapter не привязан к общей базе.
+
+[wxShadowBeastDefenseState](../docs/reference/classes/wx-shadow-beast-defense-state.md) и [wxMinotaurDefenseState](../docs/reference/classes/wx-minotaur-defense-state.md) сохраняют двухфазные переходы, уведомления `27D1/27D2`, порядок внешних вызовов и consuming completion. Minotaur дополнительно ограничивает движение словом `0.01` и удерживает анимацию по byte `3C`. Native pointer `40` не инициализирован; host требует явной привязки контроллера. Проверки — `WinxShadowBeastDefenseStateTests`, `WinxMinotaurDefenseStateTests`.
+
+[wxMinotaurAttackState](../docs/reference/classes/wx-minotaur-attack-state.md) сохраняет двухфазные вход/выход, внешний override и speed lower clamp `0.8` с чтением захваченного объекта после playback. Проверка — `WinxMinotaurAttackStateTests`; byte `3C` и unknown padding отделены от базового Reset.
+
+[wxMinotaurMovingState](../docs/reference/classes/wx-minotaur-moving-state.md) сохраняет два порога motion, clamp `0.1`, lock byte и consuming completion. Проверка — `WinxMinotaurMovingStateTests`; PC повторяет motion read, PS2 сохраняет первый scalar.
+
+[wxIceWormMovingState](../docs/reference/classes/wx-ice-worm-moving-state.md) сохраняет entry/exit packets, выбор motion/turn по двум порогам, повторное чтение turn и порядок release/playback. Проверка — `WinxIceWormMovingStateTests`; нормализация угла остаётся обязательной внешней зависимостью.
+
+[wxIceWormHolesState](../docs/reference/classes/wx-ice-worm-holes-state.md) сохраняет три независимых once-флага, store pending перед queue и уведомления входа/выхода. Проверка — `WinxIceWormHolesStateTests`. Обязательный host передаёт известный байт флага; три неинициализированных байта payload оригинала остаются неизвестными.
+
+[wxStrugglingState](../docs/reference/classes/wx-struggling-state.md) сохраняет постоянный animation key и reset внешнего контроллера перед lookup. [wxOpenGateState](../docs/reference/classes/wx-open-gate-state.md) сохраняет consuming completion query с повторной filtered notification и событие `event_spin`. Проверки — `WinxStrugglingStateTests` и `WinxOpenGateStateTests`; внешние reset и доставка используют обязательные host-адаптеры.
+
+[wxTrixAttackState](../docs/reference/classes/wx-trix-attack-state.md) сохраняет mode-zero update, три permission bypass и девять обработчиков событий. Проверка — `WinxTrixAttackStateTests`. Circles notifications передают только известный byte флага; неизвестный padding не объявляется нулём.
+
+[wxYetiAttackState](../docs/reference/classes/wx-yeti-attack-state.md) сохраняет release перед mode-zero queue, selector-dependent permission и четыре ветви событий. Blast begin ищется по substring; controller slots имеют обязательные borrowed adapters. Проверка — `WinxYetiAttackStateTests`.
+
+[wxIceGargoyleAttackState](../docs/reference/classes/wx-ice-gargoyle-attack-state.md) сохраняет собственный byte `3C`, независимый от базового Reset, mode-zero update и события shoot/damage. Проверка — `WinxIceGargoyleAttackStateTests`. Named flag notifications сохраняют известный byte и границу неизвестного padding.
+
+[wxKnutAttackState](../docs/reference/classes/wx-knut-attack-state.md) сохраняет once-update, выбор key по внешнему byte и четырнадцать ветвей событий, включая три поиска подстроки. Проверка — `WinxKnutAttackStateTests`; маски payload сохраняют границу неизвестного padding уведомлений.
+
+[wxGhoulAttackState](../docs/reference/classes/wx-ghoul-attack-state.md) сохраняет unconditional mode-zero entry, два permission bypass и шесть обработчиков событий. Проверка — `WinxGhoulAttackStateTests`; float service и throw controller call отделены обязательным host-контрактом.
 
 `WinxProjectiles` содержит частичный [wxProjectile](../docs/reference/classes/wx-projectile.md): подтверждённые поля Copy, четыре счётчика ссылок и замену `spActor` при Copy. Внешние объекты передаются `wxProjectileHost`; проверка — `WinxProjectileTests`.
 

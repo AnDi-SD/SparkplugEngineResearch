@@ -48,6 +48,36 @@ endif()
 target_include_directories(SparkBase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(SparkBase PUBLIC cxx_std_17)
 
+add_library(SparkNetwork STATIC
+    Code/Sparkplug/spNetworkMatchmaking.cpp
+    Code/Sparkplug/spNetworkMatchmaking.h
+    Analysis/Host/spNetworkMatchmakingHost.h
+    Analysis/PC/spNetworkMatchmakingAbi.h
+    Code/Sparkplug/spNetworkManager.cpp
+    Code/Sparkplug/spNetworkManager.h
+    Analysis/Host/spNetworkManagerHost.h
+    Analysis/PC/spNetworkManagerAbi.h
+    Code/Sparkplug/spNetwork.cpp
+    Code/Sparkplug/spNetwork.h
+    Code/Sparkplug/spNetworkDebug.cpp
+    Code/Sparkplug/spNetworkDebug.h
+    Code/SparkplugDX/spDXNetwork.cpp
+    Code/SparkplugDX/spDXNetwork.h
+    Analysis/Host/spDXNetworkHost.h
+    Analysis/PC/spDXNetworkAbi.h
+    Analysis/PC/spNetworkAbi.h
+    Analysis/PC/spNetworkDebugAbi.h
+    Analysis/Host/spNetworkDebugHost.h
+)
+target_include_directories(SparkNetwork PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SparkNetwork PUBLIC SparkBase)
+target_compile_features(SparkNetwork PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(SparkNetwork PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(SparkNetwork PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 add_library(SparkEntities STATIC
     Code/Sparkplug/spEntity.cpp
     Code/Sparkplug/spEntity.h
@@ -488,7 +518,7 @@ if(WIN32)
 endif()
 target_include_directories(SparkplugEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(SparkplugEngine PUBLIC cxx_std_17)
-target_link_libraries(SparkplugEngine PUBLIC SparkBase SparkEntities)
+target_link_libraries(SparkplugEngine PUBLIC SparkBase SparkEntities SparkNetwork)
 
 if(MSVC)
     target_compile_options(SparkBase PUBLIC /EHsc)
@@ -501,6 +531,26 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(SparkplugNetworkMatchmakingTests Tests/spNetworkMatchmakingTests.cpp)
+    target_link_libraries(SparkplugNetworkMatchmakingTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkMatchmakingTests COMMAND SparkplugNetworkMatchmakingTests)
+    set_tests_properties(SparkplugNetworkMatchmakingTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkManagerTests Tests/spNetworkManagerTests.cpp)
+    target_link_libraries(SparkplugNetworkManagerTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkManagerTests COMMAND SparkplugNetworkManagerTests)
+    set_tests_properties(SparkplugNetworkManagerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkDebugTests Tests/spNetworkDebugTests.cpp)
+    target_link_libraries(SparkplugNetworkDebugTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkDebugTests COMMAND SparkplugNetworkDebugTests)
+    set_tests_properties(SparkplugNetworkDebugTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkTests Tests/spNetworkTests.cpp)
+    target_link_libraries(SparkplugNetworkTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkTests COMMAND SparkplugNetworkTests)
+    set_tests_properties(SparkplugNetworkTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXNetworkTests Tests/spDXNetworkTests.cpp)
+    target_link_libraries(SparkplugDXNetworkTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugDXNetworkTests COMMAND SparkplugDXNetworkTests)
+    set_tests_properties(SparkplugDXNetworkTests PROPERTIES TIMEOUT 20)
     add_executable(SparkBaseTests Tests/spBaseObjectTests.cpp)
     target_link_libraries(SparkBaseTests PRIVATE SparkBase)
     add_test(NAME SparkBaseTests COMMAND SparkBaseTests)

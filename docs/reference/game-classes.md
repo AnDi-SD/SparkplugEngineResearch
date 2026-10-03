@@ -27,7 +27,7 @@
 | `wxBaseAIBehavior` | `0x457334F1` | Да | Да | [1](classes/wx-baco-ai-behavior.md) | [wxBaseAIBehavior.cpp](../../Winx/Code/wxBaseAIBehavior.cpp), [wxBaseAIBehavior.h](../../Winx/Code/wxBaseAIBehavior.h) |
 | `wxBasicMovingState` | `0x1D533B89` | Да | Да | [1](classes/wx-basic-moving-state.md) | [wxBasicMovingState.cpp](../../Winx/Code/wxBasicMovingState.cpp), [wxBasicMovingState.h](../../Winx/Code/wxBasicMovingState.h) |
 | `wxBattleChallengeGameFlowState` | `0x422D0D1D` | Да | Да | — | — |
-| `wxBeforeTrollFightState` | `0x3EFE78B7` | Да | Да | — | — |
+| `wxBeforeTrollFightState` | `0x3EFE78B7` | Да | Да | [1](classes/wx-before-troll-fight-state.md) | [wxBeforeTrollFightState.h](../../Winx/Code/wxBeforeTrollFightState.h), [wxBeforeTrollFightState.cpp](../../Winx/Code/wxBeforeTrollFightState.cpp) |
 | `wxBGMenusGameFlowState` | `0x4C9A0DE6` | Да | Да | — | — |
 | `wxBirdFlyingState` | `0x18E64F87` | Да | Да | — | — |
 | `wxBirdMovingState` | `0x1D533B00` | Да | Да | [1](classes/wx-bird-moving-state.md) | [wxBirdMovingState.cpp](../../Winx/Code/wxBirdMovingState.cpp), [wxBirdMovingState.h](../../Winx/Code/wxBirdMovingState.h) |
@@ -47,7 +47,7 @@
 | `wxBreakableStatue` | `0x821A9090` | Да | Да | — | — |
 | `wxBreakableVase` | `0x057D584D` | Да | Да | — | — |
 | `wxBush` | `0x0598568B` | Да | Да | — | — |
-| `wxButterflyMovingState` | `0x46B6517E` | Да | Да | — | — |
+| `wxButterflyMovingState` | `0x46B6517E` | Да | Да | [1](classes/wx-butterfly-moving-state.md) | — |
 | `wxButterflyStateMachine` | `0x5B3E47AA` | Да | Да | — | — |
 | `wxButton` | `0x69F878BA` | Да | Да | — | — |
 | `wxCabinetPuzzle` | `0x10EA35DC` | Да | Да | — | — |
@@ -91,7 +91,7 @@
 | `wxDebugManager` | `0x2A3C57DD` | Да | — | — | — |
 | `wxDebugMenuGameFlowState` | `0x38DE5A48` | Да | Да | — | — |
 | `wxDeepWater` | `0x79F04D98` | Да | Да | — | — |
-| `wxDefendingState` | `0x38E64587` | Да | Да | — | — |
+| `wxDefendingState` | `0x38E64587` | Да | Да | [1](classes/wx-defending-state.md) | [wxDefendingState.h](../../Winx/Code/wxDefendingState.h), [wxDefendingState.cpp](../../Winx/Code/wxDefendingState.cpp) |
 | `wxDialogueBoxGameFlowState` | `0x3F8035C2` | Да | Да | — | — |
 | `wxDialogueState` | `0x16651EBE` | Да | Да | [1](classes/wx-dialogue-state.md) | [wxDialogueState.cpp](../../Winx/Code/wxDialogueState.cpp), [wxDialogueState.h](../../Winx/Code/wxDialogueState.h) |
 | `wxDialogWindow` | `0x66C51948` | Да | Да | — | — |
@@ -140,10 +140,10 @@
 | `wxFrogAIBehavior` | `0x1E3B644F` | Да | Да | — | — |
 | `wxFrogAttackAIAction` | `0x4CFF056C` | Да | Да | — | — |
 | `wxFrogAttackState` | `0x4EE03D15` | Да | Да | — | — |
-| `wxFrogBackFlipState` | `0x26702041` | Да | Да | — | — |
+| `wxFrogBackFlipState` | `0x26702041` | Да | Да | [1](classes/wx-frog-back-flip-state.md) | [wxFrogBackFlipState.cpp](../../Winx/Code/wxFrogBackFlipState.cpp), [wxFrogBackFlipState.h](../../Winx/Code/wxFrogBackFlipState.h) |
 | `wxFrogHurtState` | `0x022D000D` | Да | Да | [1](classes/wx-frog-hurt-state.md) | [wxFrogHurtState.cpp](../../Winx/Code/wxFrogHurtState.cpp), [wxFrogHurtState.h](../../Winx/Code/wxFrogHurtState.h) |
 | `wxFrogJumpingState` | `0x47507873` | Да | Да | — | — |
-| `wxFrogMovingState` | `0x50640A47` | Да | Да | — | — |
+| `wxFrogMovingState` | `0x50640A47` | Да | Да | [1](classes/wx-frog-moving-state.md) | [wxFrogMovingState.cpp](../../Winx/Code/wxFrogMovingState.cpp), [wxFrogMovingState.h](../../Winx/Code/wxFrogMovingState.h) |
 | `wxGameFlowController` | `0x078B20E8` | Да | Да | — | — |
 | `wxGameFlowState` | `0x11521AFA` | Да | Да | [1](classes/wx-game-flow-state.md) | — |
 | `wxGameOverGameFlowState` | `0x331018ED` | Да | Да | — | — |
@@ -157,7 +157,7 @@
 | `wxGettingCollectibleState` | `0x0E7D22C6` | Да | Да | — | — |
 | `wxGeyzer` | `0x6632038B` | Да | Да | — | — |
 | `wxGhostlySpiritStateMachine` | `0x88760331` | Да | Да | — | — |
-| `wxGhoulAttackState` | `0x08A40E12` | Да | Да | — | — |
+| `wxGhoulAttackState` | `0x08A40E12` | Да | Да | [1](classes/wx-ghoul-attack-state.md) | [wxGhoulAttackState.cpp](../../Winx/Code/wxGhoulAttackState.cpp), [wxGhoulAttackState.h](../../Winx/Code/wxGhoulAttackState.h) |
 | `wxGhoulieAIBehavior` | `0x4BBA28D3` | Да | Да | — | — |
 | `wxGhoulieStateMachine` | `0x3CE04060` | Да | Да | — | — |
 | `wxGhoulJumpingState` | `0x37086498` | Да | Да | — | — |
@@ -178,7 +178,7 @@
 | `wxGoopMonsterStateMachine` | `0x3F414680` | Да | Да | — | — |
 | `wxGriffinStateMachine` | `0x26B43E05` | Да | Да | — | — |
 | `wxHairySpiderStateMachine` | `0x114C3FA0` | Да | Да | — | — |
-| `wxHangingState` | `0x3AE37B41` | Да | Да | — | — |
+| `wxHangingState` | `0x3AE37B41` | Да | Да | [1](classes/wx-hanging-state.md) | [wxHangingState.h](../../Winx/Code/wxHangingState.h), [wxHangingState.cpp](../../Winx/Code/wxHangingState.cpp) |
 | `wxHelpAIAction` | `0x67435487` | Да | Да | — | — |
 | `wxHertzChoiceMenuGameFlowState` | `0x7B5B00A9` | Да | Да | — | — |
 | `wxHUDManager` | `0xDD003821` | Да | Да | — | — |
@@ -191,9 +191,9 @@
 | `wxIceBatStateMachine` | `0x448212BB` | Да | Да | — | — |
 | `wxIceGargoyleAIBehavior` | `0x34EC779B` | Да | Да | — | — |
 | `wxIceGargoyleAttackAIAction` | `0x1B4441B7` | Да | Да | — | — |
-| `wxIceGargoyleAttackState` | `0x1DE24CB8` | Да | Да | — | — |
+| `wxIceGargoyleAttackState` | `0x1DE24CB8` | Да | Да | [1](classes/wx-ice-gargoyle-attack-state.md) | [wxIceGargoyleAttackState.cpp](../../Winx/Code/wxIceGargoyleAttackState.cpp), [wxIceGargoyleAttackState.h](../../Winx/Code/wxIceGargoyleAttackState.h) |
 | `wxIceGargoyleClawAIAction` | `0x53F2244B` | Да | Да | — | — |
-| `wxIceGargoyleMovingState` | `0x53952BB6` | Да | Да | — | — |
+| `wxIceGargoyleMovingState` | `0x53952BB6` | Да | Да | [1](classes/wx-ice-gargoyle-moving-state.md) | [wxIceGargoyleMovingState.cpp](../../Winx/Code/wxIceGargoyleMovingState.cpp), [wxIceGargoyleMovingState.h](../../Winx/Code/wxIceGargoyleMovingState.h) |
 | `wxIceGargoyleProjectileManager` | `0x2DDF6A03` | Да | Да | — | — |
 | `wxIceGargoyleSleepingAIAction` | `0x3C7B1A31` | Да | Да | — | — |
 | `wxIceGargoyleStateMachine` | `0x60BA1531` | Да | Да | — | — |
@@ -202,8 +202,8 @@
 | `wxIceWormAttackAIAction` | `0x76850CC0` | Да | Да | — | — |
 | `wxIceWormAttackState` | `0x709E322B` | Да | Да | — | — |
 | `wxIceWormHolesAIAction` | `0x812B81AB` | Да | Да | — | — |
-| `wxIceWormHolesState` | `0x1D213B00` | Да | Да | — | — |
-| `wxIceWormMovingState` | `0x3E394575` | Да | Да | — | — |
+| `wxIceWormHolesState` | `0x1D213B00` | Да | Да | [1](classes/wx-ice-worm-holes-state.md) | [wxIceWormHolesState.cpp](../../Winx/Code/wxIceWormHolesState.cpp), [wxIceWormHolesState.h](../../Winx/Code/wxIceWormHolesState.h) |
+| `wxIceWormMovingState` | `0x3E394575` | Да | Да | [1](classes/wx-ice-worm-moving-state.md) | [wxIceWormMovingState.cpp](../../Winx/Code/wxIceWormMovingState.cpp), [wxIceWormMovingState.h](../../Winx/Code/wxIceWormMovingState.h) |
 | `wxIceWormStateMachine` | `0x13873488` | Да | Да | — | — |
 | `wxIcyAttackAIAction` | `0x510661EC` | Да | Да | — | — |
 | `wxIdleAIAction` | `0x3EA07007` | Да | Да | — | — |
@@ -220,7 +220,7 @@
 | `wxKikoMovingAIAction` | `0x99887766` | Да | Да | — | — |
 | `wxKikoStateMachine` | `0x243E116A` | Да | Да | — | — |
 | `wxKnutAttackAIAction` | `0x70D47C10` | Да | Да | — | — |
-| `wxKnutAttackState` | `0x2FDC3901` | Да | Да | — | — |
+| `wxKnutAttackState` | `0x2FDC3901` | Да | Да | [1](classes/wx-knut-attack-state.md) | [wxKnutAttackState.cpp](../../Winx/Code/wxKnutAttackState.cpp), [wxKnutAttackState.h](../../Winx/Code/wxKnutAttackState.h) |
 | `wxKnutBossAIBehavior` | `0x0D367CE3` | Да | Да | — | — |
 | `wxKnutBossStateMachine` | `0x2878071A` | Да | Да | — | — |
 | `wxKnutGlassesBehavior` | `0x3B8071F3` | Да | Да | — | — |
@@ -246,17 +246,17 @@
 | `wxMemoryManagerConfigPS2` | `0x68F86615` | — | Да | — | — |
 | `wxMenuGameFlowState` | `0x0C73327A` | Да | Да | — | — |
 | `wxMikaelAIBehavior` | `0x5B1B6CC5` | Да | Да | — | — |
-| `wxMikaelOpenGateState` | `0x539E4670` | Да | Да | — | — |
+| `wxMikaelOpenGateState` | `0x539E4670` | Да | Да | [1](classes/wx-npc-states.md) | [wxMikaelOpenGateState.cpp](../../Winx/Code/wxMikaelOpenGateState.cpp), [wxMikaelOpenGateState.h](../../Winx/Code/wxMikaelOpenGateState.h) |
 | `wxMikaelStateMachine` | `0x739960C0` | Да | Да | — | — |
-| `wxMikaelWaitingState` | `0x79DC43A8` | Да | Да | — | — |
+| `wxMikaelWaitingState` | `0x79DC43A8` | Да | Да | [1](classes/wx-mikael-waiting-state.md) | [wxMikaelWaitingState.cpp](../../Winx/Code/wxMikaelWaitingState.cpp), [wxMikaelWaitingState.h](../../Winx/Code/wxMikaelWaitingState.h) |
 | `wxMikaelWandringAIAction` | `0x12487A8E` | Да | Да | — | — |
-| `wxMikaelWandringState` | `0x108B4B98` | Да | Да | — | — |
+| `wxMikaelWandringState` | `0x108B4B98` | Да | Да | [1](classes/wx-npc-states.md) | [wxMikaelWandringState.cpp](../../Winx/Code/wxMikaelWandringState.cpp), [wxMikaelWandringState.h](../../Winx/Code/wxMikaelWandringState.h) |
 | `wxMinotaurAIBehavior` | `0x4E4C79B0` | Да | Да | — | — |
 | `wxMinotaurAttackAIAction` | `0x5B6B6464` | Да | Да | — | — |
-| `wxMinotaurAttackState` | `0x30062CB0` | Да | Да | — | — |
+| `wxMinotaurAttackState` | `0x30062CB0` | Да | Да | [1](classes/wx-minotaur-attack-state.md) | [wxMinotaurAttackState.cpp](../../Winx/Code/wxMinotaurAttackState.cpp), [wxMinotaurAttackState.h](../../Winx/Code/wxMinotaurAttackState.h) |
 | `wxMinotaurDefendAIAction` | `0x2F567161` | Да | Да | — | — |
-| `wxMinotaurDefenseState` | `0x5D337CF8` | Да | Да | — | — |
-| `wxMinotaurMovingState` | `0x5E63555F` | Да | Да | — | — |
+| `wxMinotaurDefenseState` | `0x5D337CF8` | Да | Да | [1](classes/wx-minotaur-defense-state.md) | [wxMinotaurDefenseState.cpp](../../Winx/Code/wxMinotaurDefenseState.cpp), [wxMinotaurDefenseState.h](../../Winx/Code/wxMinotaurDefenseState.h) |
+| `wxMinotaurMovingState` | `0x5E63555F` | Да | Да | [1](classes/wx-minotaur-moving-state.md) | [wxMinotaurMovingState.cpp](../../Winx/Code/wxMinotaurMovingState.cpp), [wxMinotaurMovingState.h](../../Winx/Code/wxMinotaurMovingState.h) |
 | `wxMinotaurStateMachine` | `0x104D37DF` | Да | Да | — | — |
 | `wxMinotaurStunnedState` | `0x7D863ED6` | Да | Да | [1](classes/wx-minotaur-stunned-state.md) | [wxMinotaurStunnedState.cpp](../../Winx/Code/wxMinotaurStunnedState.cpp), [wxMinotaurStunnedState.h](../../Winx/Code/wxMinotaurStunnedState.h) |
 | `wxMissileState` | `0x29B0FF3A` | Да | Да | — | — |
@@ -279,7 +279,7 @@
 | `wxOneLinerMovingCharacter` | `0x415414B0` | Да | Да | — | — |
 | `wxOneLinerTimeTrigger` | `0x3C1F38E5` | Да | Да | — | — |
 | `wxOneLinerTrigger` | `0xD7A6B498` | Да | Да | — | — |
-| `wxOpenGateState` | `0x7C546AAD` | Да | Да | — | — |
+| `wxOpenGateState` | `0x7C546AAD` | Да | Да | [1](classes/wx-open-gate-state.md) | [wxOpenGateState.cpp](../../Winx/Code/wxOpenGateState.cpp), [wxOpenGateState.h](../../Winx/Code/wxOpenGateState.h) |
 | `wxOpeningGate` | `0x1F800F2D` | Да | Да | — | — |
 | `wxOpenSecretPassageState` | `0x0A9B5545` | Да | Да | — | — |
 | `wxOptionMenuGameFlowState` | `0xAC2154CB` | Да | Да | — | — |
@@ -325,10 +325,10 @@
 | `wxShadowBeastAIBehavior` | `0x43E22A49` | Да | Да | — | — |
 | `wxShadowBeastAttackAIAction` | `0x0F6C5372` | Да | Да | — | — |
 | `wxShadowBeastAttackState` | `0x0B6B139A` | Да | Да | — | — |
-| `wxShadowBeastDefenseState` | `0x43634D72` | Да | Да | — | — |
+| `wxShadowBeastDefenseState` | `0x43634D72` | Да | Да | [1](classes/wx-shadow-beast-defense-state.md) | [wxShadowBeastDefenseState.cpp](../../Winx/Code/wxShadowBeastDefenseState.cpp), [wxShadowBeastDefenseState.h](../../Winx/Code/wxShadowBeastDefenseState.h) |
 | `wxShadowBeastHurtState` | `0x0C87213F` | Да | Да | [1](classes/wx-shadow-beast-hurt-state.md) | [wxShadowBeastHurtState.cpp](../../Winx/Code/wxShadowBeastHurtState.cpp), [wxShadowBeastHurtState.h](../../Winx/Code/wxShadowBeastHurtState.h) |
 | `wxShadowBeastJumpingState` | `0x303A77C2` | Да | Да | [1](classes/wx-shadow-beast-jumping-state.md) | [wxShadowBeastJumpingState.cpp](../../Winx/Code/wxShadowBeastJumpingState.cpp), [wxShadowBeastJumpingState.h](../../Winx/Code/wxShadowBeastJumpingState.h) |
-| `wxShadowBeastMovingState` | `0x361D2C0E` | Да | Да | — | — |
+| `wxShadowBeastMovingState` | `0x361D2C0E` | Да | Да | [1](classes/wx-shadow-beast-moving-state.md) | [wxShadowBeastMovingState.cpp](../../Winx/Code/wxShadowBeastMovingState.cpp), [wxShadowBeastMovingState.h](../../Winx/Code/wxShadowBeastMovingState.h) |
 | `wxShadowBeastStateMachine` | `0x59FE23B5` | Да | Да | — | — |
 | `wxShakeableTreeTrigger` | `0x6092026A` | Да | Да | — | — |
 | `wxSideQuestGivenObject` | `0x33C52CF2` | Да | Да | — | — |
@@ -361,13 +361,13 @@
 | `wxStarsProjectile` | `0x088C33D9` | Да | Да | — | — |
 | `wxStellaGlyph` | `0x92D88687` | Да | Да | — | — |
 | `wxStellaRingTrigger` | `0x686665FA` | Да | Да | — | — |
-| `wxStickingLeftState` | `0x5A907EA0` | Да | Да | — | — |
-| `wxStickingRightState` | `0x5C5147D6` | Да | Да | — | — |
+| `wxStickingLeftState` | `0x5A907EA0` | Да | Да | [1](classes/wx-sticking-states.md) | [wxStickingLeftState.cpp](../../Winx/Code/wxStickingLeftState.cpp), [wxStickingLeftState.h](../../Winx/Code/wxStickingLeftState.h) |
+| `wxStickingRightState` | `0x5C5147D6` | Да | Да | [1](classes/wx-sticking-states.md) | [wxStickingRightState.cpp](../../Winx/Code/wxStickingRightState.cpp), [wxStickingRightState.h](../../Winx/Code/wxStickingRightState.h) |
 | `wxStingerProjectile` | `0x206A45A2` | Да | Да | [1](classes/wx-stinger-projectile.md) | [wxStingerProjectile.cpp](../../Winx/Code/wxStingerProjectile.cpp), [wxStingerProjectile.h](../../Winx/Code/wxStingerProjectile.h) |
 | `wxStompProjectile` | `0x5DC941A2` | Да | Да | — | — |
 | `wxStormyAttackAIAction` | `0x32957C4C` | Да | Да | — | — |
-| `wxStrafingState` | `0x22474D5C` | Да | Да | — | — |
-| `wxStrugglingState` | `0x21B84A72` | Да | Да | — | — |
+| `wxStrafingState` | `0x22474D5C` | Да | Да | [1](classes/wx-strafing-state.md) | [wxStrafingState.h](../../Winx/Code/wxStrafingState.h), [wxStrafingState.cpp](../../Winx/Code/wxStrafingState.cpp) |
+| `wxStrugglingState` | `0x21B84A72` | Да | Да | [1](classes/wx-struggling-state.md) | [wxStrugglingState.cpp](../../Winx/Code/wxStrugglingState.cpp), [wxStrugglingState.h](../../Winx/Code/wxStrugglingState.h) |
 | `wxStudentsStateMachine` | `0x78F35E7F` | Да | Да | — | — |
 | `wxSwampFrogStateMachine` | `0x77883A38` | Да | Да | — | — |
 | `wxSwampGazBubble` | `0x41171F71` | Да | Да | — | — |
@@ -382,7 +382,7 @@
 | `wxTRCManagerPS2` | `0x4569241C` | — | Да | — | — |
 | `wxTripleSideQuest` | `0x32E63462` | Да | Да | — | — |
 | `wxTrixAIBehavior` | `0x426D268C` | Да | Да | — | — |
-| `wxTrixAttackState` | `0x27590633` | Да | Да | — | — |
+| `wxTrixAttackState` | `0x27590633` | Да | Да | [1](classes/wx-trix-attack-state.md) | [wxTrixAttackState.cpp](../../Winx/Code/wxTrixAttackState.cpp), [wxTrixAttackState.h](../../Winx/Code/wxTrixAttackState.h) |
 | `wxTrixStateMachine` | `0x29870E67` | Да | Да | — | — |
 | `wxTrollAIBehavior` | `0x114A698B` | Да | Да | — | — |
 | `wxTrollAttackAIAction` | `0x6A421178` | Да | Да | — | — |
@@ -396,12 +396,12 @@
 | `wxUserInput` | `0x747C1FA7` | Да | Да | — | — |
 | `wxVectorWrapper` | `0x1F793E0D` | Да | Да | — | — |
 | `wxVibrationManager` | `0x5FDE0B1E` | Да | Да | — | — |
-| `wxVineClimbingState` | `0x40280331` | Да | Да | — | — |
+| `wxVineClimbingState` | `0x40280331` | Да | Да | [1](classes/wx-vine-climbing-state.md) | [wxVineClimbingState.h](../../Winx/Code/wxVineClimbingState.h), [wxVineClimbingState.cpp](../../Winx/Code/wxVineClimbingState.cpp) |
 | `wxVulnerableState` | `0x1B815375` | Да | Да | — | — |
 | `wxWanderAIAction` | `0x5E7865EA` | Да | Да | — | — |
 | `wxWandringNPCAIBehavior` | `0x5FC363D2` | Да | Да | — | — |
 | `wxWandringNPCStateMachine` | `0x084C5660` | Да | Да | — | — |
-| `wxWandringNPCWaitState` | `0x4D9470B5` | Да | Да | — | — |
+| `wxWandringNPCWaitState` | `0x4D9470B5` | Да | Да | [1](classes/wx-npc-states.md) | [wxWandringNPCWaitState.cpp](../../Winx/Code/wxWandringNPCWaitState.cpp), [wxWandringNPCWaitState.h](../../Winx/Code/wxWandringNPCWaitState.h) |
 | `wxWayToGoState` | `0x4623876A` | Да | Да | [1](classes/wx-way-to-go-state.md) | [wxWayToGoState.cpp](../../Winx/Code/wxWayToGoState.cpp), [wxWayToGoState.h](../../Winx/Code/wxWayToGoState.h) |
 | `wxWebSpitProjectile` | `0x5CE65EBF` | Да | Да | [1](classes/wx-web-spit-projectile.md) | [wxWebSpitProjectile.cpp](../../Winx/Code/wxWebSpitProjectile.cpp), [wxWebSpitProjectile.h](../../Winx/Code/wxWebSpitProjectile.h) |
 | `wxWinxFlyAIAction` | `0x67AF3520` | Да | Да | — | — |
@@ -411,7 +411,7 @@
 | `wxWinxStudentsMovingState` | `0x6B3C287A` | Да | Да | — | — |
 | `wxYetiAIBehavior` | `0x26277D61` | Да | Да | — | — |
 | `wxYetiAttackAIAction` | `0x30347478` | Да | Да | — | — |
-| `wxYetiAttackState` | `0x292768B3` | Да | Да | — | — |
+| `wxYetiAttackState` | `0x292768B3` | Да | Да | [1](classes/wx-yeti-attack-state.md) | [wxYetiAttackState.cpp](../../Winx/Code/wxYetiAttackState.cpp), [wxYetiAttackState.h](../../Winx/Code/wxYetiAttackState.h) |
 | `wxYetiMovingState` | `0x2A7B1428` | Да | Да | — | — |
 | `wxYetiProjectileManager` | `0x16C81287` | Да | Да | — | — |
 | `wxYetiStateMachine` | `0x55DC28DD` | Да | Да | — | — |

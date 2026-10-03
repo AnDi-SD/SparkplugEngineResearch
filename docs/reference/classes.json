@@ -1379,8 +1379,12 @@
       "registrationBaseIds": {
         "pc": "0x18B4576A"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-network.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXNetwork.h"
+      ]
     },
     {
       "name": "spDXPixelShader",
@@ -3043,8 +3047,12 @@
       "registrationBaseIds": {
         "pc": "0x20A72504"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetwork.h"
+      ]
     },
     {
       "name": "spNetworkDebug",
@@ -3056,8 +3064,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-debug.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkDebug.h"
+      ]
     },
     {
       "name": "spNetworkManager",
@@ -3069,8 +3081,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkManager.h"
+      ]
     },
     {
       "name": "spNetworkMatchmaking",
@@ -3082,8 +3098,13 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-matchmaking.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkMatchmaking.cpp",
+        "Sparkplug/Code/Sparkplug/spNetworkMatchmaking.h"
+      ]
     },
     {
       "name": "spNetworkPacket",
@@ -6588,8 +6609,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-before-troll-fight-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBeforeTrollFightState.h",
+        "Winx/Code/wxBeforeTrollFightState.cpp"
+      ]
     },
     {
       "name": "wxBGMenusGameFlowState",
@@ -6898,7 +6924,9 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
+      "documentation": [
+        "docs/reference/classes/wx-butterfly-moving-state.md"
+      ],
       "sources": []
     },
     {
@@ -7591,8 +7619,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-defending-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDefendingState.h",
+        "Winx/Code/wxDefendingState.cpp"
+      ]
     },
     {
       "name": "wxDialogueBoxGameFlowState",
@@ -8367,8 +8400,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-frog-back-flip-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFrogBackFlipState.cpp",
+        "Winx/Code/wxFrogBackFlipState.h"
+      ]
     },
     {
       "name": "wxFrogHurtState",
@@ -8417,8 +8455,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-frog-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFrogMovingState.cpp",
+        "Winx/Code/wxFrogMovingState.h"
+      ]
     },
     {
       "name": "wxGameFlowController",
@@ -8629,8 +8672,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ghoul-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGhoulAttackState.cpp",
+        "Winx/Code/wxGhoulAttackState.h"
+      ]
     },
     {
       "name": "wxGhoulieAIBehavior",
@@ -8949,8 +8997,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-hanging-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxHangingState.h",
+        "Winx/Code/wxHangingState.cpp"
+      ]
     },
     {
       "name": "wxHelpAIAction",
@@ -9154,8 +9207,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-gargoyle-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceGargoyleAttackState.cpp",
+        "Winx/Code/wxIceGargoyleAttackState.h"
+      ]
     },
     {
       "name": "wxIceGargoyleClawAIAction",
@@ -9184,8 +9242,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-gargoyle-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceGargoyleMovingState.cpp",
+        "Winx/Code/wxIceGargoyleMovingState.h"
+      ]
     },
     {
       "name": "wxIceGargoyleProjectileManager",
@@ -9319,8 +9382,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-worm-holes-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceWormHolesState.cpp",
+        "Winx/Code/wxIceWormHolesState.h"
+      ]
     },
     {
       "name": "wxIceWormMovingState",
@@ -9334,8 +9402,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-worm-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceWormMovingState.cpp",
+        "Winx/Code/wxIceWormMovingState.h"
+      ]
     },
     {
       "name": "wxIceWormStateMachine",
@@ -9585,8 +9658,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-knut-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxKnutAttackState.cpp",
+        "Winx/Code/wxKnutAttackState.h"
+      ]
     },
     {
       "name": "wxKnutBossAIBehavior",
@@ -9971,8 +10049,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-npc-states.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMikaelOpenGateState.cpp",
+        "Winx/Code/wxMikaelOpenGateState.h"
+      ]
     },
     {
       "name": "wxMikaelStateMachine",
@@ -10001,8 +10084,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-mikael-waiting-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMikaelWaitingState.cpp",
+        "Winx/Code/wxMikaelWaitingState.h"
+      ]
     },
     {
       "name": "wxMikaelWandringAIAction",
@@ -10031,8 +10119,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-npc-states.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMikaelWandringState.cpp",
+        "Winx/Code/wxMikaelWandringState.h"
+      ]
     },
     {
       "name": "wxMinotaurAIBehavior",
@@ -10076,8 +10169,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-minotaur-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMinotaurAttackState.cpp",
+        "Winx/Code/wxMinotaurAttackState.h"
+      ]
     },
     {
       "name": "wxMinotaurDefendAIAction",
@@ -10106,8 +10204,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-minotaur-defense-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMinotaurDefenseState.cpp",
+        "Winx/Code/wxMinotaurDefenseState.h"
+      ]
     },
     {
       "name": "wxMinotaurMovingState",
@@ -10121,8 +10224,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-minotaur-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMinotaurMovingState.cpp",
+        "Winx/Code/wxMinotaurMovingState.h"
+      ]
     },
     {
       "name": "wxMinotaurStateMachine",
@@ -10477,8 +10585,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-open-gate-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxOpenGateState.cpp",
+        "Winx/Code/wxOpenGateState.h"
+      ]
     },
     {
       "name": "wxOpeningGate",
@@ -11177,8 +11290,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-shadow-beast-defense-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxShadowBeastDefenseState.cpp",
+        "Winx/Code/wxShadowBeastDefenseState.h"
+      ]
     },
     {
       "name": "wxShadowBeastHurtState",
@@ -11232,8 +11350,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-shadow-beast-moving-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxShadowBeastMovingState.cpp",
+        "Winx/Code/wxShadowBeastMovingState.h"
+      ]
     },
     {
       "name": "wxShadowBeastStateMachine",
@@ -11742,8 +11865,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-sticking-states.md"
+      ],
+      "sources": [
+        "Winx/Code/wxStickingLeftState.cpp",
+        "Winx/Code/wxStickingLeftState.h"
+      ]
     },
     {
       "name": "wxStickingRightState",
@@ -11757,8 +11885,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-sticking-states.md"
+      ],
+      "sources": [
+        "Winx/Code/wxStickingRightState.cpp",
+        "Winx/Code/wxStickingRightState.h"
+      ]
     },
     {
       "name": "wxStingerProjectile",
@@ -11822,8 +11955,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-strafing-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxStrafingState.h",
+        "Winx/Code/wxStrafingState.cpp"
+      ]
     },
     {
       "name": "wxStrugglingState",
@@ -11837,8 +11975,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-struggling-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxStrugglingState.cpp",
+        "Winx/Code/wxStrugglingState.h"
+      ]
     },
     {
       "name": "wxStudentsStateMachine",
@@ -12060,8 +12203,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-trix-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxTrixAttackState.cpp",
+        "Winx/Code/wxTrixAttackState.h"
+      ]
     },
     {
       "name": "wxTrixStateMachine",
@@ -12275,8 +12423,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-vine-climbing-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxVineClimbingState.h",
+        "Winx/Code/wxVineClimbingState.cpp"
+      ]
     },
     {
       "name": "wxVulnerableState",
@@ -12350,8 +12503,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-npc-states.md"
+      ],
+      "sources": [
+        "Winx/Code/wxWandringNPCWaitState.cpp",
+        "Winx/Code/wxWandringNPCWaitState.h"
+      ]
     },
     {
       "name": "wxWayToGoState",
@@ -12510,8 +12668,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-yeti-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxYetiAttackState.cpp",
+        "Winx/Code/wxYetiAttackState.h"
+      ]
     },
     {
       "name": "wxYetiMovingState",
