@@ -50,6 +50,10 @@ namespace sparkplug::reconstruction
     {
         if(!primitive_)return false;
         const bool fromNode=node_&&!node_->IsKindOf(0x912CC341); // spPartitionSystem
+        // Host-only refusal rollback; successful publication/ref identity must
+        // retain4651E0's ordering before the primitive's virtual call.
+        const auto oldPosition=position_;const auto oldOrientation=orientation_;const auto oldScale=scale_;
+        const auto oldCenter=boundingCenter_;const auto oldRadius=boundingRadius_;
         if(fromNode)
         {
             position_=node_->GetWorldPositionForAnalysis();
@@ -59,7 +63,13 @@ namespace sparkplug::reconstruction
         boundingCenter_=evidence::pc::node_math::Transform(primitive_->GetBoundingCenterForAnalysis(),orientation_);
         for(std::size_t i=0;i<3;++i)boundingCenter_[i]+=position_[i];
         boundingRadius_=primitive_->GetBoundingRadiusForAnalysis();
-        if(fromNode)primitive_->UpdateCollisionTransformForAnalysis(position_,orientation_,scale_);
+        if(fromNode&&!primitive_->TryUpdateCollisionTransformForAnalysis(position_,orientation_,scale_))
+        {
+            // Refusal is our explicit analytical policy, not original atomicity.
+            // A restricted primitive must refuse before publishing its cache.
+            position_=oldPosition;orientation_=oldOrientation;scale_=oldScale;
+            boundingCenter_=oldCenter;boundingRadius_=oldRadius;return false;
+        }
         return true;
     }
 }

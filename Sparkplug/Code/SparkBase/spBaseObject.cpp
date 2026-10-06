@@ -10,6 +10,7 @@
 #include "spAsyncFileStreamManager.h"
 #include "spFileStream.h"
 #include "spErrorManager.h"
+#include "spStreamError.h"
 #include "spMemoryStream.h"
 #include "spPCKManager.h"
 #include "spStream.h"
@@ -17,6 +18,7 @@
 #if defined(_WIN32)
 #include "../SparkBasePC/spPCAsyncFileStreamManager.h"
 #include "../SparkBasePC/spPCFileStream.h"
+#include "../SparkBasePC/spWindowsError.h"
 #include "../SparkplugPC/spPCApp.h"
 #include "../SparkplugPC/spPCErrorManager.h"
 #endif
@@ -76,6 +78,7 @@ namespace sparkplug::reconstruction
                 && manager.RegisterDeferredForAnalysis(spFileStream::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spMemoryStream::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spError::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spStreamError::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spErrorManager::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spPCKManager::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spSubscriptionManager::StaticRTTI())
@@ -83,6 +86,7 @@ namespace sparkplug::reconstruction
 #if defined(_WIN32)
                 && manager.RegisterDeferredForAnalysis(spPCAsyncFileStreamManager::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spPCFileStream::StaticRTTI())
+                && manager.RegisterDeferredForAnalysis(spWindowsError::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spPCApp::StaticRTTI())
                 && manager.RegisterDeferredForAnalysis(spPCErrorManager::StaticRTTI())
 #endif

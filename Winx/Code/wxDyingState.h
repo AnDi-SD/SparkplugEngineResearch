@@ -17,7 +17,7 @@ namespace winx::reconstruction
         [[nodiscard]] bool vfunc_1C(wxAnimationRequestForAnalysis& request) override;
         void vfunc_30(wxAnimationRequestForAnalysis& request) override;
         [[nodiscard]] bool vfunc_34(std::uint32_t) override { return false; }
-        [[nodiscard]] bool vfunc_38(std::uint32_t) const noexcept override { return true; }
+        [[nodiscard]] std::uint32_t vfunc_38(std::uint32_t) const noexcept override { return true; }
         [[nodiscard]] std::uint8_t GetSentDyingOverByteForAnalysis() const noexcept { return sentDyingOver_; }
         void SetSentDyingOverByteForAnalysis(std::uint8_t value) noexcept { sentDyingOver_ = value; }
     private:

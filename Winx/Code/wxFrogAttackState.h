@@ -18,7 +18,7 @@ namespace winx::reconstruction
         [[nodiscard]] bool vfunc_1C(wxAnimationRequestForAnalysis&) override;
         void vfunc_30(wxAnimationRequestForAnalysis&) override;
         [[nodiscard]] bool vfunc_34(std::uint32_t) override;
-        [[nodiscard]] bool vfunc_38(std::uint32_t) const noexcept override;
+        [[nodiscard]] std::uint32_t vfunc_38(std::uint32_t) const noexcept override;
         void vfunc_3C(const void* event) override;
         [[nodiscard]] std::uint8_t GetByte3CForAnalysis() const noexcept{return byte3C_;}
         void SetByte3CForAnalysis(std::uint8_t value) noexcept{byte3C_=value;}

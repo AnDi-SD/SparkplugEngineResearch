@@ -13,6 +13,15 @@
 
 Both constructors clear `+0x14`, initialize an empty native list and retain a new `spNode` at `+0x24`. The node is created through PC `0x00421E20` or PS2 `0x001A9160` and is named exactly `Instance Root`.
 
+`+0x14` is the owning-template pointer consumed by
+[`spTemplate`](sp-template.md)'s dependency traversal. The template's creation
+entry (`0x0059E7A0` / `0x00153570`) creates an instance through factory
+`0x005FB870` / `0x00155C90`, writes its own template pointer at `+0x14` and
+passes the input boolean to instance entry `0x005FC1D0` / `0x00154A60`.
+Those writes establish the relationship, without proving that this pointer
+retains the template. The portable owner setter is explicit host injection;
+the complete native creation and runtime lifetime protocol remains open.
+
 The list ABI differs while the enclosing size remains equal:
 
 - PC: allocator state `+0x18`, heap sentinel `+0x1C`, count `+0x20`;

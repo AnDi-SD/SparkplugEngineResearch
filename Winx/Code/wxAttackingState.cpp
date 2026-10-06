@@ -245,7 +245,7 @@ namespace winx::reconstruction
         return eventFlag_;
     }
 
-    bool wxAttackingState::vfunc_38(const std::uint32_t code) const noexcept
+    std::uint32_t wxAttackingState::vfunc_38(const std::uint32_t code) const noexcept
     {
         // PC 5144F0 / PS2 2C76A0: explicit false cases in the code table.
         switch (code)

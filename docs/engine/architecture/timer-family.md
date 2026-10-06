@@ -1,18 +1,17 @@
 # Таймеры PC и PS2: идентичность, состояния и границы часов
 
-## Классы и независимые доказательства
+## Четыре разные роли
 
 | Класс | Роль | Размер PC/PS2 |
 | --- | --- | ---: |
-| spTimer | Накопитель отсчётов платформенных часов | 36/36 |
-| spMasterTimer | spTimer с singleton-интерфейсом | 40/40 |
-| spTaskTimer | Время задач, source clock и дочерние таймеры | 60/60 |
+| [spTimer](../../reference/classes/sp-timer.md) | Накопитель отсчётов платформенных часов | 36/36 |
+| [spMasterTimer](../../reference/classes/sp-master-timer.md) | spTimer с singleton-интерфейсом | 40/40 |
+| [spTaskTimer](../../reference/classes/sp-task-timer.md) | Время задач, source clock и дочерние таймеры | 60/60 |
 | wxGameTimer | spTaskTimer с отдельным флагом игровой паузы | 136/136 |
 
-Три новых PC factory/getter/Clone/два удаления прошли, всего15 class operations.
 Каждый Clone создаёт отдельный объект с начальными runtime-значениями;
-виртуальный Copy у этих классов — базовый no-op. spTaskTimer PC ранее имел83/100:
-[прежний подробный реверс](../../reference/classes/sp-task-timer.md) повторно не засчитывается.
+виртуальный Copy у этих классов — базовый no-op. `spTaskTimer` физически
+наследует `spBaseObject`, а не `spTimer`: сходство названия не задаёт наследование.
 
 Общие primary tables имеют семь slots у Timer/Master и одиннадцать у Task/Game.
 В Game только Start/Pause отличаются от таблицы Task; Update и Reset наследуются.
@@ -22,21 +21,34 @@ Singleton PS2 Master имеет secondary interface+24; Game —+3C, объек�
 
 ## spTimer: два отсчёта и строгий лимит
 
-PS2 каждый раз запускает новый scalar prefix: до оригинального clock001E7980,
-затем отдельный prefix с явно объявленным возвращённым отсчётом. Wrapper часов,
-ядро ОС и аппаратные таймеры PS2 не подменяются успешным callback. Каждая граница,
-входной регистр и весь136-байтовый guard сохранены.
+PC получает отсчёт через `WINMM.timeGetTime`; PS2 вызывает wrapper `001E7980`.
+Общие исходники принимают отдельный unsigned отсчёт для каждого вызова. Wrapper,
+ОС и аппаратура остаются внешними службами, а значения не берутся из host clock
+автоматически.
 
 Layout обеих платформ: active byte10, accumulated word14, last-start word18,
-clamp byte1C, limit word20. Аналитические имена методов:
+clamp byte1C, limit word20. Start сохраняет один отсчёт и ставит active1;
+Reset перед этим обнуляет accumulated. Stop не проверяет active и не меняет
+last-start, поэтому повторный вызов снова прибавляет время от прежнего запуска.
+
+При clamp0 Stop использует один отсчёт. При clamp≠0 первый unsigned difference
+сравнивается с limit: строгое превышение прибавляет limit, иначе часы вызываются
+второй раз. Разность второго отсчёта не ограничивается повторно. Сложение и
+вычитание выполняются modulo2³².
+
+Master публикует адрес полного объекта в singleton global после инициализации
+таймера. Clone заменяет global своим новым объектом. Destructor очищает global
+безусловно, даже если уничтожаемый объект уже перестал быть текущим instance.
 
 ## Различие арифметики и пределы вывода
 
-PC использует unsigned difference, умноженный на float32-константу3A83126F,
+`spTaskTimer` PC использует unsigned difference, умноженный на float32-константу3A83126F,
 с последующей записью float. PS2 явно конвертирует unsigned difference в float
 и выполняет DIV.S на1000; отрицательный signed intermediate переводит через
 shift/or, conversion и удвоение. Это разные последовательности операций.
 
-Семь новых assessments: PC Timer60/Master25/Game45; PS2 Timer50/Master20/Task55/
-Game40. Ни один класс не объявляется закрытым. Открыты полная платформа часов,
-PS2 lifetimes, FPU rounding, native child ownership и встроенный GameTimer+44.
+Исходники Timer и Master сохраняют собственные операции и явную границу часов.
+Открыты полная платформа часов, полные PS2 lifetimes, FPU rounding Task/Game,
+глобальная политика singleton ownership, native child ownership и встроенный
+GameTimer+44. Наличие этих компонентов не означает полной интеграции игрового
+цикла или всей платформы.

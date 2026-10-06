@@ -24,6 +24,11 @@ namespace sparkplug::reconstruction
         // this API does not expose a collision/intersection query operation.
         virtual void UpdateCollisionTransformForAnalysis(Vector3& position,Matrix3& orientation,
             const Vector3& scale) const noexcept=0;
+        // Host qualification/status contract, separate from the native slot
+        // ABI. Operations with a restricted math slice override this method.
+        [[nodiscard]] virtual bool TryUpdateCollisionTransformForAnalysis(Vector3& position,
+            Matrix3& orientation,const Vector3& scale) const noexcept
+        {UpdateCollisionTransformForAnalysis(position,orientation,scale);return true;}
     protected:
         spBoundingVolume() noexcept=default;
         // Shared PC4723B0 in Sphere/Box slot1C; named from this tools slice.

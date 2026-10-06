@@ -17,10 +17,19 @@ and serializer pipeline remain separate classes.
 | Extent | observed through `+0x23` | exact `0x24` |
 
 PS2 factory requests `0x24` bytes and initializes a list at `+0x14` plus an
-unknown zero word at `+0x20`. Its list uses count `+0x14` and inline sentinel
+zero word at `+0x20`. Its list uses count `+0x14` and inline sentinel
 links `+0x18/+0x1C`; PC again has allocator state `+0x14`, heap sentinel
-`+0x18`, count `+0x1C` and the same unresolved `+0x20`. The PC factory remains
+`+0x18`, count `+0x1C` and the same `+0x20`. The PC factory remains
 protected, so `0x24` is an observed prefix there rather than a direct sizeof.
+
+`+0x20` is the temporary current-template context used by
+[`spTemplate`](sp-template.md). Its serializer wrapper writes the template
+pointer before invoking the serializer and clears it after deleting that
+serializer. The template runtime switch uses the same context during its
+descriptor passes and clears it on the normal completion path. PC resource
+load failure can return before that final clear; this field is not a persistent
+record of all active templates. The portable manager does not yet expose this
+native context or implement that runtime protocol.
 
 Manager-local operations agree:
 
@@ -41,6 +50,6 @@ registration is the independent RTTI class `spTemplateInstance`
 Its functions are not attributed to the manager merely because they are
 contiguous in the executable.
 
-Open: original manager TU/header/method names, direct PC allocation, `+0x20`,
+Open: original manager TU/header/method names, direct PC allocation,
 exact normalization rules, the PC add entry, 16-bit reference owner contract,
 and the complete template-object/serializer graph.

@@ -11,6 +11,7 @@
 
 namespace sparkplug::reconstruction
 {
+    class spTemplate;
     class spTemplateInstance final : public spNamedObject
     {
     public:
@@ -33,8 +34,14 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spNode& GetInstanceRootForAnalysis() const noexcept;
         [[nodiscard]] std::size_t GetAttachedObjectCountForAnalysis() const noexcept;
 
+        // HOST state injection for the native +14 pointer consumed by the
+        // parent template's cycle check (PC0059EBD0 / PS200153880). This is
+        // not a recovered spelling/signature of an instance creation method.
+        void SetTemplateOwnerForAnalysis(const spTemplate* owner) noexcept { templateOwner_ = owner; }
+        [[nodiscard]] const spTemplate* GetTemplateOwnerForAnalysis() const noexcept { return templateOwner_; }
+
     private:
-        const spBaseObject* field14_ = nullptr;
+        const spTemplate* templateOwner_ = nullptr;
         std::list<std::shared_ptr<spBaseObject>> attachedObjects_;
         std::unique_ptr<spNode> instanceRoot_;
     };

@@ -91,7 +91,7 @@ namespace winx::reconstruction
         return true;
     }
 
-    bool wxCharacterState::vfunc_38(std::uint32_t) const noexcept
+    std::uint32_t wxCharacterState::vfunc_38(std::uint32_t) const
     {
         return false;
     }

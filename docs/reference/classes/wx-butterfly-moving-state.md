@@ -4,8 +4,9 @@ Class ID `46B6517E`, физическая и регистрационная ба
 Native размер PC/PS2 — `70`, selector — `0`. Конструктор обнуляет собственные
 vectors/words, byte `6C` устанавливает в `1`. Clone получает эти defaults;
 Copy и Reset наследуются из базы и собственные поля не обнуляют. Permission
-`34` возвращает false, hook `38` — false. Реализация игрового движения пока
-остаётся открытой; эта карточка фиксирует установленный контракт.
+`34` возвращает false, hook `38` — false. [Переносимый исходник](../../../Winx/Code/wxButterflyMovingState.h)
+содержит собственные PC entry, update, фазы и движение; его представление не
+заявляет native ABI. Полный игровой граф и собственная PS2 арифметика остаются открытыми.
 
 | Поля | Назначение |
 | --- | --- |
@@ -63,11 +64,22 @@ spill X-разности, поэтому это описание порога н
 отрицательное направление к цели, horizontal local basis node, порог dot
 `0.985f`, поворот со скоростью `pi/2` и native vector/matrix helpers. Dot
 строго выше порога пропускает orientation update; равенство не пропускает.
-Точная арифметика x87, порядок float32 spills, вырожденные basis и PS2 EE
-normalize/accumulator/SQRT требуют отдельной полной квалификации.
+Сопоставление PC охватывает конечные геометрические входы с невырожденной
+horizontal basis, включая граничные сроки, пороги движения, направление
+поворота и округление высоты около midpoint. Высота сохраняет малый origin
+до native nearest64 округления и последующего float32 spill; обычная binary64
+сумма теряет часть таких входов. Технический [численный адаптер](../../../Winx/Analysis/PC/wxButterflyNumeric.h)
+явно отделён от восстановленных hooks. Произвольная точность x87, nonfinite
+входы и собственная PS2 EE normalize/accumulator/SQRT этим не установлены.
+Равные аргументы native matrix helper ведут к ветви с unwritten stack;
+переносимая реализация явно отклоняет соответствующую вырожденную basis.
 
 Нативные части входа и переключения фаз установлены независимо от движения.
-PC entry/update cycle также проходит original movement/normalize/trig/matrix
-при zero delta и валидной basis с явными внешними службами. Это не заменяет
-проверку произвольного frame delta, random-point реализации, настоящей сцены
-и consumer. Исходник класса и полное игровое соответствие ещё не закрыты.
+PC entry/update cycle сопоставлен с original movement/normalize/trig/matrix
+при отдельных нулевых и ненулевых frame delta и явных внешних службах.
+[Проверки](../../../Winx/Tests/wxButterflyMovingStateTests.cpp) также сохраняют
+clone/Copy/Reset, начальные поля и границу отсутствующего host.
+[Обязательный host](../../../Winx/Analysis/Host/wxButterflyMovingStateHost.h)
+предоставляет RNG, random-point, node, clock и animation service. Их
+реализация, настоящий scene/consumer и полное игровое соответствие класса
+остаются открытыми.

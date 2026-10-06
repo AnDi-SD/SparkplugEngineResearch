@@ -3,7 +3,7 @@
 #include "../Sparkplug/spSerializer.h"
 namespace sparkplug::reconstruction
 {
-    class spDXTextureSerializer final : public spSerializer
+    class spDXTextureSerializer : public spSerializer
     {
     public:
         static constexpr spClassID ClassID=0x196D44FE;

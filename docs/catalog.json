@@ -952,6 +952,11 @@
       "category": "formats"
     },
     {
+      "path": "docs/formats/subtitle-track.md",
+      "title": "Данные spSubtitleTrack",
+      "category": "formats"
+    },
+    {
       "path": "docs/game/README.md",
       "title": "Игра Winx Club",
       "category": "game"
@@ -1287,6 +1292,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-audio-sound.md",
+      "title": "spAudioSound",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-base-object.md",
       "title": "spBaseObject / spNamedObject",
       "category": "reference/classes"
@@ -1342,6 +1352,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-cube-texture.md",
+      "title": "spCubeTexture",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-data-block-serializer.md",
       "title": "spDataBlockSerializer",
       "category": "reference/classes"
@@ -1359,6 +1374,21 @@
     {
       "path": "docs/reference/classes/sp-dx-combined-vb.md",
       "title": "spDXCombinedVB",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-cube-texture-serializer.md",
+      "title": "spDXCubeTextureSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-cube-texture.md",
+      "title": "spDXCubeTexture",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-input-device.md",
+      "title": "spDXInputDevice",
       "category": "reference/classes"
     },
     {
@@ -1487,6 +1517,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-input-device.md",
+      "title": "spInputDevice",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-input-manager.md",
       "title": "spInputManager",
       "category": "reference/classes"
@@ -1499,6 +1534,11 @@
     {
       "path": "docs/reference/classes/sp-light-controller-serializer.md",
       "title": "spLightControllerSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-light-controller.md",
+      "title": "spLightController",
       "category": "reference/classes"
     },
     {
@@ -1524,6 +1564,11 @@
     {
       "path": "docs/reference/classes/sp-light.md",
       "title": "spLight",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-master-timer.md",
+      "title": "spMasterTimer",
       "category": "reference/classes"
     },
     {
@@ -1632,6 +1677,16 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-network-packet.md",
+      "title": "spNetworkPacket",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network-state-ctrl.md",
+      "title": "`spNetworkStateCtrl`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-network.md",
       "title": "`spNetwork`",
       "category": "reference/classes"
@@ -1727,6 +1782,16 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-pc-thread.md",
+      "title": "spPCThread",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pc-video-stream.md",
+      "title": "spPCVideoStream",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-pck-manager.md",
       "title": "spPCKManager",
       "category": "reference/classes"
@@ -1744,6 +1809,11 @@
     {
       "path": "docs/reference/classes/sp-ps2-async-file-stream-manager.md",
       "title": "spPS2AsyncFileStreamManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-cube-texture.md",
+      "title": "spPS2CubeTexture",
       "category": "reference/classes"
     },
     {
@@ -1767,6 +1837,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-ps2-input-device.md",
+      "title": "spPS2InputDevice",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-ps2-input-manager.md",
       "title": "spPS2InputManager",
       "category": "reference/classes"
@@ -1774,6 +1849,11 @@
     {
       "path": "docs/reference/classes/sp-ps2-iop-module-manager.md",
       "title": "spPS2IOPModuleManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-ps2-keyboard.md",
+      "title": "spPS2Keyboard",
       "category": "reference/classes"
     },
     {
@@ -1804,6 +1884,11 @@
     {
       "path": "docs/reference/classes/sp-ps2-texture-data-serializer.md",
       "title": "spPS2TextureDataSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-quad-3d.md",
+      "title": "spQuad3D",
       "category": "reference/classes"
     },
     {
@@ -1907,6 +1992,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-stream-error.md",
+      "title": "spStreamError",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-stream.md",
       "title": "spStream",
       "category": "reference/classes"
@@ -1914,6 +2004,16 @@
     {
       "path": "docs/reference/classes/sp-subscription-manager.md",
       "title": "spSubscriptionManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-subtitle-track.md",
+      "title": "spSubtitleTrack",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-system-settings.md",
+      "title": "spSystemSettings",
       "category": "reference/classes"
     },
     {
@@ -1972,8 +2072,23 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-thread.md",
+      "title": "spThread",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-timer.md",
+      "title": "spTimer",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-trans-function-eval-serializer.md",
       "title": "spTransFunctionEvalSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-transform-const-eval.md",
+      "title": "spTransformConstEval",
       "category": "reference/classes"
     },
     {
@@ -1999,6 +2114,16 @@
     {
       "path": "docs/reference/classes/sp-vertex-declaration.md",
       "title": "spDXVertexDeclaration / spPCVertexDeclaration",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-video-stream.md",
+      "title": "spVideoStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-windows-error.md",
+      "title": "spWindowsError",
       "category": "reference/classes"
     },
     {
@@ -2127,8 +2252,23 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-bird-flying-state.md",
+      "title": "wxBirdFlyingState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-bird-moving-state.md",
       "title": "`wxBirdMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-blast-state.md",
+      "title": "wxBlastState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-bloom-dying-state.md",
+      "title": "wxBloomDyingState",
       "category": "reference/classes"
     },
     {
@@ -2192,6 +2332,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-droid-hurt-state.md",
+      "title": "wxDroidHurtState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-droid-inactive-state.md",
       "title": "`wxDroidInactiveState`",
       "category": "reference/classes"
@@ -2199,6 +2344,11 @@
     {
       "path": "docs/reference/classes/wx-droid-moving-state.md",
       "title": "`wxDroidMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-dying-state.md",
+      "title": "wxDyingState",
       "category": "reference/classes"
     },
     {
@@ -2222,6 +2372,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-frog-attack-state.md",
+      "title": "wxFrogAttackState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-frog-back-flip-state.md",
       "title": "wxFrogBackFlipState",
       "category": "reference/classes"
@@ -2229,6 +2384,11 @@
     {
       "path": "docs/reference/classes/wx-frog-hurt-state.md",
       "title": "`wxFrogHurtState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-frog-jumping-state.md",
+      "title": "`wxFrogJumpingState`",
       "category": "reference/classes"
     },
     {
@@ -2247,6 +2407,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ghoul-jumping-state.md",
+      "title": "wxGhoulJumpingState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-glyph-state.md",
       "title": "`wxGlyphState`",
       "category": "reference/classes"
@@ -2254,6 +2419,11 @@
     {
       "path": "docs/reference/classes/wx-hanging-state.md",
       "title": "wxHangingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-hurt-state.md",
+      "title": "wxHurtState",
       "category": "reference/classes"
     },
     {
@@ -2274,6 +2444,11 @@
     {
       "path": "docs/reference/classes/wx-ice-gargoyle-moving-state.md",
       "title": "`wxIceGargoyleMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-worm-attack-state.md",
+      "title": "wxIceWormAttackState",
       "category": "reference/classes"
     },
     {
@@ -2317,6 +2492,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-mosquito-attack-state.md",
+      "title": "wxMosquitoAttackState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-mosquito-hurt-state.md",
       "title": "`wxMosquitoHurtState`",
       "category": "reference/classes"
@@ -2337,8 +2517,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-open-secret-passage-state.md",
+      "title": "wxOpenSecretPassageState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-pc-app.md",
       "title": "wxPCApp",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-physical-attack-state.md",
+      "title": "wxPhysicalAttackState",
       "category": "reference/classes"
     },
     {
@@ -2354,6 +2544,16 @@
     {
       "path": "docs/reference/classes/wx-ps2-app.md",
       "title": "wxPS2App",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-pull-lever-state.md",
+      "title": "wxPullLeverState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-reading-state.md",
+      "title": "wxReadingState",
       "category": "reference/classes"
     },
     {
@@ -2374,6 +2574,16 @@
     {
       "path": "docs/reference/classes/wx-shadow-beast-moving-state.md",
       "title": "`wxShadowBeastMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-spider-attack-state.md",
+      "title": "wxSpiderAttackState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-spider-hurt-state.md",
+      "title": "wxSpiderHurtState",
       "category": "reference/classes"
     },
     {
@@ -2424,6 +2634,11 @@
     {
       "path": "docs/reference/classes/wx-vine-climbing-state.md",
       "title": "wxVineClimbingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-vulnerable-state.md",
+      "title": "wxVulnerableState",
       "category": "reference/classes"
     },
     {

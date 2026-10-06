@@ -242,8 +242,13 @@
         "pc": "0x695C0F65",
         "ps2": "0x695C0F65"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-audio-sound.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spAudioSound.h",
+        "Sparkplug/Code/Sparkplug/spAudioSound.cpp"
+      ]
     },
     {
       "name": "spAudioVoice",
@@ -903,8 +908,13 @@
         "pc": "0x2F281E13",
         "ps2": "0x2F281E13"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-cube-texture.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spCubeTexture.h",
+        "Sparkplug/Code/Sparkplug/spCubeTexture.cpp"
+      ]
     },
     {
       "name": "spCustomAppData",
@@ -1103,8 +1113,13 @@
       "registrationBaseIds": {
         "pc": "0x65557907"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-cube-texture.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXCubeTexture.h",
+        "Sparkplug/Code/SparkplugDX/spDXCubeTexture.cpp"
+      ]
     },
     {
       "name": "spDXCubeTextureSerializer",
@@ -1116,8 +1131,13 @@
       "registrationBaseIds": {
         "pc": "0x196D44FE"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-cube-texture-serializer.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXCubeTextureSerializer.h",
+        "Sparkplug/Code/SparkplugDX/spDXCubeTextureSerializer.cpp"
+      ]
     },
     {
       "name": "spDXEnvironmentMapLayer",
@@ -1172,8 +1192,13 @@
       "registrationBaseIds": {
         "pc": "0x4C615DE6"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-input-device.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spDXInputDevice.h",
+        "Sparkplug/Code/SparkplugPC/spDXInputDevice.cpp"
+      ]
     },
     {
       "name": "spDXInputManager",
@@ -2184,8 +2209,13 @@
         "pc": "0x20A72504",
         "ps2": "0x20A72504"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-input-device.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spInputDevice.h",
+        "Sparkplug/Code/Sparkplug/spInputDevice.cpp"
+      ]
     },
     {
       "name": "spInputManager",
@@ -2288,8 +2318,12 @@
         "pc": "0x4FAD24F1",
         "ps2": "0x4FAD24F1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-light-controller.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spLightController.h"
+      ]
     },
     {
       "name": "spLightControllerSerializer",
@@ -2413,8 +2447,12 @@
         "pc": "0x149C778B",
         "ps2": "0x149C778B"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-master-timer.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spMasterTimer.h"
+      ]
     },
     {
       "name": "spMatColorControllerSerializer",
@@ -3859,8 +3897,12 @@
       "registrationBaseIds": {
         "pc": "0x3DFE3B16"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-pc-thread.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spPCThread.h"
+      ]
     },
     {
       "name": "spPCVertexDeclaration",
@@ -3904,8 +3946,13 @@
       "registrationBaseIds": {
         "pc": "0x27DE5AF5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-pc-video-stream.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spPCVideoStream.h",
+        "Sparkplug/Code/SparkplugPC/spPCVideoStream.cpp"
+      ]
     },
     {
       "name": "spPhysicsManager",
@@ -4166,8 +4213,13 @@
       "registrationBaseIds": {
         "ps2": "0x65557907"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-ps2-cube-texture.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2CubeTexture.h",
+        "Sparkplug/Code/SparkplugPS2/spPS2CubeTexture.cpp"
+      ]
     },
     {
       "name": "spPS2DynamicMeshData",
@@ -4285,8 +4337,13 @@
       "registrationBaseIds": {
         "ps2": "0x4C615DE6"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-ps2-input-device.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2InputDevice.h",
+        "Sparkplug/Code/SparkplugPS2/spPS2InputDevice.cpp"
+      ]
     },
     {
       "name": "spPS2InputManager",
@@ -4332,8 +4389,13 @@
       "registrationBaseIds": {
         "ps2": "0x48B004B2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-ps2-keyboard.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2Keyboard.h",
+        "Sparkplug/Code/SparkplugPS2/spPS2Keyboard.cpp"
+      ]
     },
     {
       "name": "spPS2LensFlareManager",
@@ -4762,8 +4824,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-quad-3d.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spQuad3D.h"
+      ]
     },
     {
       "name": "spRenderable",
@@ -5380,8 +5446,12 @@
         "pc": "0x789B29B9",
         "ps2": "0x789B29B9"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-stream-error.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkBase/spStreamError.h"
+      ]
     },
     {
       "name": "spSubController",
@@ -5433,8 +5503,12 @@
         "pc": "0x44DE07FD",
         "ps2": "0x44DE07FD"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-subtitle-track.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spSubtitleTrack.h"
+      ]
     },
     {
       "name": "spSystemSettings",
@@ -5446,8 +5520,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-system-settings.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spSystemSettings.h"
+      ]
     },
     {
       "name": "spTaskTimer",
@@ -5777,8 +5855,12 @@
       "registrationBaseIds": {
         "pc": "0x20A72504"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-thread.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spThread.h"
+      ]
     },
     {
       "name": "spTimer",
@@ -5792,8 +5874,12 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-timer.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spTimer.h"
+      ]
     },
     {
       "name": "spTrack",
@@ -5824,8 +5910,12 @@
         "pc": "0x87B0E260",
         "ps2": "0x87B0E260"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-transform-const-eval.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spTransformConstEval.h"
+      ]
     },
     {
       "name": "spTransformEval",
@@ -5983,8 +6073,13 @@
         "pc": "0x20A72504",
         "ps2": "0x20A72504"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-video-stream.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spVideoStream.h",
+        "Sparkplug/Code/Sparkplug/spVideoStream.cpp"
+      ]
     },
     {
       "name": "spVisibilityManager",
@@ -6028,8 +6123,12 @@
       "registrationBaseIds": {
         "pc": "0x789B29B9"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-windows-error.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkBasePC/spWindowsError.h"
+      ]
     },
     {
       "name": "spWindowsFont",
@@ -6709,8 +6808,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-blast-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBlastState.h"
+      ]
     },
     {
       "name": "wxBloomDyingState",
@@ -6724,8 +6827,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-bloom-dying-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBloomDyingState.h"
+      ]
     },
     {
       "name": "wxBloomFashionAnim",
@@ -6942,7 +7049,9 @@
       "documentation": [
         "docs/reference/classes/wx-butterfly-moving-state.md"
       ],
-      "sources": []
+      "sources": [
+        "Winx/Code/wxButterflyMovingState.h"
+      ]
     },
     {
       "name": "wxButterflyStateMachine",
@@ -7993,8 +8102,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-dying-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDyingState.h"
+      ]
     },
     {
       "name": "wxEngineCore",
@@ -8404,8 +8517,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-frog-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFrogAttackState.h"
+      ]
     },
     {
       "name": "wxFrogBackFlipState",
@@ -8459,8 +8576,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-frog-jumping-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFrogJumpingState.h"
+      ]
     },
     {
       "name": "wxFrogMovingState",
@@ -9126,8 +9247,13 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-hurt-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxHurtState.cpp",
+        "Winx/Code/wxHurtState.h"
+      ]
     },
     {
       "name": "wxIceBatFlyingState",
@@ -9371,8 +9497,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-worm-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceWormAttackState.h"
+      ]
     },
     {
       "name": "wxIceWormHolesAIAction",
@@ -10358,8 +10488,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-mosquito-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMosquitoAttackState.h"
+      ]
     },
     {
       "name": "wxMosquitoHurtState",
@@ -10639,8 +10773,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-open-secret-passage-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxOpenSecretPassageState.h"
+      ]
     },
     {
       "name": "wxOptionMenuGameFlowState",
@@ -10821,8 +10959,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-physical-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxPhysicalAttackState.h"
+      ]
     },
     {
       "name": "wxPickFlowerState",
@@ -11084,8 +11226,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-pull-lever-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxPullLeverState.h"
+      ]
     },
     {
       "name": "wxPushButton",
@@ -11159,8 +11305,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-reading-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxReadingState.h"
+      ]
     },
     {
       "name": "wxRedFElevator",
@@ -11659,8 +11809,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-spider-attack-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiderAttackState.h"
+      ]
     },
     {
       "name": "wxSpiderHurtState",
@@ -11674,8 +11828,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-spider-hurt-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiderHurtState.h"
+      ]
     },
     {
       "name": "wxSpiderMovingState",

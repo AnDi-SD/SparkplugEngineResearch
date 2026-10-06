@@ -18,6 +18,6 @@ namespace winx::reconstruction
         void vfunc_2C(wxAnimationRequestForAnalysis& request) override;
         void vfunc_30(wxAnimationRequestForAnalysis& request) override;
         [[nodiscard]] bool vfunc_34(std::uint32_t code) override;
-        [[nodiscard]] bool vfunc_38(std::uint32_t code) const noexcept override;
+        [[nodiscard]] std::uint32_t vfunc_38(std::uint32_t code) const noexcept override;
     };
 }

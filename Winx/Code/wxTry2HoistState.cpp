@@ -46,5 +46,5 @@ namespace winx::reconstruction
         return RequireHostForAnalysis().IsPendingAnimationCompleteForAnalysis(
             GetCompletionConsumerForAnalysis(), GetPendingHandleForAnalysis(), true);
     }
-    bool wxTry2HoistState::vfunc_38(std::uint32_t) const noexcept { return true; }
+    std::uint32_t wxTry2HoistState::vfunc_38(std::uint32_t) const noexcept { return true; }
 }

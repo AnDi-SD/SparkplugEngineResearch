@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 project(SparkplugReconstruction LANGUAGES CXX)
 
 add_library(SparkBase STATIC
+    Code/Sparkplug/spTimer.cpp
+    Code/Sparkplug/spMasterTimer.cpp
+    Code/Sparkplug/spMasterTimer.h
+    Code/Sparkplug/spTimer.h
     Code/SparkBase/spApp.cpp
     Code/SparkBase/spApp.h
     Code/SparkBase/spAsyncFileStreamManager.cpp
@@ -10,6 +14,8 @@ add_library(SparkBase STATIC
     Code/SparkBase/spBaseObject.h
     Code/SparkBase/spErrorManager.cpp
     Code/SparkBase/spErrorManager.h
+    Code/SparkBase/spStreamError.cpp
+    Code/SparkBase/spStreamError.h
     Code/SparkBase/spFileStream.cpp
     Code/SparkBase/spFileStream.h
     Code/SparkBase/spMemoryStream.cpp
@@ -43,6 +49,8 @@ if(WIN32)
         Code/SparkBasePC/spPCAsyncFileStreamManager.h
         Code/SparkBasePC/spPCFileStream.cpp
         Code/SparkBasePC/spPCFileStream.h
+        Code/SparkBasePC/spWindowsError.cpp
+        Code/SparkBasePC/spWindowsError.h
     )
 endif()
 target_include_directories(SparkBase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -109,6 +117,67 @@ endif()
 # The original source path places this layer in Code/Sparkplug rather than
 # SparkBase.  Keep the reconstructed target boundary explicit as well.
 add_library(SparkplugEngine STATIC
+    Code/Sparkplug/spCapsuleBV.cpp
+    Code/Sparkplug/spCapsuleBV.h
+    Analysis/PC/spCapsuleBVMath.h
+    Code/Sparkplug/spTemplate.cpp
+    Code/Sparkplug/spTemplate.h
+    Code/SparkplugPC/spDXMouse.cpp
+    Code/SparkplugPC/spDXMouse.h
+    Analysis/Host/spDXMouseHost.h
+    Analysis/PC/spDXMouseAbi.h
+    Code/SparkplugPS2/spPS2Keyboard.cpp
+    Code/SparkplugPS2/spPS2Keyboard.h
+    Analysis/PS2/spPS2KeyboardAbi.h
+    Code/Sparkplug/spVideoStream.cpp
+    Code/Sparkplug/spVideoStream.h
+    Code/SparkplugPC/spPCVideoStream.cpp
+    Code/SparkplugPC/spPCVideoStream.h
+    Analysis/PC/spVideoStreamAbi.h
+    Code/Sparkplug/spAudioSound.cpp
+    Code/Sparkplug/spAudioSound.h
+    Analysis/Host/spAudioSoundHost.h
+    Analysis/PC/spAudioSoundAbi.h
+    Analysis/PS2/spAudioSoundAbi.h
+    Code/SparkplugPS2/spPS2CubeTexture.cpp
+    Code/SparkplugPS2/spPS2CubeTexture.h
+    Code/Sparkplug/spCubeTexture.cpp
+    Code/Sparkplug/spCubeTexture.h
+    Code/SparkplugDX/spDXCubeTexture.cpp
+    Code/SparkplugDX/spDXCubeTexture.h
+    Code/SparkplugDX/spDXCubeTextureSerializer.cpp
+    Code/SparkplugDX/spDXCubeTextureSerializer.h
+    Code/Sparkplug/spSystemSettings.cpp
+    Code/Sparkplug/spSystemSettings.h
+    Analysis/PC/spSystemSettingsAbi.h
+    Code/Sparkplug/spInputDevice.cpp
+    Code/Sparkplug/spInputDevice.h
+    Code/SparkplugPC/spDXInputDevice.cpp
+    Code/SparkplugPC/spDXInputDevice.h
+    Code/SparkplugPS2/spPS2InputDevice.cpp
+    Code/SparkplugPS2/spPS2InputDevice.h
+    Analysis/Host/spInputDeviceHost.h
+    Analysis/PC/spInputDeviceAbi.h
+    Analysis/PS2/spInputDeviceAbi.h
+    Code/Sparkplug/spQuad3D.cpp
+    Code/Sparkplug/spQuad3D.h
+    Analysis/Host/spQuad3DHost.h
+    Analysis/PC/spQuad3DAbi.h
+    Code/Sparkplug/spLightController.cpp
+    Code/Sparkplug/spLightController.h
+    Analysis/PC/spLightControllerAbi.h
+    Code/Sparkplug/spThread.cpp
+    Code/Sparkplug/spThread.h
+    Code/SparkplugPC/spPCThread.cpp
+    Code/SparkplugPC/spPCThread.h
+    Analysis/Host/spPCThreadHost.h
+    Analysis/PC/spThreadAbi.h
+    Code/Sparkplug/spTransformConstEval.cpp
+    Code/Sparkplug/spTransformConstEval.h
+    Code/Sparkplug/spSubtitleTrack.cpp
+    Code/Sparkplug/spSubtitleTrack.h
+    Analysis/PC/spTransformConstEvalAbi.h
+    Analysis/PC/spTransformConstMath.h
     Code/Sparkplug/spExtensionData.cpp
     Code/Sparkplug/spFaceDataContainer.cpp
     Code/Sparkplug/spCollisionMesh.cpp
@@ -543,6 +612,50 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(SparkplugCapsuleBVTests Tests/spCapsuleBVTests.cpp)
+    target_link_libraries(SparkplugCapsuleBVTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCapsuleBVTests COMMAND SparkplugCapsuleBVTests)
+    set_tests_properties(SparkplugCapsuleBVTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugTemplateTests Tests/spTemplateTests.cpp)
+    target_link_libraries(SparkplugTemplateTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTemplateTests COMMAND SparkplugTemplateTests)
+    set_tests_properties(SparkplugTemplateTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXMouseTests Tests/spDXMouseTests.cpp)
+    target_link_libraries(SparkplugDXMouseTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXMouseTests COMMAND SparkplugDXMouseTests)
+    set_tests_properties(SparkplugDXMouseTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPS2KeyboardTests Tests/spPS2KeyboardTests.cpp)
+    target_link_libraries(SparkplugPS2KeyboardTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPS2KeyboardTests COMMAND SparkplugPS2KeyboardTests)
+    set_tests_properties(SparkplugPS2KeyboardTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugVideoStreamTests Tests/spVideoStreamTests.cpp)
+    target_link_libraries(SparkplugVideoStreamTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugVideoStreamTests COMMAND SparkplugVideoStreamTests)
+    set_tests_properties(SparkplugVideoStreamTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAudioSoundTests Tests/spAudioSoundTests.cpp)
+    target_link_libraries(SparkplugAudioSoundTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAudioSoundTests COMMAND SparkplugAudioSoundTests)
+    set_tests_properties(SparkplugAudioSoundTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugCubeTextureTests Tests/spCubeTextureTests.cpp)
+    target_link_libraries(SparkplugCubeTextureTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCubeTextureTests COMMAND SparkplugCubeTextureTests)
+    set_tests_properties(SparkplugCubeTextureTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugSystemSettingsTests Tests/spSystemSettingsTests.cpp)
+    target_link_libraries(SparkplugSystemSettingsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugSystemSettingsTests COMMAND SparkplugSystemSettingsTests)
+    set_tests_properties(SparkplugSystemSettingsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugInputDeviceTests Tests/spInputDeviceTests.cpp)
+    target_link_libraries(SparkplugInputDeviceTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugInputDeviceTests COMMAND SparkplugInputDeviceTests)
+    set_tests_properties(SparkplugInputDeviceTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugQuad3DTests Tests/spQuad3DTests.cpp)
+    target_link_libraries(SparkplugQuad3DTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugQuad3DTests COMMAND SparkplugQuad3DTests)
+    set_tests_properties(SparkplugQuad3DTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugLightControllerTests Tests/spLightControllerTests.cpp)
+    target_link_libraries(SparkplugLightControllerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugLightControllerTests COMMAND SparkplugLightControllerTests)
+    set_tests_properties(SparkplugLightControllerTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugNetworkStateCtrlTests Tests/spNetworkStateCtrlTests.cpp)
     target_link_libraries(SparkplugNetworkStateCtrlTests PRIVATE SparkNetwork)
     add_test(NAME SparkplugNetworkStateCtrlTests COMMAND SparkplugNetworkStateCtrlTests)
@@ -578,6 +691,11 @@ if(BUILD_TESTING)
     add_executable(SparkBaseTests Tests/spBaseObjectTests.cpp)
     target_link_libraries(SparkBaseTests PRIVATE SparkBase)
     add_test(NAME SparkBaseTests COMMAND SparkBaseTests)
+
+    add_executable(SparkplugDerivedErrorTests Tests/spDerivedErrorTests.cpp)
+    target_link_libraries(SparkplugDerivedErrorTests PRIVATE SparkBase)
+    add_test(NAME SparkplugDerivedErrorTests COMMAND SparkplugDerivedErrorTests)
+    set_tests_properties(SparkplugDerivedErrorTests PROPERTIES TIMEOUT 20)
 
     add_executable(SparkEntityTests Tests/spEntityTests.cpp)
     target_link_libraries(SparkEntityTests PRIVATE SparkEntities)
@@ -618,6 +736,19 @@ if(BUILD_TESTING)
     add_executable(SparkplugTransformInputTests Tests/spTransformInputTests.cpp)
     target_link_libraries(SparkplugTransformInputTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugTransformInputTests COMMAND SparkplugTransformInputTests)
+    add_executable(SparkplugThreadTests Tests/spThreadTests.cpp)
+    target_link_libraries(SparkplugThreadTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugThreadTests COMMAND SparkplugThreadTests)
+    set_tests_properties(SparkplugThreadTests PROPERTIES TIMEOUT 20)
+
+    add_executable(SparkplugTransformConstEvalTests Tests/spTransformConstEvalTests.cpp)
+    target_link_libraries(SparkplugTransformConstEvalTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTransformConstEvalTests COMMAND SparkplugTransformConstEvalTests)
+    set_tests_properties(SparkplugTransformConstEvalTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugSubtitleTrackTests Tests/spSubtitleTrackTests.cpp)
+    target_link_libraries(SparkplugSubtitleTrackTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugSubtitleTrackTests COMMAND SparkplugSubtitleTrackTests)
+    set_tests_properties(SparkplugSubtitleTrackTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugActorBindingTests Tests/spActorBindingTests.cpp)
     target_link_libraries(SparkplugActorBindingTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugActorBindingTests COMMAND SparkplugActorBindingTests)
@@ -757,6 +888,14 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugVisibilityPlaneStorageTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugVisibilityPlaneStorageTests COMMAND SparkplugVisibilityPlaneStorageTests)
     set_tests_properties(SparkplugVisibilityPlaneStorageTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugTimerTests Tests/spTimerTests.cpp)
+    add_executable(SparkplugMasterTimerTests Tests/spMasterTimerTests.cpp)
+    target_link_libraries(SparkplugMasterTimerTests PRIVATE SparkBase)
+    add_test(NAME SparkplugMasterTimerTests COMMAND SparkplugMasterTimerTests)
+    set_tests_properties(SparkplugMasterTimerTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugTimerTests PRIVATE SparkBase)
+    add_test(NAME SparkplugTimerTests COMMAND SparkplugTimerTests)
+    set_tests_properties(SparkplugTimerTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugDataBlockWriterTests Tests/spDataBlockWriterTests.cpp)
     target_link_libraries(SparkplugDataBlockWriterTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugDataBlockWriterTests COMMAND SparkplugDataBlockWriterTests)

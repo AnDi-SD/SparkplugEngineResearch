@@ -56,7 +56,9 @@ namespace winx::reconstruction
         // Native permission hooks may consume completion records and release
         // the state's own pending handle (for example MinotaurStunned).
         [[nodiscard]] virtual bool vfunc_34(std::uint32_t code);
-        [[nodiscard]] virtual bool vfunc_38(std::uint32_t code) const noexcept;
+        // A scalar result, not bool: GhoulJumping returns the distinct value2.
+        // The original source enum/type and names of its values remain open.
+        [[nodiscard]] virtual std::uint32_t vfunc_38(std::uint32_t code) const;
         // The native argument of slot 0x3c is an external event object.
         virtual void vfunc_3C(const void* event);
         virtual void vfunc_40_ResetForAnalysis() noexcept;

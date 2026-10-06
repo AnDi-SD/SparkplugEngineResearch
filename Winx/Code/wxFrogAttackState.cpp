@@ -59,7 +59,7 @@ namespace winx::reconstruction
         return RequireHostForAnalysis().IsPendingAnimationCompleteForAnalysis(
             GetCompletionConsumerForAnalysis(),GetPendingHandleForAnalysis(),true);
     }
-    bool wxFrogAttackState::vfunc_38(std::uint32_t) const noexcept{return false;}
+    std::uint32_t wxFrogAttackState::vfunc_38(std::uint32_t) const noexcept{return false;}
     void wxFrogAttackState::vfunc_3C(const void* event)
     {
         auto& host=Host(RequireHostForAnalysis());
