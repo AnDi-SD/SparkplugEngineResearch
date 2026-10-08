@@ -16,9 +16,11 @@ Destructor освобождает ненулевой буфер `+0x1C` до р�
 Назначение двух байтов и слова остаётся неизвестным. Аналитический setter
 состояния и передача owned-буфера нужны для подготовки входов; это не
 восстановленные API создания видеопотока. Нативный layout описан в
-[PC ABI](../../../Sparkplug/Analysis/PC/spVideoStreamAbi.h).
+[PC ABI](../../../Sparkplug/Analysis/PC/spVideoStreamAbi.h) и
+[PS2 ABI](../../../Sparkplug/Analysis/PS2/spVideoStreamAbi.h).
 
 Primary interface PC-базы содержит abstract entries. Их работа не подменяется
 успешными операциями; поведение конкретного PC-класса описано отдельно в
-[spPCVideoStream](sp-pc-video-stream.md). Чтение файлов, декодирование и
+[spPCVideoStream](sp-pc-video-stream.md) и
+[spPS2VideoStream](sp-ps2-video-stream.md). Чтение файлов, декодирование и
 воспроизведение видео здесь не установлены.

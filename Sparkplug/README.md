@@ -19,6 +19,15 @@
 собственный lifetime буфера, clone и реальные короткие ответы PC-интерфейса.
 Имена исходных операций и декодирование остаются открытыми.
 Проверка — `SparkplugVideoStreamTests`.
+[spPS2VideoStream](../docs/reference/classes/sp-ps2-video-stream.md) использует
+тот же подтверждённый lifetime, сохраняя отдельные PS2-тела интерфейса.
+Проверка — `SparkplugPS2VideoStreamTests`.
+
+[spCapsuleBV](../docs/engine/physics/capsule-bv.md) сохраняет начальную форму,
+Named clone и PC-преобразование осевого отрезка с собственным endpoint cache.
+Общая операция Node → CollisionInfo → primitive сохраняет порядок публикации
+полей перед виртуальным вызовом. Численные границы PC описаны в статье;
+проверка — `SparkplugCapsuleBVTests`.
 
 [spCubeTexture](../docs/reference/classes/sp-cube-texture.md),
 [spDXCubeTexture](../docs/reference/classes/sp-dx-cube-texture.md),

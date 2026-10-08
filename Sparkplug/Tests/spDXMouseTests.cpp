@@ -261,6 +261,55 @@ namespace
         startup.trace.clear();Check(started.SetCursorVisibleForAnalysis(255,startup) && startup.trace==std::vector<std::vector<std::uint32_t>>{{11},{12,21,31},{13,1}}
             && started.GetCursorVisibleFlagForAnalysis()==255,"cursor show uses any nonzero byte and retains exact flag");
         started.SetExclusiveFlagForAnalysis(255);Check(started.GetExclusiveFlagForAnalysis()==255,"original direct exclusive-byte setter");
+        Boundary integrated;spDXMouse logicalMouse(integrated);integrated.mouse=&logicalMouse;
+        const auto logicalQueries=logicalMouse.GetQueriesForAnalysis();
+        Check(logicalQueries.slot1 && logicalQueries.slot2 && logicalQueries.slot3
+            && logicalQueries.slot4 && logicalQueries.slot5 && logicalQueries.slot6,
+            "borrowed mouse provider binds all six original physical slots");
+        integrated.configuration={'t','r','u','e',0};
+        Check(logicalMouse.StartupForAnalysis(0x4444,integrated).value(),"logical mouse startup");
+        integrated.steps={{0,0,{{12,128,0,0,0},{4,std::uint32_t(-250),0,0,0},
+            {8,7,0,0,0},{19,128,0,0,0}}}};
+        Check(logicalMouse.PollForAnalysis().value(),"logical mouse buffered poll");
+        logicalMouse.AppendBindingForAnalysis(100,1);
+        logicalMouse.AppendBindingForAnalysis(107,1);
+        logicalMouse.AppendBindingForAnalysis(108,2);
+        logicalMouse.AppendBindingForAnalysis(109,2);
+        logicalMouse.AppendBindingForAnalysis(109,3);
+        logicalMouse.AppendBindingForAnalysis(110,4);
+        const auto operationTrace=integrated.trace;
+        Check(logicalMouse.QuerySlot1ForAnalysis(1,logicalQueries).value()
+            && logicalMouse.QuerySlot2ForAnalysis(1,logicalQueries).value(),
+            "inherited logical booleans consume mouse current and changed buttons");
+        Check(logicalMouse.QuerySlot3ForAnalysis(2,logicalQueries).value()==320
+            && logicalMouse.QuerySlot4ForAnalysis(3,logicalQueries).value()==-250
+            && logicalMouse.QuerySlot4ForAnalysis(4,logicalQueries).value()==7,
+            "inherited logical scalars use first binding and live clamped position or relative axis");
+        Check(logicalMouse.CommandSlot5ForAnalysis(1,17,0xffffffffu,0x12345678u,logicalQueries)
+            && logicalMouse.QuerySlot6ForAnalysis(1,logicalQueries).value()==0.0f
+            && integrated.trace==operationTrace,
+            "logical command and float use the original empty and zero mouse slots without a foreign call");
+        Check(logicalMouse.QuerySlot3ForAnalysis(999,logicalQueries).value()==0
+            && !logicalMouse.QuerySlot1ForAnalysis(999,logicalQueries).value(),
+            "unbound logical query keeps common input zero result");
+        integrated.cursor=0;integrated.steps={{0x80004005,0,{}},{0x80004005,0,{}},{0x80004005,0,{}}};
+        Check(!logicalMouse.PollForAnalysis().value()
+            && !logicalMouse.QuerySlot1ForAnalysis(1,logicalQueries).value()
+            && logicalMouse.QuerySlot3ForAnalysis(2,logicalQueries).value()==0
+            && logicalMouse.QuerySlot4ForAnalysis(3,logicalQueries).value()==0,
+            "same borrowed callbacks observe later poll failure and original acquired gate");
+        Boundary unknown;spDXMouse unknownPosition(unknown);unknown.mouse=&unknownPosition;
+        auto unknownState=unknownPosition.GetStateForAnalysis();unknownState.acquired45=1;unknownPosition.SetStateForAnalysis(unknownState);
+        unknownPosition.AppendBindingForAnalysis(108,1);
+        const auto unknownQueries=unknownPosition.GetQueriesForAnalysis();
+        bool unknownRejected=false;
+        try { (void)unknownPosition.QuerySlot3ForAnalysis(1,unknownQueries); }
+        catch(const std::logic_error&) { unknownRejected=true; }
+        Check(unknownRejected && unknown.trace.empty() && !unknownPosition.GetPositionForAnalysis(),
+            "active logical position query rejects unspecified original absolute X/Y without a fabricated value");
+        unknownState.acquired45=0;unknownPosition.SetStateForAnalysis(unknownState);
+        Check(unknownPosition.QuerySlot3ForAnalysis(1,unknownQueries).value()==0,
+            "inactive original position slot returns zero before reading unspecified X/Y");
         spCloneManager manager;started.SetName("mouse clone");
         auto cloned=manager.Clone(started);Check(cloned && cloned->IsExactly(spDXMouse::ClassID)
             && std::string(static_cast<spDXMouse*>(cloned.get())->GetName())=="mouse clone"

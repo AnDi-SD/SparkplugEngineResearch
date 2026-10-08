@@ -567,8 +567,13 @@
         "pc": "0x21CC76AF",
         "ps2": "0x21CC76AF"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/engine/physics/capsule-bv.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spCapsuleBV.h",
+        "Sparkplug/Code/Sparkplug/spCapsuleBV.cpp"
+      ]
     },
     {
       "name": "spCinematic",

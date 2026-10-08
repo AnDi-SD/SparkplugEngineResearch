@@ -45,7 +45,7 @@ namespace sparkplug::evidence::pc::capsule_bv_math
             {
                 const unsigned cell=row*3+column;
                 auto term=[&](unsigned index){return Product(first[row*3+index],second[index*3+column]);};
-                result[cell]=Store(Add(Add(term(order[cell][0]),term(order[cell][1])),term(order[cell][2])));
+                result[cell]=Store(capsule_bv_math::Add(capsule_bv_math::Add(term(order[cell][0]),term(order[cell][1])),term(order[cell][2])));
             }
         return result;
     }
@@ -61,9 +61,9 @@ namespace sparkplug::evidence::pc::capsule_bv_math
         Number scaled[3]{Product(localPosition[0],scale[0]),Product(localPosition[1],scale[1]),
             Product(localPosition[2],scale[2])};
         for(unsigned c=0;c<2;++c)
-            translated[c]=Add(Add(Multiply(scaled[0],orientation[c]),Multiply(scaled[2],orientation[6+c])),
+            translated[c]=capsule_bv_math::Add(capsule_bv_math::Add(Multiply(scaled[0],orientation[c]),Multiply(scaled[2],orientation[6+c])),
                 Multiply(scaled[1],orientation[3+c]));
-        translated[2]=Add(Add(Multiply(scaled[2],orientation[8]),Multiply(scaled[1],orientation[5])),
+        translated[2]=capsule_bv_math::Add(capsule_bv_math::Add(Multiply(scaled[2],orientation[8]),Multiply(scaled[1],orientation[5])),
             Multiply(scaled[0],orientation[2]));
         for(unsigned c=0;c<3;++c)
         {
@@ -73,7 +73,7 @@ namespace sparkplug::evidence::pc::capsule_bv_math
                 if(!std::isfinite(offset))return false;
                 translated[c]=scalar::FromFloat(offset);
             }
-            nextPosition[c]=Store(Add(translated[c],scalar::FromFloat(position[c])));
+            nextPosition[c]=Store(capsule_bv_math::Add(translated[c],scalar::FromFloat(position[c])));
         }
         const Matrix3 combined=MatrixProduct(localOrientation,orientation);
         if(!Finite(nextPosition)||!Finite(combined))return false;
@@ -95,7 +95,7 @@ namespace sparkplug::evidence::pc::capsule_bv_math
         {
             for(unsigned c=0;c<3;++c)
             {
-                Number offset=Add(Add(Multiply(half,combined[3+c]),zeroFirst[c]),zeroThird[c]);
+                Number offset=capsule_bv_math::Add(capsule_bv_math::Add(Multiply(half,combined[3+c]),zeroFirst[c]),zeroThird[c]);
                 if(c!=0)
                 {
                     const float storedOffset=Store(offset);
@@ -109,7 +109,7 @@ namespace sparkplug::evidence::pc::capsule_bv_math
                     if(!std::isfinite(storedScaledOffset))return false;
                     offset=scalar::FromFloat(storedScaledOffset);
                 }
-                output[c]=Store(Add(offset,scalar::FromFloat(nextPosition[c])));
+                output[c]=Store(capsule_bv_math::Add(offset,scalar::FromFloat(nextPosition[c])));
             }
             return Finite(output);
         };

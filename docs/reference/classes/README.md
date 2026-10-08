@@ -96,6 +96,7 @@
 - [spDXMeshData](sp-dx-mesh-data.md).
 - [spDXMeshDataSerializer](sp-dx-mesh-data-serializer.md).
 - [spDXMeshSerializer](sp-dx-mesh-serializer.md).
+- [spDXMouse](sp-dx-mouse.md).
 - [spDXSharedMeshData](sp-dx-shared-mesh-data.md).
 - [spDXTextureDataSerializer](sp-dx-texture-data-serializer.md).
 - [spDXVertexDeclaration / spPCVertexDeclaration](sp-vertex-declaration.md).
@@ -183,6 +184,7 @@
 - [spPS2MeshData](sp-ps2-mesh-data.md).
 - [spPS2MeshDataSerializer](sp-ps2-mesh-data-serializer.md).
 - [spPS2TextureDataSerializer](sp-ps2-texture-data-serializer.md).
+- [spPS2VideoStream](sp-ps2-video-stream.md).
 - [spQuad3D](sp-quad-3d.md).
 - [spRenderable](sp-renderable.md).
 - [spRenderableSerializer](sp-renderable-serializer.md).
@@ -210,6 +212,7 @@
 - [spSubtitleTrack](sp-subtitle-track.md).
 - [spSystemSettings](sp-system-settings.md).
 - [spTaskTimer](sp-task-timer.md).
+- [spTemplate](sp-template.md).
 - [spTemplateInstance](sp-template-instance.md).
 - [spTemplateManager](sp-template-manager.md).
 - [spTemplateObject](sp-template-object.md).

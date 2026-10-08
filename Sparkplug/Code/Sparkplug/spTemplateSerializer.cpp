@@ -1,5 +1,8 @@
 #include "spTemplateSerializer.h"
+#include "spTemplate.h"
+#include "../SparkBase/spStream.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace sparkplug::reconstruction
@@ -56,14 +59,14 @@ namespace sparkplug::reconstruction
     }
 
     void spTemplateSerializer::BindForAnalysis(
-        spTemplateObject* const target,
+        spTemplate* const target,
         spStream* const input) noexcept
     {
         target_ = target;
         input_ = input;
     }
 
-    spTemplateObject* spTemplateSerializer::GetTargetForAnalysis() const noexcept
+    spTemplate* spTemplateSerializer::GetTargetForAnalysis() const noexcept
     {
         return target_;
     }
@@ -81,5 +84,31 @@ namespace sparkplug::reconstruction
     bool spTemplateSerializer::HasOutputForAnalysis() const noexcept
     {
         return output_ != nullptr;
+    }
+
+    std::optional<std::uint32_t> spTemplateSerializer::ReadBinaryHeaderForAnalysis()
+    {
+        if (!input_) return std::nullopt; // HOST guard around native dereference.
+        std::array<std::uint8_t, BinaryHeaderSize> header{};
+        if (!input_->ReadData(header.data(), BinaryHeaderSize)) return 0;
+        const auto word = [&header](std::size_t offset) noexcept
+        {
+            return static_cast<std::uint32_t>(header[offset])
+                | (static_cast<std::uint32_t>(header[offset + 1]) << 8)
+                | (static_cast<std::uint32_t>(header[offset + 2]) << 16)
+                | (static_cast<std::uint32_t>(header[offset + 3]) << 24);
+        };
+        if (word(0) != BinaryHeaderMagic)
+        {
+            if (headerDiagnostic_) headerDiagnostic_(diagnosticContext_);
+            return 0;
+        }
+        // Native reloads target +10 after ReadData: a foreign callback can
+        // change the binding while the stream operation runs.
+        if (!target_ || std::find(header.begin() + 4, header.begin() + 0x44, 0)
+            == header.begin() + 0x44) return std::nullopt; // HOST domain guard.
+        target_->SetField20ForAnalysis(word(0x48));
+        (void)target_->SetName(reinterpret_cast<const char*>(header.data() + 4));
+        return word(0x44);
     }
 }

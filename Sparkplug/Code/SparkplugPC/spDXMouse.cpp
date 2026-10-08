@@ -204,4 +204,22 @@ namespace sparkplug::reconstruction
         if (!GetStateForAnalysis().acquired45 || code < 108 || code > 110) return 0;
         return Signed(packets_.relativeAxes[code - 108]);
     }
+    spDXMouse::QueriesForAnalysis spDXMouse::GetQueriesForAnalysis() const
+    {
+        QueriesForAnalysis queries;
+        queries.slot1 = [this](auto code) { return PhysicalSlot1ForAnalysis(code).value(); };
+        queries.slot2 = [this](auto code) { return PhysicalSlot2ForAnalysis(code).value(); };
+        queries.slot3 = [this](auto code)
+        {
+            const auto value = PhysicalSlot3ForAnalysis(code);
+            if (!value)
+                throw std::logic_error("Original mouse query reads an unspecified absolute position");
+            return *value;
+        };
+        queries.slot4 = [this](auto code) { return PhysicalSlot4ForAnalysis(code).value(); };
+        queries.slot5 = [this](auto code, auto a, auto b, auto c)
+        { PhysicalSlot5ForAnalysis(code, a, b, c); };
+        queries.slot6 = [this](auto code) { return PhysicalSlot6ForAnalysis(code); };
+        return queries;
+    }
 }

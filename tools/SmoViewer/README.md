@@ -27,4 +27,4 @@ dotnet run --project tools/SmoViewer/SmoViewer/SmoViewer.csproj -- path/to/model
 
 Поддержка отдельных PC- и PS2-представлений различается. Просмотр файла не равнозначен полному воспроизведению его поведения в игре; неизвестные поля и неподдерживаемые ветви сохраняют явные ограничения. Переработка ядра продолжается.
 
-Единая лицензия проекта — [Mozilla Public License 2.0](../../LICENSE.md). Авторство и внешние материалы: [благодарности](ACKNOWLEDGEMENTS.md), [NOTICE.md](../../NOTICE.md).
+Единая лицензия проекта — [Mozilla Public License 2.0](../../LICENSE.md). Авторство и внешние материалы: [благодарности](../../ACKNOWLEDGEMENTS.md), [NOTICE.md](../../NOTICE.md).

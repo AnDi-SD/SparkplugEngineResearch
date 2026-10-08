@@ -8,6 +8,7 @@
 
 - [CollisionInfo и OBB: используемая инструментами часть PC](collision-tools-core.md).
 - [MeshBV и данные граней для общих ядер tools](mesh-bv-tools-core.md).
+- [spCapsuleBV](capsule-bv.md).
 - [Физика и коллизии Sparkplug](overview.md).
 - [Физические объекты и BoundingVolume: PC и PS2](physics-family.md).
 

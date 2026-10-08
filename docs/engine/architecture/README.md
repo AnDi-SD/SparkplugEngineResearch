@@ -9,6 +9,7 @@
 - [Keyboard/Mouse: исходные состояния и различия PC/PS2](input-cached-state.md).
 - [PC scene: SkyBox, Projection и LensFlare managers](scene-special-managers.md).
 - [PC spSceneManager: borrowed list и world caller](scene-manager-world-source.md).
+- [spPS2Mouse](ps2-mouse.md).
 - [Архитектура Sparkplug](overview.md).
 - [Общие классы движка: дополнительный проход](engine-core-remainder.md).
 - [Платформенные классы движка: PC и PS2, 10 сентября 2026](engine-platform-remainder.md).

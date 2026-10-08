@@ -74,6 +74,12 @@ namespace sparkplug::reconstruction
         void PhysicalSlot5ForAnalysis(std::uint32_t, std::uint32_t, std::uint32_t, std::uint32_t) const noexcept {}
         [[nodiscard]] float PhysicalSlot6ForAnalysis(std::uint32_t) const noexcept { return 0.0f; }
 
+        // Our borrowed provider connects these original physical slots to the
+        // common logical-input dispatch. This object must outlive the callbacks.
+        // An active slot3 reading unspecified absolute X/Y throws logic_error;
+        // the original zero for a gated or out-of-range query is preserved.
+        [[nodiscard]] QueriesForAnalysis GetQueriesForAnalysis() const;
+
     private:
         void ClearPacketCachesForAnalysis() noexcept;
         void SyncCacheForAnalysis() noexcept;

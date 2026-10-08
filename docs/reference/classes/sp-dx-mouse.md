@@ -94,5 +94,13 @@ Physical slots 1/2 читают current/changed buttons для codes 100..107 и
 нулевом acquired byte либо неподходящем code возвращается 0. Slot 5
 поставленного оригинала пуст, slot 6 возвращает `+0.0`.
 
+Наш borrowed adapter `GetQueriesForAnalysis()` связывает эти шесть slots с
+общей логической диспетчеризацией `spInputDevice`: bindings задаются через
+`AppendBindingForAnalysis`, а inherited `QuerySlot1..6` и `CommandSlot5`
+обращаются к текущему состоянию мыши. Callback provider должен жить не дольше
+самой мыши. Активное чтение абсолютных координат до их установления
+отклоняется исключением `logic_error`; нулевой acquired byte и неподходящий
+physical code сохраняют оригинальный нулевой результат.
+
 Исходники: [spDXMouse.h](../../../Sparkplug/Code/SparkplugPC/spDXMouse.h),
 [spDXMouse.cpp](../../../Sparkplug/Code/SparkplugPC/spDXMouse.cpp).

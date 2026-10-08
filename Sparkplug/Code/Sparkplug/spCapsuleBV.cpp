@@ -14,7 +14,7 @@ namespace sparkplug::reconstruction
     const spRTTIRecord& spCapsuleBV::vfunc_18() const noexcept{return Record;}
     std::unique_ptr<spBaseObject> spCapsuleBV::vfunc_10(spCloneManager& manager) const
     {
-        auto clone=std::make_unique<spCapsuleBV>();manager.RegisterClone(*this,*clone);
+        auto clone=std::make_unique<spCapsuleBV>();manager.RegisterCloneForAnalysis(*this,*clone);
         // PC488530 invokes inherited Named copy413120 through native slot0C:
         // authored shape and endpoint cache remain factory defaults.
         return vfunc_14(*clone,manager)?std::move(clone):nullptr;

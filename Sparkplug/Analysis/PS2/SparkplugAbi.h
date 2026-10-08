@@ -357,7 +357,7 @@ namespace sparkplug::evidence::ps2
     struct spTemplateSerializerLayout final
     {
         spBaseObjectLayout base;       // 0x000
-        Address32 targetObject;        // 0x010: spTemplateObject*, non-owning
+        Address32 targetObject;        // 0x010: spTemplate*, non-owning
         Address32 inputStream;         // 0x014: spStream*, non-owning
         Address32 parsedDocument;      // 0x018: parser-owned structure
         std::uint32_t objectType;      // 0x01c: XML attribute "Type"

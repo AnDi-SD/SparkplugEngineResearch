@@ -47,6 +47,7 @@
 - [Keyboard/Mouse: исходные состояния и различия PC/PS2](engine/architecture/input-cached-state.md).
 - [PC scene: SkyBox, Projection и LensFlare managers](engine/architecture/scene-special-managers.md).
 - [PC spSceneManager: borrowed list и world caller](engine/architecture/scene-manager-world-source.md).
+- [spPS2Mouse](engine/architecture/ps2-mouse.md).
 - [Архитектура Sparkplug](engine/architecture/overview.md).
 - [Архитектура и жизненный цикл](engine/architecture/README.md).
 - [Общие классы движка: дополнительный проход](engine/architecture/engine-core-remainder.md).
@@ -127,6 +128,7 @@
 
 - [CollisionInfo и OBB: используемая инструментами часть PC](engine/physics/collision-tools-core.md).
 - [MeshBV и данные граней для общих ядер tools](engine/physics/mesh-bv-tools-core.md).
+- [spCapsuleBV](engine/physics/capsule-bv.md).
 - [Физика и коллизии](engine/physics/README.md).
 - [Физика и коллизии Sparkplug](engine/physics/overview.md).
 - [Физические объекты и BoundingVolume: PC и PS2](engine/physics/physics-family.md).
@@ -233,6 +235,7 @@
 
 ## Форматы
 
+- [Binary template header](formats/template-binary-header.md).
 - [SAN (`spAnimation` в FFPS)](formats/san.md).
 - [SMO field mutation subsystem](formats/smo-field-mutation.md).
 - [Данные spSubtitleTrack](formats/subtitle-track.md).
@@ -421,6 +424,7 @@
 - [spDXMeshData](reference/classes/sp-dx-mesh-data.md).
 - [spDXMeshDataSerializer](reference/classes/sp-dx-mesh-data-serializer.md).
 - [spDXMeshSerializer](reference/classes/sp-dx-mesh-serializer.md).
+- [spDXMouse](reference/classes/sp-dx-mouse.md).
 - [spDXSharedMeshData](reference/classes/sp-dx-shared-mesh-data.md).
 - [spDXTextureDataSerializer](reference/classes/sp-dx-texture-data-serializer.md).
 - [spDXVertexDeclaration / spPCVertexDeclaration](reference/classes/sp-vertex-declaration.md).
@@ -508,6 +512,7 @@
 - [spPS2MeshData](reference/classes/sp-ps2-mesh-data.md).
 - [spPS2MeshDataSerializer](reference/classes/sp-ps2-mesh-data-serializer.md).
 - [spPS2TextureDataSerializer](reference/classes/sp-ps2-texture-data-serializer.md).
+- [spPS2VideoStream](reference/classes/sp-ps2-video-stream.md).
 - [spQuad3D](reference/classes/sp-quad-3d.md).
 - [spRenderable](reference/classes/sp-renderable.md).
 - [spRenderableSerializer](reference/classes/sp-renderable-serializer.md).
@@ -535,6 +540,7 @@
 - [spSubtitleTrack](reference/classes/sp-subtitle-track.md).
 - [spSystemSettings](reference/classes/sp-system-settings.md).
 - [spTaskTimer](reference/classes/sp-task-timer.md).
+- [spTemplate](reference/classes/sp-template.md).
 - [spTemplateInstance](reference/classes/sp-template-instance.md).
 - [spTemplateManager](reference/classes/sp-template-manager.md).
 - [spTemplateObject](reference/classes/sp-template-object.md).

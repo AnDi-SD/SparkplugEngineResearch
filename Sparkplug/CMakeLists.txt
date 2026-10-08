@@ -134,6 +134,9 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugPC/spPCVideoStream.cpp
     Code/SparkplugPC/spPCVideoStream.h
     Analysis/PC/spVideoStreamAbi.h
+    Code/SparkplugPS2/spPS2VideoStream.cpp
+    Code/SparkplugPS2/spPS2VideoStream.h
+    Analysis/PS2/spVideoStreamAbi.h
     Code/Sparkplug/spAudioSound.cpp
     Code/Sparkplug/spAudioSound.h
     Analysis/Host/spAudioSoundHost.h
@@ -632,6 +635,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugVideoStreamTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugVideoStreamTests COMMAND SparkplugVideoStreamTests)
     set_tests_properties(SparkplugVideoStreamTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPS2VideoStreamTests Tests/spPS2VideoStreamTests.cpp)
+    target_link_libraries(SparkplugPS2VideoStreamTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPS2VideoStreamTests COMMAND SparkplugPS2VideoStreamTests)
+    set_tests_properties(SparkplugPS2VideoStreamTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugAudioSoundTests Tests/spAudioSoundTests.cpp)
     target_link_libraries(SparkplugAudioSoundTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugAudioSoundTests COMMAND SparkplugAudioSoundTests)

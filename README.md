@@ -32,3 +32,7 @@ SmoViewer и SMOTextureTool входят в этот репозиторий об
 ## Лицензия
 
 Собственные исходники, инструменты и документация репозитория распространяются по единой Mozilla Public License 2.0 (MPL-2.0): [LICENSE.md](LICENSE.md). Сведения о правах на сторонние материалы и ресурсы игры приведены в [NOTICE.md](NOTICE.md). Все пакеты программ используют эту же лицензию.
+
+## Благодарности
+
+Спасибо Sumthini, Butermix, DarkExp, Ty-Ty и The New Moon за тестирование и обратную связь, kotwys — за исследование STX, предоставленные исходники и развитие [Splendente](https://github.com/kotwys/splendente), а сообществу `D:\Games\Winx` — за помощь и поддержку. Полный список и сведения о вкладах: [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).

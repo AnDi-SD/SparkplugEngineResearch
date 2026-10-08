@@ -35,8 +35,8 @@ Product-version-win-x64/
 
 Only the product executable and configuration/manifest files may be present in
 the package root. Documentation belongs in `docs/`; suite applications belong
-in `tools/<name>/`. Every package includes the repository-wide `LICENSE.md`
-and `NOTICE.md` once in its top-level `docs/` directory. The same license
+in `tools/<name>/`. Every package includes the repository-wide `LICENSE.md`,
+`NOTICE.md`, and `ACKNOWLEDGEMENTS.md` once in its top-level `docs/` directory. The same license
 applies to the suite tools; their documentation uses the shared copies. The
 Autodesk FBX SDK bridge is stored once in `native/`, so a Viewer suite does not duplicate the same executable, DLL and license under both
 Importer and Exporter. Explicit `companionFiles` may accompany the application

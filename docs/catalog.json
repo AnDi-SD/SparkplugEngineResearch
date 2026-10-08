@@ -192,6 +192,11 @@
       "category": "engine/architecture"
     },
     {
+      "path": "docs/engine/architecture/ps2-mouse.md",
+      "title": "spPS2Mouse",
+      "category": "engine/architecture"
+    },
+    {
       "path": "docs/engine/architecture/scene-manager-world-source.md",
       "title": "PC spSceneManager: borrowed list и world caller",
       "category": "engine/architecture"
@@ -489,6 +494,11 @@
     {
       "path": "docs/engine/physics/README.md",
       "title": "Физика и коллизии",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/capsule-bv.md",
+      "title": "spCapsuleBV",
       "category": "engine/physics"
     },
     {
@@ -954,6 +964,11 @@
     {
       "path": "docs/formats/subtitle-track.md",
       "title": "Данные spSubtitleTrack",
+      "category": "formats"
+    },
+    {
+      "path": "docs/formats/template-binary-header.md",
+      "title": "Binary template header",
       "category": "formats"
     },
     {
@@ -1432,6 +1447,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-dx-mouse.md",
+      "title": "spDXMouse",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-dx-network.md",
       "title": "`spDXNetwork`",
       "category": "reference/classes"
@@ -1887,6 +1907,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-ps2-video-stream.md",
+      "title": "spPS2VideoStream",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-quad-3d.md",
       "title": "spQuad3D",
       "category": "reference/classes"
@@ -2039,6 +2064,11 @@
     {
       "path": "docs/reference/classes/sp-template-serializer.md",
       "title": "spTemplateSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-template.md",
+      "title": "spTemplate",
       "category": "reference/classes"
     },
     {

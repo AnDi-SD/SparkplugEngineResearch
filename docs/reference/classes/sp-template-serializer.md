@@ -20,7 +20,7 @@ PS2 independently repeats the same class ID, base, size and field accesses.
 
 | Offset | Size | Confirmed role |
 | ---: | ---: | --- |
-| `+0x10` | `4` | non-owning target `spTemplateObject*` |
+| `+0x10` | `4` | non-owning target [`spTemplate`](sp-template.md)* |
 | `+0x14` | `4` | non-owning input `spStream*` |
 | `+0x18` | `4` | owned parsed-document/tree object |
 | `+0x1C` | `4` | `Type` value for the current template object |
@@ -50,6 +50,31 @@ parser-owned and remain invalid until a read succeeds. As with
 `spTemplateObject`, the portable reconstruction does not manufacture plausible
 default asset data.
 
+The bound target is the whole `spTemplate`. PC entry `0x005FD580` and PS2
+entry `0x00157DA0` store the passed template at `+0x10` and the input stream
+at `+0x14`; decoded `spTemplateObject` descriptors are appended to that
+template's list by separate calls. Neither the serializer's descriptor scratch
+fields nor its parsed output change the type of this target pointer.
+
+The fixed binary header is [specified separately](../../formats/template-binary-header.md).
+PC helper `0x005FC310` reads one `0x4C`-byte block into zeroed storage, validates
+magic `0xDAB33F00`, writes header word `+0x48` to `template +0x20`, then applies
+the name at header `+0x04` through the inherited named-object setter. Its full
+32-bit return value is the descriptor count at header `+0x44`. A valid zero
+count still changes the target word and name before the outer reader reports
+failure. A failed raw read leaves the target untouched; an invalid magic also
+leaves it untouched and emits the original diagnostic. The reader trusts the
+stream's boolean and does not check an actual byte count: a successful short
+read consumes the remaining zero-filled header fields.
+
+`ReadBinaryHeaderForAnalysis` exposes this header operation with a raw count
+and the real template binding. The target pointer is read again after the
+foreign stream call, preserving a change made by that callback. Missing host
+bindings and a name without a null terminator inside its 64-byte field give
+an unknown result; this bounds unsafe native inputs without claiming native
+rollback. The optional diagnostic callback is explicitly a host forwarding
+boundary. Parsing and constructing the following descriptors remain open.
+
 Destructor ownership is narrow and useful: it destroys the parsed structure
 at `+0x18` and the polymorphic output object at `+0x1E4`, then invokes the root
 destructor. It does not own target `+0x10` or input stream `+0x14`.
@@ -66,5 +91,5 @@ as a finished parser until their order, rollback and ownership contracts are
 closed on both platforms.
 
 Open: exact method names/signatures, parsed-tree concrete type, `Type` enum,
-all status-tail meanings, binary descriptor grammar, child recursion and ID
+all status-tail meanings, binary descriptor grammar after the fixed header, child recursion and ID
 resolution, property-stream output type, and symmetric write format.

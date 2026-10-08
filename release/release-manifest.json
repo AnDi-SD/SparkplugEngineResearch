@@ -12,13 +12,13 @@
       "documents": [
         "LICENSE.md",
         "NOTICE.md",
+        "ACKNOWLEDGEMENTS.md",
         {
           "source": "tools/SmoViewer/PACKAGE_README.md",
           "name": "README.md"
         },
         "tools/SmoViewer/CHANGELOG.md",
         "tools/SmoViewer/RELEASE_NOTES_0.7.0.md",
-        "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
         "tools/SmoViewer/SUITE_README.md"
       ],
       "tools": [
@@ -71,6 +71,7 @@
       "documents": [
         "LICENSE.md",
         "NOTICE.md",
+        "ACKNOWLEDGEMENTS.md",
         {
           "source": "tools/SmoLVLcreator/PACKAGE_README.md",
           "name": "README.md"
@@ -88,6 +89,7 @@
       "documents": [
         "LICENSE.md",
         "NOTICE.md",
+        "ACKNOWLEDGEMENTS.md",
         {
           "source": "tools/SmoExporter/PACKAGE_README.md",
           "name": "README.md"
@@ -105,6 +107,7 @@
       "documents": [
         "LICENSE.md",
         "NOTICE.md",
+        "ACKNOWLEDGEMENTS.md",
         {
           "source": "tools/SmoImporter/PACKAGE_README.md",
           "name": "README.md"
@@ -120,6 +123,7 @@
       "documents": [
         "LICENSE.md",
         "NOTICE.md",
+        "ACKNOWLEDGEMENTS.md",
         "tools/WinxHairPatcher/README.md",
         "tools/WinxHairPatcher/CHANGELOG.md",
         "tools/WinxHairPatcher/RELEASE_NOTES_0.2.0.md"
@@ -133,6 +137,7 @@
       "documents": [
         "LICENSE.md",
         "NOTICE.md",
+        "ACKNOWLEDGEMENTS.md",
         {
           "source": "tools/SMOTextureTool/PACKAGE_README.md",
           "name": "README.md"

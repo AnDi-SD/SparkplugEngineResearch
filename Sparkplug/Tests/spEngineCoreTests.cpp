@@ -76,6 +76,7 @@
 #include "Code/Sparkplug/spTemplateInstance.h"
 #include "Code/Sparkplug/spTemplateManager.h"
 #include "Code/Sparkplug/spTemplateObject.h"
+#include "Code/Sparkplug/spTemplate.h"
 #include "Code/Sparkplug/spTemplateSerializer.h"
 #include "Code/Sparkplug/spTexture.h"
 #include "Code/Sparkplug/spTextureBuffer.h"
@@ -2471,7 +2472,7 @@ int main()
         "template serializer is a concrete direct spBaseObject class");
     {
         spTemplateSerializer serializer;
-        spTemplateObject target;
+        spTemplate target;
         spMemoryStream input;
         Require(serializer.GetTargetForAnalysis() == nullptr
                 && serializer.GetInputForAnalysis() == nullptr

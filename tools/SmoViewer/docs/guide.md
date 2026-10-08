@@ -500,4 +500,4 @@ legacy diagnostic signatures: `E3` является field header, а сосед�
 Butermix подготовил независимый прототип batch scene export, заготовку UV Editor
 и исправление перехода SharpGLTF на `ToGltf2`. Эти материалы были проверены при
 проектировании текущих инструментов; подробности и границы переноса зафиксированы
-в [благодарностях](../ACKNOWLEDGEMENTS.md).
+в [благодарностях](../../../ACKNOWLEDGEMENTS.md).
