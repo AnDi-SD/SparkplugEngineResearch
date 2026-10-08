@@ -10,6 +10,8 @@
       "suite": true,
       "nativeFbx": true,
       "documents": [
+        "LICENSE.md",
+        "NOTICE.md",
         {
           "source": "tools/SmoViewer/PACKAGE_README.md",
           "name": "README.md"
@@ -17,7 +19,6 @@
         "tools/SmoViewer/CHANGELOG.md",
         "tools/SmoViewer/RELEASE_NOTES_0.7.0.md",
         "tools/SmoViewer/ACKNOWLEDGEMENTS.md",
-        "tools/SmoViewer/LICENSE.txt",
         "tools/SmoViewer/SUITE_README.md"
       ],
       "tools": [
@@ -68,6 +69,8 @@
       "companionFiles": ["SparkplugViewerNative.dll"],
       "nativeFbx": true,
       "documents": [
+        "LICENSE.md",
+        "NOTICE.md",
         {
           "source": "tools/SmoLVLcreator/PACKAGE_README.md",
           "name": "README.md"
@@ -83,6 +86,8 @@
       "companionFiles": ["SparkplugViewerNative.dll"],
       "nativeFbx": true,
       "documents": [
+        "LICENSE.md",
+        "NOTICE.md",
         {
           "source": "tools/SmoExporter/PACKAGE_README.md",
           "name": "README.md"
@@ -98,6 +103,8 @@
       "companionFiles": ["SparkplugViewerNative.dll"],
       "nativeFbx": true,
       "documents": [
+        "LICENSE.md",
+        "NOTICE.md",
         {
           "source": "tools/SmoImporter/PACKAGE_README.md",
           "name": "README.md"
@@ -111,6 +118,8 @@
       "project": "tools/WinxHairPatcher/WinxHairPatcher.Gui/WinxHairPatcher.Gui.csproj",
       "executable": "WinxHairPatcher.Gui.exe",
       "documents": [
+        "LICENSE.md",
+        "NOTICE.md",
         "tools/WinxHairPatcher/README.md",
         "tools/WinxHairPatcher/CHANGELOG.md",
         "tools/WinxHairPatcher/RELEASE_NOTES_0.2.0.md"
@@ -122,13 +131,14 @@
       "executable": "SMOTextureTool.exe",
       "companionFiles": ["SparkplugViewerNative.dll"],
       "documents": [
+        "LICENSE.md",
+        "NOTICE.md",
         {
           "source": "tools/SMOTextureTool/PACKAGE_README.md",
           "name": "README.md"
         },
         "tools/SMOTextureTool/CHANGELOG.md",
         "tools/SMOTextureTool/RELEASE_NOTES_2.2.0.md",
-        "tools/SMOTextureTool/LICENSE.txt",
         "tools/SMOTextureTool/COPYRIGHT.txt"
       ]
     }

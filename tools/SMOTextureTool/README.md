@@ -23,4 +23,4 @@ dotnet run --project tools/SMOTextureTool/SMOTextureTool/SMOTextureTool.csproj
 
 Команда выполняется из корня полного репозитория. [Сборка](../../CONTRIBUTING.md) · [Устройство и проверки](docs/development.md) · [Текстуры SMO](../../docs/formats/smo-textures.md).
 
-Copyright © 2026 AnDi-SD. GNU GPL v3.0 or later: [LICENSE.txt](LICENSE.txt), [COPYRIGHT.txt](COPYRIGHT.txt).
+Copyright © 2026 AnDi-SD. Единая лицензия проекта — [Mozilla Public License 2.0](../../LICENSE.md); [NOTICE.md](../../NOTICE.md), [COPYRIGHT.txt](COPYRIGHT.txt).

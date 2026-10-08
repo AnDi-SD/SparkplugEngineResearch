@@ -35,8 +35,10 @@ Product-version-win-x64/
 
 Only the product executable and configuration/manifest files may be present in
 the package root. Documentation belongs in `docs/`; suite applications belong
-in `tools/<name>/`. The Autodesk FBX SDK bridge is stored once in `native/`, so a
-Viewer suite does not duplicate the same executable, DLL and license under both
+in `tools/<name>/`. Every package includes the repository-wide `LICENSE.md`
+and `NOTICE.md` once in its top-level `docs/` directory. The same license
+applies to the suite tools; their documentation uses the shared copies. The
+Autodesk FBX SDK bridge is stored once in `native/`, so a Viewer suite does not duplicate the same executable, DLL and license under both
 Importer and Exporter. Explicit `companionFiles` may accompany the application
 inside `app/`; Viewer 0.7 uses `SparkplugViewerNative.dll` there. Undeclared
 dependencies, symbols and satellite assemblies must not be loose files.
@@ -85,6 +87,9 @@ Manifest schema 2 accepts both source-path strings and `{ "source": "...",
 "name": "README.md" }` document entries. The mapped form installs a concise
 package guide while the full research README stays in the source repository.
 Release notes and guide links remain local to the package's `docs/` directory.
+The canonical license and notice are declared only in top-level product
+document lists, never repeated under suite tools. Third-party license files,
+including the Autodesk FBX SDK license, retain their separate terms.
 Prepared candidates are written to a separate output directory; their notes
 identify them as unpublished.
 

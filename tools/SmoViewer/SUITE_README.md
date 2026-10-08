@@ -36,3 +36,5 @@ Winx Hair Patcher изменяет только выбранный `WinxClub.exe
 перед заменой создаёт резервную копию рядом с ним.
 
 Игровые файлы в комплект не входят.
+
+Единая лицензия проекта — [Mozilla Public License 2.0](https://github.com/AnDi-SD/SparkplugEngineResearch/blob/main/LICENSE.md); [NOTICE.md](https://github.com/AnDi-SD/SparkplugEngineResearch/blob/main/NOTICE.md). Копии `LICENSE.md` и `NOTICE.md` находятся в корневом каталоге `docs/` пакета или комплекта SmoViewer.

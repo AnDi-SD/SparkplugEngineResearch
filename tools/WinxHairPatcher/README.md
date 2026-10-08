@@ -49,3 +49,5 @@ dotnet run --project tools/WinxHairPatcher/WinxHairPatcher.Gui -- "X:\Games\Winx
   отклоняется до записи.
 - Патчер ещё требует практической проверки каждой комбинации в игре.
 - Перед каждой записью рядом с EXE создаётся резервная копия.
+
+Единая лицензия проекта — [Mozilla Public License 2.0](https://github.com/AnDi-SD/SparkplugEngineResearch/blob/main/LICENSE.md); [NOTICE.md](https://github.com/AnDi-SD/SparkplugEngineResearch/blob/main/NOTICE.md). Копии `LICENSE.md` и `NOTICE.md` находятся в корневом каталоге `docs/` пакета или комплекта SmoViewer.
