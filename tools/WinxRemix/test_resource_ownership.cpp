@@ -108,7 +108,7 @@ static void Clean() {
   RetireSurfaceResources(true);
   Check(!liveMeshes&&!liveMaterials&&surfaceMeshes.empty()&&surfaceMaterials.empty()&&!surfaceMeshBytes,
     "teardown releases every API handle, cache node and byte reservation");
-  Check(!surfaceResourceBusy&&!surfaceRetirePending&&!surfaceRetireDraining,"teardown leaves no operation or deferred retirement");
+  Check(!surfaceResources.Busy()&&!surfaceResources.RetirementPending()&&!surfaceResources.RetirementDraining(),"teardown leaves no operation or deferred retirement");
 }
 static void AllocationAndCache() {
   Clean();frameId=100;auto before=materialCalls;
@@ -172,7 +172,7 @@ static void Reentry() {
   {SurfaceResourceOperation operation;Check(operation.Stable(),"empty-cache operation starts valid");
     RetireSurfaceResources(true);Check(!operation.Stable(),"empty-cache retirement invalidates in-progress material work");
     remixapi_MaterialInfo info{};info.hash=301;Check(!CreateSurfaceMaterialOwned(info,operation),"invalidated empty-cache operation cannot create");}
-  Check(materialCalls==calls&&SurfaceResourceEpoch()>epoch&&!surfaceRetirePending,"empty-cache retirement is observed and drained");
+  Check(materialCalls==calls&&SurfaceResourceEpoch()>epoch&&!surfaceResources.RetirementPending(),"empty-cache retirement is observed and drained");
   materialBehavior.action=Action::Retire;Check(!Material(302)&&!liveMaterials,"retirement during material Create cancels and releases its output");Clean();
   material=Material(303);meshBehavior.action=Action::Retire;
   Check(!SurfaceGeometryResource(vertices,material)&&!liveMeshes&&!liveMaterials,"retirement during mesh Create drains mesh before material");Clean();
@@ -183,12 +183,12 @@ static void Reentry() {
   RetireSurfaceResources(true);Check(!liveMeshes&&!liveMaterials,"recursive retirement on both delete APIs drains without duplicate destruction");Clean();
   material=Material(307);retireOnDelete=rejectMaterialDelete=true;
   const auto attempts=materialDeletes;RetireSurfaceResources(true);
-  Check(materialDeletes-attempts<=2&&liveMaterials==1&&surfaceRetirePending,"repeated retirement with delete failure stays bounded and pending");
+  Check(materialDeletes-attempts<=2&&liveMaterials==1&&surfaceResources.RetirementPending(),"repeated retirement with delete failure stays bounded and pending");
   const auto createCalls=materialCalls;const auto retryAttempts=materialDeletes;
   Check(!Material(307)&&materialCalls==createCalls&&materialDeletes-retryAttempts<=1,
     "cached handle cannot escape an undrained retirement before API recovery");
   retireOnDelete=rejectMaterialDelete=false;auto replacement=Material(307);
-  Check(replacement&&replacement!=material&&liveMaterials==1&&!surfaceRetirePending,"recovery drains old owner before allocating replacement");Clean();
+  Check(replacement&&replacement!=material&&liveMaterials==1&&!surfaceResources.RetirementPending(),"recovery drains old owner before allocating replacement");Clean();
 }
 static void EntryPoints(remixapi_Interface& api) {
   Clean();frameId=400;const auto createCalls=materialCalls;

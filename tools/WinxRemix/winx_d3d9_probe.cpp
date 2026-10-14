@@ -65,8 +65,10 @@ namespace native_owner_source { static void Initialize(); static void EndFrame()
 namespace native_skin_source { static void Initialize(); static void EndFrame(); }
 namespace native_skin_vertex_source { static void Initialize(); static void EndFrame(); }
 namespace native_update_source { static void Initialize(); static void EndFrame(); }
+namespace native_light_world_source { static void Initialize(); static void EndFrame(); }
 namespace native_transport_source { static void Initialize(); static void EndFrame(); }
 namespace independent_scene_source { static void Initialize(); static void EndFrame(); }
+namespace geometry_snapshot_observer { static void Initialize(); }
 namespace shader_semantics { static void Initialize(); static void Draw(IDirect3DDevice9*); static void EndFrame(); }
 namespace skin_packet_capture { static void AuditDevice(IDirect3DDevice9*,const char*); }
 namespace skin_draw_source { static void Initialize(); static bool Enabled(); static void EndFrame(); }
@@ -138,9 +140,11 @@ static void Initialize() {
   native_skin_source::Initialize();
   native_skin_vertex_source::Initialize();
   native_update_source::Initialize();
+  native_light_world_source::Initialize();
   native_transport_source::Initialize();
   independent_scene_source::Initialize();
   InitializeSceneAudit();
+  geometry_snapshot_observer::Initialize();
   native_light_source::Initialize();
   material_audit::Initialize();
   skin_draw_source::Initialize();
@@ -179,6 +183,7 @@ static void Patch(void* object, unsigned slot, void* function) {
 static bool CameraDrawsTracked(IDirect3DDevice9* device);
 #include "winx_native_camera_source.h"
 #include "winx_native_update_source.h"
+#include "winx_native_light_world_source.h"
 #include "winx_shader_semantics.h"
 #include "winx_native_draw_audit.h"
 
@@ -602,6 +607,7 @@ static void ResubmitTextures(IDirect3DDevice9* device) {
 }
 
 #include "winx_surface_roles.h"
+#include "winx_geometry_snapshot_observer.h"
 #include "winx_material_audit.h"
 
 static bool CaptureSurfaceInputs(){return autoSurfaceRoles||skin_packet_capture::Enabled();}
@@ -874,6 +880,7 @@ static HRESULT STDMETHODCALLTYPE Present(IDirect3DDevice9* d,const RECT* a,const
   native_skin_source::EndFrame();
   native_skin_vertex_source::EndFrame();
   skin_draw_source::EndFrame();
+  native_light_world_source::EndFrame();
   native_update_source::EndFrame();
   native_transport_source::EndFrame();
   independent_scene_source::EndFrame();
@@ -1132,6 +1139,7 @@ static HRESULT STDMETHODCALLTYPE SwapPresent(IDirect3DSwapChain9* d,const RECT* 
   native_skin_source::EndFrame();
   native_skin_vertex_source::EndFrame();
   skin_draw_source::EndFrame();
+  native_light_world_source::EndFrame();
   native_update_source::EndFrame();
   native_transport_source::EndFrame();
   independent_scene_source::EndFrame();

@@ -18,6 +18,8 @@ param(
     [switch]$SkinSubmit,
     [string]$SkinShaderContracts,
     [switch]$NativeUpdateSource,
+    [switch]$LightWorldObserver,
+    [switch]$GeometrySnapshotObserver,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
     [switch]$SelectedSceneSubmit,
@@ -39,6 +41,11 @@ if ($SkinSubmit) {
     $SkinDrawAudit=$true; $NativeCameraSubmit=$true; $NativeLightSubmit=$true; $AutoSurfaceRoles=$true; $MaterialChannels=$true
 }
 if ($SkinDrawAudit) { $NativeSkinPackets=$true; $NativeUpdateSource=$true }
+if ($LightWorldObserver) { $NativeUpdateSource=$true; if(-not $DebugMenu) { throw 'LightWorldObserver requires the verified DebugMenu build' } }
+if ($GeometrySnapshotObserver) {
+    if (-not $DebugMenu) { throw 'GeometrySnapshotObserver requires the verified DebugMenu build' }
+    $NativeMeshSource=$true; $NativeCameraSource=$true; $NativeUpdateSource=$true
+}
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
 if ($NativeSkinPackets) { $NativeSkinSource=$true }
@@ -77,6 +84,8 @@ if ($NativeSkinPackets) { $options.NativeSkinPackets=$true }
 if ($SkinDrawAudit) { $options.SkinDrawAudit=$true; $options.SkinShaderContracts=$SkinShaderContracts }
 if ($SkinSubmit) { $options.SkinSubmit=$true }
 if ($NativeUpdateSource) { $options.NativeUpdateSource=$true }
+if ($LightWorldObserver) { $options.LightWorldObserver=$true }
+if ($GeometrySnapshotObserver) { $options.GeometrySnapshotObserver=$true }
 if ($IndependentSceneSource) { $options.IndependentSceneSource=$true }
 if ($IndependentSceneSubmit) { $options.IndependentSceneSubmit=$true }
 if ($SelectedSceneSubmit) { $options.SelectedSceneSubmit=$true }

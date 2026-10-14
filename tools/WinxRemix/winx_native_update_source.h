@@ -48,6 +48,12 @@ struct Batch {
   Witness pending[capacity];
 };
 static thread_local Batch* active;
+// Optional passive consumers share the enclosing root/batch correlation.
+// No callback is installed by the original root witness itself. The root
+// pointer is borrowed only during the unchanged native dispatch.
+static thread_local const Witness* observedRoot;
+static void (*batchBegan)(const Batch&) noexcept;
+static void (*batchFinished)(const Batch&,bool) noexcept;
 static uint64_t Serial(){return static_cast<uint64_t>(InterlockedCompareExchange64(&invalidationSerial,0,0));}
 static uint64_t Invalidate(){return static_cast<uint64_t>(InterlockedIncrement64(&invalidationSerial));}
 static LONG Running(){return InterlockedCompareExchange(&activeUpdates,0,0);}
@@ -110,19 +116,21 @@ static bool GetWitness(uint32_t scene,uint32_t frame,uint64_t mutation,Witness& 
   }
   return false;
 }
-static void Publish(Batch* b) {
-  if(!BatchCurrent(*b)||!ManagerIdentity(b->manager,true)||!InstalledIdentity())return;
+static bool Publish(Batch* b) {
+  if(!BatchCurrent(*b)||!ManagerIdentity(b->manager,true)||!InstalledIdentity())return false;
   // Revalidate all pending identities at completion; partial stale publication
   // is unnecessary. Equal pointers do not claim absence of untracked ABA.
-  for(unsigned i=0;i<b->count;++i)if(!SceneIdentity(b->pending[i],false)){b->invalid=true;return;}
-  if(!BatchCurrent(*b))return;
+  for(unsigned i=0;i<b->count;++i)if(!SceneIdentity(b->pending[i],false)){b->invalid=true;return false;}
+  if(!BatchCurrent(*b))return false;
   memcpy(tokens,b->pending,b->count*sizeof(Witness));tokenCount=b->count;
   ++completed;published+=b->count;
+  return true;
 }
 static uint32_t ManagerAndRestore(Batch* b,void* object) {
-  uint32_t result=0;bool normal=false;
-  __try {result=originalManager(object);normal=true;Publish(b);}
+  uint32_t result=0;bool normal=false,publishedBatch=false;
+  __try {result=originalManager(object);normal=true;publishedBatch=Publish(b);}
   __finally {
+    if(batchFinished)batchFinished(*b,normal&&publishedBatch);
     if(GetCurrentThreadId()==ownerThread&&(!normal||b->invalid))++aborted;
     active=b->parent;InterlockedDecrement(&activeUpdates);
   }
@@ -141,10 +149,12 @@ static uint32_t __fastcall ManagerUpdate(void* object,void*) {
   // Foreign-thread batches never read render-thread metadata or native objects.
   batch.eligible=owner&&!batch.parent&&running==1&&ManagerIdentity(batch.manager,true)&&InstalledIdentity();
   if(batch.parent)batch.parent->invalid=true;
-  active=&batch;return ManagerAndRestore(&batch,object);
+  active=&batch;if(batchBegan)batchBegan(batch);return ManagerAndRestore(&batch,object);
 }
 static uint32_t RootAndRestore(Batch* b,Witness* w,void* object,uint32_t flags,bool standalone) {
   uint32_t result=0;bool normal=false;
+  const auto previousRoot=observedRoot;
+  if(w->valid)observedRoot=w;
   __try {
     result=originalRoot(object,flags);normal=true;
     if(w->valid&&b&&BatchCurrent(*b)&&SceneIdentity(*w,true)&&InstalledIdentity()&&BatchCurrent(*b)) {
@@ -152,6 +162,7 @@ static uint32_t RootAndRestore(Batch* b,Witness* w,void* object,uint32_t flags,b
       else {b->pending[b->count++]=*w;++recorded;}
     }
   } __finally {
+    observedRoot=previousRoot;
     if(!normal&&b)b->invalid=true;
     --rootDepth;
     if(standalone)InterlockedDecrement(&activeUpdates);

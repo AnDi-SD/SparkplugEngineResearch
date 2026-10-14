@@ -37,6 +37,7 @@ struct Watchdog {
 struct Fixture;
 static Fixture* current;
 static void (*onTarget)();
+static void (*onTargetRelease)();
 static void (*onApi)(char,unsigned);
 static unsigned materialCalls,meshCalls,drawCalls,failDrawAt,targetCalls,cameraCalls;
 static bool failMaterial,failMesh,failCamera;
@@ -49,6 +50,32 @@ static std::map<source::Key,unsigned> observedAttempts;
 static std::vector<uint32_t> drawnModels;
 static std::vector<remixapi_CameraInfo> cameras;
 static std::vector<char> apiOrder;
+static unsigned lightCreates,lightDraws,lightDestroys,lightPolicyCalls;
+static bool failLightCreate,failLightDraw;
+static std::set<remixapi_LightHandle> liveLights;
+static std::vector<remixapi_Float3D> lightPositions;
+static remixapi_ErrorCode REMIXAPI_CALL CreateSceneLight(const remixapi_LightInfo* info,remixapi_LightHandle* output) {
+  ++lightCreates;apiOrder.push_back('i');Check(info&&output&&info->pNext,"owned scene light description");
+  const auto sphere=static_cast<const remixapi_LightInfoSphereEXT*>(info->pNext);
+  Check(sphere->sType==REMIXAPI_STRUCT_TYPE_LIGHT_INFO_SPHERE_EXT,"offscreen point light uses explicit sphere API");
+  lightPositions.push_back(sphere->position);
+  *output=reinterpret_cast<remixapi_LightHandle>(++nextHandle);liveLights.insert(*output);
+  if(onApi)onApi('i',lightCreates);
+  return failLightCreate?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
+}
+static remixapi_ErrorCode REMIXAPI_CALL DrawSceneLight(remixapi_LightHandle handle) {
+  ++lightDraws;apiOrder.push_back('l');Check(liveLights.count(handle)==1,"scene light has current API owner");
+  if(onApi)onApi('l',lightDraws);
+  return failLightDraw?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
+}
+static remixapi_ErrorCode REMIXAPI_CALL DestroySceneLight(remixapi_LightHandle handle) {
+  ++lightDestroys;Check(liveLights.erase(handle)==1,"scene light destroyed exactly once");
+  return REMIXAPI_ERROR_CODE_SUCCESS;
+}
+static remixapi_ErrorCode REMIXAPI_CALL SceneLightPolicy(const char* key,const char* value) {
+  ++lightPolicyCalls;apiOrder.push_back('p');Check(key&&value,"explicit light fallback policy");
+  if(onApi)onApi('p',lightPolicyCalls);return REMIXAPI_ERROR_CODE_SUCCESS;
+}
 static remixapi_ErrorCode REMIXAPI_CALL SetupCamera(const remixapi_CameraInfo* info) {
   ++cameraCalls;Check(info&&info->sType==REMIXAPI_STRUCT_TYPE_CAMERA_INFO&&info->type==REMIXAPI_CAMERA_TYPE_WORLD&&!info->pNext,
     "early WORLD camera receives the original native matrix payload");
@@ -96,7 +123,7 @@ static HRESULT STDMETHODCALLTYPE GetState(FakeDevice*,D3DRENDERSTATETYPE type,DW
 static HRESULT STDMETHODCALLTYPE GetStage(FakeDevice*,DWORD stage,D3DTEXTURESTAGESTATETYPE type,DWORD* out);
 static HRESULT STDMETHODCALLTYPE GetSampler(FakeDevice*,DWORD stage,D3DSAMPLERSTATETYPE type,DWORD* out);
 static HRESULT STDMETHODCALLTYPE GetTransform(FakeDevice*,D3DTRANSFORMSTATETYPE type,D3DMATRIX* out);
-static ULONG STDMETHODCALLTYPE ReleaseTarget(FakeSurface* surface){++comCalls;return --surface->refs;}
+static ULONG STDMETHODCALLTYPE ReleaseTarget(FakeSurface* surface){++comCalls;const auto refs=--surface->refs;if(onTargetRelease)onTargetRelease();return refs;}
 static D3DRESOURCETYPE STDMETHODCALLTYPE TextureType(FakeTexture*){++comCalls;return D3DRTYPE_TEXTURE;}
 static DWORD STDMETHODCALLTYPE TextureLevels(FakeTexture*){++comCalls;return 1;}
 static HRESULT STDMETHODCALLTYPE TextureDesc(FakeTexture*,UINT level,D3DSURFACE_DESC* out) {
@@ -131,16 +158,19 @@ struct Fixture {
   FakeDevice device{};FakeTexture comTexture{};FakeSurface target{};
   std::array<DWORD,256> states{};std::array<DWORD,33> stages{};
   remixapi_Interface api{};
+  alignas(4) unsigned char sceneLightManager[0x24]{},sceneLight[0x158]{};
   IDirect3DDevice9* Device(){return reinterpret_cast<IDirect3DDevice9*>(&device);}
   IDirect3DTexture9* Texture(){return reinterpret_cast<IDirect3DTexture9*>(&comTexture);}
   uint32_t Support(){return Ptr(object)+0x14;}
   Fixture() {
-    current=this;frameId=800;drawId=0;materialCalls=meshCalls=drawCalls=failDrawAt=targetCalls=cameraCalls=0;failMaterial=failMesh=failCamera=false;onApi=nullptr;onTarget=nullptr;
+    current=this;frameId=(std::max)(frameId,800u)+3;drawId=0;materialCalls=meshCalls=drawCalls=failDrawAt=targetCalls=cameraCalls=0;failMaterial=failMesh=failCamera=false;onApi=nullptr;onTarget=nullptr;onTargetRelease=nullptr;
     source::submissionFailed=false;source::submitEnabled=true;source::keepForComparison=false;source::BeginDirectScope();source::inputs.clear();
     source::queueModeAddress=reinterpret_cast<uintptr_t>(&queueMode);
     source::directGroups=source::directInstances=source::directRejected=source::directApiFailures=0;
     materialChannelsEnabled=true;keepMaterialChannelsForComparison=false;source::enabled=true;source::ownerThread=GetCurrentThreadId();
     opaqueAlphaTest=false;keepTrivialAlphaTestForComparison=false;
+    sceneLightsEnabled=false;keepSceneLightsForComparison=false;
+    lightCreates=lightDraws=lightDestroys=lightPolicyCalls=0;failLightCreate=failLightDraw=false;lightPositions.clear();
     native_owner_source::enabled=true;native_owner_source::ownerThread=GetCurrentThreadId();
     native_owner_source::enginePointerAddress=reinterpret_cast<uintptr_t>(&engineSlot);native_owner_source::rendererPointerAddress=reinterpret_cast<uintptr_t>(&rendererSlot);
     engineSlot=Ptr(engine);rendererSlot=Ptr(renderer);Put(engine,0x18,Ptr(&scene));Put(engine,0x1c,Ptr(&camera));
@@ -211,7 +241,11 @@ struct Fixture {
     scene_geometry::skipExtendedSupport=source::DirectSupportOmitted;scene_geometry::selectionRestarted=source::DirectSelectionRestarted;
   }
   ~Fixture() {
-    failAllocationAfter=-1;onApi=nullptr;onTarget=nullptr;RetireSurfaceResources(true);testRemixApi=nullptr;
+    failAllocationAfter=-1;onApi=nullptr;onTarget=nullptr;onTargetRelease=nullptr;
+    if(sceneLightsEnabled){++frameId;ResetSceneLights();}
+    sceneLightsEnabled=false;keepSceneLightsForComparison=false;
+    Check(liveLights.empty(),"fixture retires all scene light handles");
+    RetireSurfaceResources(true);testRemixApi=nullptr;
     source::inputs.clear();source::BeginDirectScope();native_mesh_source::buffers.clear();native_mesh_source::layouts.clear();native_mesh_source::retainedBytes=0;
     transport::records.clear();transport::declarationCount=0;transport::textures.clear();transport::textureSurfaces.clear();transport::resetting.clear();
     surfaceBuffers.clear();surfaceChannelTextureHashes.clear();surfaceTextureHashes.clear();primaryTargets.clear();instances.clear();blends.clear();observedAttempts.clear();drawnModels.clear();cameras.clear();apiOrder.clear();
@@ -235,6 +269,21 @@ struct Fixture {
   void EarlyCamera() {
     native_camera_source::Reset();drawId=0;
     Check(native_camera_source::Capture(Ptr(&scene),Ptr(&camera),Ptr(&camera),0x6ef1e0,camera),"owned early apply uses production Capture before independent packet");
+  }
+  void SceneLights(bool enabled=true) {
+    api.CreateLight=CreateSceneLight;api.DrawLightInstance=DrawSceneLight;
+    api.DestroyLight=DestroySceneLight;api.SetConfigVariable=SceneLightPolicy;
+    Put(&scene,0x34,Ptr(sceneLightManager));
+    Put(sceneLightManager,0,0x6e8ca4);Put(sceneLightManager,0x20,Ptr(&scene));
+    Put(sceneLightManager,0x10,Ptr(sceneLight));Put(sceneLightManager,0x14,Ptr(sceneLight));Put(sceneLightManager,0x18,1);
+    Put(sceneLight,0,0x6f0c88);Put(sceneLight,0x3c,Ptr(&scene));Put(sceneLight,0xb0,0x100);Put(sceneLight,0xc0,1);
+    sceneLight[0xed]=1;
+    D3DLIGHT9 payload{};payload.Type=D3DLIGHT_POINT;payload.Diffuse={1,.5f,.25f,1};
+    payload.Position={-100,0,-100};payload.Range=1000;payload.Attenuation0=1;
+    memcpy(sceneLight+0xf0,&payload,sizeof(payload));sceneLightsEnabled=enabled;
+  }
+  void ChangeSceneLight() {
+    float changed=2;memcpy(sceneLight+0xf4,&changed,4);
   }
   void Submit(scene_geometry::Scope& scope){std::unique_lock<std::recursive_mutex> lock(guard);source::SubmitCurrent(lock,scope);}
 };
@@ -426,7 +475,62 @@ static void EarlyCamera() {
     f.Submit(scope);Check(cameraCalls==1&&!drawCalls&&source::submissionFailed&&scene_geometry::active==&scope,
       "nested scene scope during SetupCamera invalidates operation after API and restores outer TLS");}
 }
-static void Run(){Basic();Rejections();PartialFailure();SequenceAndReentry();ForwardingAndAllocation();AlphaPolicy();EarlyCamera();Check(liveMeshes.empty()&&liveMaterials.empty(),"all recording API ownership retired at fixture end");}
+static void SceneFrameOrdering() {
+  {Fixture f;f.SceneLights();f.EarlyCamera();scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);f.Submit(scope);
+    const auto light=std::find(apiOrder.begin(),apiOrder.end(),'l'),instance=std::find(apiOrder.begin(),apiOrder.end(),'d');
+    Check(cameraCalls==1&&lightCreates==1&&lightDraws==1&&drawCalls==3&&apiOrder.front()=='c'&&light<instance,
+      "API-only frame prepares camera then complete scene light before every instance");
+    Check(drawId==0&&lightPositions.size()==1&&lightPositions[0].x==-100&&lightPositions[0].z==-100,
+      "point light behind camera is transmitted without any original D3D draw");
+    const auto before=lightDraws;PrepareSceneLightsForScene(f.Device(),Ptr(&f.scene),Ptr(&f.camera));
+    Check(lightDraws==before&&f.target.refs==1,"later matching boundary does not replay lights and balances target references");}
+  for(unsigned failure=0;failure<3;++failure) {
+    Fixture f;f.SceneLights();f.EarlyCamera();scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    if(failure==0)failLightCreate=true;if(failure==1)failLightDraw=true;if(failure==2)f.api.DrawLightInstance=nullptr;
+    f.Submit(scope);Check(!drawCalls&&!source::DirectSupportOmitted(f.Support()),"incomplete scene light batch retains original geometry fallback");
+    Check((failure==0&&lightCreates==1&&!lightDraws)||(failure==1&&lightCreates==1&&lightDraws==1)||
+      (failure==2&&!lightCreates&&!lightDraws),"failure fixture reaches exactly the intended light API boundary");
+  }
+  for(unsigned mutation=0;mutation<5;++mutation) {
+    Fixture f;f.SceneLights();f.EarlyCamera();scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static unsigned change,hits;change=mutation;hits=0;
+    onApi=[](char operation,unsigned){if(operation!='l')return;
+      ++hits;
+      if(change==0)++frameId;if(change==1)native_camera_source::Reset();
+      if(change==2)current->ChangeSceneLight();if(change==3)current->camera.viewMatrix[12]+=1;
+      if(change==4)source::DirectSelectionRestarted(source::directScope);};
+    f.Submit(scope);Check(!drawCalls&&!source::DirectSupportOmitted(f.Support()),"light callback mutation cannot authorize a stale independent frame");
+    Check(hits==1&&lightDraws==1,"mutation ran inside the intended light submission callback");
+  }
+  for(unsigned boundary=0;boundary<2;++boundary)for(unsigned mutation=0;mutation<6;++mutation) {
+    Fixture f;f.SceneLights();scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static unsigned change,hits;change=mutation;hits=0;
+    const auto mutate=[] {
+      if(source::directFrameScheduler.Stage()!=winx_remix::FrameScheduler::Phase::Lights||hits)return;
+      ++hits;
+      if(change==0)++frameId;if(change==1)native_camera_source::Reset();
+      if(change==2)current->camera.viewMatrix[12]+=1;if(change==3)source::DirectSelectionRestarted(source::directScope);
+      if(change==4)ResetSceneLights();if(change==5)sceneLightsEnabled=false;
+    };
+    if(boundary==0)onTarget=mutate;else onTargetRelease=mutate;
+    f.Submit(scope);
+    Check(hits==1&&!lightCreates&&!lightDraws&&!lightPolicyCalls&&!drawCalls&&
+      !source::DirectSupportOmitted(f.Support())&&f.target.refs==1,
+      "COM target/read release mutation before SyncLights sends no stale light batch or geometry");
+  }
+  {Fixture f;f.SceneLights();scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    onApi=[](char operation,unsigned){if(operation=='m')current->ChangeSceneLight();};
+    f.Submit(scope);Check(lightDraws==1&&meshCalls==1&&!drawCalls&&!source::DirectSupportOmitted(f.Support()),"payload change during mesh preparation invalidates lighting ticket before instance");}
+  {Fixture f;f.SceneLights();scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    onApi=[](char operation,unsigned ordinal){if(operation=='d'&&ordinal==1)current->ChangeSceneLight();};
+    f.Submit(scope);
+    Check(drawCalls==1&&source::submissionFailed&&source::DirectSupportOmitted(f.Support()),
+      "light mutation after irreversible instance stops remaining occurrences without duplicate fallback");}
+  {Fixture f;f.SceneLights();Put(f.sceneLightManager,0x10,0);Put(f.sceneLightManager,0x14,0);Put(f.sceneLightManager,0x18,0);
+    scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);f.Submit(scope);
+    Check(!lightCreates&&!lightDraws&&drawCalls==3,"empty direct registry is a complete batch without a fabricated fallback lamp");}
+}
+static void Run(){Basic();Rejections();PartialFailure();SequenceAndReentry();ForwardingAndAllocation();AlphaPolicy();EarlyCamera();SceneFrameOrdering();Check(liveMeshes.empty()&&liveMaterials.empty()&&liveLights.empty(),"all recording API ownership retired at fixture end");}
 }
 #if !defined(WINX_INDEPENDENT_SUBMIT_FIXTURE_ONLY)
 int main(){SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOGPFAULTERRORBOX);try{direct_test::Watchdog watchdog;direct_test::Run();printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"nativeGameCodeExecuted\":false,\"ownedComCalls\":%u}\n",direct_test::checks,direct_test::comCalls);return 0;}

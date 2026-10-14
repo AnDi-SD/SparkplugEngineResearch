@@ -1396,8 +1396,13 @@
       "registrationBaseIds": {
         "pc": "0x2C2F3993"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-mouse.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spDXMouse.h",
+        "Sparkplug/Code/SparkplugPC/spDXMouse.cpp"
+      ]
     },
     {
       "name": "spDXNetwork",
@@ -4756,8 +4761,13 @@
       "registrationBaseIds": {
         "ps2": "0x27DE5AF5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-ps2-video-stream.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2VideoStream.h",
+        "Sparkplug/Code/SparkplugPS2/spPS2VideoStream.cpp"
+      ]
     },
     {
       "name": "spPS2VRAMCacheManager",
@@ -5563,8 +5573,13 @@
         "pc": "0x44DE07FD",
         "ps2": "0x44DE07FD"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-template.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spTemplate.h",
+        "Sparkplug/Code/Sparkplug/spTemplate.cpp"
+      ]
     },
     {
       "name": "spTemplateInstance",

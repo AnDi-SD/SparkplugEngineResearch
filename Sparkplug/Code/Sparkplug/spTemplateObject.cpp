@@ -1,4 +1,5 @@
 #include "spTemplateObject.h"
+#include "spNode.h"
 
 #include <utility>
 
@@ -56,7 +57,9 @@ namespace sparkplug::reconstruction
 
         // Native PC 0x005FD720 / PS2 0x00157070 copy these members but do
         // not invoke spNamedObject's copy routine. Constructor-only members
-        // (+0x14, +0x24/+0x28 and +0x174) therefore stay fresh.
+        // (+0x14, +0x24/+0x28 and the P/R/S tail at +0x174) therefore retain
+        // the destination's state. A factory-created clone starts with defaults,
+        // whereas copying into an existing descriptor preserves its placement.
         clone.loadedObject_ = loadedObject_;
         clone.state_ = state_;
         clone.resourcePath_ = resourcePath_;
@@ -119,5 +122,41 @@ namespace sparkplug::reconstruction
     std::int32_t spTemplateObject::GetField130ForAnalysis() const noexcept
     {
         return field130_;
+    }
+
+    const spTemplateObject::Vector3& spTemplateObject::GetPositionForAnalysis() const noexcept
+    {
+        return position_;
+    }
+
+    const spTemplateObject::Matrix3& spTemplateObject::GetOrientationForAnalysis() const noexcept
+    {
+        return orientation_;
+    }
+
+    const spTemplateObject::Vector3& spTemplateObject::GetScaleForAnalysis() const noexcept
+    {
+        return scale_;
+    }
+
+    void spTemplateObject::SetPlacementForAnalysis(const Vector3& position,
+        const Matrix3& orientation, const Vector3& scale) noexcept
+    {
+        position_ = position;
+        orientation_ = orientation;
+        scale_ = scale;
+    }
+
+    void spTemplateObject::ApplyNodePlacementForAnalysis(spNode& node) const noexcept
+    {
+        // PC005FBBE6..005FBC8B (state 0), 005FBABF..005FBB65 (state 3),
+        // and 005FBDA5..005FBE55 (actor Node) copy the descriptor's P/R/S
+        // separately, with Node's dirty bit 1 set after each group.
+        node.SetPositionForAnalysis(position_);
+        node.MarkLocalTransformDirtyForAnalysis();
+        node.SetOrientationForAnalysis(orientation_);
+        node.MarkLocalTransformDirtyForAnalysis();
+        node.SetScaleForAnalysis(scale_);
+        node.MarkLocalTransformDirtyForAnalysis();
     }
 }

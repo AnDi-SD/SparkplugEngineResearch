@@ -387,6 +387,11 @@
       "category": "engine/materials"
     },
     {
+      "path": "docs/engine/materials/pixel-shader.md",
+      "title": "PC pixel shader classes",
+      "category": "engine/materials"
+    },
+    {
       "path": "docs/engine/materials/rfx-constants.md",
       "title": "PC RFX constants and pass persistence",
       "category": "engine/materials"
@@ -1467,6 +1472,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-dx-texture-manager.md",
+      "title": "spDXTextureManager",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-engine-core.md",
       "title": "spEngineCore",
       "category": "reference/classes"
@@ -2094,6 +2104,11 @@
     {
       "path": "docs/reference/classes/sp-texture-data.md",
       "title": "spTextureData",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-texture-manager.md",
+      "title": "spTextureManager",
       "category": "reference/classes"
     },
     {

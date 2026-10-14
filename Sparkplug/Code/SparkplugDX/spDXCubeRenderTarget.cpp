@@ -1,4 +1,5 @@
 #include "spDXCubeRenderTarget.h"
+#include "spDXRenderTarget.h"
 
 #include <algorithm>
 
@@ -114,5 +115,29 @@ namespace sparkplug::reconstruction
     {
         return static_cast<std::size_t>(std::count(
             facesReady_.begin(), facesReady_.end(), true));
+    }
+
+    std::uint32_t spDXCubeRenderTarget::CalculateBackingTextureSizeForAnalysis(
+        const sparkplug::analysis::host::RenderTargetSurfaceDescription&
+            description) noexcept
+    {
+        return spDXRenderTarget::CalculateBackingTextureSizeForAnalysis(
+            description) * 6u;
+    }
+
+    bool spDXCubeRenderTarget::ReadBackingTextureSizeForAnalysis(
+        void* const context,
+        const sparkplug::analysis::host::RenderTargetSurfaceDescriptionReader
+            reader,
+        std::uint32_t& size)
+    {
+        std::uint32_t ordinarySize = 0;
+        if (!spDXRenderTarget::ReadBackingTextureSizeForAnalysis(
+            context, reader, ordinarySize))
+        {
+            return false;
+        }
+        size = ordinarySize * 6u;
+        return true;
     }
 }

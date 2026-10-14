@@ -1,11 +1,12 @@
 // Own RTX render-pass extension. Enumerates existing native render ownership;
 // the original engine still submits transforms, materials, shaders and meshes.
 // No visibility algorithm or reconstructed game logic is replaced.
+#include "winx_scene_geometry_snapshot.h"
 
 #if defined(_M_IX86)
 namespace scene_geometry {
 using scene_audit::At;
-constexpr unsigned limit=4096;
+constexpr unsigned limit=winx_remix::SceneGeometrySnapshotSource::kLimit;
 // This adapter executes on the game's render thread. ReadProcessMemory for
 // every small record needlessly enters the kernel thousands of times/frame.
 // Keep the same address/size caps and reject inaccessible native records.
@@ -26,104 +27,23 @@ static uint64_t MutationSerial() {
 static uint64_t AdvanceMutationSerial() {
   return static_cast<uint64_t>(InterlockedIncrement64(&registryMutationSerial));
 }
-enum class OccurrenceSource:uint32_t {RenderNodeVector=0x20,StaticVector=0x30,PartitionPayload=0x78};
-struct SupportOccurrence {
-  uint32_t node,object,support;
-  OccurrenceSource source;
-  uint32_t ordinal;
-};
-constexpr unsigned occurrenceLimit=limit*16;
-struct Registry {
-  bool valid=false,occurrencesComplete=true;
-  uint32_t scene=0,system=0,root=0;
-  uint64_t mutationSerial=0;
-  unsigned nodes=0,dynamic=0,unsupportedDynamic=0;
-  // Existing visibility input remains sorted/unique. Occurrences describe
-  // physical static/render-node vector slots and payloads, including repeats.
-  std::vector<uint32_t> supports;
-  std::vector<SupportOccurrence> occurrences;
-  void Occurrence(uint32_t node,uint32_t object,uint32_t support,OccurrenceSource source,uint32_t ordinal) {
-    if(!occurrencesComplete)return;
-    if(occurrences.size()>=occurrenceLimit) {occurrencesComplete=false;return;}
-    // Optional provenance must not prevent the pre-existing visibility walk
-    // from completing if its additional allocation cannot be satisfied.
-    try {occurrences.push_back({node,object,support,source,ordinal});}
-    catch(const std::bad_alloc&) {occurrencesComplete=false;}
-  }
-};
+using Registry=winx_remix::SceneGeometrySnapshot;
+using OccurrenceSource=Registry::OccurrenceSource;
+using SupportOccurrence=Registry::SupportOccurrence;
+constexpr unsigned occurrenceLimit=winx_remix::SceneGeometrySnapshotSource::kOccurrenceLimit;
 
 static bool Vector(uintptr_t object,unsigned offset,std::vector<uint32_t>& result) {
-  uint32_t fields[3]{};
-  if(!Read(object+offset+4,fields,sizeof(fields))) return false;
-  const auto begin=fields[0],end=fields[1],capacity=fields[2];
-  if(begin>end || end>capacity || (end-begin)%4 || end-begin>limit*4) return false;
-  result.resize((end-begin)/4);
-  return result.empty() || Read(begin,result.data(),result.size()*4);
+  return winx_remix::SceneGeometrySnapshotSource::ReadVector(uint32_t(object),offset,result,
+    [](uint32_t address,void* data,size_t size){return Read(address,data,size);});
 }
 static bool Support(uint32_t object,uint32_t scene,bool partition,uint32_t& adjusted) {
-  unsigned char raw[0x8c]{};
-  if(!object || !Read(object,raw,sizeof(raw))) return false;
-  const unsigned offset=partition?0x10:0x14;
-  if(At(raw,0)!=(partition?0x6f4540u:0x6e65e8u) ||
-     At(raw,offset)!=(partition?0x6f4528u:0x6e6604u) ||
-     At(raw,offset+0x70)!=object || At(raw,0x88)!=scene) return false;
-  adjusted=object+offset;return true;
+  return winx_remix::SceneGeometrySnapshotSource::ReadSupport(object,scene,partition,adjusted,
+    [](uint32_t address,void* data,size_t size){return Read(address,data,size);});
 }
 static Registry ReadRegistry(uint32_t scene) {
-  Registry output;output.scene=scene;output.mutationSerial=MutationSerial();
-  output.system=Word(scene+0x38);output.root=output.system?Word(output.system+0x1d4):0;
-  const auto root=output.root;
-  if(!root) return output;
-  std::vector<uint32_t> pending{root};std::set<uint32_t> visited,supports,zones,dynamic,unsupported;
-  while(!pending.empty()) {
-    const auto node=pending.back();pending.pop_back();
-    if(!node || !visited.insert(node).second) continue;
-    if(visited.size()>limit) return output;
-    unsigned char raw[0x84]{};
-    if(!Read(node,raw,sizeof(raw)) || At(raw,0x80)!=scene) return output;
-    const auto table=At(raw,0);
-    if(table!=0x6dcb08 && table!=0x6e4420 && table!=0x6eba30) return output;
-    const auto payload=At(raw,0x78);uint32_t support=0;
-    if(payload) {
-      if(!Support(payload,scene,true,support)) return output;supports.insert(support);
-      output.Occurrence(node,payload,support,OccurrenceSource::PartitionPayload,0);
-    }
-    std::vector<uint32_t> values;
-    if(!Vector(node,0x30,values)) return output;
-    for(unsigned ordinal=0;ordinal<values.size();++ordinal) if(const auto value=values[ordinal]) {
-      if(!Support(value,scene,false,support)) return output;supports.insert(support);
-      output.Occurrence(node,value,support,OccurrenceSource::StaticVector,ordinal);
-    }
-    if(!Vector(node,0x20,values)) return output;
-    for(unsigned ordinal=0;ordinal<values.size();++ordinal) if(const auto value=values[ordinal]) {
-      if(!dynamic.count(value) && !unsupported.count(value)) {
-        unsigned char renderNode[0x130]{};
-        if(!Read(value,renderNode,sizeof(renderNode)) || At(renderNode,0x3c)!=scene || At(renderNode,0x124)!=value) return output;
-        // The inherited support's exact native draw still checks Enabled and
-        // receives forceVisible=1 from original partition SceneRender. Derived
-        // custom supports with different methods stay on original path.
-        if(At(renderNode,0xb4)!=0x6dcadc) {unsupported.insert(value);continue;}
-        dynamic.insert(value);supports.insert(value+0xb4);
-      }
-      if(dynamic.count(value))output.Occurrence(node,value,value+0xb4,OccurrenceSource::RenderNodeVector,ordinal);
-    }
-    if(supports.size()>limit) return output;
-    const auto count=At(raw,0x5c),children=At(raw,0x58);
-    if(count>8 || (count && !children)) return output;
-    uint32_t child[8]{};
-    if(count && !Read(children,child,count*4)) return output;
-    for(unsigned i=0;i<count;++i) if(child[i]) pending.push_back(child[i]);
-    const auto zone=At(raw,0x60);
-    if(zone && zones.insert(zone).second) {
-      if(Word(zone)!=0x6ebacc || !Vector(zone,0xb4,values)) return output;
-      pending.insert(pending.end(),values.begin(),values.end());
-    }
-    if(pending.size()>limit*8) return output;
-  }
-  output.nodes=static_cast<unsigned>(visited.size());
-  output.dynamic=static_cast<unsigned>(dynamic.size());output.unsupportedDynamic=static_cast<unsigned>(unsupported.size());
-  output.supports.assign(supports.begin(),supports.end());
-  output.valid=output.mutationSerial==MutationSerial();return output;
+  return winx_remix::SceneGeometrySnapshotSource{}.Capture(scene,
+    [](uint32_t address,void* data,size_t size){return Read(address,data,size);},
+    []{return MutationSerial();});
 }
 
 static void Event(const char* event,uint32_t scene,unsigned original,unsigned added,unsigned nodes=0,unsigned elapsedMs=0) {
@@ -134,12 +54,20 @@ static void Event(const char* event,uint32_t scene,unsigned original,unsigned ad
 }
 struct Scope;
 static thread_local Scope* active;
+// Separate passive consumer of the original selection. It runs even when the
+// existing visibility extension/independent observer is disabled or ObserveOnly.
+static void (*observeOriginalSelection)(Scope&,uint32_t,uint32_t,uint32_t) noexcept;
 // Optional own before-prepare reader. It receives the original selection and
 // the current graph before this adapter extends visibility.
 static void (*observeSelection)(Scope&,const Registry&,uint32_t);
 static bool (*skipExtendedSupport)(uint32_t);
 static void (*selectionRestarted)(uint64_t);
 __declspec(align(8)) static volatile LONG64 nextScopeSerial=0;
+#if defined(WINX_REMIX_TEST)
+static uintptr_t enginePointerAddress=0x755274;
+#else
+static constexpr uintptr_t enginePointerAddress=0x755274;
+#endif
 struct Scope {
   // Unique adapter operation identity, not a durable native object generation.
   const uint64_t serial=static_cast<uint64_t>(InterlockedIncrement64(&nextScopeSerial));
@@ -182,7 +110,7 @@ struct Scope {
     if(attempted || parent || !sceneGeometryEnabled || sceneGeometryObserveOnly || keepSceneGeometryForComparison ||
        scene!=selectedScene || camera!=selectedCamera) return;
     attempted=true;
-    const auto engine=Word(0x755274);
+    const auto engine=Word(enginePointerAddress);
     if(!engine || Word(engine+0x18)!=scene || Word(engine+0x1c)!=camera ||
        Word(selectedManager)!=0x6e8cdc || Word(selectedManager+0x38)) return;
     unsigned char cameraRaw[0x238]{};
@@ -231,6 +159,7 @@ static void BeforeSelect() {
 }
 static void AfterSelect(uint32_t manager,uint32_t scene,uint32_t camera) {
   if(!active) return;
+  if(observeOriginalSelection)observeOriginalSelection(*active,manager,scene,camera);
   try {active->Extend(manager,scene,camera);}
   catch(const std::bad_alloc&) {active->Restore();Event("allocation_rejected",scene,0,0);}
 }
@@ -244,7 +173,7 @@ static uintptr_t RenderAndRestore(Scope* scope,void* scene,void* camera) {
   return result;
 }
 static uintptr_t __fastcall Render(void* scene,void*,void* camera) {
-  if(!sceneGeometryEnabled || GetCurrentThreadId()!=renderThread) return originalRender(scene,camera);
+  if((!sceneGeometryEnabled && !sceneGeometryObservationEnabled) || GetCurrentThreadId()!=renderThread) return originalRender(scene,camera);
   Scope scope(reinterpret_cast<uintptr_t>(scene),reinterpret_cast<uintptr_t>(camera));
   return RenderAndRestore(&scope,scene,camera);
 }

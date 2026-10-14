@@ -129,6 +129,11 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugPS2/spPS2Keyboard.cpp
     Code/SparkplugPS2/spPS2Keyboard.h
     Analysis/PS2/spPS2KeyboardAbi.h
+    Code/SparkplugPS2/spPS2Mouse.cpp
+    Code/SparkplugPS2/spPS2Mouse.h
+    Analysis/Host/spPS2MouseHost.h
+    Analysis/PS2/spPS2MouseAbi.h
+    Analysis/PS2/spPS2MouseExactIntegerMath.h
     Code/Sparkplug/spVideoStream.cpp
     Code/Sparkplug/spVideoStream.h
     Code/SparkplugPC/spPCVideoStream.cpp
@@ -539,6 +544,9 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spTemplateSerializer.h
     Code/Sparkplug/spTexture.cpp
     Code/Sparkplug/spTexture.h
+    Code/Sparkplug/spTextureManager.cpp
+    Code/Sparkplug/spTextureManager.h
+    Analysis/PC/spTextureManagerAbi.h
     Code/Sparkplug/spTextureBuffer.cpp
     Code/Sparkplug/spTextureBuffer.h
     Code/Sparkplug/spTextureData.cpp
@@ -565,6 +573,12 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXRenderer.cpp
     Code/SparkplugDX/spDXRenderer.h
     Code/SparkplugDX/spDXRenderer_Init.cpp
+    Code/SparkplugDX/spDXTextureManager.cpp
+    Code/SparkplugDX/spDXTextureManager.h
+    Code/SparkplugDX/spDXPixelShader.cpp
+    Code/SparkplugDX/spDXPixelShader.h
+    Code/SparkplugDX/spDXAsmShaderParser.cpp
+    Code/SparkplugDX/spDXAsmShaderParser.h
     Code/SparkplugDX/spDXCamera.cpp
     Code/SparkplugDX/spDXCamera.h
     Code/SparkplugDX/spDXRenderTarget.cpp
@@ -598,6 +612,8 @@ if(WIN32)
         Code/SparkplugPC/spPCRenderTarget.h
         Code/SparkplugPC/spPCRenderTargetManager.cpp
         Code/SparkplugPC/spPCRenderTargetManager.h
+        Code/SparkplugPC/spPCPixelShader.cpp
+        Code/SparkplugPC/spPCPixelShader.h
     )
 endif()
 target_include_directories(SparkplugEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -623,6 +639,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugTemplateTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugTemplateTests COMMAND SparkplugTemplateTests)
     set_tests_properties(SparkplugTemplateTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugTemplateObjectTests Tests/spTemplateObjectTests.cpp)
+    target_link_libraries(SparkplugTemplateObjectTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTemplateObjectTests COMMAND SparkplugTemplateObjectTests)
+    set_tests_properties(SparkplugTemplateObjectTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugDXMouseTests Tests/spDXMouseTests.cpp)
     target_link_libraries(SparkplugDXMouseTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugDXMouseTests COMMAND SparkplugDXMouseTests)
@@ -631,6 +651,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugPS2KeyboardTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugPS2KeyboardTests COMMAND SparkplugPS2KeyboardTests)
     set_tests_properties(SparkplugPS2KeyboardTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPS2MouseTests Tests/spPS2MouseTests.cpp)
+    target_link_libraries(SparkplugPS2MouseTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPS2MouseTests COMMAND SparkplugPS2MouseTests)
+    set_tests_properties(SparkplugPS2MouseTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugVideoStreamTests Tests/spVideoStreamTests.cpp)
     target_link_libraries(SparkplugVideoStreamTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugVideoStreamTests COMMAND SparkplugVideoStreamTests)
@@ -852,6 +876,22 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugVertexShaderTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugVertexShaderTests COMMAND SparkplugVertexShaderTests)
     set_tests_properties(SparkplugVertexShaderTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPixelShaderTests Tests/spPixelShaderTests.cpp)
+    target_link_libraries(SparkplugPixelShaderTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPixelShaderTests COMMAND SparkplugPixelShaderTests)
+    set_tests_properties(SparkplugPixelShaderTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugTextureManagerTests Tests/spTextureManagerTests.cpp)
+    target_link_libraries(SparkplugTextureManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTextureManagerTests COMMAND SparkplugTextureManagerTests)
+    set_tests_properties(SparkplugTextureManagerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugRenderTargetSurfaceTests Tests/spRenderTargetSurfaceTests.cpp)
+    target_link_libraries(SparkplugRenderTargetSurfaceTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugRenderTargetSurfaceTests COMMAND SparkplugRenderTargetSurfaceTests)
+    set_tests_properties(SparkplugRenderTargetSurfaceTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAsmShaderParserTests Tests/spAsmShaderParserTests.cpp)
+    target_link_libraries(SparkplugAsmShaderParserTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAsmShaderParserTests COMMAND SparkplugAsmShaderParserTests)
+    set_tests_properties(SparkplugAsmShaderParserTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkplugShaderConstantsTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugShaderConstantsTests COMMAND SparkplugShaderConstantsTests)
     set_tests_properties(SparkplugShaderConstantsTests PROPERTIES TIMEOUT 20)

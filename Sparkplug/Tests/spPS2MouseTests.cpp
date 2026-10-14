@@ -5,9 +5,11 @@
 #include <deque>
 #include <functional>
 #include <iostream>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <stdexcept>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -30,11 +32,14 @@ namespace
         std::int32_t created=10,bindStatus=0;
         unsigned binds=0,readyAfter=2,creates=0;
         bool mutateSemaphore=false;
+        bool sharedMath=false,callbackErrors=true;
         spPS2Mouse* mouse=nullptr;
         std::deque<Reply> replies;
         std::map<std::uint32_t,std::uint8_t> bytes;
         std::map<std::uint32_t,std::uint32_t> words;
         std::vector<std::string> trace;
+        std::vector<std::string> fullTrace;
+        std::vector<std::uint32_t> requestSendValues;
         std::vector<host::spPS2MouseRpcRequestForAnalysis> requests;
         std::function<void()> onReport;
         std::optional<std::uint8_t> ReadGpByte(std::int32_t offset) override
@@ -49,16 +54,19 @@ namespace
         {auto i=words.find(address);return i==words.end()?std::nullopt:std::optional<std::uint32_t>(i->second);}
         void WriteWord(std::uint32_t address,std::uint32_t value) override {words[address]=value;}
         std::optional<std::int32_t> CreateSemaphore(const host::spPS2MouseSemaphoreDescriptorForAnalysis& descriptor) override
-        {++creates;Check(!descriptor.word00&&descriptor.word04==1&&descriptor.word08==1,"unwritten descriptor word preserved");return created;}
+        {++creates;Check(!descriptor.word00&&descriptor.word04==1&&descriptor.word08==1&&
+            !descriptor.word0C&&!descriptor.word10&&!descriptor.word14,"unwritten descriptor words preserved");
+            fullTrace.push_back("C"+std::to_string(created));return created;}
         void WaitSemaphore(std::uint32_t id) override
-        {trace.push_back("W"+std::to_string(id));if(mutateSemaphore)++semaphore;}
+        {trace.push_back("W"+std::to_string(id));fullTrace.push_back(trace.back());if(mutateSemaphore)++semaphore;}
         void SignalSemaphore(std::uint32_t id) override
-        {trace.push_back("S"+std::to_string(id));if(mutateSemaphore)++semaphore;}
+        {trace.push_back("S"+std::to_string(id));fullTrace.push_back(trace.back());if(mutateSemaphore)++semaphore;}
         void SignalSemaphoreFromInterrupt(std::uint32_t id) override
-        {trace.push_back("I"+std::to_string(id));if(mutateSemaphore)++semaphore;}
-        void InitializeRpc(std::uint32_t mode) override {Check(mode==0,"native RPC initialize mode0");}
+        {trace.push_back("I"+std::to_string(id));fullTrace.push_back(trace.back());if(mutateSemaphore)++semaphore;}
+        void InitializeRpc(std::uint32_t mode) override {Check(mode==0,"native RPC initialize mode0");fullTrace.push_back("N0");}
         std::optional<std::int32_t> BindRpc(std::uint32_t client,std::uint32_t identifier,std::uint32_t mode) override
-        {Check(client==0x4B7900&&identifier==0x80000210&&mode==0,"native bind arguments");words[client+0x24]=++binds>=readyAfter?99:0;return bindStatus;}
+        {Check(client==0x4B7900&&identifier==0x80000210&&mode==0,"native bind arguments");words[client+0x24]=++binds>=readyAfter?99:0;
+            fullTrace.push_back("B"+std::to_string(bindStatus)+":"+std::to_string(words[client+0x24]));return bindStatus;}
         std::optional<std::int32_t> CallRpc(const host::spPS2MouseRpcRequestForAnalysis& request) override
         {
             Check(!replies.empty()&&replies.front().function==request.function,"native function order");
@@ -66,29 +74,37 @@ namespace
                 request.receiveBytes==32&&request.completionAddress==0x1F1F80&&request.completionArgument==0,
                 "all native RPC call arguments retained");
             auto reply=std::move(replies.front());replies.pop_front();requests.push_back(request);
+            const auto sent=words.find(request.send);
+            requestSendValues.push_back(sent==words.end()?0:sent->second);
+            fullTrace.push_back("P"+std::to_string(reply.function)+":"+std::to_string(reply.status));
             for(unsigned i=0;i<reply.payload.size();++i)bytes[request.receive+i]=reply.payload[i];
-            if(mouse)Check(mouse->RpcCompletionForAnalysis(),"original callback dispatch");
+            if(mouse&&(callbackErrors||!reply.status))Check(mouse->RpcCompletionForAnalysis(),"original callback dispatch");
             return reply.status;
         }
         void Report(std::uint32_t address,std::optional<std::int32_t> argument) override
-        {trace.push_back("R"+std::to_string(address)+(argument?":"+std::to_string(*argument):""));if(onReport)onReport();}
+        {trace.push_back("R"+std::to_string(address)+(argument?":"+std::to_string(*argument):""));fullTrace.push_back(trace.back());if(onReport)onReport();}
         static bool Integral(float value){return std::isfinite(value)&&std::trunc(value)==value;}
         std::optional<std::uint32_t> AddSignedByte(std::uint32_t bits,std::int8_t offset) override
         {
+            if(sharedMath)return host::spPS2MouseBoundaryForAnalysis::AddSignedByte(bits,offset);
             const double result=double(Float(bits))+offset;
             if(!Integral(Float(bits))||std::abs(result)>16777216)return std::nullopt;
             return Bits(static_cast<float>(result));
         }
         std::optional<std::uint32_t> SubtractSingle(std::uint32_t first,std::uint32_t second) override
-        {const double result=double(Float(first))-Float(second);if(!Integral(Float(first))||!Integral(Float(second)))return std::nullopt;
+        {if(sharedMath)return host::spPS2MouseBoundaryForAnalysis::SubtractSingle(first,second);
+            const double result=double(Float(first))-Float(second);if(!Integral(Float(first))||!Integral(Float(second)))return std::nullopt;
             const float stored=static_cast<float>(result);if(double(stored)!=result)return std::nullopt;return Bits(stored);}
         std::optional<std::int32_t> ConvertSingleToWord(std::uint32_t bits) override
-        {const double value=Float(bits);if(!Integral(Float(bits))||value<-2147483648.0||value>=2147483648.0)return std::nullopt;
+        {if(sharedMath)return host::spPS2MouseBoundaryForAnalysis::ConvertSingleToWord(bits);
+            const double value=Float(bits);if(!Integral(Float(bits))||value<-2147483648.0||value>=2147483648.0)return std::nullopt;
             return static_cast<std::int32_t>(value);}
         std::optional<bool> CompareSingleLess(std::uint32_t a,std::uint32_t b) override
-        {if(!std::isfinite(Float(a))||!std::isfinite(Float(b)))return std::nullopt;return Float(a)<Float(b);}
+        {if(sharedMath)return host::spPS2MouseBoundaryForAnalysis::CompareSingleLess(a,b);
+            if(!std::isfinite(Float(a))||!std::isfinite(Float(b)))return std::nullopt;return Float(a)<Float(b);}
         std::optional<bool> CompareSingleLessEqual(std::uint32_t a,std::uint32_t b) override
-        {if(!std::isfinite(Float(a))||!std::isfinite(Float(b)))return std::nullopt;return Float(a)<=Float(b);}
+        {if(sharedMath)return host::spPS2MouseBoundaryForAnalysis::CompareSingleLessEqual(a,b);
+            if(!std::isfinite(Float(a))||!std::isfinite(Float(b)))return std::nullopt;return Float(a)<=Float(b);}
     };
     void DefaultsAndInitialize()
     {
@@ -195,10 +211,89 @@ namespace
         const auto preserved=mouse.GetTailForAnalysis();
         Check(mouse.PollForAnalysis()==true&&mouse.GetTailForAnalysis()==preserved,
             "no-device poll preserves stale changed packet and axes");
+        mouse.WriteTailWordForAnalysis(0x74,Bits(12));mouse.WriteTailWordForAnalysis(0x78,Bits(-9));
+        mouse.WriteTailWordForAnalysis(0x7C,Bits(120));
+        const auto noEventBefore=mouse.GetTailForAnalysis();
+        b.replies={{1,0,{1,0,1}},{3,0,{}},{2,0,{0}}};
+        Check(mouse.PollForAnalysis()==true,"available device with empty event queue completes");
+        for(unsigned offset=0x50;offset<0xE0;++offset)
+        {
+            const auto expected=offset>=0x74&&offset<0x80?std::optional<std::uint8_t>(0):noEventBefore[offset-0x48];
+            Check(mouse.GetTailForAnalysis()[offset-0x48]==expected,
+                "successful info resets axes/wheel before empty queue, preserving button/changed/previous bytes");
+        }
+    }
+    // Numeric fixtures and JSON output are our comparison adapter. The actual
+    // class, logical dispatch and default exact EE domain remain shared source.
+    void Batch()
+    {
+        std::string line;
+        while(std::getline(std::cin,line))
+        {
+            if(line.empty())continue;
+            Check(line.size()<=16384,"bounded batch line");std::istringstream input(line);
+            unsigned mode,flag,gate,readyAfter,mutate,callbackErrors,fill,wordCount,replyCount,slot;
+            std::int32_t created,bindStatus,reportCount;std::uint32_t semaphore,code;
+            Check(bool(input>>mode>>flag>>gate>>created>>bindStatus>>readyAfter>>semaphore>>mutate>>callbackErrors>>reportCount>>fill>>wordCount),
+                "batch header");
+            Check(mode<=3&&flag<=255&&gate<=255&&fill<=255&&wordCount<=38&&readyAfter<=8,"batch header bounds");
+            Boundary b;b.sharedMath=true;b.gate=static_cast<std::uint8_t>(gate);b.created=created;b.bindStatus=bindStatus;
+            b.readyAfter=readyAfter;b.semaphore=semaphore;b.mutateSemaphore=mutate!=0;b.callbackErrors=callbackErrors!=0;
+            b.words[0x4B7940]=0x13579BDFU;b.words[0x4B7924]=0;
+            for(unsigned i=0;i<0x800;++i)b.bytes[0x4B7780+i]=0;
+            spPS2Mouse mouse(&b);b.mouse=&mouse;mouse.SetField44ForAnalysis(static_cast<std::uint8_t>(flag));
+            for(unsigned i=0;i<mouse.GetTailForAnalysis().size();++i)
+                mouse.MutableTailForAnalysis()[i]=static_cast<std::uint8_t>(fill+13*i);
+            for(unsigned i=0;i<wordCount;++i)
+            {std::uint32_t offset,value;Check(bool(input>>offset>>value),"batch tail word");mouse.WriteTailWordForAnalysis(offset,value);}
+            Check(bool(input>>replyCount)&&replyCount<=128,"batch reply count");
+            for(unsigned i=0;i<replyCount;++i)
+            {
+                Boundary::Reply reply;unsigned length;
+                Check(bool(input>>reply.function>>reply.status>>length)&&length<=32,"batch reply header");
+                for(unsigned j=0;j<length;++j)
+                {unsigned byte;Check(bool(input>>byte)&&byte<=255,"batch reply byte");reply.payload.push_back(static_cast<std::uint8_t>(byte));}
+                b.replies.push_back(std::move(reply));
+            }
+            Check(bool(input>>slot>>code)&&slot<6,"batch query descriptor");
+            if(reportCount>=0)b.onReport=[&]{b.bytes[0x4B7780]=static_cast<std::uint8_t>(reportCount);};
+            std::uint32_t result=0;
+            if(mode==0)
+            {
+                if(slot==0)result=mouse.PhysicalSlot1ForAnalysis(code).value();
+                if(slot==1)result=mouse.PhysicalSlot2ForAnalysis(code).value();
+                if(slot==2)result=mouse.PhysicalSlot3ForAnalysis(code).value();
+                if(slot==3)result=static_cast<std::uint32_t>(mouse.PhysicalSlot4ForAnalysis(code).value());
+                if(slot==4)mouse.PhysicalSlot5ForAnalysis(code,0xFFFFFFFFU,17,0x12345678);
+                if(slot==5)result=Bits(mouse.PhysicalSlot6ForAnalysis(code));
+            }
+            else if(mode==1)result=mouse.InitializeForAnalysis().value();
+            else if(mode==2)result=mouse.PollForAnalysis().value();
+            else
+            {
+                const bool initialized=mouse.InitializeForAnalysis().value();
+                result=initialized?mouse.PollForAnalysis().value():false;
+            }
+            Check(b.replies.empty(),"all scheduled foreign replies consumed");
+            std::cout<<'['<<result<<','<<unsigned(mouse.GetField44ForAnalysis())<<",[";
+            for(unsigned i=0;i<mouse.GetTailForAnalysis().size();++i)
+                std::cout<<(i?",":"")<<unsigned(mouse.GetTailForAnalysis()[i].value());
+            std::cout<<"],[";
+            for(unsigned i=0;i<b.fullTrace.size();++i)std::cout<<(i?",":"")<<std::quoted(b.fullTrace[i]);
+            std::cout<<"],[";
+            for(unsigned i=0;i<b.requests.size();++i)
+            {
+                const auto& r=b.requests[i];std::cout<<(i?",":"")<<'['<<r.client<<','<<r.function<<','<<r.mode<<','<<r.send<<','
+                    <<r.sendBytes<<','<<r.receive<<','<<r.receiveBytes<<','<<r.completionAddress<<','<<r.completionArgument<<','
+                    <<b.requestSendValues[i]<<']';
+            }
+            std::cout<<"],"<<b.semaphore<<','<<b.words[0x4B7940]<<','<<b.binds<<','<<b.creates<<"]\n";
+        }
     }
 }
-int main()
+int main(int argc,char** argv)
 {
-    try{DefaultsAndInitialize();QueriesAndClone();PollOperation();std::cout<<"PASS "<<checks<<" PS2 mouse checks\n";return 0;}
+    try{if(argc==2&&std::string(argv[1])=="--batch"){Batch();return 0;}
+        DefaultsAndInitialize();QueriesAndClone();PollOperation();std::cout<<"PASS "<<checks<<" PS2 mouse checks\n";return 0;}
     catch(const std::exception& error){std::cerr<<"FAIL: "<<error.what()<<'\n';return 1;}
 }

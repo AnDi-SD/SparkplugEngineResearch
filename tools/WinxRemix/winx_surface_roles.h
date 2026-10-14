@@ -1,6 +1,7 @@
 // Own D3D9/Remix policy. No game IDs, asset names or known hashes.
 #define XXH_INLINE_ALL
 #include "third-party/xxhash.h"
+#include "winx_remix_api_session.h"
 
 static bool autoSurfaceRoles, keepAutoSurfaceRolesForComparison;
 static uint64_t surfaceResourceEpoch;
@@ -20,19 +21,15 @@ static remixapi_Interface* GetRemixApi() {
 #ifdef WINX_REMIX_TEST
   return testRemixApi;
 #else
-  static remixapi_Interface api{};static bool attempted=false;
-  if(!attempted) {
-    attempted=true;
-    auto init=reinterpret_cast<PFN_remixapi_InitializeLibrary>(GetProcAddress(backend,"remixapi_InitializeLibrary"));
-    remixapi_InitializeLibraryInfo info{};
-    info.sType=REMIXAPI_STRUCT_TYPE_INITIALIZE_LIBRARY_INFO;
-    info.version=REMIXAPI_VERSION_MAKE(REMIXAPI_VERSION_MAJOR,REMIXAPI_VERSION_MINOR,REMIXAPI_VERSION_PATCH);
-    const auto result=init?init(&info,&api):REMIXAPI_ERROR_CODE_NOT_INITIALIZED;
+  static winx_remix::RemixApiSession session;
+  if(!session.Attempted()) {
+    const auto result=session.InitializeFrom([] {
+      return reinterpret_cast<PFN_remixapi_InitializeLibrary>(GetProcAddress(backend,"remixapi_InitializeLibrary"));
+    });
     if(logFile) fprintf(logFile,"{\"event\":\"remix_api_init\",\"result\":%d}\n",result);
     if(surfaceRoleLog) {fprintf(surfaceRoleLog,"{\"event\":\"api_init\",\"result\":%d}\n",result);fflush(surfaceRoleLog);}
-    if(result!=REMIXAPI_ERROR_CODE_SUCCESS) api={};
   }
-  return api.SetConfigVariable?&api:nullptr;
+  return session.Get();
 #endif
 }
 
@@ -52,18 +49,19 @@ static void EndSurfaceRoleFrame() {
   EndGeometryProbe();
   RetireSurfaceResources();
   static unsigned lastPressureRequests;
+  const auto& resources=surfaceResources.Stats();
   if(surfaceRoleLog&&frameId%300==0) {
     fprintf(surfaceRoleLog,"{\"event\":\"channel_counts\",\"frame\":%u,\"enabled\":%s,\"comparisonDisabled\":%s,\"submitted\":%u,\"rejected\":%u,\"assetBytes\":%zu}\n",
       frameId,materialChannelsEnabled?"true":"false",keepMaterialChannelsForComparison?"true":"false",materialChannelsSubmitted,materialChannelsRejected,material_channels::assetBytes);
   }
-  if(surfaceRoleLog && (frameId%300==0 || triggered || surfacePressureRequests!=lastPressureRequests)) {
+  if(surfaceRoleLog && (frameId%300==0 || triggered || resources.pressureRequests!=lastPressureRequests)) {
     fprintf(surfaceRoleLog,"{\"event\":\"frame\",\"frame\":%u,\"bases\":%u,\"overlays\":%u,\"standalone\":%u,\"unknown\":%u,\"comparisonDisabled\":%s,\"meshCache\":%zu,\"materialCache\":%zu,\"meshBytes\":%zu,\"bufferBytes\":%zu,\"meshCreates\":%u,\"meshDestroys\":%u,\"materialCreates\":%u,\"materialDestroys\":%u,\"resourceFailures\":%u,\"pressureRequests\":%u,\"pressureMeshDestroys\":%u,\"pressureMaterialDestroys\":%u,\"pressureRejected\":%u}\n",
       frameId,surfaceBases,surfaceOverlays,surfaceStandalone,surfaceUnknown,keepAutoSurfaceRolesForComparison?"true":"false",
-      surfaceMeshes.size(),surfaceMaterials.size(),surfaceMeshBytes,surfaceBufferBytes,surfaceMeshCreates,surfaceMeshDestroys,surfaceMaterialCreates,surfaceMaterialDestroys,surfaceResourceFailures,
-      surfacePressureRequests,surfacePressureMeshDestroys,surfacePressureMaterialDestroys,surfacePressureRejected);
+      surfaceResources.Meshes().size(),surfaceResources.Materials().size(),resources.meshBytes,surfaceBufferBytes,resources.meshCreates,resources.meshDestroys,resources.materialCreates,resources.materialDestroys,resources.resourceFailures,
+      resources.pressureRequests,resources.pressureMeshDestroys,resources.pressureMaterialDestroys,resources.pressureRejected);
     fflush(surfaceRoleLog);
   }
-  lastPressureRequests=surfacePressureRequests;
+  lastPressureRequests=resources.pressureRequests;
   surfaceBases=surfaceOverlays=surfaceStandalone=surfaceUnknown=0;ClearSurfaceBases();
 }
 

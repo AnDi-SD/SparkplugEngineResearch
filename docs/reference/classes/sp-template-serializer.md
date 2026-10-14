@@ -70,8 +70,8 @@ read consumes the remaining zero-filled header fields.
 `ReadBinaryHeaderForAnalysis` exposes this header operation with a raw count
 and the real template binding. The target pointer is read again after the
 foreign stream call, preserving a change made by that callback. Missing host
-bindings and a name without a null terminator inside its 64-byte field give
-an unknown result; this bounds unsafe native inputs without claiming native
+bindings and a name without a null terminator in the 72 known bytes after
+the magic give an unknown result; this bounds unknown following stack bytes without claiming native
 rollback. The optional diagnostic callback is explicitly a host forwarding
 boundary. Parsing and constructing the following descriptors remain open.
 

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include "winx_scene_read_window.h"
+#include "winx_scene_light_snapshot.h"
 
 static FILE* sceneAuditFile;
 static unsigned sceneAuditCalls;
@@ -13,6 +14,8 @@ static float sceneLightGain=10.0f;
 static FILE* sceneLightLog;
 static bool sceneGeometryEnabled, keepSceneGeometryForComparison;
 static bool sceneGeometryObserveOnly;
+// Independent passive scope consumer; never enables visibility extension.
+static bool sceneGeometryObservationEnabled;
 static FILE* sceneGeometryLog;
 
 // Diagnostic gain only: keep the original light values and stable ownership.
@@ -72,38 +75,16 @@ static void Camera(uintptr_t camera) {
     At(raw,0x170),At(raw,0x174),At(raw,0x178),At(raw,0x17c),raw[0x231]);
 }
 
-struct LightRecord { uint32_t address; unsigned char raw[0x158]; };
-struct LightRegistry { uint32_t manager=0,count=0; bool valid=false; std::vector<LightRecord> lights; };
+using LightRecord=winx_remix::SceneLightSnapshot::Record;
+using LightRegistry=winx_remix::SceneLightSnapshot;
 
 static LightRegistry ReadLights(uintptr_t scene) {
-  // CP8/CP92: complete Light pointers, borrowed links B8/BC, owned manager34.
-  // Read the scene registry, not the eight per-object D3D light slots.
-  const auto manager=Word(scene+0x34);
-  unsigned char header[0x24]{};
-  if(!Read(manager,header,sizeof(header)) || At(header,0)!=0x6e8ca4 ||
-      At(header,0x20)!=scene || At(header,0x18)>512) {
-    return {};
-  }
-  LightRegistry registry; registry.manager=manager;
-  auto& lights=registry.lights;
-  const auto count=At(header,0x18);
-  registry.count=count;
-  uint32_t pointer=At(header,0x10), previous=0;
-  std::set<uint32_t> visited;
-  bool valid=true;
-  // One fresh window for this registry observation; no byte cache survives
-  // into the next Current check or an external API call.
+  // Keep one fresh platform read window per owned observation. The standalone
+  // source owns membership bytes and does not select lights by camera draws.
   winx_remix::scene_memory::ReadWindow window;
-  for(unsigned i=0;i<count;++i) {
-    LightRecord record{pointer,{}};
-    if(!pointer || !visited.insert(pointer).second || !window.Read(pointer,record.raw,sizeof(record.raw)) ||
-        At(record.raw,0)!=0x6f0c88 || At(record.raw,0x3c)!=scene || At(record.raw,0xb8)!=previous) {
-      valid=false; break;
-    }
-    previous=pointer; pointer=At(record.raw,0xbc); lights.push_back(record);
-  }
-  valid=valid && !pointer && previous==At(header,0x14) && lights.size()==count;
-  registry.valid=valid; return registry;
+  return winx_remix::SceneLightSnapshotSource{}.Capture(uint32_t(scene),
+    [](uint32_t address,void* output,size_t size){return Read(address,output,size);},
+    [&](uint32_t address,void* output,size_t size){return window.Read(address,output,size);});
 }
 
 static void Lights(uintptr_t scene) {
@@ -220,16 +201,18 @@ static bool Install() {
 #endif
 
 static void InitializeSceneAudit() {
-  wchar_t path[MAX_PATH]{}, option[8]{}, gain[32]{};
+  wchar_t path[MAX_PATH]{}, observerPath[MAX_PATH]{}, option[8]{}, gain[32]{};
   sceneLightsEnabled=sizeof(void*)==4 && GetEnvironmentVariableW(L"WINX_REMIX_SCENE_LIGHTS",option,8) && wcscmp(option,L"1")==0;
   sceneGeometryEnabled=sizeof(void*)==4 && GetEnvironmentVariableW(L"WINX_REMIX_SCENE_GEOMETRY",option,8) && wcscmp(option,L"1")==0;
   sceneGeometryObserveOnly=GetEnvironmentVariableW(L"WINX_REMIX_SCENE_OBSERVE_ONLY",option,8) && wcscmp(option,L"1")==0;
+  const auto observerLength=GetEnvironmentVariableW(L"WINX_REMIX_GEOMETRY_SNAPSHOT_OBSERVER",observerPath,MAX_PATH);
+  sceneGeometryObservationEnabled=sizeof(void*)==4 && observerLength && observerLength<MAX_PATH;
   if(GetEnvironmentVariableW(L"WINX_REMIX_LIGHT_GAIN",gain,32)) {
     const auto value=wcstod(gain,nullptr);
     if(std::isfinite(value) && value>=0 && value<=1000) sceneLightGain=static_cast<float>(value);
   }
   const DWORD length=GetEnvironmentVariableW(L"WINX_REMIX_SCENE_AUDIT",path,MAX_PATH);
-  if((!length || length>=MAX_PATH) && !sceneLightsEnabled && !sceneGeometryEnabled) return;
+  if((!length || length>=MAX_PATH) && !sceneLightsEnabled && !sceneGeometryEnabled && !sceneGeometryObservationEnabled) return;
 #if defined(_M_IX86)
   if(length && length<MAX_PATH) sceneAuditFile=_wfsopen(path,L"wb",_SH_DENYNO);
   if(sceneLightsEnabled && GetEnvironmentVariableW(L"WINX_REMIX_LIGHT_AUDIT",path,MAX_PATH))
@@ -237,9 +220,12 @@ static void InitializeSceneAudit() {
   if(sceneGeometryEnabled && GetEnvironmentVariableW(L"WINX_REMIX_GEOMETRY_AUDIT",path,MAX_PATH))
     sceneGeometryLog=_wfsopen(path,L"wb",_SH_DENYNO);
   const bool verified=scene_audit::VerifiedImage();
-  sceneGeometryEnabled=sceneGeometryEnabled && verified && scene_geometry::Install();
-  const bool installed=(sceneAuditFile || sceneGeometryEnabled) && verified && scene_audit::Install();
+  const bool scopeInstalled=(sceneGeometryEnabled || sceneGeometryObservationEnabled) && verified && scene_geometry::Install();
+  sceneGeometryEnabled=sceneGeometryEnabled && scopeInstalled;
+  sceneGeometryObservationEnabled=sceneGeometryObservationEnabled && scopeInstalled;
+  const bool installed=(sceneAuditFile || sceneGeometryEnabled || sceneGeometryObservationEnabled) && verified && scene_audit::Install();
   sceneGeometryEnabled=sceneGeometryEnabled && installed;
+  sceneGeometryObservationEnabled=sceneGeometryObservationEnabled && installed;
   if(sceneGeometryLog) scene_geometry::Event(sceneGeometryEnabled?"init_enabled":"init_disabled",0,0,0);
   sceneLightsEnabled=sceneLightsEnabled && verified;
   for(auto output:{sceneAuditFile,sceneLightLog}) if(output) {

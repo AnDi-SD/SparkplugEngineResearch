@@ -234,6 +234,10 @@ static bool Create(const LightKey& key,const ConvertedLight& state,const LightOp
   if(before.handle)++lightUpdates;else ++lightCreates;return true;
 }
 static void ClearLights() {
+  // Reset/clear is a new lifetime even when the registry has no API handles.
+  // Publish that transition before cleanup so in-flight preparation fences see
+  // it after any reentrant COM boundary.
+  std::lock_guard<std::recursive_mutex> lightLock(guard);InvalidateLights();
   LightOperation operation;if(!operation.outer)return;
   MarkLightsRetired();FinishLightOperation(operation);
 }
@@ -338,13 +342,15 @@ static void RetireAbsentLights(uintptr_t scene) {
 } // namespace scene_audit
 #endif
 
-static void PrepareSceneLights(IDirect3DDevice9* device) {
+template<class Current>
+static void PrepareSceneLightsForScene(IDirect3DDevice9* device,uintptr_t scene,uintptr_t camera,const Current& current) {
 #if defined(_M_IX86)
   using namespace scene_audit;
   std::lock_guard<std::recursive_mutex> lightLock(guard);
   if(!sceneLightsEnabled || keepSceneLightsForComparison) return;
-  const auto engine=Word(0x755274), scene=engine?Word(engine+0x18):0, camera=engine?Word(engine+0x1c):0;
   if(!scene || !camera || (scenesSeen.count(scene) && scenesSeen[scene]==frameId)) return;
+  const auto frame=frameId;const auto revision=lightRevision;
+  if(!current())return;
   // Source camera identity + primary target establish the world pass even when
   // visibility selection is cached. No executable hook is needed for lighting.
   unsigned char raw[0x238]{};
@@ -354,7 +360,34 @@ static void PrepareSceneLights(IDirect3DDevice9* device) {
       projection._34==0 || memcmp(&view,raw+0xcc,sizeof(view)) || memcmp(&projection,raw+0x10c,sizeof(projection))) return;
   if(FAILED(device->GetRenderTarget(0,&target)) || !target) return;
   const auto found=primaryTargets.find(device);const bool primary=found!=primaryTargets.end() && found->second==target;
-  target->Release();if(primary) SyncLights(scene);
+  target->Release();
+  // COM and even the last Release may reenter. No stale camera/scope may
+  // authorize a light batch after that boundary; this predicate makes no COM
+  // calls in the independent path. Recheck native matrices before the API.
+  unsigned char now[0x238]{};
+  if(!primary || frame!=frameId || revision!=lightRevision || !sceneLightsEnabled || keepSceneLightsForComparison ||
+     !Read(camera,now,sizeof(now)) || At(now,0)!=At(raw,0) || memcmp(now+0xcc,raw+0xcc,128) || !current() ||
+     frame!=frameId || revision!=lightRevision || !sceneLightsEnabled || keepSceneLightsForComparison)return;
+  SyncLights(scene);
+#else
+  (void)device;(void)scene;(void)camera;(void)current;
+#endif
+}
+
+[[maybe_unused]] static void PrepareSceneLightsForScene(IDirect3DDevice9* device,uintptr_t scene,uintptr_t camera) {
+  PrepareSceneLightsForScene(device,scene,camera,[]{return true;});
+}
+
+static void PrepareSceneLights(IDirect3DDevice9* device) {
+#if defined(_M_IX86)
+  std::lock_guard<std::recursive_mutex> lightLock(guard);
+  if(!sceneLightsEnabled||keepSceneLightsForComparison)return;
+  const auto engine=scene_audit::Word(0x755274);
+  const auto scene=engine?scene_audit::Word(engine+0x18):0,camera=engine?scene_audit::Word(engine+0x1c):0;
+  PrepareSceneLightsForScene(device,scene,camera,[&] {
+    return scene_audit::Word(0x755274)==engine && engine && scene_audit::Word(engine+0x18)==scene &&
+      scene_audit::Word(engine+0x1c)==camera;
+  });
 #else
   (void)device;
 #endif

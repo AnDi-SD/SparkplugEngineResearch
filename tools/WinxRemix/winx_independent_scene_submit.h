@@ -1,7 +1,9 @@
 // Own first independent consumer: complete ordinary supports absent from the
 // game's original selection. Only our added visibility entries are omitted.
 #pragma once
+#include "winx_frame_scheduler.h"
 namespace independent_scene_source {
+static winx_remix::FrameScheduler directFrameScheduler;
 static FILE* submissionOutput;
 static bool submissionFailed;
 static unsigned directComparisonFrame=UINT32_MAX;
@@ -159,7 +161,14 @@ struct DirectOperation {
   unsigned frame=0;uint32_t manager=0,selectionHeader[3]{};
   std::vector<uint32_t> selection;
   uint64_t cameraSequence=0,cameraEpoch=0,resourceEpoch=0;
+  winx_remix::FrameScheduler::Ticket frameTicket{};
+  bool lightsRequired=false;
+  scene_audit::DirectLightWitness lights;
 };
+static winx_remix::FrameScheduler::Context FrameContext(IDirect3DDevice9* device,const scene_geometry::Scope& scope) {
+  return {frameId,native_camera_source::deviceEpoch,reinterpret_cast<uintptr_t>(device),
+    scope.scene,scope.camera,scope.serial,sceneLightsEnabled&&!keepSceneLightsForComparison};
+}
 static bool OperationCurrent(const DirectOperation& operation) {
   if(submissionFailed||!directRunning||directRevision!=operation.revision||frameId!=operation.frame||
      scene_geometry::active!=operation.scope||directScope!=operation.serial||inputScope!=operation.serial||
@@ -193,6 +202,10 @@ static bool DirectMeshCurrent(const PreparedDirect& prepared) {
 static bool GroupCurrent(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,
                          const DirectOperation& operation,uint32_t support,const std::vector<uint32_t>& models,
                          const std::vector<PreparedDirect>& prepared) {
+  if(!directFrameScheduler.Current(operation.frameTicket,FrameContext(device,*operation.scope),[&] {
+    return OperationCurrent(operation)&&(!operation.lightsRequired||
+      scene_audit::CurrentSubmittedDirectLights(borrow,operation.lights));
+  }))return false;
   if(!OperationCurrent(operation)||operation.resourceEpoch!=SurfaceResourceEpoch()||
      !ModelSequenceCurrent(support,models)||prepared.empty()||
      !EmptyQueues(prepared.front().source.owner.renderer)||!DirectCameraNativeCurrent(*operation.scope))return false;
@@ -212,12 +225,27 @@ static void SubmitCurrent(const std::unique_lock<std::recursive_mutex>& borrow,s
   operation.cameraSequence=native_camera_source::selected.sequence;operation.cameraEpoch=native_camera_source::deviceEpoch;
   if(!Read(operation.manager+0x2c,operation.selectionHeader)||
      !scene_geometry::Vector(operation.manager,0x28,operation.selection)||!OperationCurrent(operation))return;
-  if(native_camera_source::submittedFrame!=frameId) {
-    native_camera_source::BeforeFirstSceneInstance(device,scope.scene,scope.camera);
-    operation.cameraSequence=native_camera_source::selected.sequence;
-  }
-  if(!DirectCameraCurrent(device,scope)||!OperationCurrent(operation)){++directCameraRejected;return;}
-  if(!EmptyQueues(first.owner.renderer)){++directQueueRejected;return;}
+  const auto frameContext=FrameContext(device,scope);
+  operation.lightsRequired=frameContext.apiLights;
+  operation.frameTicket=directFrameScheduler.Prepare(frameContext,[&] {
+    if(native_camera_source::submittedFrame!=frameId) {
+      native_camera_source::BeforeFirstSceneInstance(device,scope.scene,scope.camera);
+      operation.cameraSequence=native_camera_source::selected.sequence;
+    }
+    if(!DirectCameraCurrent(device,scope)||!OperationCurrent(operation)){++directCameraRejected;return false;}
+    if(!EmptyQueues(first.owner.renderer)){++directQueueRejected;return false;}
+    return true;
+  },[&] {
+    if(!operation.lightsRequired)return true;
+    PrepareSceneLightsForScene(device,scope.scene,scope.camera,[&] {
+      return FrameContext(device,scope)==frameContext&&OperationCurrent(operation)&&DirectCameraNativeCurrent(scope);
+    });
+    if(!OperationCurrent(operation)||!DirectCameraCurrent(device,scope)||!EmptyQueues(first.owner.renderer))return false;
+    // Full current registry and owned API witness, independent of any D3D draw.
+    // This proves the supported direct batch, not producer/ambient completeness.
+    return scene_audit::ReadSubmittedDirectLights(borrow,scope.scene,operation.lights);
+  },[&] {return FrameContext(device,scope)==frameContext&&OperationCurrent(operation);});
+  if(!operation.frameTicket.valid)return;
   const auto api=GetRemixApi();if(!api||!api->DrawInstance||!OperationCurrent(operation))return;
   // Keys and Inputs used across external calls are owned copies. Reentry may
   // clear the observer's map, so no iterator/reference into it may survive.

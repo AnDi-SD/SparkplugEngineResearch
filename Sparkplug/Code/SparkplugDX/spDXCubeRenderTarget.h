@@ -4,6 +4,7 @@
 // Z:\Sparkplug\Code\SparkplugDX\spDXCubeRenderTarget.cpp.
 
 #include "../Sparkplug/spCubeRenderTarget.h"
+#include "../../Analysis/Host/spRenderTargetSurfaceHost.h"
 
 #include <array>
 
@@ -34,6 +35,17 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static std::uint32_t ToD3DFormatForAnalysis(
             eTBPixelFormat pixelFormat) noexcept;
         [[nodiscard]] std::size_t GetReadyFaceCountForAnalysis() const noexcept;
+
+        // Original PC 004AC300 describes face zero once. Its width-only
+        // format arithmetic is the ordinary-target result multiplied by six.
+        // Original method name remains unknown; all products wrap at 32 bits.
+        [[nodiscard]] static std::uint32_t CalculateBackingTextureSizeForAnalysis(
+            const sparkplug::analysis::host::RenderTargetSurfaceDescription&
+                description) noexcept;
+        [[nodiscard]] static bool ReadBackingTextureSizeForAnalysis(
+            void* context,
+            sparkplug::analysis::host::RenderTargetSurfaceDescriptionReader reader,
+            std::uint32_t& size);
 
     private:
         bool cubeTextureReady_ = false;

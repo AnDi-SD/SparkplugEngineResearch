@@ -52,7 +52,9 @@ Signed bytes event прибавляются к float X/Y. Signed event type не
 сохраняет текущий wheel. X ограничивается интервалом `[-320, 320]`,
 Y — `[-224, 224]`. Current button/axis values затем копируются в previous
 snapshot. Последнее event определяет changed block; отсутствие устройств
-или events сохраняет старый packet.
+сохраняет старый packet. После успешного запроса информации X/Y/wheel уже
+обнулены, даже если очередь событий пуста; кнопки, changed packet и previous
+snapshot в этом случае сохраняются.
 
 Semaphore identifier, device count и reply bytes перечитываются в исходных
 точках. Completion callback также заново читает глобальный semaphore.

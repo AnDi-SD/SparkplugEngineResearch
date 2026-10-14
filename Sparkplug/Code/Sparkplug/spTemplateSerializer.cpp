@@ -105,8 +105,8 @@ namespace sparkplug::reconstruction
         }
         // Native reloads target +10 after ReadData: a foreign callback can
         // change the binding while the stream operation runs.
-        if (!target_ || std::find(header.begin() + 4, header.begin() + 0x44, 0)
-            == header.begin() + 0x44) return std::nullopt; // HOST domain guard.
+        if (!target_ || std::find(header.begin() + 4, header.end(), 0)
+            == header.end()) return std::nullopt; // HOST guard: bytes after the known header are unresolved.
         target_->SetField20ForAnalysis(word(0x48));
         (void)target_->SetName(reinterpret_cast<const char*>(header.data() + 4));
         return word(0x44);

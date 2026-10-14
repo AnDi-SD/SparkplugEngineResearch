@@ -111,8 +111,11 @@ reinit. Строки диагностик отдельно называют `Ren
 
 Удаление обычной цели (`0x0045CBC0`) и cube-цели (`0x0045CBF0`) не стирает
 узел из списка: у найденного узла байт `+0x0C` меняется на ноль. Portable manager
-сохраняет это наблюдаемое active/inactive поведение. Реализация третьего списка
-намеренно отложена до разбора владельца layer texture.
+сохраняет раздельные active/inactive списки, а также очищает borrowed pointer
+после деактивации как явно безопасную host-политику. Третий список уже связан с
+[spMaterialRenderTargetTexture](sp-material-render-target-texture.md):
+release/reinit проходят его per-pass target vector. Полное native intrusive
+владение backing textures ещё не заменено этим host-представлением.
 
 ## Original source anchors
 
@@ -132,18 +135,62 @@ reinit. Строки диагностик отдельно называют `Ren
 | `Init` | `0x004CDC70` | `0x004AC580` | `0x002098A0` |
 | `ReinitTargetsForDeviceReset` | `0x004CDBE0` | `0x004AC4F0` | `0x00209A20` |
 | `ReleaseTargetsForDeviceReset` | `0x004CDD60` | `0x004AC2A0` | `0x00209820` |
-| interface table | `0x006F33F8` | `0x006EF80C` | leaf group `0x00491CC0` |
+| secondary target vtable | `0x006F33F8` | `0x006EF80C` | leaf group `0x00491CC0` |
+| primary vtable | `0x006F3408` | `0x006EF81C` | — |
+| surface-size helper | `0x004CDB30` | `0x004AC300` | — |
 
-Обе PC interface tables содержат 13 записей. Их первые три slots точно
-соответствуют `Init`, `ReinitTargetsForDeviceReset` и
-`ReleaseTargetsForDeviceReset`; остальные имена не выводятся только из порядка.
+PC-группа из 13 последовательных адресов содержит две таблицы: четыре записи
+secondary target-интерфейса и девять записей primary-интерфейса объекта.
+Записи `vptr` в объекте подтверждают границу после первых четырёх адресов;
+13 записей не являются 13 отдельными target-операциями.
+
+Первые три secondary slots — `Init`, `ReinitTargetsForDeviceReset` и
+`ReleaseTargetsForDeviceReset`. Четвёртый переводит interface pointer в complete
+object pointer, вычитая `0x14`, и деактивирует цель в ordinary или cube списке
+менеджера. Его оригинальное имя не установлено. Primary-группа содержит
+destructor, notification, clone, RTTI и resource-операции. Исходные имена
+дополнительных resource slots не определяются одним расположением адресов.
+
+## Значение размера backing texture на PC
+
+`0x004CDB30` получает `D3DSURFACE_DESC` обычной level-zero surface;
+`0x004AC300` получает тот же descriptor только у cube face zero. Оба метода
+используют ширину из descriptor и игнорируют высоту:
+
+| `D3DFORMAT` | Ordinary result |
+| --- | --- |
+| `0x15`, `0x16` | `width * 4` |
+| `0x17`, `0x1A` | `width * 2` |
+| DXT1 (`0x31545844`) | `max(1, width >> 2) * 8` |
+| DXT3, DXT5 (`0x33545844`, `0x35545844`) | `max(1, width >> 2) * 16` |
+| Остальные значения, включая `0x18`, `0x19` | `width` |
+
+Cube result равен ordinary result, умноженному на шесть. Все действия
+32-битные, с переполнением по модулю `2^32`; округления DXT вверх нет.
+Например, DXT1 при ширине `7` возвращает `8` для ordinary и `48` для cube.
+Эти значения передаются initializer-у backing texture. Это не полный объём
+изображения, не сумма mip-уровней и не формула `width * height`.
+
+Оригинал не проверяет результат `GetDesc`. Неуспешный HRESULT при всё же
+записанном descriptor не меняет арифметику. Если descriptor не заполнен,
+оригинальная функция читает неопределённые stack bytes. Общие исходники
+сохраняют арифметику и предоставляют
+[явный host-reader](../../../Sparkplug/Analysis/Host/spRenderTargetSurfaceHost.h)
+для получения initialized descriptor. Отсутствующий reader или незаполненный
+descriptor возвращает отказ host-слоя, сохраняя выходной аргумент; успешного
+backend по умолчанию у этого нового пути нет.
+
+Обычная цель и кубическая цель пока моделируют `Init` bool-состояниями backend.
+Измерение настоящей surface не означает завершённое восстановление всего
+CreateTexture/GetSurfaceLevel либо CreateCubeTexture/GetCubeMapSurface пути.
 
 ## Что остаётся неизвестным
 
 - исходный тип backing/cube texture relationships по `+0x18/+0x28`;
-- original names/signatures десяти остальных target-interface slots;
+- original name четвёртого secondary target slot и имена дополнительных
+  primary resource slots;
 - точный PC allocation size там, где factory закрыта `.rld`;
-- класс и lifecycle третьего `LayerRenderTarget` списка;
+- полное intrusive/COM владение backing textures и отказные ветви device API;
 - связь target creation с material passes и фактическими renderer slots 0/1;
 - полные имена `eTBPixelFormat` enumerator-ов.
 

@@ -4,6 +4,7 @@
 // Z:\Sparkplug\Code\SparkplugDX\spDXRenderTarget.cpp.
 
 #include "../Sparkplug/spRenderTarget.h"
+#include "../../Analysis/Host/spRenderTargetSurfaceHost.h"
 
 namespace sparkplug::reconstruction
 {
@@ -30,6 +31,18 @@ namespace sparkplug::reconstruction
             eTBPixelFormat pixelFormat) noexcept;
         [[nodiscard]] static std::uint32_t ToD3DFormatForAnalysis(
             eTBPixelFormat pixelFormat) noexcept;
+
+        // Original PC 004CDB30: GetDesc on the acquired level-zero surface,
+        // then width-only format arithmetic. Original method name unknown.
+        // The result is the value passed to the backing texture initializer,
+        // not a width*height allocation or a mip-chain storage estimate.
+        [[nodiscard]] static std::uint32_t CalculateBackingTextureSizeForAnalysis(
+            const sparkplug::analysis::host::RenderTargetSurfaceDescription&
+                description) noexcept;
+        [[nodiscard]] static bool ReadBackingTextureSizeForAnalysis(
+            void* context,
+            sparkplug::analysis::host::RenderTargetSurfaceDescriptionReader reader,
+            std::uint32_t& size);
 
     protected:
         using spRenderTarget::spRenderTarget;

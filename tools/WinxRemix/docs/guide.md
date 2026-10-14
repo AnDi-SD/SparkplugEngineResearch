@@ -124,6 +124,81 @@ INI и штатным `startLevel=N` (1–37, 41–49). Установленны
 Это запуск уровня, не возврат к произвольным координатам.
 `-Windowed` требует `-StartLevel` для изоляции настройки.
 
+Отдельная рабочая папка изолирует INI. Каталог игровых ресурсов и `Saved`
+оригинал выбирает через [MediaPath](../../../docs/game/assets/resource-loading.md)
+в 32-битном реестре Windows; копия EXE
+рядом с другим `Media` сама по себе этот выбор не меняет. Launcher не меняет
+реестр и не перенаправляет этот указатель в памяти игры.
+
+`-LightWorldObserver` у `Run-WinxRemix.ps1` и `Start-Probe.ps1` включает
+пассивное наблюдение исходных light world вызовов. Нужен проверенный `-DebugMenu`;
+автоматически включаются `NativeUpdateSource` и `NativeCameraSource`.
+Camera submit, `SceneLights` и Remix API этому наблюдателю не требуются:
+допустимы `-Mode Original` и `-Backend system`.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Run-WinxRemix.ps1 -Mode Original -DebugMenu -LightWorldObserver -StartLevel 4 -Windowed
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Start-Probe.ps1 -Name fresh-light-world -Backend system -DebugMenu -LightWorldObserver
+```
+
+В папке запуска создаётся `light-world-observer.jsonl` с лимитом 16 МиБ;
+последняя ограниченная строка может пересечь границу. Журнал связывает
+before/after bytes с завершёнными известными Root/Manager. В конце кадра
+свежий loaded light registry для сцен с текущими tokens известного Root
+даёт per-light status/type/enabled,
+`worldPositionBits`, `cachedRangeBits` и counts. `Current` — совпадение post-call bytes при
+текущих guards; `Changed` — изменение байтов; `NotObserved` — отсутствие
+sample в этом scope; `Unqualified` — отказ квалификации. `NotObserved` не
+доказывает пропуск обновления. Observer не исправляет dirty flags и не
+подтверждает lifetime, свежесть всех producers или правильность RT-освещения.
+Для наблюдавшихся обычных point lights за основной камерой подтверждены
+вызов исходного world entry и совпадение их записей в полном реестре с post-call bytes
+в текущем завершённом Root/Manager. Видимый receiver, область влияния света,
+полнота всех producers, штатное завершение игры и результат Remix этим не
+подтверждены. Устройство startup hook и CPU-проверки описаны в
+[development](development.md). Полный игровой/GPU-сценарий и цикл Toolkit
+для этого наблюдателя ещё не квалифицированы.
+
+После завершения процесса анализатор сопоставляет журнал света с packet исходной
+камеры и диагностикой кадра. Запускайте его для закрытой папки запуска и нового
+выходного файла:
+
+```powershell
+python tools/WinxRemix/analyze_light_world_observer.py local-data/rtx-remix/runs/fresh-light-world --output artifacts/WinxRemix/fresh-light-world-analysis.json
+```
+
+Сопоставление требует одинаковых frame/scene, единственного camera packet и
+стабильной диагностики этого кадра; ближайшая камера другого кадра не используется.
+В зачёт наблюдавшегося включённого источника за камерой входят только enabled
+`Current` point/spot. Cached position других observer statuses остаётся
+отдельной диагностикой; directional/ambient не классифицируются по позиции.
+Отсутствующая или неоднозначная камера, неактуальная диагностика кадра либо
+нечисловые значения дают `Unqualified`.
+В режиме Original/system `native=false`/`accepted=false` в camera packet допустимы:
+исходные матрицы наблюдались, API submit не выполнялся.
+Классификация использует cached world position и исходные row-vector матрицы
+с численным допуском; она не доказывает влияние света или соответствие GPU.
+
+`cachedRangeBits` содержит слово исходного DX cache без повторного вычисления.
+Отдельная диагностика для связанного с камерой enabled `Current` point с
+конечным положительным range проверяет, целиком ли cached сфера лежит за
+плоскостью камеры, учитывая масштаб view. Пересечение и касание получают
+отдельные результаты. Range-счётчики событий, пар frame/scene и адресных ключей
+отделены от origin-счётчиков. Старый журнал без этого поля получает
+`MissingCachedRange`, сохраняя анализ origin. Объём spot не квалифицирован;
+cached сфера не доказывает RT-форму света, влияние на receiver, тени или
+свежесть RT-данных.
+
+Отчёт отдельно считает события, пары frame/scene и ключи адресов сцены.
+Адресный ключ не является persistent ID или точным числом разных объектов.
+Анализ сохраняет hash всех исходных байтов и автоматически отмечает
+распознанный незавершённый JSON-префикс только в последнем хвосте;
+завершённый JSON без последнего перевода строки учитывается. Повреждённые
+завершённые или внутренние строки отклоняются. Поддерживается ограниченный
+журнал 16 МиБ с последней строкой до 64 КиБ за границей.
+Семантика и проверки анализатора описаны в
+[development](development.md).
+
 ### Проверка передачи шейдеров
 
 `-ShaderAudit` у `Run-WinxRemix.ps1` или `Start-Probe.ps1` включает отдельный

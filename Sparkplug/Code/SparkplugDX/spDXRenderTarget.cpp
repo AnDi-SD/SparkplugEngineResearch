@@ -102,4 +102,54 @@ namespace sparkplug::reconstruction
         default: return 0;
         }
     }
+
+    std::uint32_t spDXRenderTarget::CalculateBackingTextureSizeForAnalysis(
+        const sparkplug::analysis::host::RenderTargetSurfaceDescription&
+            description) noexcept
+    {
+        // All operations deliberately remain uint32_t, matching the original
+        // x86 wrapping arithmetic. Height is never consumed by PC 004CDB30.
+        switch (description.format)
+        {
+        case 0x15:
+        case 0x16:
+            return description.width * 4u;
+        case 0x17:
+        case 0x1A:
+            return description.width * 2u;
+        case 0x31545844:
+        {
+            const auto blocks = description.width >> 2;
+            return (blocks < 1u ? 1u : blocks) * 8u;
+        }
+        case 0x33545844:
+        case 0x35545844:
+        {
+            const auto blocks = description.width >> 2;
+            return (blocks < 1u ? 1u : blocks) * 16u;
+        }
+        default:
+            // Original pass-through includes 0x18/0x19 and unknown formats.
+            return description.width;
+        }
+    }
+
+    bool spDXRenderTarget::ReadBackingTextureSizeForAnalysis(
+        void* const context,
+        const sparkplug::analysis::host::RenderTargetSurfaceDescriptionReader
+            reader,
+        std::uint32_t& size)
+    {
+        if (reader == nullptr)
+        {
+            return false;
+        }
+        sparkplug::analysis::host::RenderTargetSurfaceDescription description{};
+        if (!reader(context, description))
+        {
+            return false;
+        }
+        size = CalculateBackingTextureSizeForAnalysis(description);
+        return true;
+    }
 }

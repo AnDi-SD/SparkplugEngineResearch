@@ -99,6 +99,7 @@
 - [spDXMouse](sp-dx-mouse.md).
 - [spDXSharedMeshData](sp-dx-shared-mesh-data.md).
 - [spDXTextureDataSerializer](sp-dx-texture-data-serializer.md).
+- [spDXTextureManager](sp-dx-texture-manager.md).
 - [spDXVertexDeclaration / spPCVertexDeclaration](sp-vertex-declaration.md).
 - [spEngineCore](sp-engine-core.md).
 - [spEngineCore / wxEngineCore](wx-engine-core.md).
@@ -223,6 +224,7 @@
 - [spTextureBuffer](sp-texture-buffer.md).
 - [spTextureData](sp-texture-data.md).
 - [spTextureDataSerializer](sp-texture-data-serializer.md).
+- [spTextureManager](sp-texture-manager.md).
 - [spThread](sp-thread.md).
 - [spTimer](sp-timer.md).
 - [spTransformConstEval](sp-transform-const-eval.md).

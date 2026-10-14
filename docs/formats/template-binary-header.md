@@ -27,8 +27,12 @@ The original trusts the stream's return value and has no actual-length check.
 A stream that returns true after copying fewer than `0x4C` bytes exposes the
 unwritten fields as their initial zeros. This behavior differs from a stream
 that reports the same short read as false and is preserved by the portable
-header operation. The supported host domain requires a name terminator inside
-the 64-byte name field.
+header operation. The original name setter has no field-length parameter: a
+name without a terminator in its 64-byte field can continue into the following
+count and word. The supported host domain accepts a terminator anywhere in
+those 72 known bytes. The count and word retain their original bytes; a header
+with no terminator in that complete region requires unknown following stack
+bytes and is rejected by the host boundary.
 
 Implementation and platform entry points are described in
 [`spTemplateSerializer`](../reference/classes/sp-template-serializer.md).

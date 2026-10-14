@@ -98,6 +98,7 @@
 - [PC Material → ColorController → frame gate](engine/materials/material-color-graph.md).
 - [PC material-state translation](engine/materials/material-state-map.md).
 - [PC material: exact ABI, scalar codec and pass ownership](engine/materials/material-scalar.md).
+- [PC pixel shader classes](engine/materials/pixel-shader.md).
 - [PC RFX constants and pass persistence](engine/materials/rfx-constants.md).
 - [PC RFX variable producer and ownership](engine/materials/rfx-variables.md).
 - [PC RFX: файл, regex, ID, имя и создание template](engine/materials/rfx-file.md).
@@ -427,6 +428,7 @@
 - [spDXMouse](reference/classes/sp-dx-mouse.md).
 - [spDXSharedMeshData](reference/classes/sp-dx-shared-mesh-data.md).
 - [spDXTextureDataSerializer](reference/classes/sp-dx-texture-data-serializer.md).
+- [spDXTextureManager](reference/classes/sp-dx-texture-manager.md).
 - [spDXVertexDeclaration / spPCVertexDeclaration](reference/classes/sp-vertex-declaration.md).
 - [spEngineCore](reference/classes/sp-engine-core.md).
 - [spEngineCore / wxEngineCore](reference/classes/wx-engine-core.md).
@@ -551,6 +553,7 @@
 - [spTextureBuffer](reference/classes/sp-texture-buffer.md).
 - [spTextureData](reference/classes/sp-texture-data.md).
 - [spTextureDataSerializer](reference/classes/sp-texture-data-serializer.md).
+- [spTextureManager](reference/classes/sp-texture-manager.md).
 - [spThread](reference/classes/sp-thread.md).
 - [spTimer](reference/classes/sp-timer.md).
 - [spTransformConstEval](reference/classes/sp-transform-const-eval.md).

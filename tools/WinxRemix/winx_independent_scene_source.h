@@ -120,19 +120,22 @@ static bool HierarchyCurrent(uint32_t object,const native_update_source::Witness
   }
   return false;
 }
-static bool WorldInput(Input& input,const abi::spRenderSupportObservedLayout& support) {
+// Share native input qualification with passive diagnostics without charging
+// their failures to the independent submission adapter's accounting.
+template<class Rejection>
+static bool ReadWorldInput(Input& input,const abi::spRenderSupportObservedLayout& support,const Rejection& reject) {
   auto& owner=input.owner;
-  if(!native_owner_source::SupportIdentity(owner,support))return Reject(Support);
+  if(!native_owner_source::SupportIdentity(owner,support))return reject(Support);
   if(support.vtable==abi::spRenderNodeSupportVTable) {
     abi::spRenderNodeLayout node{};
     if(!Read(owner.object,node)||(node.prefix.base.flags&0x300007)||
-       !(node.prefix.base.flags&0x200))return Reject(World);
+       !(node.prefix.base.flags&0x200))return reject(World);
     // CP12: these are reciprocal partition membership/lifecycle listeners,
     // not Model Pre/Post callbacks. Ordinary registered nodes have entries.
     // Their native update/Enabled/transfer/destruction notifications stay intact.
     if(node.callbackBegin>node.callbackEnd||node.callbackEnd>node.callbackCapacity||
-       (node.callbackEnd-node.callbackBegin)%4||node.callbackEnd-node.callbackBegin>4096*4)return Reject(Registry);
-    if(!HierarchyCurrent(owner.object,input.witness))return Reject(Hierarchy);
+       (node.callbackEnd-node.callbackBegin)%4||node.callbackEnd-node.callbackBegin>4096*4)return reject(Registry);
+    if(!HierarchyCurrent(owner.object,input.witness))return reject(Hierarchy);
     abi::node_math::Vector3 position{},scale{},inverseScale{};abi::node_math::Matrix3 orientation{};
     memcpy(position.data(),node.prefix.base.cachedWorldPosition,sizeof(position));
     memcpy(scale.data(),node.prefix.base.cachedWorldScale,sizeof(scale));
@@ -140,7 +143,7 @@ static bool WorldInput(Input& input,const abi::spRenderSupportObservedLayout& su
     memcpy(inverseScale.data(),node.inverseWorldScale,sizeof(inverseScale));
     if(!abi::render_node_math::Finite(position)||!abi::render_node_math::Finite(scale)||
        !abi::render_node_math::Finite(orientation)||!abi::render_node_math::Finite(inverseScale)||
-       !scale[0]||!scale[1]||!scale[2])return Reject(World);
+       !scale[0]||!scale[1]||!scale[2])return reject(World);
     input.computedWorld=(node.matrixDirty&1)!=0;
     if(input.computedWorld) {
       const auto world=abi::node_math::Affine(position,orientation,scale);
@@ -149,8 +152,11 @@ static bool WorldInput(Input& input,const abi::spRenderSupportObservedLayout& su
     } else {
       memcpy(&owner.world,node.worldMatrix,sizeof(owner.world));memcpy(&input.inverse,node.inverseWorldMatrix,sizeof(input.inverse));
     }
-  } else if(!Read(support.worldMatrixPointer,owner.world)||!Read(support.inverseMatrixPointer,input.inverse))return Reject(World);
-  return Finite(owner.world)&&Finite(input.inverse)?true:Reject(World);
+  } else if(!Read(support.worldMatrixPointer,owner.world)||!Read(support.inverseMatrixPointer,input.inverse))return reject(World);
+  return Finite(owner.world)&&Finite(input.inverse)?true:reject(World);
+}
+static bool WorldInput(Input& input,const abi::spRenderSupportObservedLayout& support) {
+  return ReadWorldInput(input,support,Reject);
 }
 static bool MaterialInput(Input& input,const abi::spModelLayout& model,uint32_t device,uint8_t outerOverride) {
   abi::spDXMaterialObservedLayout material{};

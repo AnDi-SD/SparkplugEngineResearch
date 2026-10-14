@@ -18,6 +18,7 @@
 - [PC Material → ColorController → frame gate](material-color-graph.md).
 - [PC material-state translation](material-state-map.md).
 - [PC material: exact ABI, scalar codec and pass ownership](material-scalar.md).
+- [PC pixel shader classes](pixel-shader.md).
 - [PC RFX constants and pass persistence](rfx-constants.md).
 - [PC RFX variable producer and ownership](rfx-variables.md).
 - [PC RFX: файл, regex, ID, имя и создание template](rfx-file.md).

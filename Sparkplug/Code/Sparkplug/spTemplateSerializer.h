@@ -50,8 +50,10 @@ namespace sparkplug::reconstruction
         // reports failure. ReadData's boolean is used without a byte-count
         // check, including successful partial reads. No descriptor parser is
         // implied by this bounded header operation.
-        // Null host bindings or a name without a terminator inside its 64-byte
-        // field return no result; those unsafe native domains are not emulated.
+        // Named SetName has no field-length parameter. Its known name bytes
+        // include the following count/word, up to the end of the 0x4C header.
+        // Null bindings or no terminator in those 72 known bytes give no result;
+        // bytes beyond the local header are unresolved in this host boundary.
         [[nodiscard]] std::optional<std::uint32_t> ReadBinaryHeaderForAnalysis();
 
         // HOST forwarding for the original invalid-magic diagnostic. Its

@@ -149,7 +149,7 @@ namespace
     { for (std::uint32_t i = 0; i < 4; ++i) bytes[at + i] = static_cast<std::uint8_t>(word >> (8 * i)); }
     void HeaderCase(std::uint32_t id, bool emit)
     {
-        Check(id < 20, "bounded binary-header case");
+        Check(id < 25, "bounded binary-header case");
         spTemplate target, alternate;
         target.SetName("old-target"); target.SetField20ForAnalysis(0xABCDEF01);
         alternate.SetName("old-alternate"); alternate.SetField20ForAnalysis(0x10203040);
@@ -164,6 +164,16 @@ namespace
         std::memcpy(stream.bytes.data() + 4, name.data(), name.size());
         PutWord(stream.bytes, 0x44, id == 1 ? 0 : id == 2 ? 0xFFFFFFFF : 3);
         PutWord(stream.bytes, 0x48, 0x76543210);
+        if (id >= 20)
+        {
+            static constexpr std::uint32_t tailWords[5][2]{
+                {0, 0x76543210}, {0x00000041, 0x76543210},
+                {0x00424344, 0x76543210}, {0x41424344, 0x00000045},
+                {0x41424344, 0x00454647}};
+            std::fill(stream.bytes.begin() + 4, stream.bytes.begin() + 0x44, 'x');
+            PutWord(stream.bytes, 0x44, tailWords[id - 20][0]);
+            PutWord(stream.bytes, 0x48, tailWords[id - 20][1]);
+        }
         if (id == 6 || id == 18) PutWord(stream.bytes, 0, 0x12345678);
         stream.available = spTemplateSerializer::BinaryHeaderSize;
         if (id == 8) stream.available = 0;
@@ -212,6 +222,21 @@ namespace
                 && std::strcmp(target.GetName(), "") == 0,
                 "successful four-byte short read uses zero-filled name/count/word");
             if (id == 19) Check(stream.copied == 0x4C, "header consumes no trailing descriptor bytes");
+            if (id >= 20)
+            {
+                const auto start = stream.bytes.begin() + 4;
+                const auto terminator = std::find(start, stream.bytes.begin() + 0x4C, 0);
+                const std::string expectedName(start, terminator);
+                static constexpr unsigned lengths[]{64, 65, 67, 69, 71};
+                Check(expectedName.size() == lengths[id - 20] &&
+                    std::strcmp(target.GetName(), expectedName.c_str()) == 0,
+                    "original CString consumes known count/word bytes after the name field");
+                const auto word = [&](unsigned offset)
+                { return std::uint32_t(stream.bytes[offset]) | (std::uint32_t(stream.bytes[offset+1])<<8)
+                    | (std::uint32_t(stream.bytes[offset+2])<<16) | (std::uint32_t(stream.bytes[offset+3])<<24); };
+                Check(*result == word(0x44) && target.GetField20ForAnalysis() == word(0x48),
+                    "count and word retain full original bytes used by the name");
+            }
         }
     }
     void HeaderHostGuards()
@@ -225,7 +250,7 @@ namespace
         Check(!serializer.ReadBinaryHeaderForAnalysis().has_value(), "missing target after read remains unknown");
         serializer.BindForAnalysis(&target, &stream);
         Check(!serializer.ReadBinaryHeaderForAnalysis().has_value() && target.GetField20ForAnalysis() == 0xAABBCCDD,
-            "host domain guard does not scan an unterminated 64-byte name or claim native atomicity");
+            "host domain guard does not scan past the complete unterminated known header or claim native atomicity");
     }
 }
 int main(int argc, char** argv)
@@ -238,7 +263,7 @@ int main(int argc, char** argv)
         { HeaderCase(static_cast<std::uint32_t>(std::stoul(argv[2])), true); return 0; }
         for (std::uint32_t id = 0; id < 20; ++id) Case(id, false);
         OwnershipAndUnknowns();
-        for (std::uint32_t id = 0; id < 20; ++id) HeaderCase(id, false);
+        for (std::uint32_t id = 0; id < 25; ++id) HeaderCase(id, false);
         HeaderHostGuards();
         std::cout << "PASS " << checks << "/" << checks << ": template descriptor copy, dependency graph, ownership and binary header\n";
         return 0;

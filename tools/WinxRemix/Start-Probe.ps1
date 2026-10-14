@@ -35,6 +35,8 @@ param(
     [switch]$SkinSubmit,
     [string]$SkinShaderContracts,
     [switch]$NativeUpdateSource,
+    [switch]$LightWorldObserver,
+    [switch]$GeometrySnapshotObserver,
     [switch]$IndependentSceneSource,
     [switch]$IndependentSceneSubmit,
     [switch]$SelectedSceneSubmit,
@@ -62,6 +64,11 @@ if ($SkinSubmit) {
 if ($NativeLightSubmit) { $NativeLightSource=$true }
 if ($NativeLightSource) { $SceneLights=$true }
 if ($SkinDrawAudit) { $NativeSkinPackets=$true; $NativeUpdateSource=$true }
+if ($LightWorldObserver) { $NativeUpdateSource=$true; if(-not $DebugMenu) { throw 'LightWorldObserver requires the hash-verified DebugMenu executable' } }
+if ($GeometrySnapshotObserver) {
+    if (-not $DebugMenu) { throw 'GeometrySnapshotObserver requires the hash-verified DebugMenu executable' }
+    $NativeMeshSource=$true; $NativeCameraSource=$true; $NativeUpdateSource=$true
+}
 if ($NativeSkinPackets) { $NativeSkinSource=$true; $ShaderSemantics=$true }
 if ($NativeSkinSource) { $NativeOwnerSource=$true }
 if ($SelectedSceneSubmit) { $IndependentSceneSubmit=$true }
@@ -231,7 +238,7 @@ $values = @{
     WINX_REMIX_NATIVE_CAMERA_SUBMIT=$(if ($NativeCameraSubmit) { '1' } else { '0' })
     WINX_REMIX_NATIVE_MATERIAL_SOURCE=$(if ($NativeMaterialSource) { Join-Path $run 'native-material-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_MATERIAL_SUBMIT=$(if ($NativeMaterialSubmit) { '1' } else { '0' })
-    WINX_REMIX_NATIVE_OWNER_SOURCE=$(if ($NativeOwnerSource) { Join-Path $run 'native-owner-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_OWNER_SOURCE=$(if ($NativeOwnerSource -or $GeometrySnapshotObserver) { Join-Path $run 'native-owner-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_SOURCE=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-source.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_VERTICES=$(if ($NativeSkinSource) { Join-Path $run 'native-skin-vertices.jsonl' } else { $null })
     WINX_REMIX_NATIVE_SKIN_PACKETS=$(if ($NativeSkinPackets) { Join-Path $run 'skin-packets' } else { $null })
@@ -239,11 +246,13 @@ $values = @{
     WINX_REMIX_SKIN_SHADER_CONTRACT=$(if ($SkinDrawAudit) { Join-Path $run 'skin-shaders.wsf' } else { $null })
     WINX_REMIX_SKIN_SUBMIT=$(if ($SkinSubmit) { '1' } else { $null })
     WINX_REMIX_NATIVE_UPDATE_SOURCE=$(if ($NativeUpdateSource) { Join-Path $run 'native-update-source.jsonl' } else { $null })
+    WINX_REMIX_LIGHT_WORLD_OBSERVER=$(if ($LightWorldObserver) { Join-Path $run 'light-world-observer.jsonl' } else { $null })
+    WINX_REMIX_GEOMETRY_SNAPSHOT_OBSERVER=$(if ($GeometrySnapshotObserver) { Join-Path $run 'geometry-snapshot-observer.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SOURCE=$(if ($IndependentSceneSource) { Join-Path $run 'independent-scene-source.jsonl' } else { $null })
     WINX_REMIX_INDEPENDENT_SCENE_SUBMIT=$(if ($IndependentSceneSubmit) { Join-Path $run 'independent-scene-submit.jsonl' } else { $null })
     WINX_REMIX_SELECTED_SCENE_SUBMIT=$(if ($SelectedSceneSubmit) { Join-Path $run 'selected-scene-submit.jsonl' } else { $null })
     REMIX_BRIDGE_INSTANCE_AUDIT=$(if ($BridgeInstanceAudit) { Join-Path $run 'renderer-instance-audit.jsonl' } else { $null })
-    WINX_REMIX_NATIVE_TRANSPORT_SOURCE=$(if ($IndependentSceneSource -or $NativeSkinPackets) { Join-Path $run 'native-transport-source.jsonl' } else { $null })
+    WINX_REMIX_NATIVE_TRANSPORT_SOURCE=$(if ($IndependentSceneSource -or $NativeSkinPackets -or $GeometrySnapshotObserver) { Join-Path $run 'native-transport-source.jsonl' } else { $null })
     WINX_REMIX_SCENE_AUDIT=$(if ($SceneAudit) { Join-Path $run 'scene-audit.jsonl' } else { $null })
     WINX_REMIX_SCENE_LIGHTS=$(if ($SceneLights) { '1' } else { '0' })
     WINX_REMIX_NATIVE_LIGHT_SOURCE=$(if ($NativeLightSource) { Join-Path $run 'native-light-source.jsonl' } else { $null })
@@ -283,7 +292,7 @@ try {
         nativeCameraSubmit=$NativeCameraSubmit.IsPresent
         nativeMaterialSource=$NativeMaterialSource.IsPresent
         nativeMaterialSubmit=$NativeMaterialSubmit.IsPresent
-        nativeOwnerSource=$NativeOwnerSource.IsPresent
+        nativeOwnerSource=($NativeOwnerSource.IsPresent -or $GeometrySnapshotObserver.IsPresent)
         nativeSkinSource=$NativeSkinSource.IsPresent
         nativeSkinPackets=$NativeSkinPackets.IsPresent
         skinDrawAudit=$SkinDrawAudit.IsPresent
@@ -291,6 +300,8 @@ try {
         skinShaderContractsSha256=$(if ($SkinDrawAudit) { (Get-FileHash -LiteralPath (Join-Path $run 'skin-shaders.wsf')).Hash } else { $null })
         sceneObserveOnly=$skinPacketSystemCapture
         nativeUpdateSource=$NativeUpdateSource.IsPresent
+        lightWorldObserver=$LightWorldObserver.IsPresent
+        geometrySnapshotObserver=$GeometrySnapshotObserver.IsPresent
         independentSceneSource=$IndependentSceneSource.IsPresent
         independentSceneSubmit=$IndependentSceneSubmit.IsPresent
         selectedSceneSubmit=$SelectedSceneSubmit.IsPresent

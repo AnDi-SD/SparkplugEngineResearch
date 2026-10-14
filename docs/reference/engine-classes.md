@@ -88,7 +88,7 @@
 | `spDXMeshDataSerializer` | `0x77006ABE` | Да | Да | [1](classes/sp-dx-mesh-data-serializer.md) | [spDXMeshDataSerializer.h](../../Sparkplug/Code/Sparkplug/spDXMeshDataSerializer.h) |
 | `spDXMeshSerializer` | `0xE712BCAD` | Да | — | [1](classes/sp-dx-mesh-serializer.md) | [spDXMeshSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXMeshSerializer.h) |
 | `spDXMirrorLayer` | `0x39FA6E0B` | Да | — | — | — |
-| `spDXMouse` | `0x72F650C7` | Да | — | — | — |
+| `spDXMouse` | `0x72F650C7` | Да | — | [1](classes/sp-dx-mouse.md) | [spDXMouse.h](../../Sparkplug/Code/SparkplugPC/spDXMouse.h), [spDXMouse.cpp](../../Sparkplug/Code/SparkplugPC/spDXMouse.cpp) |
 | `spDXNetwork` | `0x41FB6C73` | Да | — | [1](classes/sp-dx-network.md) | [spDXNetwork.h](../../Sparkplug/Code/SparkplugDX/spDXNetwork.h) |
 | `spDXPixelShader` | `0x2B5D52DF` | Да | — | — | — |
 | `spDXRenderer` | `0x46004EE1` | Да | — | [1](classes/sp-renderer.md) | [spDXRenderer.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer.h) |
@@ -291,7 +291,7 @@
 | `spPS2Texture` | `0x50346B2F` | — | Да | — | — |
 | `spPS2TextureDataSerializer` | `0x43C76799` | Да | Да | [1](classes/sp-ps2-texture-data-serializer.md) | [spPS2TextureDataSerializer.h](../../Sparkplug/Code/Sparkplug/spPS2TextureDataSerializer.h) |
 | `spPS2TextureManager` | `0x218C433B` | — | Да | — | — |
-| `spPS2VideoStream` | `0x15747650` | — | Да | — | — |
+| `spPS2VideoStream` | `0x15747650` | — | Да | [1](classes/sp-ps2-video-stream.md) | [spPS2VideoStream.h](../../Sparkplug/Code/SparkplugPS2/spPS2VideoStream.h), [spPS2VideoStream.cpp](../../Sparkplug/Code/SparkplugPS2/spPS2VideoStream.cpp) |
 | `spPS2VRAMCacheManager` | `0x377D0E32` | — | Да | — | — |
 | `spPyramidProjection` | `0x1CCA7732` | Да | Да | — | — |
 | `spPyramidProjectionSerializer` | `0x22F43149` | Да | Да | — | — |
@@ -337,7 +337,7 @@
 | `spSubtitleTrack` | `0x0FD11616` | Да | Да | [1](classes/sp-subtitle-track.md) | [spSubtitleTrack.h](../../Sparkplug/Code/Sparkplug/spSubtitleTrack.h) |
 | `spSystemSettings` | `0x6A265B0E` | Да | — | [1](classes/sp-system-settings.md) | [spSystemSettings.h](../../Sparkplug/Code/Sparkplug/spSystemSettings.h) |
 | `spTaskTimer` | `0x1ACD36E2` | Да | Да | [1](classes/sp-task-timer.md) | [spTaskTimer.h](../../Sparkplug/Code/Sparkplug/spTaskTimer.h) |
-| `spTemplate` | `0x6D86570A` | Да | Да | — | — |
+| `spTemplate` | `0x6D86570A` | Да | Да | [1](classes/sp-template.md) | [spTemplate.h](../../Sparkplug/Code/Sparkplug/spTemplate.h), [spTemplate.cpp](../../Sparkplug/Code/Sparkplug/spTemplate.cpp) |
 | `spTemplateInstance` | `0x1F6A7DA5` | Да | Да | [1](classes/sp-template-instance.md) | [spTemplateInstance.h](../../Sparkplug/Code/Sparkplug/spTemplateInstance.h) |
 | `spTemplateManager` | `0x04BB6643` | Да | Да | [1](classes/sp-template-manager.md) | [spTemplateManager.h](../../Sparkplug/Code/Sparkplug/spTemplateManager.h) |
 | `spTemplateObject` | `0x014E1394` | Да | Да | [1](classes/sp-template-object.md) | [spTemplateObject.h](../../Sparkplug/Code/Sparkplug/spTemplateObject.h) |

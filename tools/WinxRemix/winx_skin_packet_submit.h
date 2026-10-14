@@ -59,13 +59,7 @@ template<class Current> inline DrawResult DrawQualified(remixapi_MeshHandle mesh
     if(influences>8||!transforms||transforms->empty()||transforms->size()>256)return result;
     for(const auto& matrix:*transforms)for(const auto& row:matrix.matrix)for(float value:row)if(!std::isfinite(value))return result;
   }else if(transforms)return result;
-  bool foundMesh=false,foundMaterial=false;
-  for(auto& item:surfaceMeshes)if(item.second.handle==mesh&&item.second.material==material&&item.second.usable&&item.second.influences==influences){
-    if(influences&&transforms->size()<item.second.requiredBones)return result;
-    item.second.frame=frameId;foundMesh=true;break;}
-  for(auto& item:surfaceMaterials)if(item.second.handle==material&&item.second.usable){
-    item.second.frame=frameId;foundMaterial=true;break;}
-  if(!foundMesh||!foundMaterial)return result;
+  if(!surfaceResources.TouchForDraw(mesh,material,influences,transforms?transforms->size():0))return result;
   D3DMATRIX identity{};for(unsigned i=0;i<4;++i)identity.m[i][i]=1;
   remixapi_InstanceInfoBlendEXT blend{};remixapi_InstanceInfo instance{};state.channels=true;
   if(!DescribeSurfaceInstance(state,contract,identity,mesh,blend,instance)||!operation.Stable())return result;
@@ -77,7 +71,7 @@ template<class Current> inline DrawResult DrawQualified(remixapi_MeshHandle mesh
   try {if(!current()||!operation.Stable())return result;}catch(const std::bad_alloc&){return result;}
   result.apiCalled=true;
   try {result.apiSucceeded=api->DrawInstance(&instance)==REMIXAPI_ERROR_CODE_SUCCESS;}
-  catch(const std::bad_alloc&){++surfaceResourceFailures;}
+  catch(const std::bad_alloc&){surfaceResources.RecordFailure();}
   result.stateStable=operation.Stable();return result;
 }
 inline DrawResult Draw(remixapi_MeshHandle mesh,remixapi_MaterialHandle material,
