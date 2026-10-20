@@ -46,7 +46,7 @@ D3D9 служит границей совместимости оригиналь
 | Частицы | Геометрия/эмиттер, billboard, age, blend/depth, lifetime | Готовые CPU quads и отдельная shader-баллистика | Формулы частично восстановлены, целого RT-адаптера нет. CPU quads передаются без повторной деформации; shader branch и решение менеджера об update рассматриваются отдельно |
 | Специальные проходы | Отражения, camera-view, targets, projection, alpha и порядок | Target/camera-view материалы, scene phases, depth/blend/target state | Роль каждого используемого прохода не установлена. Нужен выбор RT-представления или доказанного raster-пути. Назначение «вода» по одному target недопустимо |
 | UI и экранные эффекты | Raster UI/overlay в правильном порядке | Orthographic и экранные draw, text/quad producers | Есть UI/menu адаптации. Весь UI, lens flare, movie и экранные эффекты требуют покрытия; отправка всех draw как world triangles неверна |
-| Идентичность для Toolkit | Постоянный ID для capture/replacement и отдельно lifetime экземпляра | Содержимое ресурсов, структура mesh/material; адреса объектов меняются | Наш API hash включает runtime handle/owner; в renderer он становится handle. Capturer использует другие, процессные geometry hashes, а external submit обходит обычный replacement lookup. Нужен отдельный renderer-контракт identity/replacement |
+| Идентичность для Toolkit | Постоянный ID для capture/replacement и отдельно lifetime экземпляра | Содержимое ресурсов, структура mesh/material; адреса объектов меняются | Ordinary independent/selected API key задаётся content IDs; legacy Skin сохраняет прежние ключи. Отдельный opt-in renderer patch связывает ID одной rigid Opaque поверхности с capture/mod lookup. Production runtime и повторный запуск с заменой ещё требуют квалификации |
 | Захват и replacement | GPU → capturer → USD/DDS → reopen → Toolkit → replacement в игре | Переданные ресурсы/экземпляры/камера; Skin-палитра без исходной иерархии суставов | Есть патчи экспортёра и ограниченные CPU/GPU стенды. Полный игровой цикл на одном runtime, все каналы и повторный запуск с заменой не квалифицированы |
 
 Исходные контракты: [матрицы](../../../docs/engine/rendering/renderer-matrix-inputs.md),
@@ -61,21 +61,31 @@ D3D9 служит границей совместимости оригиналь
 
 ## Идентичность ресурса и экземпляра
 
-Нужно различать три значения:
+Нужно различать четыре значения:
 
-- Идентификатор ресурса для capture/replacement: определяется доказанным
-  содержимым и назначением; воспроизводится при повторном запуске.
-- Ключ cache: учитывает backend handle, поколения и различия представления;
-  может измениться после Reset или пересоздания.
+- Собственный content ID геометрии/материала и API ID их неизменяемой связки:
+  определяются переданным содержимым, без локальных адресов.
+- Renderer ID для capture/replacement: требует отдельного контракта и
+  воспроизводимости при повторном запуске; не равен API handle автоматически.
+- Запись живого cache: связывает ключ с текущим backend handle и его
+  пригодностью; пересоздаётся после retirement или Reset.
 - Идентификатор живого экземпляра: отделяет одинаковые сетки разных актёров
   и повторное использование адреса; сохраняет независимую историю движения.
 
-Сейчас [Skin resource](../winx_skin_gpu_submit.h) смешивает owner identity и
+[ResourceIdentitySource](../winx_resource_identity.h) задаёт отдельные собственные
+идентификаторы материала, содержимого геометрии и её неизменяемой привязки к
+материалу. Independent/selected и legacy expanded Surface rigid API key получается из meaningful vertex
+fields, порядка индексов и стабильного material ID живого владельца в registry.
+Адреса, API handles, SDK padding, world/frame и поколения в эти bytes не входят.
+Проверка владельца и актуальности перед draw сохраняется отдельно.
+
+[Skin resource](../winx_skin_gpu_submit.h) пока смешивает owner identity и
 material handle в ключе, который [CreateSurfaceGeometryOwned](../winx_surface_submit.h)
-передаёт как `MeshInfo.hash`. Жёсткая геометрия тоже использует material handle
-как seed. Это факт исходников. Поведение replacement на повторном запуске
-требует проверки renderer/Toolkit; новый hash без проверки motion history
-не закрывает задачу.
+передаёт как `MeshInfo.hash`. Indexed CPU Skin также сохраняет старую схему;
+legacy expanded Surface использует общий rigid content adapter.
+Поведение replacement на повторном запуске требует проверки
+renderer/Toolkit; стабильный собственный API hash без проверки renderer и
+motion history не закрывает задачу.
 
 В x86 [client bridge закреплённой версии](https://github.com/NVIDIAGameWorks/dxvk-remix/blob/b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4/bridge/src/util/util_remixapi.h)
 handle представляет последовательный UID, зависящий от порядка создания.
@@ -89,6 +99,31 @@ handle представляет последовательный UID, завис
 обходит обычный поиск mesh/material replacements. Таким образом, изменение
 одного нашего API hash не обеспечивает постоянный USD ID и замену в игре.
 Существующие USD/stride/emission patches эту цепочку не меняют.
+
+Собственный [external asset identity patch](../renderer-resource-identity/README.md)
+добавляет отдельные поля capture/replacement и сохраняет прежние geometry
+component hashes. Настройка выключена по умолчанию; caller должен заранее
+гарантировать постоянные ненулевые ID и неизменяемую привязку материала.
+В первой версии допущены одна rigid Opaque поверхность, Opaque material mod,
+одна mesh/includeOriginal запись либо пустая замена. Неподдержанные источники
+и формы mod явно возвращаются к исходной подаче. Имена capture и lookup
+используют ту же пару ID; BLAS material lookup сохраняет внутренний content hash.
+CPU recording fixtures проверяют эти функции отдельно от production renderer.
+На production renderer квалифицирован контролируемый однокадровый capture
+без текстур: USD сохраняет ID, исходные данные geometry/material и размещение
+экземпляров после перезапуска с другим порядком создания ресурсов. История
+движения и передача текстур этим контрактом ещё не квалифицированы.
+Полный capture → Toolkit → mod → повторный запуск на одном runtime открыт.
+Отдельно проверены создание и открытие проекта этого контролируемого захвата
+в Toolkit, выбор replacement-слоя, импорт текстуры через настоящий MCP,
+изменение существующего входа материала и сохранение mod. Независимый процесс
+USD SDK прочитал записанную замену с диска. Она относится к двум API-экземплярам
+общего материала; контрольный native draw не имеет этой capture-привязки.
+Закрытие и повторное открытие изменённого проекта через Toolkit и применение
+mod в runtime остаются отдельными непроверенными этапами.
+Явные mesh/material capture ID сохраняются в каждом экземпляре: общий BLAS
+может содержать admission первого draw кадра. Для недопущенного экземпляра
+сохраняется прежний BLAS hash, без заимствования asset ID соседнего draw.
 
 Renderer также использует mesh handle для пространственного поиска предыдущего
 экземпляра. Разные актёры с одной сеткой должны сохранить раздельные occurrence
@@ -223,6 +258,28 @@ plain Model/unlit material inputs. Custom dynamic supports и обычная Sce
 без partition root не покрыты этим обходом. Skin зависит от оригинального
 mesh producer; обновление plain world root не доказывает свежесть всех потомков.
 
+[Пассивный geometry observer](../winx_geometry_snapshot_observer.h) через
+`-GeometrySnapshotObserver` наблюдает original selection до extension.
+Callback независим от прежнего ObserveOnly; на sampled кадрах с периодом 300
+он выполняет новый `ReadRegistry` вместо scope first-snapshot cache.
+Original/system допустим без SceneGeometry extension и API submit.
+Один JSONL scope содержит `rows[]`; зачёт требует `completed`, `fencesStable`
+и `updateValid` одновременно. Лимиты 4096 rows, 4 МиБ/scope и 16 МиБ/log
+проверяются до записи; частичный scope не квалифицируется.
+
+Общий `ReadWorldInput` даёт отдельную world qualification без счётчиков
+independent submit. Mesh qualification требует `ResolveCurrentResources`,
+обоих полных uploaded buffers, совпадения обоих native CPU-covered ranges
+и current transport. Partial CPU capture не превращается в whole-buffer
+equality; verified mark не устанавливается. Native producers, COM и API
+не вызываются; собственный layout cache может материализоваться.
+Selected slots, supports, registrations и model rows разделены, numeric IDs
+ограничены scope, custom dynamic supports не покрыты. Совпадение phase/world/mesh
+не означает всеобщую FreshRt, lifetime, material/draw eligibility или visual
+qualification. Camera/cached sphere diagnostics не доказывают положение
+всей реальной mesh. Запуск и CPU-проверка описаны в
+[руководстве](guide.md) и [устройстве адаптера](development.md).
+
 [FrameScheduler](../winx_frame_scheduler.h) задаёт в независимом API-пути порядок
 camera → полный поддержанный текущий direct light batch → instances. При
 включённых флагах этот путь работает до первого исходного draw. Неполный
@@ -253,6 +310,40 @@ producer/update воспроизводится отдельно для RT. Ор�
 предстоящего переноса. Native/COM адаптеры и direct light ownership ещё сохраняют
 состояние proxy; полные `SceneSnapshot` и instance registry не выделены.
 
+[RigidGeometryPacketBuilder](../winx_rigid_geometry_packet.h) выделяет собственный
+результат конверсии для independent и selected submit: expanded triangles,
+material coefficients и scoped provenance. Пакет не хранит native/COM pointers,
+API handles или `pNext`. В него также входят собственная поддержанная material recipe,
+equations, instance/bootstrap и числовое описание текстуры с lifecycle/content
+generations. Это описание не владеет pixels и не даёт права отправки: адаптер
+заново получает transport witness и проверяет его перед внешними вызовами.
+
+Material recipe, bootstrap устройства, собственная unlit policy и asset binding
+разделены внутри этой границы. Sampler, equations и instance после внешних вызовов
+берутся из пакета. При повторном входе, меняющем текстуру во время чтения mip,
+проверка актуальности предшествует публикации content hash и DDS. Отвергнутый
+захват не должен вновь заполнить кэш устаревшим хешем.
+
+[TextureMipSnapshotSource](../winx_texture_mip_snapshot.h) отдельно владеет raw
+mip-пикселями и описанием managed2D ARGB/XRGB-текстуры. D3D-адаптер удерживает
+временную COM-ссылку до закрытия всех readonly Lock, освобождает её и только
+затем проверяет актуальность. Hash и DDS строятся из одного снимка; XRGB alpha
+остаётся raw для hash и нормализуется лишь для DDS. Снимок запрашивается при
+отсутствующем hash либо необходимых pixels для нового DDS. Уже известные ресурсы
+сохраняют быстрый путь с проверкой поколений. Это ещё не persistent Toolkit ID
+и не квалификация времени жизни Model/Skin.
+
+[MaterialRecipeSource](../winx_material_recipe_source.h) читает ограниченную
+native material/pass/layer/texture цепочку в собственные значения и использует
+общие восстановленные PC mappings. Проекция equations в Remix и bootstrap
+остаются снаружи. Independent/selected submit отвергает textured packet при
+ненулевом debug byte1F либо недоступном singleton и повторно проверяет это
+условие при потреблении. Сам оригинал при NULL singleton вызывает ленивый
+конструктор; наш reader его не воспроизводит. Подробнее —
+[исходная привязка текстуры](../../../docs/engine/materials/material-pass-binding.md).
+Успешное чтение recipe не подтверждает все виды материалов, актуальность
+controller или право отправки.
+
 ```mermaid
 flowchart TD
     Game[Оригинальная PC-игра] --> Source[PC и D3D9 источник наблюдений]
@@ -278,13 +369,13 @@ flowchart TD
 | `LightWorldObserver` | Bounded owned before/after native call observations и context/ticket guards | std-only; отдельный PC entry adapter связывает known Root/Manager, без producer replay/repair и lifetime/fresh RT claims |
 | `CameraAdapter` | Роль/target/матрицы и момент подачи камеры | Native camera, Present/Reset в proxy; отдельный класс ещё не выделен |
 | `FrameScheduler` | Порядок camera → supported current direct lights → instances, актуальный scoped ticket, reentry | std-only класс; подключён к independent API submit, native/COM/API работа в адаптерах |
-| `GeometryAdapter`, `SkinAdapter` | Declaration/topology/transform; деформация и веса с общим восстановленным эталоном | Surface geometry, Skin packet/GPU submit |
-| `MaterialAdapter`, `TextureSource` | Equations → albedo/emission/alpha; UV/sampler, актуальные mip assets | Surface material/channels, Skin material, native transport |
+| `GeometryAdapter`, `SkinAdapter` | Declaration/topology/transform; деформация и веса с общим восстановленным эталоном | Общий Surface converter и owned `RigidGeometryPacketBuilder` для rigid independent/selected; Skin packet/GPU submit |
+| `MaterialAdapter`, `TextureSource` | Equations → albedo/emission/alpha; UV/sampler, актуальные mip assets | Выделены `MaterialRecipeSource` и `TextureMipSnapshotSource`; independent/selected hash и DDS используют owned pixels, Surface/Skin projection, binding и transport остаются в адаптерах |
 | `LightingAdapter` | Current registry → явная световая политика | Scene lights и native light source |
 | `ParticleAdapter`, `ScenePassRouter` | CPU/shader particles, world/sky/UI/overlay/offscreen, способ вывода | Particle contracts, UI/sky/roles в proxy; полный adapter отсутствует |
 | `RemixApiSession` | Одна попытка init версии, API table, исходный result | Выделен из GetRemixApi; DLL resolution и logging снаружи |
 | `RemixResourceRegistry` | Handles/Create/Destroy, cache/pressure/quarantine/retirement, epochs и операция владения | Выделен из Surface; API resolver, frame и mutex заданы снаружи; текущие keys сохранены |
-| `RemixFrameRenderer` | Подача актуальных пакетов, submit result и один commit draw; отдельный renderer identity contract | Submit helpers; перенос и capture/replacement identity ещё открыты |
+| `RemixFrameRenderer` | Подача актуальных пакетов, submit result и один commit draw; отдельный renderer identity contract | Выделен `ResourceIdentitySource` для own content/API IDs; submit helpers, перенос и renderer capture/replacement identity ещё открыты |
 | `CaptureValidation` | Полная цепочка capture/reopen/replacement на том же runtime | Renderer USD patches, fixtures/анализаторы; exporter принадлежит renderer |
 
 Пакет содержит собственные копии массивов вершин, индексов, матриц и material

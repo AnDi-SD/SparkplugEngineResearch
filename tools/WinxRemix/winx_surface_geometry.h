@@ -11,8 +11,9 @@ struct SurfaceGeometryInput {
   const surface_material::Contract* contract=nullptr;
   const material_channels::Input* channels=nullptr;
 };
+template<class Vertex>
 static bool ExpandSurfaceGeometry(const SurfaceGeometryInput& input,
-                                  std::vector<remixapi_HardcodedVertex>& expanded,
+                                  std::vector<Vertex>& expanded,
                                   material_channels::Plan& plan) {
   expanded.clear();plan={};
   if(!input.vertices||!input.indices||!input.elements||!input.contract||!input.stride||
@@ -56,7 +57,7 @@ static bool ExpandSurfaceGeometry(const SurfaceGeometryInput& input,
     UINT ids[3]={type==D3DPT_TRIANGLELIST?tri*3:tri,type==D3DPT_TRIANGLELIST?tri*3+1:tri+1,type==D3DPT_TRIANGLELIST?tri*3+2:tri+2};
     if(type==D3DPT_TRIANGLESTRIP && tri%2) std::swap(ids[0],ids[1]);
     if(cull==D3DCULL_CW) std::swap(ids[0],ids[1]);
-    remixapi_HardcodedVertex triangle[3]{};
+    Vertex triangle[3]{};
     for(UINT j=0;j<3;++j) {
       auto src=static_cast<const uint8_t*>(vertexData)+offset+size_t(indices[ids[j]])*stride;
       memcpy(triangle[j].position,src+pos,12);memcpy(&triangle[j].color,src+color,4);

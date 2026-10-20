@@ -1,5 +1,6 @@
 // Own bounded translation of a recognized FFP overlay into explicit Remix API
-// resources, including separate FFP color coefficients. No asset IDs or game logic.
+// resources, including separate FFP color coefficients. Resource identities use
+// our content protocol; original game logic is not implemented here.
 #include "winx_surface_material.h"
 #include "winx_material_channels.h"
 #include "winx_material_channel_assets.h"
@@ -86,6 +87,25 @@ static void CaptureSurfaceWrite(void* b) {
 #include "winx_surface_geometry.h"
 #include "winx_surface_instance.h"
 #include "winx_independent_scene_source.h"
+#include "winx_resource_identity.h"
+
+// The byte protocol belongs to ResourceIdentitySource. XXH3 is the existing
+// adapter digest, not a native ID or a guarantee against hash collisions.
+struct SurfaceIdentityHash {
+  XXH3_state_t state{};
+  void Reset(){XXH3_64bits_reset(&state);}
+  void Update(const void* bytes,size_t size){XXH3_64bits_update(&state,bytes,size);}
+  uint64_t Digest(){return XXH3_64bits_digest(&state);}
+};
+static uint64_t SurfaceChannelMaterialIdentity(uint64_t textureHash,DWORD u,DWORD v,DWORD mag,
+                                               const material_channels::Plan& plan) {
+  winx_remix::ResourceIdentitySource::MaterialRequest input{};
+  input.textureHash=textureHash;input.u=u;input.v=v;input.mag=mag;
+  memcpy(input.albedo,plan.albedo.v,sizeof(input.albedo));
+  memcpy(input.emission,plan.emission.v,sizeof(input.emission));
+  SurfaceIdentityHash hash;
+  return winx_remix::ResourceIdentitySource::Material(input,hash);
+}
 
 // Observation also covers FFP positions rejected by the material UV/normal
 // contract. These draws still reach stock Remix and can occlude its lights.
@@ -166,33 +186,45 @@ static remixapi_MaterialHandle SurfaceMaterial(IDirect3DDevice9* d,uint64_t text
   }catch(const std::bad_alloc&){surfaceResources.RecordFailure();return nullptr;}
 }
 
-static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64_t textureHash,const material_channels::Plan& plan,
-                                                       const native_material_source::Sampler* nativeSampler=nullptr,
-                                                       IDirect3DBaseTexture9* textureSource=nullptr,const DWORD* sourceSrgb=nullptr) {
+template<class Current>
+static remixapi_MaterialHandle SurfaceChannelMaterialCurrent(IDirect3DDevice9* d,uint64_t textureHash,const material_channels::Plan& plan,
+                                                       const native_material_source::Sampler* nativeSampler,
+                                                       IDirect3DBaseTexture9* textureSource,const DWORD* sourceSrgb,const Current& current,
+                                                       material_channels::TextureMipSource::Snapshot* snapshot=nullptr,
+                                                       const material_channels::TextureMipSource::Description* expected=nullptr) {
   try {
-  SurfaceResourceOperation operation;if(!operation.owned)return nullptr;
+  SurfaceResourceOperation operation;if(!operation.owned||!current())return nullptr;
   DWORD u=0,v=0,mag=0,srgb=0;
   if(nativeSampler){u=nativeSampler->u;v=nativeSampler->v;mag=nativeSampler->mag;}
   else if(FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSU,&u))||FAILED(d->GetSamplerState(0,D3DSAMP_ADDRESSV,&v))||
      FAILED(d->GetSamplerState(0,D3DSAMP_MAGFILTER,&mag)))return nullptr;
   if(sourceSrgb)srgb=*sourceSrgb;
   else if(FAILED(d->GetSamplerState(0,D3DSAMP_SRGBTEXTURE,&srgb)))return nullptr;
-  if(srgb||
+  if(!current()||srgb||
      u<1||u>3||v<1||v>3||mag<1||mag>3||!surfaceAssetDirectory[0])return nullptr;
-  std::string descriptor="winx-independent-ffp-v1";
-  const uint64_t values[]={textureHash,u,v,mag};descriptor.append(reinterpret_cast<const char*>(values),sizeof(values));
-  descriptor.append(reinterpret_cast<const char*>(&plan.albedo),sizeof(plan.albedo));
-  descriptor.append(reinterpret_cast<const char*>(&plan.emission),sizeof(plan.emission));
-  const auto hash=XXH3_64bits(descriptor.data(),descriptor.size());
+  const auto hash=SurfaceChannelMaterialIdentity(textureHash,u,v,mag,plan);
+  if(!hash)return nullptr;
   {remixapi_MaterialHandle cached=nullptr;if(surfaceResources.FindMaterialOwned(hash,operation.scope,cached))return cached;}
   wchar_t albedo[MAX_PATH]{},emission[MAX_PATH]{};
   swprintf_s(albedo,L"%s\\%016llX-albedo.dds",surfaceAssetDirectory,static_cast<unsigned long long>(hash));
   swprintf_s(emission,L"%s\\%016llX-emission.dds",surfaceAssetDirectory,static_cast<unsigned long long>(hash));
   const bool emissive=!material_channels::Zero(plan.emission);
   const auto write=[&](const wchar_t* path,const material_channels::RGB& tint){
-    return textureSource?material_channels::WriteTextureSource(textureSource,path,tint):material_channels::WriteTexture(d,path,tint);
+    if(snapshot) {
+      if(!current())return false;
+      if(GetFileAttributesW(path)!=INVALID_FILE_ATTRIBUTES)return true;
+      if(!snapshot->valid)*snapshot=textureSource?material_channels::CaptureTextureMipSnapshotCurrent(textureSource,current):
+        material_channels::CaptureBoundTextureMipSnapshotCurrent(d,current);
+      if(!snapshot->valid||!material_channels::TextureMipDescriptionMatches(*snapshot,expected)||
+         material_channels::TextureMipSnapshotHash(*snapshot)!=textureHash) {
+        if(textureSource)InvalidateSurfaceTexture(textureSource);
+        return false;
+      }
+      return material_channels::WriteTextureMipSnapshotCurrent(*snapshot,path,tint,current);
+    }
+    return textureSource?material_channels::WriteTextureSourceCurrent(textureSource,path,tint,current):material_channels::WriteTextureCurrent(d,path,tint,current);
   };
-  if(!write(albedo,plan.albedo)||(emissive&&!write(emission,plan.emission)))return nullptr;
+  if(!write(albedo,plan.albedo)||(emissive&&!write(emission,plan.emission))||!current())return nullptr;
   remixapi_MaterialInfoOpaqueEXT opaque{};opaque.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO_OPAQUE_EXT;
   opaque.albedoConstant={1,1,1};opaque.opacityConstant=1;opaque.roughnessConstant=.5f;opaque.useDrawCallAlphaState=1;
   remixapi_MaterialInfo info{};info.sType=REMIXAPI_STRUCT_TYPE_MATERIAL_INFO;info.pNext=&opaque;info.hash=hash;
@@ -201,24 +233,17 @@ static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64
   return CreateSurfaceMaterialOwned(info,operation);
   }catch(const std::bad_alloc&){surfaceResources.RecordFailure();return nullptr;}
 }
+static remixapi_MaterialHandle SurfaceChannelMaterial(IDirect3DDevice9* d,uint64_t textureHash,const material_channels::Plan& plan,
+                                                       const native_material_source::Sampler* nativeSampler=nullptr,
+                                                       IDirect3DBaseTexture9* textureSource=nullptr,const DWORD* sourceSrgb=nullptr) {
+  return SurfaceChannelMaterialCurrent(d,textureHash,plan,nativeSampler,textureSource,sourceSrgb,[]{return true;});
+}
 
 // Existing key selection stays in the adapter; the registry owns API resources.
 static remixapi_MeshHandle CreateSurfaceGeometryOwned(const std::vector<remixapi_HardcodedVertex>& vertices,
     const std::vector<uint32_t>& indices,remixapi_MaterialHandle material,uint64_t hash,
     const SurfaceResourceOperation& operation,const remixapi_MeshInfoSkinning* skinning=nullptr) {
   return surfaceResources.CreateGeometryOwned(vertices,indices,material,hash,operation.scope,skinning);
-}
-static remixapi_MeshHandle SurfaceGeometryResource(const std::vector<remixapi_HardcodedVertex>& expanded,
-                                                  remixapi_MaterialHandle material) {
-  SurfaceResourceOperation operation;if(!operation.owned)return nullptr;
-  const auto api=GetRemixApi();if(!api||!api->CreateMesh||!api->DestroyMesh||!material||expanded.empty())return nullptr;
-  const auto hash=XXH3_64bits_withSeed(expanded.data(),expanded.size()*sizeof(expanded[0]),reinterpret_cast<uintptr_t>(material));
-  {remixapi_MeshHandle cached=nullptr;if(surfaceResources.FindMeshOwned(hash,operation.scope,cached))return cached;}
-  if(expanded.size()>winx_remix::RemixResourceRegistry::MeshByteLimit/(sizeof(expanded[0])+4))return nullptr;
-  std::vector<uint32_t> sequential;
-  try {sequential.resize(expanded.size());}catch(const std::bad_alloc&){surfaceResources.RecordFailure();return nullptr;}
-  for(size_t i=0;i<sequential.size();++i)sequential[i]=static_cast<uint32_t>(i);
-  return CreateSurfaceGeometryOwned(expanded,sequential,material,hash,operation);
 }
 static remixapi_MeshHandle SurfaceIndexedGeometryResource(const std::vector<remixapi_HardcodedVertex>& vertices,
     const std::vector<uint32_t>& indices,remixapi_MaterialHandle material) {
@@ -227,6 +252,39 @@ static remixapi_MeshHandle SurfaceIndexedGeometryResource(const std::vector<remi
   const auto vertexHash=XXH3_64bits_withSeed(vertices.data(),vertices.size()*sizeof(vertices[0]),reinterpret_cast<uintptr_t>(material));
   const auto hash=XXH3_64bits_withSeed(indices.data(),indices.size()*sizeof(indices[0]),vertexHash^0x534b494e494e4458ull);
   return CreateSurfaceGeometryOwned(vertices,indices,material,hash,operation);
+}
+
+// Stable API resource identity for expanded rigid geometry.
+// Geometry content is separate from its immutable material binding. Native
+// owner/motion keys stay in the instance adapter; legacy Skin helpers keep
+// their existing identity contract until their renderer path is qualified.
+static remixapi_MeshHandle SurfaceRigidGeometryResourceStable(const std::vector<remixapi_HardcodedVertex>& vertices,
+                                                              remixapi_MaterialHandle material) {
+  try {
+    SurfaceResourceOperation operation;if(!operation.owned)return nullptr;
+    const auto api=GetRemixApi();
+    if(!api||!api->CreateMesh||!api->DestroyMesh)return nullptr;
+    uint64_t materialIdentity=0;
+    if(!surfaceResources.MaterialIdentityOwned(material,operation.scope,materialIdentity))return nullptr;
+    SurfaceIdentityHash digest;
+    const auto geometry=winx_remix::ResourceIdentitySource::GeometryExpanded(vertices.data(),vertices.size(),digest);
+    const auto key=winx_remix::ResourceIdentitySource::BoundMesh(geometry,materialIdentity,digest);
+    if(!key)return nullptr;
+    remixapi_MeshHandle cached=nullptr;
+    if(surfaceResources.FindMeshOwned(key,operation.scope,cached,material))return cached;
+    if(vertices.size()>winx_remix::RemixResourceRegistry::MeshByteLimit/(sizeof(vertices[0])+4))return nullptr;
+    std::vector<uint32_t> indices(vertices.size());
+    for(size_t i=0;i<indices.size();++i)indices[i]=static_cast<uint32_t>(i);
+    return CreateSurfaceGeometryOwned(vertices,indices,material,key,operation);
+  }catch(const std::bad_alloc&){surfaceResources.RecordFailure();return nullptr;}
+}
+
+// Legacy FFP overlays and ordinary independent/selected packets share the same
+// content identity and live material owner checks. Neither padding nor a
+// process-local material handle defines another asset or cache entry.
+static remixapi_MeshHandle SurfaceGeometryResource(const std::vector<remixapi_HardcodedVertex>& expanded,
+                                                  remixapi_MaterialHandle material) {
+  return SurfaceRigidGeometryResourceStable(expanded,material);
 }
 
 #include "winx_skin_packet_submit.h"

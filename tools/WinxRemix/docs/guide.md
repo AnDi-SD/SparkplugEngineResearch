@@ -199,6 +199,38 @@ cached сфера не доказывает RT-форму света, влиян
 Семантика и проверки анализатора описаны в
 [development](development.md).
 
+### Наблюдение исходной geometry selection
+
+`-GeometrySnapshotObserver` у `Run-WinxRemix.ps1` и `Start-Probe.ps1` включает
+отдельную пассивную диагностику перед расширением исходной selection.
+Требуется `-DebugMenu`. Автоматически включаются mesh/camera/update sources
+и журналы owner/transport; camera submit, Remix API и SceneGeometry extension
+для этого режима не требуются. Допустимы Original/system:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Run-WinxRemix.ps1 -Mode Original -DebugMenu -GeometrySnapshotObserver -StartLevel 27 -Windowed
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Start-Probe.ps1 -Name fresh-geometry-observer -Backend system -DebugMenu -GeometrySnapshotObserver -StartLevel 27 -Windowed
+```
+
+На кадрах, кратных 300, observer заново читает loaded membership для текущей
+selection независимо от scope cache и прежнего `SceneGeometryObserveOnly`.
+`geometry-snapshot-observer.jsonl` содержит один объект scope с `rows[]`.
+Зачёт требует вместе `completed`, `fencesStable` и `updateValid`, равных true.
+Лимиты — 4096 rows, 4 МиБ на scope и 16 МиБ на журнал, с проверкой до записи.
+Неполный scope не получает частичного зачёта.
+
+World qualification и сравнение native CPU-covered VB/IB ranges с полными
+uploaded buffers — отдельные признаки. Partial CPU capture сохраняет свои
+флаги и не доказывает равенство всего буфера. Selected slots, supports,
+registrations и model rows также считаются отдельно; это не число всех
+объектов сцены, custom dynamic supports не покрыты. Числовые IDs действуют
+только в текущем scope. Совпадение phase/world/mesh не подтверждает lifetime,
+FreshRt, материал, draw eligibility или изображение Remix. Cached sphere
+относительно камеры не доказывает положение всей реальной геометрии.
+Observer не вызывает native producers или COM/API и не устанавливает Bytes
+verified; собственный layout cache может заполняться. Устройство и CPU-стенд описаны в
+[development](development.md).
+
 ### Проверка передачи шейдеров
 
 `-ShaderAudit` у `Run-WinxRemix.ps1` или `Start-Probe.ps1` включает отдельный

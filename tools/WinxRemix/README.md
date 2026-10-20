@@ -7,7 +7,30 @@
 идентичность ресурса для Toolkit с временем жизни экземпляра. Выделены
 `RemixApiSession`, `RemixResourceRegistry`, `SceneLightSnapshotSource`,
 `SceneGeometrySnapshotSource`, `LightPayloadSource`, `LightWorldObserver` и
-`FrameScheduler`. `SceneGeometrySnapshotSource` владеет снимком загруженной
+`FrameScheduler`. `RigidGeometryPacketBuilder` отделяет собственные треугольники,
+материальные коэффициенты и числовое происхождение от native/COM/API ссылок
+в общем пути independent/selected submit. Пакет также владеет поддержанной material
+recipe, копией equations/instance/bootstrap и числовыми поколениями/описанием текстуры.
+Перед чтением mip и отправкой адаптер заново проверяет ресурс.
+`TextureMipSnapshotSource` владеет копией пикселей для нового hash/DDS;
+адаптер удерживает текстуру во время чтения и повторно проверяет её после Release.
+Общий scene snapshot, native instance lifetime и право отправки остаются отдельными.
+`ResourceIdentitySource` задаёт собственные content IDs и стабильный API key
+для ordinary independent/selected и legacy FFP rigid geometry. Отдельный
+[renderer patch](renderer-resource-identity/README.md) связывает явные API asset ID
+с capture и поиском замен для одной rigid Opaque поверхности; настройка выключена
+по умолчанию. Контролируемый однокадровый GPU capture без текстур и стабильность
+ID после смены порядка создания ресурсов проверены на production renderer.
+Полный цикл Toolkit и исходной игры требует отдельной проверки.
+Для контролируемого захвата проверены создание и открытие проекта в Toolkit
+и сохранение replacement-слоя. Через настоящий MCP Toolkit выполнены импорт DDS,
+замена текстурного входа материала и сохранение mod; отдельный процесс USD SDK
+подтвердил запись и разрешение текстуры с диска. Закрытие и повторное открытие
+изменённого проекта через Toolkit и применение mod в игре ещё не подтверждены.
+`MaterialRecipeSource` отдельно копирует поддержанную native recipe и применяет
+общие восстановленные PC mappings. Выбор уравнений и проверка фактической
+привязки текстуры остаются в PC-адаптере, включая принудительную NULL-ветвь.
+`SceneGeometrySnapshotSource` владеет снимком загруженной
 support membership и её происхождения без camera/active selection; выбор
 допустимых экземпляров и свежесть их world/resource данных остаются отдельными
 задачами адаптеров. `LightPayloadSource` отделяет
@@ -24,6 +47,11 @@ Root/Manager; свежесть RT и lifetime объектов этим не д�
 восстановления дублирующего producer. Видимый receiver, область влияния света,
 все сцены и итоговое освещение Remix этим не подтверждены.
 Опциональный `-LightWorldObserver` описан в [руководстве](docs/guide.md).
+`-GeometrySnapshotObserver` отдельно наблюдает исходную selection, загруженную
+membership и доступные world/mesh inputs перед расширением selection.
+Завершённый scope и совпадение данных не квалифицируют lifetime, материал,
+draw eligibility или визуальный результат. Его обычный запуск через
+Original/system также описан в [руководстве](docs/guide.md).
 Проверки классов и интеграции описаны
 в [устройстве адаптера](docs/development.md); игровой/GPU-зачёт ими не заменяется.
 

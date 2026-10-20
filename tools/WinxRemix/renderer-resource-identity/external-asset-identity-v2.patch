@@ -1,0 +1,350 @@
+--- /dev/null
++++ b/src/dxvk/rtx_render/rtx_external_asset_identity.h
+@@ -0,0 +1,41 @@
++// Own external asset identity contract for the pinned WinxRemix renderer patch.
++// API callers opt in before creating meshes and supply immutable content IDs.
++// These IDs do not replace geometry component, cache, or instance identities.
++#pragma once
++
++#include <cstdint>
++
++namespace dxvk {
++
++struct ExternalAssetIdentity {
++  uint64_t meshHash = 0;
++  uint64_t materialHash = 0;
++
++  static constexpr ExternalAssetIdentity ForMesh(const bool enabled,
++      const uint32_t surfaceCount, const bool hasSkinning,
++      const uint64_t meshHash, const uint64_t materialHash) {
++    // V1 admits one rigid surface with an immutable material binding only.
++    if (!enabled || surfaceCount != 1 || hasSkinning || meshHash == 0 || materialHash == 0) {
++      return {};
++    }
++    return { meshHash, materialHash };
++  }
++
++  constexpr ExternalAssetIdentity ForDraw(const bool opaque,
++      const bool hasSkinning, const bool particles, const bool gpuInstancing) const {
++    if (!opaque || hasSkinning || particles || gpuInstancing || meshHash == 0 || materialHash == 0) {
++      return {};
++    }
++    return *this;
++  }
++
++  constexpr uint64_t meshHashOr(const uint64_t fallback) const {
++    return meshHash != 0 && materialHash != 0 ? meshHash : fallback;
++  }
++
++  constexpr uint64_t materialHashOr(const uint64_t fallback) const {
++    return meshHash != 0 && materialHash != 0 ? materialHash : fallback;
++  }
++};
++
++} // namespace dxvk
+--- a/src/dxvk/rtx_render/rtx_game_capturer.cpp
++++ b/src/dxvk/rtx_render/rtx_game_capturer.cpp
+@@ -532,11 +532,16 @@
+   void GameCapturer::newInstance(const Rc<DxvkContext> ctx, const RtInstance& rtInstance) {
+     const BlasEntry* pBlas = rtInstance.getBlas();
+     assert(pBlas != nullptr);
+-    const XXH64_hash_t matHash = rtInstance.getMaterialDataHash();
+-    const XXH64_hash_t meshHash = pBlas->input.getHash(RtxOptions::geometryAssetHashRule());
++    const XXH64_hash_t materialDataHash = rtInstance.getMaterialDataHash();
++    const XXH64_hash_t matHash = rtInstance.getCaptureMaterialHash();
++    // BLAS input is shared and may retain the first occurrence's admission state.
++    // Use the current instance's explicit asset ID; keep old BLAS naming for fallback.
++    const XXH64_hash_t meshAssetHash = rtInstance.getCaptureMeshAssetHash();
++    const XXH64_hash_t meshHash = meshAssetHash != kEmptyHash ? meshAssetHash : pBlas->input.getHash(RtxOptions::geometryAssetHashRule());
+     assert(meshHash != 0);
+ 
+-    const LegacyMaterialData& material = pBlas->getMaterialData(matHash);
++    // The BLAS map still uses the renderer's content hash, not the exported asset key.
++    const LegacyMaterialData& material = pBlas->getMaterialData(materialDataHash);
+ 
+     const bool bIsNewMat = (matHash != 0x0) && (m_pCap->materials.count(matHash) == 0);
+     if (bIsNewMat) {
+@@ -549,7 +554,7 @@
+         if (external != nullptr) {
+           Logger::warn("[GameCapturer] External material type is not supported by the Opaque capture adapter.");
+         }
+-        captureMaterial(ctx, material, !rtInstance.surface.alphaState.isFullyOpaque);
++        captureMaterial(ctx, material, !rtInstance.surface.alphaState.isFullyOpaque, matHash);
+       }
+     }
+ 
+@@ -579,11 +584,11 @@
+     Logger::debug("[GameCapturer][" + m_pCap->idStr + "][Inst:" + hashToString(instanceId) + "] New");
+   }
+ 
+-  void GameCapturer::captureMaterial(const Rc<DxvkContext> ctx, const LegacyMaterialData& materialData, const bool bEnableOpacity) {
++  void GameCapturer::captureMaterial(const Rc<DxvkContext> ctx, const LegacyMaterialData& materialData, const bool bEnableOpacity, const XXH64_hash_t captureHash) {
+     lss::Material lssMat; // to be populated
+ 
+     // Resolve material name
+-    const std::string matName = dxvk::hashToString(materialData.getHash());
++    const std::string matName = dxvk::hashToString(captureHash);
+     lssMat.matName = matName;
+     // Export Textures
+     const std::string albedoTexFilename(matName + lss::ext::dds);
+@@ -604,7 +609,7 @@
+     }
+ 
+     // Set populated LSS Material in our cache
+-    m_pCap->materials[materialData.getHash()].lssData = lssMat;
++    m_pCap->materials[captureHash].lssData = lssMat;
+     Logger::debug("[GameCapturer][" + m_pCap->idStr + "][Mat:" + matName + "] New");
+   }
+ 
+--- a/src/dxvk/rtx_render/rtx_game_capturer.h
++++ b/src/dxvk/rtx_render/rtx_game_capturer.h
+@@ -209,7 +209,7 @@
+   void captureDistantLight(const RtDistantLight& rtLight);
+   void captureInstances(const Rc<DxvkContext> ctx);
+   void newInstance(const Rc<DxvkContext> ctx, const RtInstance& rtInstance);
+-  void captureMaterial(const Rc<DxvkContext> ctx, const LegacyMaterialData& materialData, const bool bEnableOpacity);
++  void captureMaterial(const Rc<DxvkContext> ctx, const LegacyMaterialData& materialData, const bool bEnableOpacity, const XXH64_hash_t captureHash);
+   void captureMesh(const Rc<DxvkContext> ctx,
+                    const XXH64_hash_t currentMeshHash,
+                    const BlasEntry& blas,
+@@ -343,4 +343,4 @@
+   std::unique_ptr<Capture> m_pCap;
+ };
+ 
+-}
+\ No newline at end of file
++}
+--- a/src/dxvk/rtx_render/rtx_instance_manager.cpp
++++ b/src/dxvk/rtx_render/rtx_instance_manager.cpp
+@@ -151,7 +151,8 @@
+   namespace {
+     template<int RtInstanceSize> struct CheckRtInstanceSize {
+       // The second line of the build error should contain the new size of RtInstance in the template argument, i.e. `dxvk::CheckRtInstanceSize<newSize>`
+-      static_assert(RtInstanceSize == 768, "RtInstance size has changed.  Fix the copy constructor above this message, then update the expected size.");
++      // Own capture material/mesh keys are copied by copyInstanceDataFrom below.
++      static_assert(RtInstanceSize == 784, "RtInstance size has changed.  Fix the copy constructor above this message, then update the expected size.");
+     };
+     CheckRtInstanceSize<sizeof(RtInstance)> _rtInstanceSizeTest;
+   }
+@@ -184,6 +185,8 @@
+     m_linkedBlas = src.m_linkedBlas;
+     m_materialHash = src.m_materialHash;
+     m_materialDataHash = src.m_materialDataHash;
++    m_captureMaterialHash = src.m_captureMaterialHash;
++    m_captureMeshAssetHash = src.m_captureMeshAssetHash;
+     m_texcoordHash = src.m_texcoordHash;
+     m_indexHash = src.m_indexHash;
+     m_vkInstance = src.m_vkInstance;
+@@ -1030,6 +1033,8 @@
+ 
+         const XXH64_hash_t materialInstanceHash = materialData.getHash();
+         currentInstance.m_materialDataHash = drawCall.getMaterialData().getHash();
++        currentInstance.m_captureMaterialHash = drawCall.getGeometryData().externalAssetIdentity.materialHashOr(currentInstance.m_materialDataHash);
++        currentInstance.m_captureMeshAssetHash = drawCall.getGeometryData().externalAssetIdentity.meshHashOr(kEmptyHash);
+         currentInstance.surface.hasMaterialChanged = currentInstance.m_materialHash != kEmptyHash && currentInstance.m_materialHash != materialInstanceHash;
+         currentInstance.m_materialHash = materialInstanceHash;
+ 
+--- a/src/dxvk/rtx_render/rtx_instance_manager.h
++++ b/src/dxvk/rtx_render/rtx_instance_manager.h
+@@ -66,6 +66,10 @@
+   BlasEntry* getBlas() const { return m_linkedBlas; }
+   const XXH64_hash_t& getMaterialHash() const { return m_materialHash; }
+   const XXH64_hash_t& getMaterialDataHash() const { return m_materialDataHash; }
++  // Own capture/replacement asset key; never used for BLAS material lookup or motion matching.
++  const XXH64_hash_t& getCaptureMaterialHash() const { return m_captureMaterialHash; }
++  // Zero keeps legacy BLAS-based naming. The explicit key belongs to this occurrence.
++  const XXH64_hash_t& getCaptureMeshAssetHash() const { return m_captureMeshAssetHash; }
+   const XXH64_hash_t& getTexcoordHash() const { return m_texcoordHash; }
+   const XXH64_hash_t& getIndexHash() const { return m_indexHash; }
+   const XXH64_hash_t calculateAntiCullingHash() const;
+@@ -225,6 +229,8 @@
+   BlasEntry* m_linkedBlas = nullptr;
+   XXH64_hash_t m_materialHash = kEmptyHash;
+   XXH64_hash_t m_materialDataHash = kEmptyHash;
++  XXH64_hash_t m_captureMaterialHash = kEmptyHash;
++  XXH64_hash_t m_captureMeshAssetHash = kEmptyHash;
+   XXH64_hash_t m_texcoordHash = kEmptyHash;
+   XXH64_hash_t m_indexHash = kEmptyHash;
+   VkAccelerationStructureInstanceKHR m_vkInstance;
+--- a/src/dxvk/rtx_render/rtx_options.h
++++ b/src/dxvk/rtx_render/rtx_options.h
+@@ -292,6 +292,10 @@
+     RTX_OPTION_ARGS("rtx", std::string, geometryAssetHashRuleString, "positions,indices,geometrydescriptor",
+                   "Defines which hashes we need to include when sampling from replacements and doing USD capture.",
+                   args.onChangeCallback = &geometryAssetHashRuleStringOnChange);
++    RTX_OPTION("rtx", bool, enableExternalAssetIdentity, false,
++                  "Own external API asset identity contract. Configure before creating meshes.\n"
++                  "Admits a single rigid surface with nonzero immutable mesh and material API hashes.\n"
++                  "Geometry component, cache, and instance identities retain their existing behavior.");
+     RTX_OPTION("rtx", fast_unordered_set, raytracedRenderTargetTextures, {}, "DescriptorHashes for Render Targets. (Screens that should display the output of another camera).");
+     RTX_OPTION("rtx", fast_unordered_set, particleEmitterTextures, {}, "Objects rendered with these textures will emit particles that inherit the material of the object itself.");
+     RTX_OPTION("rtx", fast_unordered_set, smoothNormalsTextures, {},
+--- a/src/dxvk/rtx_render/rtx_remix_api.cpp
++++ b/src/dxvk/rtx_render/rtx_remix_api.cpp
+@@ -934,6 +934,8 @@
+     }
+ 
+     auto allocatedSurfaces = std::vector<dxvk::RasterGeometry> {};
++    // Own startup opt-in is snapshotted with the immutable external mesh resource.
++    const bool enableExternalAssetIdentity = dxvk::RtxOptions::enableExternalAssetIdentity();
+ 
+     for (size_t i = 0; i < info->surfaces_count; i++) {
+       const remixapi_MeshInfoSurfaceTriangles& src = info->surfaces_values[i];
+@@ -1009,6 +1011,10 @@
+       auto dst = dxvk::RasterGeometry {};
+       {
+         dst.externalMaterial = src.material;
++        static_assert(sizeof(src.material) == sizeof(uint64_t));
++        dst.externalAssetIdentity = dxvk::ExternalAssetIdentity::ForMesh(
++          enableExternalAssetIdentity, info->surfaces_count, src.skinning_hasvalue != 0,
++          info->hash, reinterpret_cast<uint64_t>(src.material));
+         dst.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+         dst.cullMode = VK_CULL_MODE_NONE; // this will be overwritten by the instance info at draw time
+         dst.frontFace = VK_FRONT_FACE_CLOCKWISE;
+--- a/src/dxvk/rtx_render/rtx_scene_manager.cpp
++++ b/src/dxvk/rtx_render/rtx_scene_manager.cpp
+@@ -2006,6 +2006,112 @@
+         state.drawCall.materialData.setHashOverride(material->getHash());
+       } 
+ 
++      // Own opt-in capture/replacement contract. Keep the precise external
++      // instance lookup above separate from the stable resource asset names.
++      // Unqualified draws retain the original external submission path.
++      state.drawCall.geometryData.externalAssetIdentity =
++        state.drawCall.geometryData.externalAssetIdentity.ForDraw(
++          material != nullptr && material->getType() == MaterialDataType::Opaque,
++          state.drawCall.getSkinningState().numBones != 0 ||
++            state.drawCall.geometryData.numBonesPerVertex != 0 ||
++            state.drawCall.geometryData.blendWeightBuffer.defined() ||
++            state.drawCall.geometryData.blendIndicesBuffer.defined(),
++          state.optionalParticleDesc.has_value() ||
++            (material != nullptr && material->getParticleSystemDesc() != nullptr),
++          state.drawCall.transformData.instancesToObject != nullptr &&
++            !state.drawCall.transformData.instancesToObject->empty());
++      if (submeshes.size() != 1) {
++        state.drawCall.geometryData.externalAssetIdentity = {};
++      }
++
++      const auto assetIdentity = state.drawCall.geometryData.externalAssetIdentity;
++      if (submeshes.size() == 1 && assetIdentity.meshHash != 0 && assetIdentity.materialHash != 0) {
++        trackMeshHash(assetIdentity.meshHash);
++
++        MaterialData renderMaterialData(*material);
++        if (const MaterialData* pAssetReplacementMaterial = m_pReplacer->getReplacementMaterial(assetIdentity.materialHash)) {
++          if (pAssetReplacementMaterial->getType() == MaterialDataType::Opaque &&
++              pAssetReplacementMaterial->getParticleSystemDesc() == nullptr) {
++            renderMaterialData = *pAssetReplacementMaterial;
++            renderMaterialData.getOpaqueMaterialData().merge(material->getOpaqueMaterialData());
++          } else {
++            ONCE(Logger::warn("[WinxRemix] External asset identity supports Opaque material replacements without particles; using the original external material."));
++          }
++        }
++
++        std::vector<AssetReplacement>* replacements = m_pReplacer->getReplacementsForMesh(assetIdentity.meshHash);
++        if (replacements != nullptr && !replacements->empty()) {
++          // One ordinary replacement or include-original entry is the bounded
++          // v1 operation. Mixed materials, skinning and instanced/particle
++          // replacements need separate admission and motion qualification.
++          bool supported = replacements->size() == 1;
++          if (supported) {
++            const AssetReplacement& replacement = replacements->front();
++            supported = (replacement.type == AssetReplacement::eMesh || replacement.includeOriginal) &&
++              replacement.type != AssetReplacement::eLight && replacement.type != AssetReplacement::eGraph &&
++              !replacement.particleSystem.has_value() && !replacement.lightData.has_value() &&
++              !replacement.graphState.has_value() &&
++              (!replacement.instancesToObject || replacement.instancesToObject->empty()) &&
++              replacement.pointInstanceIndex == kInvalidPointInstanceIndex &&
++              (!replacement.materialData || (replacement.materialData->getType() == MaterialDataType::Opaque &&
++                replacement.materialData->getParticleSystemDesc() == nullptr));
++            if (supported && !replacement.includeOriginal) {
++              supported = replacement.geometry != nullptr &&
++                replacement.geometry->data.numBonesPerVertex == 0 &&
++                !replacement.geometry->data.blendWeightBuffer.defined() &&
++                !replacement.geometry->data.blendIndicesBuffer.defined();
++            }
++          }
++          if (!supported) {
++            ONCE(Logger::warn("[WinxRemix] Unsupported external mesh replacement shape; using the original external geometry."));
++            replacements = nullptr;
++          }
++        }
++
++        if (replacements != nullptr) {
++          if (replacements->empty()) {
++            // An authored empty replacement means hide, not missing content.
++            replacementInstance->clear();
++            replacementInstance->activeReplacements = replacements;
++            replacementInstance->objectToWorld = xform;
++          } else {
++            drawReplacements(ctx, &state.drawCall, replacements, renderMaterialData, replacementInstance);
++          }
++          replacementInstance->frameLastSeen = m_device->getCurrentFrameId();
++          replacementInstance->categoryFlags = state.drawCall.getCategoryFlags().raw();
++          replacementInstance->isSkinned = false;
++          return;
++        }
++
++        // A removed or unsupported replacement returns to the original mesh.
++        if (replacementInstance->activeReplacements != nullptr) {
++          replacementInstance->clear();
++        }
++        RtInstance* existingInstance = !replacementInstance->prims.empty()
++          ? replacementInstance->prims[0].getInstance() : nullptr;
++        RtInstance* instance = processDrawCallState(ctx, state.drawCall, renderMaterialData, existingInstance, nullptr);
++        if (instance != nullptr) {
++          if (replacementInstance->root.getUntyped() == nullptr) {
++            replacementInstance->setup(PrimInstance(instance, PrimInstance::Type::Instance), 1, nullptr);
++          }
++          if (replacementInstance->prims[0].getUntyped() != instance) {
++            instance->getPrimInstanceOwner().setReplacementInstance(replacementInstance, 0, instance, PrimInstance::Type::Instance);
++          }
++        }
++        replacementInstance->frameLastSeen = m_device->getCurrentFrameId();
++        replacementInstance->categoryFlags = state.drawCall.getCategoryFlags().raw();
++        replacementInstance->isSkinned = false;
++        if (state.drawCall.geometryData.boundingBox.isValid()) {
++          replacementInstance->geometryBoundingBox = state.drawCall.geometryData.boundingBox;
++          replacementInstance->objectToWorld = xform;
++        }
++        return;
++      }
++
++      if (replacementInstance->activeReplacements != nullptr) {
++        replacementInstance->clear();
++      }
++
+       const RtxParticleSystemDesc* pParticles = nullptr;
+       if (state.optionalParticleDesc.has_value()) {
+         pParticles = &state.optionalParticleDesc.value();
+--- a/src/dxvk/rtx_render/rtx_types.h
++++ b/src/dxvk/rtx_render/rtx_types.h
+@@ -25,6 +25,7 @@
+ #include "rtx_utils.h"
+ #include "rtx_materials.h"
+ #include "rtx_hashing.h"
++#include "rtx_external_asset_identity.h"
+ #include "rtx_camera.h"
+ #include "vulkan/vulkan_core.h"
+ #include "../../util/util_bounding_box.h"
+@@ -360,6 +361,9 @@
+   Future<AxisAlignedBoundingBox> futureBoundingBox;
+ 
+   remixapi_MaterialHandle externalMaterial = nullptr;
++
++  // Own opt-in asset metadata; geometry component and temporal hashes stay separate.
++  ExternalAssetIdentity externalAssetIdentity;
+ 
+   template<uint32_t rule>
+   const XXH64_hash_t getHashForRule() const {
+@@ -634,6 +638,11 @@
+   // Note: This uses the original material for the hash, not the replaced material
+   const XXH64_hash_t getHash(const HashRule& rule) const {
+     return geometryData.getHashForRule(rule) ^ materialData.getHash();
++  }
++
++  // Only capture/replacement asset lookup consumes the explicit caller identity.
++  const XXH64_hash_t getAssetHash(const HashRule& rule) const {
++    return geometryData.externalAssetIdentity.meshHashOr(getHash(rule));
+   }
+ 
+   [[deprecated("(REMIX-656): Remove this once we can transition content to new hash")]]

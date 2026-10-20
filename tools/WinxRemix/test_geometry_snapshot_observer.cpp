@@ -153,6 +153,106 @@ static void HookBoundaries(){
   }
   scene_geometry::observeSelection=nullptr;fixture=nullptr;
 }
+static void SurfaceUploadActivation(){
+  Check(surfaceBuffers.empty()&&surfaceWrites.empty()&&!surfaceBufferBytes,"surface upload gate begins without retained capture state");
+  const auto oldAuto=autoSurfaceRoles,oldObserver=observer::enabled;const auto oldSkin=skin_packet_capture::directory[0];
+  autoSurfaceRoles=false;skin_packet_capture::directory[0]=0;observer::enabled=false;
+  Check(!skin_packet_capture::Enabled()&&!CaptureSurfaceInputs(),"both old features and passive observer disabled leave upload capture off");
+  uint32_t tokens[3]{};const uint8_t bytes[8]={0x91,0x02,0xe3,0x44,0x55,0xa6,0x77,0x18};
+  if(CaptureSurfaceInputs())surfaceWrites[&tokens[0]]={bytes,0,sizeof(bytes),sizeof(bytes),0};
+  Check(surfaceWrites.empty()&&surfaceBuffers.empty(),"inactive capture gate records no surface upload");
+  observer::enabled=true;
+  Check(!autoSurfaceRoles&&!skin_packet_capture::Enabled()&&CaptureSurfaceInputs(),"passive observer alone activates original surface upload capture");
+  if(CaptureSurfaceInputs())surfaceWrites[&tokens[0]]={bytes,0,sizeof(bytes),sizeof(bytes),0};
+  if(CaptureSurfaceInputs())CaptureSurfaceWrite(&tokens[0]);
+  Check(surfaceWrites.empty()&&surfaceBuffers.count(&tokens[0])==1&&surfaceBuffers.at(&tokens[0]).complete&&
+    surfaceBuffers.at(&tokens[0]).bytes==std::vector<uint8_t>(bytes,bytes+sizeof(bytes))&&surfaceBufferBytes==sizeof(bytes),
+    "observer-only full write completes exact literal bytes and consumes pending write");
+  surfaceWrites[&tokens[1]]={bytes+2,2,3,sizeof(bytes),0};CaptureSurfaceWrite(&tokens[1]);
+  std::vector<uint8_t> partial(sizeof(bytes));memcpy(partial.data()+2,bytes+2,3);
+  Check(!surfaceBuffers.at(&tokens[1]).complete&&surfaceBuffers.at(&tokens[1]).bytes==partial&&surfaceBufferBytes==2*sizeof(bytes),
+    "bounded partial capture retains exact written interval without claiming full upload");
+  const uint8_t replacement[2]={0xfa,0x35};surfaceWrites[&tokens[0]]={replacement,3,2,sizeof(bytes),D3DLOCK_DISCARD};CaptureSurfaceWrite(&tokens[0]);
+  std::vector<uint8_t> discarded(bytes,bytes+sizeof(bytes));memcpy(discarded.data()+3,replacement,sizeof(replacement));
+  Check(!surfaceBuffers.at(&tokens[0]).complete&&surfaceBuffers.at(&tokens[0]).bytes==discarded&&surfaceWrites.empty(),
+    "partial DISCARD invalidates previous full-upload credit while copying its exact bytes");
+  surfaceWrites[&tokens[0]]={bytes,7,2,sizeof(bytes),0};CaptureSurfaceWrite(&tokens[0]);
+  Check(!surfaceBuffers.count(&tokens[0])&&!surfaceWrites.count(&tokens[0])&&surfaceBufferBytes==sizeof(bytes),
+    "out-of-range write retires previous snapshot without reading beyond literal bytes");
+  surfaceWrites[&tokens[2]]={bytes,0,0,8*1024*1024+1,0};CaptureSurfaceWrite(&tokens[2]);
+  Check(!surfaceBuffers.count(&tokens[2])&&!surfaceWrites.count(&tokens[2])&&surfaceBufferBytes==sizeof(bytes),
+    "oversized capture is rejected before allocating an unbounded snapshot");
+  surfaceWrites[&tokens[1]]={bytes,0,sizeof(bytes),sizeof(bytes),0};ForgetSurfaceBuffer(&tokens[1]);
+  Check(surfaceBuffers.empty()&&surfaceWrites.empty()&&!surfaceBufferBytes,"fresh resource-address invalidation clears snapshot, pending write and byte accounting");
+  observer::enabled=false;autoSurfaceRoles=true;
+  Check(CaptureSurfaceInputs()&&!skin_packet_capture::Enabled(),"existing auto-surface feature still activates capture with observer disabled");
+  autoSurfaceRoles=false;Check(!CaptureSurfaceInputs(),"disabling all three consumers returns capture gate to inactive");
+  autoSurfaceRoles=oldAuto;observer::enabled=oldObserver;skin_packet_capture::directory[0]=oldSkin;
+}
+// Plain C++ producer mock, not an IUnknown/COM implementation. The owned
+// table is only an identity for the existing Original lookup.
+struct CaptureBuffer {
+  void** table=nullptr;
+  uint8_t bytes[8]{0x71,0x22,0xd3,0x54,0x15,0xe6,0x37,0x88};
+  unsigned locks=0,unlocks=0,descriptions=0;
+  HRESULT lockResult=HRESULT(0x12345678),unlockResult=HRESULT(0x88765abc);
+  HRESULT GetDesc(D3DVERTEXBUFFER_DESC* value){
+    ++descriptions;*value={};value->Size=sizeof(bytes);value->Type=D3DRTYPE_VERTEXBUFFER;value->Pool=D3DPOOL_MANAGED;return S_OK;
+  }
+};
+static HRESULT STDMETHODCALLTYPE OriginalCaptureLock(CaptureBuffer* buffer,UINT,UINT,void** data,DWORD){++buffer->locks;*data=buffer->bytes;return buffer->lockResult;}
+static HRESULT STDMETHODCALLTYPE OriginalCaptureUnlock(CaptureBuffer* buffer){++buffer->unlocks;return buffer->unlockResult;}
+static CaptureAllocation failCaptureAllocation=CaptureAllocation::SurfaceWrite;
+static unsigned captureFaultHits;
+static void ThrowCaptureAllocation(CaptureAllocation point){if(point==failCaptureAllocation){++captureFaultHits;throw std::bad_alloc();}}
+static void SurfaceAllocationFailures(){
+  static_assert(noexcept(RememberSurfaceWrite(nullptr,SurfaceWrite{})),"pending surface insertion cannot escape native call");
+  static_assert(noexcept(CaptureSurfaceWriteNoThrow(nullptr)),"surface snapshot allocation cannot escape native call");
+  static_assert(noexcept(RememberBufferLock(nullptr,BufferLock{})),"buffer trace allocation cannot escape native call");
+  Check(surfaceBuffers.empty()&&surfaceWrites.empty()&&!surfaceBufferBytes,"allocation fixture starts without retained upload captures");
+  const auto oldAuto=autoSurfaceRoles,oldObserver=observer::enabled;const auto oldSkin=skin_packet_capture::directory[0];
+  const auto oldLog=logFile;const auto oldRecords=bufferRecords,oldDynamic=dynamicBufferRecords;
+  autoSurfaceRoles=false;skin_packet_capture::directory[0]=0;observer::enabled=true;logFile=nullptr;
+  void* table[13]{};CaptureBuffer buffer;buffer.table=table;uint32_t unrelated=0;
+  Check(!originals.count(table),"owned mock table has no previous original call records");
+  originals.emplace(table,std::map<unsigned,void*>{{11,reinterpret_cast<void*>(&OriginalCaptureLock)},{12,reinterpret_cast<void*>(&OriginalCaptureUnlock)}});
+  const std::vector<uint8_t> bytes(buffer.bytes,buffer.bytes+sizeof(buffer.bytes));
+  surfaceBuffers.emplace(&unrelated,SurfaceBuffer{bytes,true});surfaceBufferBytes=bytes.size();
+  auto seed=[&](){
+    ForgetSurfaceBuffer(&buffer);surfaceBuffers.emplace(&buffer,SurfaceBuffer{bytes,true});surfaceBufferBytes+=bytes.size();
+    surfaceWrites[&buffer]={buffer.bytes,0,sizeof(buffer.bytes),sizeof(buffer.bytes),0};
+  };
+  auto discarded=[&](){return !surfaceBuffers.count(&buffer)&&!surfaceWrites.count(&buffer)&&surfaceBufferBytes==bytes.size()&&
+    surfaceBuffers.at(&unrelated).complete&&surfaceBuffers.at(&unrelated).bytes==bytes;};
+  captureAllocationFault=&ThrowCaptureAllocation;failCaptureAllocation=CaptureAllocation::SurfaceWrite;captureFaultHits=0;seed();
+  void* data=nullptr;
+  const HRESULT locked=BufferLockCall<CaptureBuffer,D3DVERTEXBUFFER_DESC>(&buffer,0,sizeof(buffer.bytes),&data,0);
+  Check(locked==buffer.lockResult&&buffer.locks==1&&buffer.descriptions==1&&data==buffer.bytes&&captureFaultHits==1,
+    "pending-write allocation failure preserves full original Lock result and single call");
+  Check(discarded(),"pending-write allocation failure retires target's stale full capture and pending write only");
+  Check(BufferUnlockCall(&buffer)==buffer.unlockResult&&buffer.unlocks==1,"Lock-side capture failure still permits original Unlock and full failure result");
+  failCaptureAllocation=CaptureAllocation::SurfaceSnapshot;captureFaultHits=0;seed();
+  Check(BufferUnlockCall(&buffer)==buffer.unlockResult&&buffer.unlocks==2&&captureFaultHits==1,
+    "snapshot allocation failure cannot bypass original Unlock or replace its HRESULT");
+  Check(discarded(),"snapshot allocation failure invalidates both target records and preserves unrelated upload bytes");
+  failCaptureAllocation=CaptureAllocation::BufferLock;captureFaultHits=0;seed();
+  bufferLocks[&buffer]={buffer.bytes,1,0};
+  logFile=_wfsopen(L"geometry-observer-allocation-trace.jsonl",L"wb",_SH_DENYNO);Check(logFile!=nullptr,"open owned diagnostic trace for insertion failure");
+  bufferRecords=0;dynamicBufferRecords=0;data=nullptr;
+  Check(BufferLockCall<CaptureBuffer,D3DVERTEXBUFFER_DESC>(&buffer,0,sizeof(buffer.bytes),&data,0)==buffer.lockResult&&
+    buffer.locks==2&&buffer.descriptions==2&&data==buffer.bytes&&captureFaultHits==1,
+    "diagnostic lock-map allocation failure preserves original Lock result and call count");
+  Check(!bufferLocks.count(&buffer)&&!bufferRecords&&!dynamicBufferRecords&&surfaceWrites.count(&buffer)==1,
+    "failed diagnostic insertion erases stale lock record without discarding independently captured pending write");
+  buffer.unlockResult=HRESULT(0x23456701);
+  Check(BufferUnlockCall(&buffer)==buffer.unlockResult&&buffer.unlocks==3&&surfaceBuffers.at(&buffer).complete&&
+    surfaceBuffers.at(&buffer).bytes==bytes&&!surfaceWrites.count(&buffer),
+    "unrelated diagnostic failure leaves successful snapshot and original Unlock result intact");
+  captureAllocationFault=nullptr;fclose(logFile);logFile=oldLog;bufferRecords=oldRecords;dynamicBufferRecords=oldDynamic;
+  ForgetSurfaceBuffer(&buffer);ForgetSurfaceBuffer(&unrelated);bufferLocks.erase(&buffer);originals.erase(table);
+  Check(surfaceBuffers.empty()&&surfaceWrites.empty()&&!surfaceBufferBytes,"allocation fixture releases all owned capture records and accounting");
+  autoSurfaceRoles=oldAuto;observer::enabled=oldObserver;skin_packet_capture::directory[0]=oldSkin;
+}
 static bool witnessCurrent=true;
 static unsigned getCalls,qualifyCalls;
 enum class LateChange {None,Frame,Camera,Selection,Epoch,Reentry};
@@ -222,9 +322,27 @@ static void CurrentObservation(){
   Check(independent_scene_source::scans==independentScans&&native_mesh_source::submissions==submissions&&native_camera_source::submitted==cameraSubmits&&!testRemixApi,"observer uses no independent scan, camera submit or mesh/API submission");
   Check(!native_mesh_source::buffers.at(f.VB()).verified&&!native_mesh_source::buffers.at(f.IB()).verified,"diagnostic upload comparisons do not change native-source verification cache");
   Check(scene_geometry::observeSelection==&IndependentSpy,"passive callback does not overwrite independent observer");
+  ClearLog();
+  {
+    scene_geometry::Scope scope(Ptr(f.scene),Ptr(&f.camera));const auto& cached=scope.RegistrySnapshot();const auto* cachedAddress=&cached;const auto* cachedSupports=cached.supports.data();
+    Check(cached.valid&&cached.supports.size()==2,"prime immutable scope registry before independent original-selection observation");
+    const auto completedBefore=observer::completedScopes,rowsBefore=observer::rows;
+    const auto oldMutation=scene_geometry::MutationSerial();const auto oldSecond=f.staticList[1];f.staticList[1]=0;
+    observer::Observe(scope,Ptr(f.manager),Ptr(f.scene),Ptr(&f.camera));
+    Check(observer::completedScopes==completedBefore+1&&observer::rows==rowsBefore+1,"passive observer reads changed physical membership instead of earlier scope cache");
+    const auto freshLog=ReadLog();
+    Check(Count(freshLog,"\"event\":\"scope\"")==1&&Count(freshLog,"\"originallySelected\":")==1&&
+      freshLog.find("\"supports\":1")!=std::string::npos&&freshLog.find("\"registrySource\":\"fresh_selection_read\"")!=std::string::npos&&
+      freshLog.find("\"completed\":true")!=std::string::npos,"fresh-selection packet identifies its own one-support observation");
+    Check(&scope.RegistrySnapshot()==cachedAddress&&cached.supports.data()==cachedSupports&&cached.valid&&cached.supports.size()==2&&cached.supports[1]==Ptr(f.objects[1])+0x14&&
+      scene_geometry::MutationSerial()==oldMutation,"fresh diagnostic preserves existing immutable cache and makes no retirement or lifetime claim");
+    f.staticList[1]=oldSecond;
+  }
+  Check(f.NativeBytes()==before,"fresh membership fixture restores owned vector without changing native visibility");
+  const auto completedAfterFresh=observer::completedScopes;
   const auto rejectBefore=observer::rejectedScopes;ClearLog();witnessCurrent=false;
   {scene_geometry::Scope scope(Ptr(f.scene),Ptr(&f.camera));observer::Observe(scope,Ptr(f.manager),Ptr(f.scene),Ptr(&f.camera));}
-  Check(observer::completedScopes==completed+1&&observer::rejectedScopes==rejectBefore+1&&ReadLog().find("update_witness")!=std::string::npos,"unqualified original update never becomes completed current geometry");witnessCurrent=true;
+  Check(observer::completedScopes==completedAfterFresh&&observer::rejectedScopes==rejectBefore+1&&ReadLog().find("update_witness")!=std::string::npos,"unqualified original update never becomes completed current geometry");witnessCurrent=true;
   auto reject=[&](scene_geometry::Scope& scope,uint32_t manager,uint32_t scene,uint32_t camera,const char* message){
     const auto count=observer::completedScopes,failures=observer::rejectedScopes;observer::Observe(scope,manager,scene,camera);
     Check(observer::completedScopes==count&&observer::rejectedScopes==failures+1&&f.NativeBytes()==before,message);
@@ -266,7 +384,7 @@ static void CurrentObservation(){
 int main(){
   try{
     static_assert(noexcept(geometry_snapshot_observer::Observe(std::declval<scene_geometry::Scope&>(),0,0,0)),"passive callback cannot unwind through original selection");
-    geometry_observer_test::InitializeGuards();geometry_observer_test::HookBoundaries();geometry_observer_test::CurrentObservation();
+    geometry_observer_test::InitializeGuards();geometry_observer_test::HookBoundaries();geometry_observer_test::SurfaceUploadActivation();geometry_observer_test::SurfaceAllocationFailures();geometry_observer_test::CurrentObservation();
     printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeGameCodeExecuted\":false,\"gpu\":false}\n",geometry_observer_test::checks);return 0;
   }catch(const std::exception& error){fprintf(stderr,"FAIL %s\n",error.what());return 1;}
 }

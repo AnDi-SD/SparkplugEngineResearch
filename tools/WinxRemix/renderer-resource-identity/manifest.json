@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "pin": "b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4",
+  "patch": "external-asset-identity-v2.patch",
+  "patchSha256": "7d113b98f9596900ae4628034922e6578e6b174b4a255595caa8ee5a6a26ed03",
+  "prerequisites": [
+    {
+      "path": "tools/WinxRemix/renderer-usd-fix/api-usd-v1.patch",
+      "sha256": "34e0a2c66ade44ea5231770901b5a13dc85d42a46ee7ded3e305c3c4ba9ba092"
+    },
+    {
+      "path": "tools/WinxRemix/renderer-usd-fix/animation-v1.patch",
+      "sha256": "20e6d20a1db7c2c59af23a9acd0cd1b772954827bd3d5c637378e5ff5ad155c3"
+    },
+    {
+      "path": "tools/WinxRemix/renderer-usd-fix/buffers-v1.patch",
+      "sha256": "dbfb1e2fc63f41aa929de7c4367a88a857144c188e4921176c13836ce40bd043"
+    },
+    {
+      "path": "tools/WinxRemix/renderer-usd-fix/zero-scale-v1.patch",
+      "sha256": "da7d8fe76569de6f8eff8d3dc151f3e56f1769be0c82007fc5eb3753c08cd5cb"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/dxvk/rtx_render/rtx_external_asset_identity.h",
+      "beforeLfSha256": null,
+      "afterLfSha256": "34becb69ac4d925e40371894d1c2c7ea9eb6d896274c3f4004f57e40fbc67453"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_game_capturer.cpp",
+      "beforeLfSha256": "f192edde9f91d1a1a4ab59ba7dccdc19f7591c952cd064eaac986f182e46b31c",
+      "afterLfSha256": "09798037239756f5a10bb5a8d25f92dfbf4ae8d276212866ec3ce6925e0628d2"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_game_capturer.h",
+      "beforeLfSha256": "33cebe08558d7fc452c30cfa143cd7db2d5b6bf4c967d83553673acf765048b4",
+      "afterLfSha256": "ac2b37193fb798fbed9b9d43c536b26728148f360e46057b35fddc9823194076"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_instance_manager.cpp",
+      "beforeLfSha256": "d06dacc6b17c7245f6bd18660b1c640429f835157bb66f0ed776294705ec043a",
+      "afterLfSha256": "899b82ba8fbdbcdef421d13e4a60911c7446338a3e8dd4818f3b3043fdd58990"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_instance_manager.h",
+      "beforeLfSha256": "920d424a1b9661662909ea6a3d34c96963c3f0a6d214b207ea27558934cb132e",
+      "afterLfSha256": "60c88ab1efcc754985bf0045442e03a56300483c969192720bd527ebf01e1797"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_options.h",
+      "beforeLfSha256": "cc01eb5314e4a0e3ce7e5c1a1990979d09c003334641da13df93ad3bb1610608",
+      "afterLfSha256": "65b7ef615fa01ae15925c3ef8b38a161ec9389bb3ef3f21ee3bd850c0cc4654a"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_remix_api.cpp",
+      "beforeLfSha256": "9c9fda8a9f020878d5363fdeae7d93051e6404a39a7f8a05729996318cfde552",
+      "afterLfSha256": "51d4215719e98980a8a501763fada26ec9004beee51ca7ad219b3d8c698ac2fe"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_scene_manager.cpp",
+      "beforeLfSha256": "ee3ff52f6ee94716ada067890eae5b85ba23d95403393c1fa2752f9ef9c32c59",
+      "afterLfSha256": "56d8593bd9619785ce17b5952624494079a634d2d18253fcce89a597516bbe56"
+    },
+    {
+      "path": "src/dxvk/rtx_render/rtx_types.h",
+      "beforeLfSha256": "a0bc0345f9b7cf5b9b740a5e3af90f1d0f15941a11605283a28b25103c365bae",
+      "afterLfSha256": "ff5c4d1fc95499575ead64bb864aa296c9fb9e635e04de9c5bd182fbe966637e"
+    }
+  ],
+  "prerequisiteFiles": [
+    {
+      "path": "src/lssusd/game_exporter.cpp",
+      "lfSha256": "e61ae7a910bbdbfe2d291b6f7c0e9fe68f4dfa8ca9221cfda30744976c3296e8"
+    },
+    {
+      "path": "src/lssusd/game_exporter_types.h",
+      "lfSha256": "3741e81f6d03a32a88b0dd5f9ecbf02aec779aa7fc4e151bfb4f79627ad48678"
+    }
+  ],
+  "supersedesPatchSha256": "6c7657195c0c7a8ba5264caa554fa5f9028a81318e73bf77deef3162b0c30a3f",
+  "scope": "Own opt-in external asset identity. Both explicit capture IDs belong to each RtInstance; unqualified mesh naming keeps original BLAS getHash fallback. Single rigid Opaque surface.",
+  "qualification": "Patch application and source-extracted recording CPU checks are separate from production renderer build and complete GPU/Toolkit qualification."
+}

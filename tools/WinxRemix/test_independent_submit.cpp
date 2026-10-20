@@ -38,8 +38,13 @@ struct Fixture;
 static Fixture* current;
 static void (*onTarget)();
 static void (*onTargetRelease)();
+static void (*onTextureRead)();
+static void (*onTextureUnlock)();
+static void (*onTextureAddRef)();
+static void (*onTextureRelease)();
 static void (*onApi)(char,unsigned);
 static unsigned materialCalls,meshCalls,drawCalls,failDrawAt,targetCalls,cameraCalls;
+static unsigned textureReadCalls;
 static bool failMaterial,failMesh,failCamera;
 static uintptr_t nextHandle=0x1000;
 static std::set<remixapi_MaterialHandle> liveMaterials;
@@ -116,7 +121,11 @@ static remixapi_ErrorCode REMIXAPI_CALL DrawInstance(const remixapi_InstanceInfo
   return drawCalls==failDrawAt?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
 }
 struct FakeSurface {void** table=nullptr;ULONG refs=1;};
-struct FakeTexture {void** table=nullptr;DWORD pixel=0xff805020;};
+struct FakeTexture {
+  void** table=nullptr;DWORD pixel=0xff805020;
+  ULONG refs=1;bool alive=true,nativeOwner=true,locked=false;
+  unsigned addRefs=0,releases=0,locks=0,unlocks=0,destroyed=0;
+};
 struct FakeDevice {void** table=nullptr;};
 static HRESULT STDMETHODCALLTYPE GetTarget(FakeDevice*,DWORD index,IDirect3DSurface9** out);
 static HRESULT STDMETHODCALLTYPE GetState(FakeDevice*,D3DRENDERSTATETYPE type,DWORD* out);
@@ -124,21 +133,46 @@ static HRESULT STDMETHODCALLTYPE GetStage(FakeDevice*,DWORD stage,D3DTEXTURESTAG
 static HRESULT STDMETHODCALLTYPE GetSampler(FakeDevice*,DWORD stage,D3DSAMPLERSTATETYPE type,DWORD* out);
 static HRESULT STDMETHODCALLTYPE GetTransform(FakeDevice*,D3DTRANSFORMSTATETYPE type,D3DMATRIX* out);
 static ULONG STDMETHODCALLTYPE ReleaseTarget(FakeSurface* surface){++comCalls;const auto refs=--surface->refs;if(onTargetRelease)onTargetRelease();return refs;}
-static D3DRESOURCETYPE STDMETHODCALLTYPE TextureType(FakeTexture*){++comCalls;return D3DRTYPE_TEXTURE;}
-static DWORD STDMETHODCALLTYPE TextureLevels(FakeTexture*){++comCalls;return 1;}
-static HRESULT STDMETHODCALLTYPE TextureDesc(FakeTexture*,UINT level,D3DSURFACE_DESC* out) {
-  ++comCalls;if(level||!out)return D3DERR_INVALIDCALL;*out={};out->Format=D3DFMT_A8R8G8B8;out->Type=D3DRTYPE_SURFACE;
+static void TextureAlive(FakeTexture* texture) {
+  Check(texture&&texture->alive&&texture->refs,"texture method cannot inspect a destroyed owned COM object");
+}
+static ULONG STDMETHODCALLTYPE TextureAddRef(FakeTexture* texture) {
+  ++comCalls;TextureAlive(texture);++texture->addRefs;const auto refs=++texture->refs;
+  if(onTextureAddRef)onTextureAddRef();return refs;
+}
+static ULONG STDMETHODCALLTYPE TextureRelease(FakeTexture* texture) {
+  ++comCalls;TextureAlive(texture);++texture->releases;const auto refs=--texture->refs;
+  if(!refs) {
+    Check(!texture->locked,"final texture destruction occurs after its readonly lock closes");
+    texture->alive=false;++texture->destroyed;
+    transport::ForgetTexture(reinterpret_cast<IDirect3DTexture9*>(texture));
+    surfaceChannelTextureHashes.erase(reinterpret_cast<IDirect3DBaseTexture9*>(texture));
+    surfaceTextureHashes.erase(reinterpret_cast<IDirect3DBaseTexture9*>(texture));
+  }
+  if(onTextureRelease)onTextureRelease();return refs;
+}
+static D3DRESOURCETYPE STDMETHODCALLTYPE TextureType(FakeTexture* texture){++comCalls;TextureAlive(texture);return D3DRTYPE_TEXTURE;}
+static DWORD STDMETHODCALLTYPE TextureLevels(FakeTexture* texture){++comCalls;TextureAlive(texture);return 1;}
+static HRESULT STDMETHODCALLTYPE TextureDesc(FakeTexture* texture,UINT level,D3DSURFACE_DESC* out) {
+  ++comCalls;TextureAlive(texture);if(level||!out)return D3DERR_INVALIDCALL;*out={};out->Format=D3DFMT_A8R8G8B8;out->Type=D3DRTYPE_SURFACE;
   out->Pool=D3DPOOL_MANAGED;out->Width=out->Height=1;return D3D_OK;
 }
 static HRESULT STDMETHODCALLTYPE TextureLock(FakeTexture* texture,UINT level,D3DLOCKED_RECT* out,const RECT*,DWORD flags) {
-  ++comCalls;Check(!level&&flags==D3DLOCK_READONLY,"direct hash/DDS calls are exclusively readonly on qualified source");
-  out->pBits=&texture->pixel;out->Pitch=4;transport::TextureLockResult(reinterpret_cast<IDirect3DTexture9*>(texture),0,flags,D3D_OK);return D3D_OK;
+  ++comCalls;TextureAlive(texture);++textureReadCalls;Check(!level&&flags==D3DLOCK_READONLY&&!texture->locked,"direct hash/DDS calls are exclusively readonly on qualified source");
+  texture->locked=true;++texture->locks;
+  out->pBits=&texture->pixel;out->Pitch=4;transport::TextureLockResult(reinterpret_cast<IDirect3DTexture9*>(texture),0,flags,D3D_OK);
+  if(onTextureRead)onTextureRead();return D3D_OK;
 }
 static HRESULT STDMETHODCALLTYPE TextureUnlock(FakeTexture* texture,UINT level) {
-  ++comCalls;Check(!level,"owned texture closes matching mip");transport::TextureUnlockResult(reinterpret_cast<IDirect3DTexture9*>(texture),0,D3D_OK);return D3D_OK;
+  ++comCalls;TextureAlive(texture);Check(!level&&texture->locked,"owned texture closes matching mip");
+  texture->locked=false;++texture->unlocks;
+  transport::TextureUnlockResult(reinterpret_cast<IDirect3DTexture9*>(texture),0,D3D_OK);
+  if(onTextureUnlock)onTextureUnlock();return D3D_OK;
 }
 struct Fixture {
   uint32_t engineSlot=0,rendererSlot=0,managerSlot=0,rootSlot=0,queueMode=0;
+  uint32_t textureBindingDebugSlot=0;
+  unsigned char textureBindingDebug[0x20]{};
   unsigned char managerCode[7]{};
   alignas(4) uint8_t engine[0x80]{},renderer[0xf368]{},system[0x1d8]{},partitionRoot[0x84]{},object[0x10c]{},selection[0x3c]{};
   abi::spSceneLayout scene{};abi::spSceneManagerLayout manager{};abi::spNodeLayout systemRoot{};
@@ -163,7 +197,10 @@ struct Fixture {
   IDirect3DTexture9* Texture(){return reinterpret_cast<IDirect3DTexture9*>(&comTexture);}
   uint32_t Support(){return Ptr(object)+0x14;}
   Fixture() {
-    current=this;frameId=(std::max)(frameId,800u)+3;drawId=0;materialCalls=meshCalls=drawCalls=failDrawAt=targetCalls=cameraCalls=0;failMaterial=failMesh=failCamera=false;onApi=nullptr;onTarget=nullptr;onTargetRelease=nullptr;
+    textureBindingDebugSlot=Ptr(textureBindingDebug);
+    source::textureBindingDebugPointerAddress=reinterpret_cast<uintptr_t>(&textureBindingDebugSlot);
+    current=this;frameId=(std::max)(frameId,800u)+3;drawId=0;materialCalls=meshCalls=drawCalls=failDrawAt=targetCalls=cameraCalls=textureReadCalls=0;failMaterial=failMesh=failCamera=false;onApi=nullptr;onTarget=nullptr;onTargetRelease=nullptr;onTextureRead=nullptr;
+    onTextureUnlock=onTextureAddRef=onTextureRelease=nullptr;
     source::submissionFailed=false;source::submitEnabled=true;source::keepForComparison=false;source::BeginDirectScope();source::inputs.clear();
     source::queueModeAddress=reinterpret_cast<uintptr_t>(&queueMode);
     source::directGroups=source::directInstances=source::directRejected=source::directApiFailures=0;
@@ -199,7 +236,8 @@ struct Fixture {
     deviceTable[81]=reinterpret_cast<void*>(Draw);deviceTable[82]=reinterpret_cast<void*>(DrawIndexed);
     deviceTable[83]=reinterpret_cast<void*>(DrawUP);deviceTable[84]=reinterpret_cast<void*>(DrawIndexedUP);
     target.table=targetTable;targetTable[2]=reinterpret_cast<void*>(ReleaseTarget);primaryTargets.emplace(Device(),reinterpret_cast<IDirect3DSurface9*>(&target));
-    comTexture.table=textureTable;textureTable[10]=reinterpret_cast<void*>(TextureType);textureTable[13]=reinterpret_cast<void*>(TextureLevels);
+    comTexture.table=textureTable;textureTable[1]=reinterpret_cast<void*>(TextureAddRef);textureTable[2]=reinterpret_cast<void*>(TextureRelease);
+    textureTable[10]=reinterpret_cast<void*>(TextureType);textureTable[13]=reinterpret_cast<void*>(TextureLevels);
     textureTable[17]=reinterpret_cast<void*>(TextureDesc);textureTable[19]=reinterpret_cast<void*>(TextureLock);textureTable[20]=reinterpret_cast<void*>(TextureUnlock);
     states[D3DRS_ALPHAFUNC]=D3DCMP_ALWAYS;states[D3DRS_COLORWRITEENABLE]=15;states[D3DRS_BLENDOP]=D3DBLENDOP_ADD;
     stages[D3DTSS_COLORARG1]=stages[D3DTSS_ALPHAARG1]=D3DTA_TEXTURE;stages[D3DTSS_COLORARG2]=stages[D3DTSS_ALPHAARG2]=stages[D3DTSS_RESULTARG]=D3DTA_CURRENT;
@@ -241,7 +279,11 @@ struct Fixture {
     scene_geometry::skipExtendedSupport=source::DirectSupportOmitted;scene_geometry::selectionRestarted=source::DirectSelectionRestarted;
   }
   ~Fixture() {
-    failAllocationAfter=-1;onApi=nullptr;onTarget=nullptr;onTargetRelease=nullptr;
+    failAllocationAfter=-1;onApi=nullptr;onTarget=nullptr;onTargetRelease=nullptr;onTextureRead=nullptr;
+    onTextureUnlock=onTextureAddRef=onTextureRelease=nullptr;
+    Check(comTexture.refs==(comTexture.nativeOwner?1u:0u)&&comTexture.alive==comTexture.nativeOwner&&
+      comTexture.locks==comTexture.unlocks&&!comTexture.locked,
+      "every texture capture closes its lock and temporary reference before fixture retirement");
     if(sceneLightsEnabled){++frameId;ResetSceneLights();}
     sceneLightsEnabled=false;keepSceneLightsForComparison=false;
     Check(liveLights.empty(),"fixture retires all scene light handles");
@@ -303,6 +345,9 @@ static void Basic() {
   Check(drawCalls==3&&source::directInstances==3&&source::directGroups==1,"complete group preserves two references to first Model plus one to second");
   Check(drawnModels==std::vector<uint32_t>({Ptr(&f.models[0]),Ptr(&f.models[1]),Ptr(&f.models[0])}),"API order preserves native vector order with duplicate and null gap");
   Check(materialCalls==1&&meshCalls==1,"all group preparation shares one immutable resource cache");
+  Check(textureReadCalls==1&&f.comTexture.locks==1&&f.comTexture.unlocks==1&&
+    f.comTexture.refs==1&&f.comTexture.addRefs==f.comTexture.releases,
+    "hash and DDS share one owned mip copy while later prepared Models reuse warm resources");
   Check(source::DirectSupportOmitted(f.Support()),"only fully transferred support eligible for omission");
   Check(std::equal(objectBefore.begin(),objectBefore.end(),f.object),"direct preparation never mutates support or native matrices");
   for(const auto& instance:instances)Check(instance.transform.matrix[0][3]==12,"direct world transform reaches actual recording API");
@@ -341,6 +386,169 @@ static void PartialFailure() {
 static void ChangedContent() {
   transport::TextureLockResult(current->Texture(),0,0,D3D_OK);
   transport::TextureUnlockResult(current->Texture(),0,D3D_OK);
+}
+static void ReleaseNativeTexture() {
+  auto& texture=current->comTexture;
+  Check(texture.nativeOwner&&texture.refs,"literal native owner holds one live reference before its release");
+  texture.nativeOwner=false;const auto expected=texture.refs-1;
+  Check(current->Texture()->Release()==expected,"native owner releases exactly its own texture reference");
+}
+// All mutations use owned literal records or the existing transport registry;
+// this helper never calls a native producer or COM method.
+static void ChangePacketSource(Fixture& fixture,unsigned reason) {
+  switch(reason) {
+  case 0:fixture.models[0].base.material=Ptr(&fixture.defaultMaterial);break;
+  case 1:fixture.material.base.passes[0]=Ptr(&fixture.defaultPass);break;
+  case 2:transport::TextureLockResult(fixture.Texture(),0,0,D3D_OK);break;
+  case 3:transport::ForgetTexture(fixture.Texture());break;
+  case 4:{D3DSURFACE_DESC description{};description.Format=D3DFMT_A8R8G8B8;description.Type=D3DRTYPE_SURFACE;
+    description.Pool=D3DPOOL_MANAGED;description.Width=description.Height=1;
+    Check(transport::RememberTexture(fixture.Device(),fixture.Texture(),fixture.Texture(),&description,1),
+      "same-address texture replacement establishes a fresh owned creation record");break;}
+  case 5:transport::BeginReset(fixture.Device());transport::EndReset(fixture.Device());break;
+  case 6:fixture.textureBindingDebug[0x1f]=0x80;break;
+  }
+}
+static void PacketSourceTransitions() {
+  for(unsigned reason=0;reason<7;++reason) {
+    Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    const auto input=source::inputs.at({f.Support(),Ptr(&f.models[0])});
+    {std::unique_lock<std::recursive_mutex> borrow(guard);const auto before=comCalls;
+      Check(source::NativeInputCurrent(borrow,f.Device(),input),"owned packet has a qualified native source before mutation");
+      ChangePacketSource(f,reason);
+      Check(!source::NativeInputCurrent(borrow,f.Device(),input)&&comCalls==before,
+        "pure consumption fence rejects replaced material pass writable retired reused reset or NULL texture without COM");}
+    f.Submit(scope);
+    Check(!materialCalls&&!meshCalls&&!drawCalls&&!source::DirectSupportOmitted(f.Support())&&!source::submissionFailed,
+      "stale owned packet preserves native direct fallback before any API resource ownership");
+  }
+  {Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    const auto input=source::inputs.at({f.Support(),Ptr(&f.models[0])});
+    const auto before=comCalls;std::unique_lock<std::recursive_mutex> borrow(guard);
+    transport::TextureLockResult(f.Texture(),0,D3DLOCK_READONLY,D3D_OK);
+    Check(source::NativeInputCurrent(borrow,f.Device(),input),"readonly source access preserves the captured content token");
+    transport::TextureUnlockResult(f.Texture(),0,D3D_OK);
+    Check(source::NativeInputCurrent(borrow,f.Device(),input)&&comCalls==before,
+      "closing readonly source access preserves the pure material and texture fence");}
+  const unsigned changes[]={0,1,3,4};
+  for(unsigned reason:changes)for(unsigned boundary=0;boundary<3;++boundary) {
+    Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static unsigned change,hits;static char operation;change=reason;hits=0;operation=boundary==0?'a':boundary==1?'m':'d';
+    onApi=[](char op,unsigned ordinal){if(op==operation&&(op!='d'||ordinal==1)){++hits;ChangePacketSource(*current,change);}};
+    f.Submit(scope);
+    Check(hits==1&&materialCalls==1&&meshCalls==(boundary?1u:0u),
+      "material pass retirement or same-address reuse happens at the requested resource or instance boundary");
+    if(boundary<2)Check(!drawCalls&&!source::DirectSupportOmitted(f.Support())&&!source::submissionFailed,
+      "late material or texture identity change preserves direct fallback before first instance");
+    else Check(drawCalls==1&&source::directInstances==1&&source::submissionFailed&&source::DirectSupportOmitted(f.Support()),
+      "identity change after accepted direct instance stops later occurrences and preserves current ownership");
+  }
+}
+static void TextureReadReentry() {
+  Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+  onTextureRead=[](){onTextureRead=nullptr;current->comTexture.pixel=0xff1234ab;ChangedContent();};
+  f.Submit(scope);
+  Check(textureReadCalls==1&&!materialCalls&&!meshCalls&&!drawCalls&&!source::DirectSupportOmitted(f.Support()),
+    "content write during readonly hash COM call rejects before API resource or direct instance ownership");
+  Check(!surfaceChannelTextureHashes.count(f.Texture()),"reentrant content mutation cannot publish a stale channel texture hash");
+  const auto reads=textureReadCalls;f.Inputs(scope);f.Submit(scope);
+  Check(textureReadCalls>reads&&drawCalls==3&&surfaceChannelTextureHashes.count(f.Texture())==1,
+    "fresh operation rehashes current content and submits all repeated Model occurrences");
+}
+static void TextureLifetimeTransitions() {
+  for(unsigned boundary=0;boundary<3;++boundary) {
+    Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static unsigned hits;hits=0;const auto before=material_channels::assetBytes;
+    const auto release=[](){
+      onTextureRead=onTextureUnlock=onTextureRelease=nullptr;++hits;
+      Check(current->comTexture.refs==2&&current->comTexture.alive,
+        "owned mip capture holds its temporary reference before native owner release");
+      ReleaseNativeTexture();
+      Check(current->comTexture.refs==1&&current->comTexture.alive&&
+        transport::textures.count(current->Texture())==1,
+        "native owner release cannot retire or destroy texture while snapshot reference remains");
+    };
+    if(boundary==0)onTextureRead=release;
+    else if(boundary==1)onTextureUnlock=release;
+    else onTextureRead=[](){onTextureRead=nullptr;onTextureRelease=[](){
+      if(current->comTexture.refs!=1)return;onTextureRelease=nullptr;++hits;ReleaseNativeTexture();
+    };};
+    f.Submit(scope);
+    Check(hits==1&&!f.comTexture.refs&&!f.comTexture.alive&&f.comTexture.destroyed==1&&
+      f.comTexture.locks==1&&f.comTexture.unlocks==1&&!f.comTexture.locked,
+      "last native owner release at read unlock or temporary-release boundary closes one mip before final destruction");
+    Check(!materialCalls&&!meshCalls&&!drawCalls&&!source::DirectSupportOmitted(f.Support())&&
+      !source::submissionFailed&&!source::directRunning&&material_channels::assetBytes==before&&
+      !surfaceChannelTextureHashes.count(f.Texture()),
+      "destruction before final current fence publishes no hash DDS API resource or direct ownership");
+  }
+  for(unsigned boundary=0;boundary<3;++boundary)for(unsigned change=0;change<2;++change) {
+    Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static unsigned mutation,hits,at;mutation=change;hits=0;at=boundary;
+    const auto mutate=[](){onTextureRead=onTextureUnlock=onTextureRelease=nullptr;++hits;
+      Check(current->comTexture.refs==(at==2?1u:2u)&&current->comTexture.alive,
+        "content or Reset callback reaches its requested temporary ownership boundary");
+      if(mutation==1){transport::BeginReset(current->Device());transport::EndReset(current->Device());}
+      else {current->comTexture.pixel=0xff7234ab;ChangedContent();}};
+    if(boundary==0)onTextureRead=mutate;
+    else if(boundary==1)onTextureUnlock=mutate;
+    else {onTextureRelease=mutate;}
+    f.Submit(scope);
+    Check(hits==1&&f.comTexture.refs==1&&f.comTexture.alive&&f.comTexture.addRefs==f.comTexture.releases&&
+      f.comTexture.locks==1&&f.comTexture.unlocks==1&&!materialCalls&&!meshCalls&&!drawCalls&&
+      !source::DirectSupportOmitted(f.Support())&&!surfaceChannelTextureHashes.count(f.Texture()),
+      "content write or Reset at read unlock or final temporary release rejects stale snapshot after balanced ownership");
+    if(!change) {
+      f.Inputs(scope);f.Submit(scope);
+      Check(hits==1&&drawCalls==3&&source::DirectSupportOmitted(f.Support())&&
+        f.comTexture.refs==1&&f.comTexture.alive&&f.comTexture.addRefs==f.comTexture.releases&&
+        f.comTexture.locks==f.comTexture.unlocks&&surfaceChannelTextureHashes.count(f.Texture())==1,
+        "fresh direct source after cancelled mip capture uses current content and submits each occurrence once");
+    }
+  }
+  {Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static scene_geometry::Scope* activeScope;activeScope=&scope;
+    onTextureRead=[](){onTextureRead=nullptr;current->Submit(*activeScope);};
+    f.Submit(scope);
+    Check(!materialCalls&&!meshCalls&&!drawCalls&&!source::DirectSupportOmitted(f.Support())&&!source::directRunning&&
+      f.comTexture.refs==1&&f.comTexture.locks==f.comTexture.unlocks,
+      "direct submission reentry inside mip lock cannot create API ownership and closes all temporary resources");}
+  {Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    onApi=[](char op,unsigned ordinal){if(op=='d'&&ordinal==1)ReleaseNativeTexture();};
+    f.Submit(scope);
+    Check(drawCalls==1&&source::directInstances==1&&source::submissionFailed&&source::DirectSupportOmitted(f.Support())&&
+      !f.comTexture.alive&&f.comTexture.destroyed==1,
+      "native texture destruction after accepted instance retains direct ownership and stops remaining occurrences");
+    f.Submit(scope);Check(drawCalls==1,"destroyed postcommit texture cannot replay direct instances");
+    source::BeginDirectScope();Check(!source::DirectSupportOmitted(f.Support()),"new scope releases destroyed-texture omission for original fallback");}
+}
+static void TextureBindingTransitions() {
+  {Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    f.textureBindingDebug[0x1f]=1;f.Submit(scope);
+    Check(!materialCalls&&!meshCalls&&!drawCalls&&!source::DirectSupportOmitted(f.Support())&&!source::submissionFailed,
+      "forced NULL after capture preserves the original support before resource or instance creation");}
+  for(unsigned boundary=0;boundary<2;++boundary) {
+    Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static char operation;static unsigned hits;operation=boundary?'m':'a';hits=0;
+    onApi=[](char op,unsigned){if(op==operation){++hits;current->textureBindingDebug[0x1f]=0x80;}};
+    f.Submit(scope);
+    Check(hits==1&&materialCalls==1&&meshCalls==boundary&&!drawCalls&&
+      !source::DirectSupportOmitted(f.Support())&&!source::submissionFailed,
+      "debug transition in material or mesh creation rejects once before direct instance ownership");
+    Check(f.textureBindingDebug[0x1f]==0x80,"direct qualification never resets the native debug byte");
+  }
+  {Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
+    static unsigned hits;hits=0;
+    onApi=[](char op,unsigned ordinal){if(op=='d'&&ordinal==1){++hits;current->textureBindingDebug[0x1f]=0xff;}};
+    f.Submit(scope);
+    Check(hits==1&&drawCalls==1&&source::directInstances==1&&!source::directApiFailures&&
+      source::submissionFailed&&source::DirectSupportOmitted(f.Support()),
+      "debug transition inside first accepted direct instance stops remaining models and retains current support ownership");
+    f.textureBindingDebug[0x1f]=0;f.Submit(scope);
+    Check(drawCalls==1&&source::DirectSupportOmitted(f.Support()),"clearing debug flag cannot replay a partially committed direct group");
+    source::BeginDirectScope();
+    Check(!source::DirectSupportOmitted(f.Support()),"new direct scope releases prior ownership for original fallback");
+  }
 }
 static void SequenceAndReentry() {
   {Fixture f;scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);
@@ -530,7 +738,7 @@ static void SceneFrameOrdering() {
     scene_geometry::Scope scope(Ptr(&f.scene),Ptr(&f.camera));f.Inputs(scope);f.Submit(scope);
     Check(!lightCreates&&!lightDraws&&drawCalls==3,"empty direct registry is a complete batch without a fabricated fallback lamp");}
 }
-static void Run(){Basic();Rejections();PartialFailure();SequenceAndReentry();ForwardingAndAllocation();AlphaPolicy();EarlyCamera();SceneFrameOrdering();Check(liveMeshes.empty()&&liveMaterials.empty()&&liveLights.empty(),"all recording API ownership retired at fixture end");}
+static void Run(){Basic();Rejections();PartialFailure();PacketSourceTransitions();TextureReadReentry();TextureLifetimeTransitions();TextureBindingTransitions();SequenceAndReentry();ForwardingAndAllocation();AlphaPolicy();EarlyCamera();SceneFrameOrdering();Check(liveMeshes.empty()&&liveMaterials.empty()&&liveLights.empty(),"all recording API ownership retired at fixture end");}
 }
 #if !defined(WINX_INDEPENDENT_SUBMIT_FIXTURE_ONLY)
 int main(){SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOGPFAULTERRORBOX);try{direct_test::Watchdog watchdog;direct_test::Run();printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"nativeGameCodeExecuted\":false,\"ownedComCalls\":%u}\n",direct_test::checks,direct_test::comCalls);return 0;}

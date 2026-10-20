@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <mutex>
+#include <new>
 #include <share.h>
 #include <string>
 #include <sstream>
@@ -610,7 +611,35 @@ static void ResubmitTextures(IDirect3DDevice9* device) {
 #include "winx_geometry_snapshot_observer.h"
 #include "winx_material_audit.h"
 
-static bool CaptureSurfaceInputs(){return autoSurfaceRoles||skin_packet_capture::Enabled();}
+static bool CaptureSurfaceInputs(){return autoSurfaceRoles||skin_packet_capture::Enabled()||geometry_snapshot_observer::enabled;}
+#if defined(WINX_REMIX_TEST)
+enum class CaptureAllocation {SurfaceWrite,SurfaceSnapshot,BufferLock};
+static void (*captureAllocationFault)(CaptureAllocation);
+#endif
+static bool RememberSurfaceWrite(void* buffer,const SurfaceWrite& write) noexcept {
+  try {
+#if defined(WINX_REMIX_TEST)
+    if(captureAllocationFault)captureAllocationFault(CaptureAllocation::SurfaceWrite);
+#endif
+    surfaceWrites[buffer]=write;return true;
+  } catch(const std::bad_alloc&) {ForgetSurfaceBuffer(buffer);return false;}
+}
+static void CaptureSurfaceWriteNoThrow(void* buffer) noexcept {
+  try {
+#if defined(WINX_REMIX_TEST)
+    if(captureAllocationFault)captureAllocationFault(CaptureAllocation::SurfaceSnapshot);
+#endif
+    CaptureSurfaceWrite(buffer);
+  } catch(const std::bad_alloc&) {ForgetSurfaceBuffer(buffer);}
+}
+static bool RememberBufferLock(void* buffer,const BufferLock& value) noexcept {
+  try {
+#if defined(WINX_REMIX_TEST)
+    if(captureAllocationFault)captureAllocationFault(CaptureAllocation::BufferLock);
+#endif
+    bufferLocks[buffer]=value;return true;
+  } catch(const std::bad_alloc&) {bufferLocks.erase(buffer);return false;}
+}
 template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCall(Buffer* b,UINT offset,UINT size,void** data,DWORD flags) {
   std::lock_guard<std::recursive_mutex> lock(guard);
   using F=HRESULT(STDMETHODCALLTYPE*)(Buffer*,UINT,UINT,void**,DWORD);
@@ -620,21 +649,22 @@ template<class Buffer, class Desc> static HRESULT STDMETHODCALLTYPE BufferLockCa
   Desc desc{}; b->GetDesc(&desc);
   if(CaptureSurfaceInputs() && SUCCEEDED(hr) && data && *data && !(flags&D3DLOCK_READONLY) && offset<=desc.Size) {
     const UINT length=size?size:desc.Size-offset;
-    surfaceWrites[b]={*data,offset,length,desc.Size,flags};
+    RememberSurfaceWrite(b,SurfaceWrite{*data,offset,length,desc.Size,flags});
   }
   const bool dynamic=(desc.Usage&D3DUSAGE_DYNAMIC)!=0;
   if(SUCCEEDED(hr) && data && *data && logFile && bufferRecords<1024 && (!dynamic || dynamicBufferRecords<20)) {
-    if(dynamic) ++dynamicBufferRecords;
     const UINT length=offset<=desc.Size ? (size ? (size<desc.Size-offset ? size : desc.Size-offset) : desc.Size-offset) : 0;
-    bufferLocks[b]={*data,length,flags};
-    fprintf(logFile,"{\"event\":\"buffer_lock\",\"buffer\":%llu,\"frame\":%u,\"type\":%u,\"offset\":%u,\"size\":%u,\"length\":%u,\"usage\":%lu,\"pool\":%u,\"flags\":%lu,\"hr\":%ld}\n",static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(b)),frameId,desc.Type,offset,size,length,desc.Usage,desc.Pool,flags,hr);
-    ++bufferRecords;
+    if(RememberBufferLock(b,BufferLock{*data,length,flags})) {
+      if(dynamic) ++dynamicBufferRecords;
+      fprintf(logFile,"{\"event\":\"buffer_lock\",\"buffer\":%llu,\"frame\":%u,\"type\":%u,\"offset\":%u,\"size\":%u,\"length\":%u,\"usage\":%lu,\"pool\":%u,\"flags\":%lu,\"hr\":%ld}\n",static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(b)),frameId,desc.Type,offset,size,length,desc.Usage,desc.Pool,flags,hr);
+      ++bufferRecords;
+    }
   }
   return hr;
 }
 template<class Buffer> static HRESULT STDMETHODCALLTYPE BufferUnlockCall(Buffer* b) {
   std::lock_guard<std::recursive_mutex> lock(guard);
-  if(CaptureSurfaceInputs()) CaptureSurfaceWrite(b);
+  if(CaptureSurfaceInputs()) CaptureSurfaceWriteNoThrow(b);
   auto found=bufferLocks.find(b);
   if(found!=bufferLocks.end()) {
     const auto& info=found->second;
@@ -691,6 +721,7 @@ static HRESULT STDMETHODCALLTYPE CreateVB(IDirect3DDevice9* d,UINT size,DWORD us
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,DWORD,D3DPOOL,IDirect3DVertexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,26)(d,size,usage,fvf,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
+    if(geometry_snapshot_observer::enabled)ForgetSurfaceBuffer(*result);
     if(skin_packet_capture::Enabled())ForgetSurfaceBuffer(*result);
     if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
     if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>));}
@@ -714,6 +745,7 @@ static HRESULT STDMETHODCALLTYPE CreateIB(IDirect3DDevice9* d,UINT size,DWORD us
   using F=HRESULT(STDMETHODCALLTYPE*)(IDirect3DDevice9*,UINT,DWORD,D3DFORMAT,D3DPOOL,IDirect3DIndexBuffer9**,HANDLE*);
   const HRESULT hr=Original<F>(d,27)(d,size,usage,format,pool,result,shared);
   if(SUCCEEDED(hr) && result && *result) {
+    if(geometry_snapshot_observer::enabled)ForgetSurfaceBuffer(*result);
     if(skin_packet_capture::Enabled())ForgetSurfaceBuffer(*result);
     if(autoSurfaceRoles) {ClearSurfaceBases();ForgetSurfaceBuffer(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}
     if(native_mesh_source::enabled){native_mesh_source::Forget(*result);Patch(*result,2,reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>));}

@@ -171,6 +171,7 @@ static void Mesh(const std::unique_lock<std::recursive_mutex>& borrow, IDirect3D
 }
 static std::string Describe(const Row& row) {
   std::ostringstream text;
+  text.exceptions(std::ios::badbit | std::ios::failbit);
   text << "{\"support\":" << row.support << ",\"object\":" << row.object << ",\"supportTable\":" << row.supportTable
     << ",\"ownerPrimary\":" << row.ownerPrimary << ",\"registrations\":" << row.registrations
     << ",\"originallySelected\":" << Boolean(row.originallySelected) << ",\"supportRead\":" << Boolean(row.supportRead)
@@ -211,7 +212,7 @@ static bool Fences(scene_geometry::Scope& scope, const Context& context,
   std::vector<uint32_t> finalSelected;
   // Qualifier reads precede the final camera/selection copies. There is no
   // callback/native producer between those copies and the final context fence.
-  return ScopeCurrent(scope, context) && QualifyWitness(witness, context.scene, context.frame, context.mutation) &&
+  return ScopeCurrent(scope, context) && geometry_snapshot_observer::QualifyWitness(witness, context.scene, context.frame, context.mutation) &&
     Read(context.manager, finalManager) && !memcmp(managerHeader, finalManager, sizeof(managerHeader)) &&
     scene_geometry::Vector(context.manager, 0x28, finalSelected) && finalSelected == selected &&
     Camera(context.camera, finalCamera) && !memcmp(&cameraInput, &finalCamera, sizeof(cameraInput)) && ScopeCurrent(scope, context);
@@ -236,12 +237,14 @@ static void ObserveOwned(scene_geometry::Scope& scope, uint32_t manager, uint32_
   // joined only through callback/Scope, the current engine and root witness.
   std::vector<uint32_t> selected;
   if (!scene_geometry::Vector(manager, 0x28, selected)) { Rejected(scope.serial, "selection_vector"); return; }
-  const auto& registry = scope.RegistrySnapshot();
+  // This observer samples this original selection, independently of an earlier
+  // consumer of the enclosing scope's immutable first-observation cache.
+  const auto registry = scene_geometry::ReadRegistry(scene);
   if (!registry.valid || !registry.occurrencesComplete || registry.scene != scene ||
       registry.mutationSerial != context.mutation) { Rejected(scope.serial, "registry"); return; }
   context.system = registry.system; context.root = registry.root;
   native_update_source::Witness witness{};
-  if (!GetWitness(scene, context.frame, context.mutation, witness) || !witness.valid ||
+  if (!geometry_snapshot_observer::GetWitness(scene, context.frame, context.mutation, witness) || !witness.valid ||
       witness.scene != scene || witness.frame != context.frame || witness.mutation != context.mutation ||
       witness.deviceEpoch != context.epoch || witness.thread != ownerThread ||
       witness.system != context.system || witness.root != context.root || !ScopeCurrent(scope, context)) {
@@ -257,11 +260,12 @@ static void ObserveOwned(scene_geometry::Scope& scope, uint32_t manager, uint32_
   }
   auto* device = reinterpret_cast<IDirect3DDevice9*>(deviceAddress);
   std::ostringstream prefix;
+  prefix.exceptions(std::ios::badbit | std::ios::failbit);
   prefix << "{\"event\":\"scope\",\"schema\":1,\"observation\":" << ++nextObservation
     << ",\"frame\":" << context.frame << ",\"draw\":" << context.draw << ",\"scene\":" << scene << ",\"camera\":" << camera
     << ",\"scope\":" << context.scope << ",\"epoch\":" << context.epoch << ",\"mutation\":" << context.mutation
     << ",\"selectedSlots\":" << selected.size() << ",\"supports\":" << registry.supports.size()
-    << ",\"occurrences\":" << registry.occurrences.size() << ",\"updateValid\":true,\"updateSequence\":" << witness.sequence;
+    << ",\"occurrences\":" << registry.occurrences.size() << ",\"registrySource\":\"fresh_selection_read\",\"updateValid\":true,\"updateSequence\":" << witness.sequence;
   FloatWords(prefix, "viewBits", cameraInput.viewMatrix); FloatWords(prefix, "projectionBits", cameraInput.projectionMatrix);
   prefix << ",\"rows\":[";
   std::string packet = prefix.str();
@@ -342,6 +346,7 @@ static void ObserveOwned(scene_geometry::Scope& scope, uint32_t manager, uint32_
   const bool stable = Fences(scope, context, witness, managerHeader, selected, cameraInput);
   if (!stable) { complete = false; reason = "stale_fences"; }
   std::ostringstream suffix;
+  suffix.exceptions(std::ios::badbit | std::ios::failbit);
   suffix << "],\"candidateRows\":" << rowCount << ",\"candidateWorldQualified\":" << worldCount
     << ",\"candidateMeshQualified\":" << meshCount << ",\"completed\":" << Boolean(complete)
     << ",\"fencesStable\":" << Boolean(stable) << ",\"reason\":\"" << reason

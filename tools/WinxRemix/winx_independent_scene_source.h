@@ -6,7 +6,7 @@
 #undef max
 #undef min
 #include "../../Sparkplug/Analysis/PC/spRenderNodeMath.h"
-#include "../../Sparkplug/Code/SparkplugDX/spPCMaterialStateMapping.h"
+#include "winx_material_recipe_source.h"
 #pragma pop_macro("min")
 #pragma pop_macro("max")
 namespace independent_scene_source {
@@ -66,28 +66,23 @@ static DWORD ownerThread;
 constexpr unsigned inputLimit=16384;
 #if defined(WINX_REMIX_TEST)
 static uintptr_t queueModeAddress=0x75f8e8;
+static uintptr_t textureBindingDebugPointerAddress=0x75526c;
 #else
 static constexpr uintptr_t queueModeAddress=0x75f8e8;
+static constexpr uintptr_t textureBindingDebugPointerAddress=0x75526c;
 #endif
 template<class T> static bool Read(uintptr_t address,T& value){return native_owner_source::Read(address,value);}
+// Original PC4BB650 substitutes NULL before comparing the engine texture
+// identity cache when debug-object byte1F is nonzero. Our textured cohort
+// cannot represent that branch. Missing/unreadable state is also unqualified.
+static bool TextureBindingAllowed() {
+  uint32_t debug=0;uint8_t disabled=1;
+  return Read(textureBindingDebugPointerAddress,debug)&&debug&&
+    Read(uintptr_t(debug)+0x1f,disabled)&&!disabled;
+}
 static bool EmptyCallbacks(const abi::spRenderableCallbackVectorLayout& value) {
   return value.begin<=value.end&&value.end<=value.capacityEnd&&value.begin==value.end&&
     (!value.begin||value.begin>=0x10000);
-}
-struct Lighting {
-  std::array<float,4> diffuse{},ambient{},specular{},emissive{};
-  float specularPower=0;
-  uint32_t packedColorC194=0,globalBlackARGB=0,diffuseSource=~0u,ambientSource=~0u;
-};
-struct Overrides {
-  const std::array<uint32_t,11>* const* sources=nullptr;
-  size_t count=0;
-  std::array<uint32_t,10> selectors{};
-};
-static int32_t MapRenderState(void* context,uint32_t index,uint32_t value) noexcept {
-  auto& input=*static_cast<Input*>(context);
-  if(index>=input.mappedStates.size())return -1;
-  input.mappedStates[index]=value;input.mappedPresent[index]=1;return 0;
 }
 static bool Finite(const D3DMATRIX& matrix) {
   for(const auto& row:matrix.m)for(float value:row)if(!std::isfinite(value))return false;
@@ -159,50 +154,37 @@ static bool WorldInput(Input& input,const abi::spRenderSupportObservedLayout& su
   return ReadWorldInput(input,support,Reject);
 }
 static bool MaterialInput(Input& input,const abi::spModelLayout& model,uint32_t device,uint8_t outerOverride) {
-  abi::spDXMaterialObservedLayout material{};
-  if(!model.base.material||!Read(model.base.material,material)||
-     material.base.base.vtableAddress!=abi::spDXMaterialPrimaryVTable||
-     material.base.materialVTable!=abi::spDXMaterialInterfaceVTable||material.base.renderStates[8]!=2)return Reject(Material);
-  if(material.base.materialColorController)return Reject(Controllers);
-  abi::spMaterialPassLayerObservedLayout pass{};
-  if(material.base.passCount!=1||!Read(material.base.passes[0],pass)||
-     pass.base.vtableAddress!=abi::spMaterialPassLayerVTable||pass.layerCount!=1||pass.finalBlendOperation)return Reject(Pass);
-  abi::spStdLayerObservedLayout layer{};abi::spMaterialTextureObservedLayout texture{};
-  if(!Read(pass.layers[0],layer)||layer.base.base.vtableAddress!=abi::spStdLayerVTable||
-     !Read(layer.base.materialTexture,texture)||texture.base.vtableAddress!=abi::spMaterialTextureVTable)return Reject(Texture);
-  if(texture.uvController||texture.animationController||texture.hasStaticUV)return Reject(Controllers);
-  abi::spDXTextureObservedLayout nativeTexture{};
-  if(!Read(texture.fallbackTexture,nativeTexture)||nativeTexture.base.base.base.base.vtableAddress!=abi::spDXTexturePrimaryVTable||
-     nativeTexture.device!=device||!nativeTexture.texture)return Reject(Texture);
-  input.effectiveOverride=material.base.renderOverride?0:outerOverride;
-  if(input.effectiveOverride) {
-    uint32_t selectors[11]{};if(!Read(input.owner.renderer+0xc71c,selectors))return Reject(Override);
-    for(unsigned i=1;i<11;++i)if(selectors[i])return Reject(Override);
+  if(!TextureBindingAllowed())return Reject(Texture);
+  using Source=winx_remix::MaterialRecipeSource;
+  const auto recipe=Source::Capture({input.owner.renderer,model.base.material,device,outerOverride},
+    [](uint32_t address,void* data,size_t size){return scene_geometry::Read(address,data,size);});
+  if(!recipe.valid) {
+    switch(recipe.reason) {
+    case Source::Reason::Material:return Reject(Material);
+    case Source::Reason::Controllers:return Reject(Controllers);
+    case Source::Reason::Pass:return Reject(Pass);
+    case Source::Reason::Texture:return Reject(Texture);
+    case Source::Reason::Override:return Reject(Override);
+    case Source::Reason::Mapping:return Reject(Mapping);
+    }
+    return Reject(Mapping);
   }
-  native_material_source::Cache cache{};native_material_source::Mapped mapped;
-  for(unsigned i=1;i<9;++i)
-    if(!sparkplug::reconstruction::ApplyPCTextureStateForAnalysis(cache,0,i,texture.textureStates[i],false,
-       native_material_source::Map,&mapped))return Reject(Mapping);
-  if(!mapped.valid||mapped.stage[11]||mapped.stage[24])return Reject(Mapping);
-  auto& out=input.material;out.renderer=input.owner.renderer;out.material=model.base.material;
-  out.pass=material.base.passes[0];out.layer=pass.layers[0];out.textureOwner=layer.base.materialTexture;
-  out.texture=texture.fallbackTexture;memcpy(out.raw,texture.textureStates,sizeof(out.raw));
-  out.contract.coordinates=mapped.stage[11];out.contract.transformFlags=mapped.stage[24];
-  // Arguments are an explicit bootstrap condition, compared again at actual
-  // draw. This packet does not claim they originate in the raw texture words.
-  if(!surface_material::Decode(mapped.stage[1],D3DTA_TEXTURE,D3DTA_CURRENT,out.contract.rgb)||
-     !surface_material::DecodeAlpha(mapped.stage[4],D3DTA_TEXTURE,D3DTA_CURRENT,out.contract.alpha))return Reject(Mapping);
-  out.sampler={mapped.sampler[1],mapped.sampler[2],mapped.sampler[5],mapped.sampler[6],mapped.sampler[7]};
-  memcpy(input.materialStates,material.base.renderStates,sizeof(input.materialStates));
-  input.materialStates[7]=pass.finalBlendOperation; // CP34 local copy of native pass write
-  std::array<uint32_t,11> raw{},source{};raw.fill(~0u);memcpy(source.data(),input.materialStates,sizeof(input.materialStates));
-  Lighting lighting{};
-  // Mode2's output states do not consume material colors, power, packed color
-  // or global black. Local zero storage is explicitly unconsumed in this cohort.
-  // Force initial cache misses to describe the full expected emitted state set.
-  if(!sparkplug::reconstruction::ApplyPCMaterialStateSetForAnalysis(raw,source,static_cast<const Overrides*>(nullptr),
-     lighting,MapRenderState,&input))return Reject(Mapping);
-  input.textureCOM=nativeTexture.texture;return true;
+  // Equation projection and explicit bootstrap arguments remain adapter policy.
+  // The source owns native raw/mapped values and never binds a texture.
+  auto out=input.material;
+  if(!surface_material::Decode(recipe.stage[1],D3DTA_TEXTURE,D3DTA_CURRENT,out.contract.rgb)||
+     !surface_material::DecodeAlpha(recipe.stage[4],D3DTA_TEXTURE,D3DTA_CURRENT,out.contract.alpha))return Reject(Mapping);
+  out.renderer=recipe.renderer;out.material=recipe.material;out.pass=recipe.pass;out.layer=recipe.layer;
+  out.textureOwner=recipe.textureOwner;out.texture=recipe.texture;
+  memcpy(out.raw,recipe.rawTexture.data(),sizeof(out.raw));
+  out.contract.coordinates=recipe.stage[11];out.contract.transformFlags=recipe.stage[24];
+  out.sampler={recipe.sampler[1],recipe.sampler[2],recipe.sampler[5],recipe.sampler[6],recipe.sampler[7]};
+  input.material=out;input.effectiveOverride=recipe.effectiveOverride;
+  memcpy(input.materialStates,recipe.rawMaterial.data(),sizeof(input.materialStates));
+  for(size_t i=0;i<recipe.mappedPresent.size();++i)if(recipe.mappedPresent[i]) {
+    input.mappedStates[i]=recipe.mappedStates[i];input.mappedPresent[i]=1;
+  }
+  input.textureCOM=recipe.textureCOM;return true;
 }
 static bool ResourceInput(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,Input& input) {
   abi::spDXMeshObservedLayout mesh{};native_mesh_source::ResourcePair pair{};uint32_t declaration[7]{};

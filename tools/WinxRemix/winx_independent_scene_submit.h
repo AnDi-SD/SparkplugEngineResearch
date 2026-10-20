@@ -2,6 +2,7 @@
 // game's original selection. Only our added visibility entries are omitted.
 #pragma once
 #include "winx_frame_scheduler.h"
+#include "winx_rigid_geometry_packet.h"
 namespace independent_scene_source {
 static winx_remix::FrameScheduler directFrameScheduler;
 static FILE* submissionOutput;
@@ -91,7 +92,7 @@ static bool NativeInputCurrent(const std::unique_lock<std::recursive_mutex>& bor
     a.declarationGeneration==b.declarationGeneration&&a.vertexBuffer==b.vertexBuffer&&a.indexBuffer==b.indexBuffer&&a.declaration==b.declaration&&
     a.stride==b.stride&&a.componentFlags==b.componentFlags&&!memcmp(&a.range,&b.range,sizeof(a.range))&&
     native_transport_source::CurrentTexture(borrow,input.textureWitness)&&native_owner_source::Current(input.owner)&&
-    native_update_source::QualifyWitness(input.witness,input.owner.scene,frameId,input.owner.mutation);
+    native_update_source::QualifyWitness(input.witness,input.owner.scene,frameId,input.owner.mutation)&&TextureBindingAllowed();
 }
 static bool DirectNativeCurrent(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input) {
   return !native_owner_source::activeModel&&!native_owner_source::activeSupport&&NativeInputCurrent(borrow,device,input);
@@ -104,38 +105,133 @@ struct PreparedDirect {
   Input source{};
   remixapi_InstanceInfoBlendEXT blend{};remixapi_InstanceInfo instance{};
 };
+using RigidPacketBuilder=winx_remix::RigidGeometryPacketBuilder;
+// Input remains an operation-scoped adapter witness. Only the converter's
+// own values cross into this packet; no Bytes/layout/COM pointer is retained.
+template<class Current>
+static RigidPacketBuilder::Packet CaptureRigidGeometry(
+    const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,
+    const Input& input,const Current& current) {
+  RigidPacketBuilder::Provenance source{};
+  const auto& owner=input.owner;
+  source.scene=owner.scene;source.camera=owner.camera;source.renderer=owner.renderer;
+  source.support=owner.support;source.object=owner.object;source.model=owner.model;source.mesh=owner.mesh;
+  source.frame=owner.frame;source.scope=owner.sceneScope;source.mutation=owner.mutation;
+  source.modelOrdinal=owner.firstModelOrdinal;source.modelOccurrences=owner.modelOccurrences;
+  source.registrations=owner.registrations;source.updateSequence=input.witness.sequence;
+  source.deviceEpoch=input.witness.deviceEpoch;source.originallySelected=input.originallySelected;
+  source.computedWorld=input.computedWorld;memcpy(source.world,&owner.world,sizeof(source.world));
+  source.textureGeneration=input.textureWitness.generation;
+  source.textureContentGeneration=input.textureWitness.contentGeneration;
+  return RigidPacketBuilder::Capture(source,[&](auto& vertices,auto& plan,auto& provenance,auto& material) {
+    // The builder's first current() precedes this borrow. No external call
+    // occurs until all borrowed resource inputs have become owned values.
+    uint8_t outer=0;
+    if(!Read(owner.renderer+0xc1c4,outer))return false;
+    using RecipeSource=winx_remix::MaterialRecipeSource;
+    const auto recipe=RecipeSource::Capture({owner.renderer,owner.modelMaterial,uint32_t(reinterpret_cast<uintptr_t>(device)),outer},
+      [](uint32_t address,void* data,size_t size){return scene_geometry::Read(address,data,size);});
+    if(!recipe.valid||recipe.textureCOM!=input.textureCOM||recipe.effectiveOverride!=input.effectiveOverride||
+       recipe.material!=input.material.material||recipe.pass!=input.material.pass||recipe.layer!=input.material.layer||
+       recipe.textureOwner!=input.material.textureOwner||recipe.texture!=input.material.texture||
+       memcmp(recipe.rawTexture.data(),input.material.raw,sizeof(input.material.raw))||
+       memcmp(recipe.rawMaterial.data(),input.materialStates,sizeof(input.materialStates)))return false;
+    native_transport_source::TextureWitness texture{};
+    if(!native_transport_source::BorrowTexture(borrow,device,input.textureWitness.texture,texture)||
+       texture.generation!=input.textureWitness.generation||texture.contentGeneration!=input.textureWitness.contentGeneration||
+       recipe.textureCOM!=reinterpret_cast<uintptr_t>(texture.texture))return false;
+    material.recipe=recipe;
+    material.texture={texture.valid,reinterpret_cast<uintptr_t>(texture.device),reinterpret_cast<uintptr_t>(texture.texture),
+      texture.generation,texture.contentGeneration,texture.width,texture.height,texture.levels,uint32_t(texture.format)};
+    provenance.textureGeneration=texture.generation;provenance.textureContentGeneration=texture.contentGeneration;
+    const auto equation=input.material.contract;
+    material.equation.rgb={equation.rgb.operation,equation.rgb.first,equation.rgb.second};
+    material.equation.alpha={equation.alpha.operation,equation.alpha.first,equation.alpha.second};
+    material.equation.factor=equation.factor;material.equation.coordinates=equation.coordinates;
+    material.equation.transformFlags=equation.transformFlags;
+    memcpy(material.equation.transform,&equation.transform,sizeof(material.equation.transform));
+    const auto& instance=input.instance;
+    material.instance={instance.cull,instance.test,instance.function,instance.reference,instance.writeMask,
+      instance.blendEnabled,instance.source,instance.destination,instance.operation,instance.channels};
+    material.bootstrap={input.textureSrgb,input.separateAlpha,input.stencil};
+    native_mesh_source::TransportWitness transport{};native_mesh_source::Geometry geometry{};
+    const auto& stamp=input.resources;
+    if(!native_transport_source::Witness(borrow,device,stamp.vertexBuffer,stamp.indexBuffer,stamp.declaration,transport)||
+       !native_mesh_source::ResolveCurrentResources(borrow,device,owner.mesh,owner.renderer,owner.world,transport,geometry))return false;
+    D3DVERTEXELEMENT9 layout[MAXD3DDECLLENGTH+1]{};const auto count=geometry.layout->size();
+    if(!count||count>MAXD3DDECLLENGTH+1)return false;memcpy(layout,geometry.layout->data(),count*sizeof(layout[0]));
+    provenance.cpuVertexGeneration=geometry.vertices->generation;provenance.cpuIndexGeneration=geometry.indices->generation;
+    provenance.vertexGeneration=geometry.vertexGeneration;provenance.indexGeneration=geometry.indexGeneration;
+    provenance.declarationGeneration=geometry.declarationGeneration;
+    provenance.cpuVertexPartial=geometry.vertices->partial;provenance.cpuIndexPartial=geometry.indices->partial;
+    provenance.vertexCoverage=geometry.vertices->ranges;provenance.indexCoverage=geometry.indices->ranges;
+    const auto channels=material_channels::UnlitInput(preserveUnlitColor);
+    SurfaceGeometryInput conversion{&geometry.vertices->data,&geometry.indices->data,layout,UINT(count),geometry.stride,0,2,
+      geometry.range,material.instance.cull,&equation,&channels};
+    material_channels::Plan mapped{};
+    if(!ExpandSurfaceGeometry(conversion,vertices,mapped))return false;
+    memcpy(plan.albedo,mapped.albedo.v,sizeof(plan.albedo));memcpy(plan.emission,mapped.emission.v,sizeof(plan.emission));
+    plan.vertexRGB=mapped.vertexRGB;plan.vertexAlpha=mapped.vertexAlpha;plan.alpha=mapped.alpha;
+    return true;
+  },current);
+}
 template<class Current>
 static bool PrepareNativePacket(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,
                                 const Input& input,PreparedDirect& prepared,const Current& current) {
-  if(!current())return false;
-  native_mesh_source::TransportWitness transport{};native_mesh_source::Geometry geometry{};
-  const auto& stamp=input.resources;
-  if(!native_transport_source::Witness(borrow,device,stamp.vertexBuffer,stamp.indexBuffer,stamp.declaration,transport)||
-     !native_mesh_source::ResolveCurrentResources(borrow,device,input.owner.mesh,input.owner.renderer,input.owner.world,transport,geometry))return false;
-  D3DVERTEXELEMENT9 layout[MAXD3DDECLLENGTH+1]{};const auto count=geometry.layout->size();
-  if(!count||count>MAXD3DDECLLENGTH+1)return false;memcpy(layout,geometry.layout->data(),count*sizeof(layout[0]));
-  const auto channels=material_channels::UnlitInput(preserveUnlitColor);
-  SurfaceGeometryInput conversion{&geometry.vertices->data,&geometry.indices->data,layout,UINT(count),geometry.stride,0,2,
-    geometry.range,input.instance.cull,&input.material.contract,&channels};
-  std::vector<remixapi_HardcodedVertex> expanded;material_channels::Plan plan{};
-  if(!ExpandSurfaceGeometry(conversion,expanded,plan))return false;
-  // From here onward only owned expanded vertices and value stamps survive
-  // COM/API calls. No borrowed native Bytes/layout pointer is consumed again.
-  const auto hash=ChannelTextureHash(input.textureWitness.texture);
-  if(!hash||!current()||!native_transport_source::CurrentTexture(borrow,input.textureWitness))return false;
-  const auto material=SurfaceChannelMaterial(device,hash,plan,&input.material.sampler,input.textureWitness.texture,&input.textureSrgb);
-  if(!material||!current()||!native_transport_source::CurrentTexture(borrow,input.textureWitness))return false;
-  prepared.mesh=SurfaceGeometryResource(expanded,material);
-  prepared.key={input.owner.support,input.owner.model};prepared.source=input;
+  const auto packet=CaptureRigidGeometry(borrow,device,input,current);
+  if(!packet.valid)return false;
+  // SDK layout and zero padding belong to this backend. The packet contains
+  // ordinary vertices and coefficients, without handles or pNext links.
+  std::vector<remixapi_HardcodedVertex> expanded(packet.vertices.size());
+  for(size_t i=0;i<expanded.size();++i) {
+    memcpy(expanded[i].position,packet.vertices[i].position,sizeof(expanded[i].position));
+    memcpy(expanded[i].normal,packet.vertices[i].normal,sizeof(expanded[i].normal));
+    memcpy(expanded[i].texcoord,packet.vertices[i].texcoord,sizeof(expanded[i].texcoord));
+    expanded[i].color=packet.vertices[i].color;
+  }
+  material_channels::Plan plan{};
+  memcpy(plan.albedo.v,packet.plan.albedo,sizeof(plan.albedo.v));memcpy(plan.emission.v,packet.plan.emission,sizeof(plan.emission.v));
+  plan.vertexRGB=packet.plan.vertexRGB;plan.vertexAlpha=packet.plan.vertexAlpha;plan.alpha=packet.plan.alpha;
+  const auto& owned=packet.material;
+  const native_material_source::Sampler sampler{owned.recipe.sampler[1],owned.recipe.sampler[2],owned.recipe.sampler[5],
+    owned.recipe.sampler[6],owned.recipe.sampler[7]};
+  const DWORD srgb=owned.bootstrap.textureSrgb;
+  surface_material::Contract equation{};
+  equation.rgb={owned.equation.rgb.operation,owned.equation.rgb.first,owned.equation.rgb.second};
+  equation.alpha={owned.equation.alpha.operation,owned.equation.alpha.first,owned.equation.alpha.second};
+  equation.factor=owned.equation.factor;equation.coordinates=owned.equation.coordinates;
+  equation.transformFlags=owned.equation.transformFlags;
+  memcpy(&equation.transform,owned.equation.transform,sizeof(equation.transform));
+  D3DMATRIX world{};memcpy(&world,packet.provenance.world,sizeof(world));
+  SurfaceInstanceState instanceState{owned.instance.cull,owned.instance.test,owned.instance.function,owned.instance.reference,
+    owned.instance.writeMask,owned.instance.blendEnabled,owned.instance.source,owned.instance.destination,
+    owned.instance.operation,owned.instance.channels};
   // Same own opaque-alpha policy as the D3D path, applied to the API recipe.
   // Native material values in source remain unchanged for provenance/fences.
-  auto instanceState=input.instance;
   if(opaqueAlphaTest&&!keepTrivialAlphaTestForComparison&&
      TrivialOpaqueAlphaTest(instanceState.test,instanceState.function,instanceState.reference,
        instanceState.blendEnabled,instanceState.source,instanceState.destination,instanceState.operation))
     instanceState.function=D3DCMP_ALWAYS;
+  native_transport_source::TextureWitness texture{};
+  const auto textureCurrent=[&]() {
+    if(!current()||!native_transport_source::BorrowTexture(borrow,device,input.textureWitness.texture,texture))return false;
+    return reinterpret_cast<uintptr_t>(texture.device)==owned.texture.device&&
+      reinterpret_cast<uintptr_t>(texture.texture)==owned.texture.texture&&texture.generation==owned.texture.generation&&
+      texture.contentGeneration==owned.texture.contentGeneration&&texture.width==owned.texture.width&&
+      texture.height==owned.texture.height&&texture.levels==owned.texture.levels&&uint32_t(texture.format)==owned.texture.format;
+  };
+  if(!textureCurrent())return false;
+  material_channels::TextureMipSource::Snapshot texturePixels;
+  const material_channels::TextureMipSource::Description textureDescription{
+    owned.texture.width,owned.texture.height,owned.texture.format,owned.texture.levels};
+  const auto hash=ChannelTextureHashCurrent(texture.texture,textureCurrent,&texturePixels,&textureDescription);
+  if(!hash||!textureCurrent())return false;
+  const auto material=SurfaceChannelMaterialCurrent(device,hash,plan,&sampler,texture.texture,&srgb,textureCurrent,&texturePixels,&textureDescription);
+  if(!material||!textureCurrent())return false;
+  prepared.mesh=SurfaceRigidGeometryResourceStable(expanded,material);
+  prepared.key={input.owner.support,input.owner.model};prepared.source=input;
   return prepared.mesh&&
-    DescribeSurfaceInstance(instanceState,input.material.contract,input.owner.world,prepared.mesh,prepared.blend,prepared.instance)&&
+    DescribeSurfaceInstance(instanceState,equation,world,prepared.mesh,prepared.blend,prepared.instance)&&
     current();
 }
 static bool PrepareDirect(const std::unique_lock<std::recursive_mutex>& borrow,IDirect3DDevice9* device,const Input& input,PreparedDirect& prepared) {

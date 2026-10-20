@@ -13,6 +13,8 @@ static uint32_t Ptr(const void* pointer){return uint32_t(reinterpret_cast<uintpt
 static void Put(void* object,unsigned offset,uint32_t value){memcpy(static_cast<unsigned char*>(object)+offset,&value,4);}
 struct Fixture {
   alignas(4) unsigned char renderer[0xf368]{},scene[0x54]{},object[0x10c]{},mesh[0x88]{},fakeTable[0x34]{};
+  unsigned char textureBindingDebug[0x20]{};
+  uint32_t textureBindingDebugSlot=0;
   abi::spRenderNodeLayout node{};
   abi::spModelLayout model{};
   abi::spDXMaterialObservedLayout material{};
@@ -22,6 +24,8 @@ struct Fixture {
   abi::spDXTextureObservedLayout nativeTexture{};
   source::Input input{};
   Fixture() {
+    textureBindingDebugSlot=Ptr(textureBindingDebug);
+    source::textureBindingDebugPointerAddress=reinterpret_cast<uintptr_t>(&textureBindingDebugSlot);
     Put(object,0,0x6e65e8);Put(object,0x14,0x6e6604);Put(object,0x84,Ptr(object));Put(object,0x88,Ptr(scene));
     Put(object,0x48,Ptr(object)+0x8c);Put(object,0x4c,Ptr(object)+0xcc);
     D3DMATRIX matrix{};matrix._11=matrix._22=matrix._33=matrix._44=1;matrix._41=12;
@@ -81,6 +85,44 @@ static void Material() {
   Check(source::EmptyCallbacks(callbacks),"allocated empty callback vector");callbacks.end+=8;
   Check(!source::EmptyCallbacks(callbacks),"nonempty callbacks excluded even disabled elsewhere");callbacks.capacityEnd=callbacks.begin;
   Check(!source::EmptyCallbacks(callbacks),"invalid callback bounds rejected");
+}
+static void TextureBindingGuard() {
+  Fixture f;
+  Check(f.Material(),"zero native texture debug byte permits the ordinary material cohort");
+  std::array<unsigned char,sizeof(f.input)> inputBefore{};
+  memcpy(inputBefore.data(),&f.input,sizeof(f.input));
+  const auto materialBefore=f.material;const auto passBefore=f.pass;
+  const auto layerBefore=f.layer;const auto textureBefore=f.texture;
+  const auto nativeTextureBefore=f.nativeTexture;
+  const auto originalSlot=f.textureBindingDebugSlot;
+  const auto originalAddress=source::textureBindingDebugPointerAddress;
+  for(unsigned reason=0;reason<6;++reason) {
+    f.textureBindingDebug[0x1f]=0;
+    f.textureBindingDebugSlot=originalSlot;
+    source::textureBindingDebugPointerAddress=originalAddress;
+    switch(reason) {
+      case 0:f.textureBindingDebug[0x1f]=1;break;
+      case 1:f.textureBindingDebug[0x1f]=0x80;break;
+      case 2:f.textureBindingDebug[0x1f]=0xff;break;
+      case 3:f.textureBindingDebugSlot=0;break;
+      case 4:f.textureBindingDebugSlot=1;break;
+      default:source::textureBindingDebugPointerAddress=1;break;
+    }
+    std::array<unsigned,source::Count> rejectedBefore{};
+    memcpy(rejectedBefore.data(),source::rejected,sizeof(source::rejected));
+    Check(!f.Material(),"forced NULL or unreadable debug singleton rejects before material capture");
+    Check(!memcmp(inputBefore.data(),&f.input,sizeof(f.input)),"failed binding qualification leaves the previous packet intact");
+    bool exactCounters=true;
+    for(unsigned i=0;i<source::Count;++i)
+      exactCounters=exactCounters&&source::rejected[i]==rejectedBefore[i]+unsigned(i==source::Texture);
+    Check(exactCounters,"binding qualification charges exactly one texture rejection and no other reason");
+    Check(!memcmp(&materialBefore,&f.material,sizeof(f.material))&&!memcmp(&passBefore,&f.pass,sizeof(f.pass))&&
+      !memcmp(&layerBefore,&f.layer,sizeof(f.layer))&&!memcmp(&textureBefore,&f.texture,sizeof(f.texture))&&
+      !memcmp(&nativeTextureBefore,&f.nativeTexture,sizeof(f.nativeTexture)),"rejected debug cohort never rewrites native material or texture records");
+  }
+  source::textureBindingDebugPointerAddress=originalAddress;
+  f.textureBindingDebugSlot=originalSlot;f.textureBindingDebug[0x1f]=0;
+  Check(f.Material()&&!memcmp(inputBefore.data(),&f.input,sizeof(f.input)),"readable zero debug state restores the same material packet");
 }
 static void DrawBootstrap() {
   Fixture f;Check(f.Material()&&f.World(),"draw fixture current material/world inputs");
@@ -176,7 +218,7 @@ static void World() {
 }
 }
 int main() {
-  try {independent_test::Material();independent_test::World();independent_test::DrawBootstrap();independent_test::Geometry();independent_test::DefaultStage();
+  try {independent_test::Material();independent_test::TextureBindingGuard();independent_test::World();independent_test::DrawBootstrap();independent_test::Geometry();independent_test::DefaultStage();
     printf("{\"status\":\"PASS\",\"checks\":%u,\"gpu\":false,\"nativeGameCodeExecuted\":false}\n",independent_test::checks);return 0;
   }catch(const std::exception& error){fprintf(stderr,"FAIL %s\n",error.what());return 1;}
 }

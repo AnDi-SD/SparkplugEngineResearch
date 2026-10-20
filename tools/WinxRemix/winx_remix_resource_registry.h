@@ -216,12 +216,28 @@ public:
     if (it->second.usable && operation.Stable()) { it->second.frame = frame_; output = it->second.handle; }
     return true;
   }
-  bool FindMeshOwned(std::uint64_t key, const Operation& operation, remixapi_MeshHandle& output) {
+  // Recover the caller-supplied material identity from the current live owner.
+  // A numeric API handle alone is not a content identity or lifetime token.
+  bool MaterialIdentityOwned(remixapi_MaterialHandle handle, const Operation& operation,
+                             std::uint64_t& output) const {
+    output = 0;
+    if (!Owns(operation) || !operation.Stable() || !handle) return false;
+    for (const auto& item : materials_) if (item.second.handle == handle && item.second.usable) {
+      output = item.first;
+      return output != 0;
+    }
+    return false;
+  }
+  bool FindMeshOwned(std::uint64_t key, const Operation& operation, remixapi_MeshHandle& output,
+                     remixapi_MaterialHandle expectedMaterial = nullptr) {
     output = nullptr;
     if (!Owns(operation)) return false;
     const auto it = meshes_.find(key);
     if (it == meshes_.end()) return false;
-    if (it->second.usable && operation.Stable()) { it->second.frame = frame_; output = it->second.handle; }
+    if (it->second.usable && operation.Stable() &&
+        (!expectedMaterial || it->second.material == expectedMaterial)) {
+      it->second.frame = frame_; output = it->second.handle;
+    }
     return true;
   }
 

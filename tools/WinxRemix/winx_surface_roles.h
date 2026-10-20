@@ -2,6 +2,7 @@
 #define XXH_INLINE_ALL
 #include "third-party/xxhash.h"
 #include "winx_remix_api_session.h"
+#include "winx_texture_mip_snapshot.h"
 
 static bool autoSurfaceRoles, keepAutoSurfaceRolesForComparison;
 static uint64_t surfaceResourceEpoch;
@@ -34,6 +35,10 @@ static remixapi_Interface* GetRemixApi() {
 }
 
 static uint64_t ChannelTextureHash(IDirect3DBaseTexture9* base);
+template<class Current>
+static uint64_t ChannelTextureHashCurrent(IDirect3DBaseTexture9* base,const Current& current,
+                                         winx_remix::TextureMipSnapshotSource::Snapshot* acquired=nullptr,
+                                         const winx_remix::TextureMipSnapshotSource::Description* expected=nullptr);
 #include "winx_surface_submit.h"
 
 static void InitializeSurfaceRoles() {
@@ -95,10 +100,27 @@ static uint64_t BoundSurfaceTextureHash(IDirect3DDevice9* d) {
 // above remains the stock texture lookup contract for the older overlay path.
 // Caller owns a COM reference or holds a qualified transport borrow. The
 // content hash is shared by the bound-D3D and independent resource sources.
-static uint64_t ChannelTextureHash(IDirect3DBaseTexture9* base) {
-  if(!base)return 0;
+template<class Current>
+static uint64_t ChannelTextureHashCurrent(IDirect3DBaseTexture9* base,const Current& current,
+                                         winx_remix::TextureMipSnapshotSource::Snapshot* acquired,
+                                         const winx_remix::TextureMipSnapshotSource::Description* expected) {
+  if(acquired)*acquired={};
+  if(!base||!current())return 0;
   const auto cached=surfaceChannelTextureHashes.find(base);
   if(cached!=surfaceChannelTextureHashes.end())return cached->second;
+  if(acquired) {
+    if(surfaceChannelTextureHashes.size()>=4096)return 0;
+    auto snapshot=material_channels::CaptureTextureMipSnapshotCurrent(base,current);
+    const auto hash=material_channels::TextureMipSnapshotHash(snapshot);
+    if(!hash||!material_channels::TextureMipDescriptionMatches(snapshot,expected)||!current()){
+      InvalidateSurfaceTexture(base);return 0;
+    }
+    // A nested caller can populate the bounded cache during COM capture.
+    if(surfaceChannelTextureHashes.size()>=4096&&!surfaceChannelTextureHashes.count(base))return 0;
+    const auto inserted=surfaceChannelTextureHashes.emplace(base,hash);
+    if(inserted.first->second!=hash){InvalidateSurfaceTexture(base);return 0;}
+    *acquired=std::move(snapshot);return hash;
+  }
   if(base->GetType()!=D3DRTYPE_TEXTURE||surfaceChannelTextureHashes.size()>=4096)return 0;
   auto texture=static_cast<IDirect3DTexture9*>(base);const auto levels=texture->GetLevelCount();D3DSURFACE_DESC top{};
   if(!levels||levels>13||FAILED(texture->GetLevelDesc(0,&top))||top.Pool!=D3DPOOL_MANAGED||top.Usage||
@@ -116,7 +138,13 @@ static uint64_t ChannelTextureHash(IDirect3DBaseTexture9* base) {
       XXH3_64bits_update(&state,static_cast<const uint8_t*>(lock.pBits)+size_t(row)*lock.Pitch,desc.Width*4);
     if(FAILED(texture->UnlockRect(level))||!valid)return 0;
   }
+  // Hooks can invalidate the pointer cache during a reentrant read. Recheck
+  // before inserting, so that an old/mixed hash cannot repopulate that cache.
+  if(!current()){InvalidateSurfaceTexture(base);return 0;}
   const auto hash=XXH3_64bits_digest(&state);if(hash)surfaceChannelTextureHashes.emplace(base,hash);return hash;
+}
+static uint64_t ChannelTextureHash(IDirect3DBaseTexture9* base) {
+  return ChannelTextureHashCurrent(base,[]{return true;});
 }
 static uint64_t BoundChannelTextureHash(IDirect3DDevice9* d) {
   IDirect3DBaseTexture9* base=nullptr;

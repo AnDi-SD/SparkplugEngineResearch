@@ -10,7 +10,9 @@ Empty pass succeeds; source refuses NULL slots that native code dereferences.
 
 ## Texture identity cache and palette selection
 
-Actual4BB650 consults global75526C debug-object byte1F; nonzero replaces
+Actual4BB650 loads the debug object from global75526C. A NULL singleton
+calls41E380 and stores the returned object before reading its byte1F; the
+missing singleton does not mean that the flag is disabled. Nonzero replaces
 the requested texture with NULL. Cache `E480+4*stage` compares **engine
 texture identity**, not COM handle. Changed non-NULL DX texture3F3651B6
 submits its+3C handle to COM+104, obtains palette through primary+38, calls

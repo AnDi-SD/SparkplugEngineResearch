@@ -21,6 +21,7 @@ foreach($relative in @('Sparkplug/Analysis/PC/SparkplugAbi.h','Sparkplug/Analysi
 Copy-Item -LiteralPath $PSCommandPath -Destination (Join-Path $build 'Test-ResourceOwnership.ps1')
 $newSource=Join-Path $snapshot 'test_resource_ownership.cpp'
 $pressureSource=Join-Path $snapshot 'test_surface_resources.cpp'
+$identitySource=Join-Path $snapshot 'test_resource_identity_adapter.cpp'
 $commands=@"
 @echo off
 call "$environmentScript" x86
@@ -28,6 +29,8 @@ if errorlevel 1 exit /b %errorlevel%
 cl /I"$dependencyInclude" /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$include" "$newSource" /Fe:test_resource_ownership.exe /link user32.lib
 if errorlevel 1 exit /b %errorlevel%
 cl /I"$dependencyInclude" /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$include" "$pressureSource" /Fe:test_surface_resources.exe /link user32.lib
+if errorlevel 1 exit /b %errorlevel%
+cl /I"$dependencyInclude" /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$include" "$identitySource" /Fe:test_resource_identity_adapter.exe /link user32.lib
 exit /b %errorlevel%
 "@
 $commandFile=Join-Path $build 'build.cmd'
@@ -36,9 +39,9 @@ Push-Location $build
 try {
   & $env:ComSpec /d /c $commandFile *> (Join-Path $build 'build.log')
   if($LASTEXITCODE -ne 0){throw "Resource ownership build failed; see $build/build.log"}
-  if($SkipRun){Write-Output "Built two CPU fixtures: $build";return}
+  if($SkipRun){Write-Output "Built three CPU fixtures: $build";return}
   $results=@()
-  foreach($test in @('test_resource_ownership','test_surface_resources')) {
+  foreach($test in @('test_resource_ownership','test_surface_resources','test_resource_identity_adapter')) {
     $exe=Join-Path $build "$test.exe"
     $process=New-Object System.Diagnostics.Process
     $process.StartInfo.FileName=$exe
