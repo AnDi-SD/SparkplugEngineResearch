@@ -36,7 +36,20 @@ namespace sparkplug::reconstruction
             std::uint32_t usage,
             std::uint32_t format,
             std::uint32_t pool);
-        void ReleaseDeviceBufferForAnalysis() noexcept;
+        void ReleaseDeviceBufferForAnalysis() noexcept; // CPU shadow only.
+
+        // Actual PC4B2140/4B1FF0 protocol, separate from the CPU shadow above.
+        // Release context must outlive the object. Create writes the owned slot directly, ignores HRESULT and stores
+        // size. Reinitialization does NOT Release the previous handle first.
+        using DeviceCreateForAnalysis=std::int32_t (*)(void*,std::uint32_t,std::uint32_t,
+            std::uint32_t,std::uint32_t,std::uintptr_t*) noexcept;
+        using DeviceReleaseForAnalysis=std::uint32_t (*)(void*,std::uintptr_t) noexcept;
+        [[nodiscard]] bool CreateDeviceBufferForAnalysis(std::uint32_t byteSize,std::uint32_t usage,
+            std::uint32_t format,std::uint32_t pool,DeviceCreateForAnalysis,DeviceReleaseForAnalysis,void*) noexcept;
+        // Native clears field10 only when COM Release returns0. A nonzero
+        // remaining referencecount preserves the stored pointer.
+        [[nodiscard]] bool ReleaseNativeDeviceBufferForAnalysis() noexcept;
+        [[nodiscard]] std::uintptr_t DeviceBufferForAnalysis() const noexcept{return deviceBuffer_;}
 
         [[nodiscard]] bool IsInitializedForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetByteSizeForAnalysis() const noexcept;
@@ -53,5 +66,8 @@ namespace sparkplug::reconstruction
         std::uint32_t pool_ = 0;
         std::vector<std::byte> data_;
         bool initialized_ = false;
+        std::uintptr_t deviceBuffer_=0;
+        DeviceReleaseForAnalysis deviceRelease_=nullptr;
+        void* deviceContext_=nullptr;
     };
 }

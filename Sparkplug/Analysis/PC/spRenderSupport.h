@@ -7,6 +7,7 @@
 #include "Code/Sparkplug/spRenderable.h"
 #include "spRenderNodeMath.h"
 #include <algorithm>
+#include <cstdint>
 #include <utility>
 
 namespace sparkplug::evidence::pc
@@ -17,6 +18,7 @@ namespace sparkplug::evidence::pc
         using Matrix4 = render_node_math::Matrix4;
         std::vector<std::shared_ptr<Renderable>> renderables;
         Renderable::BoundingSphere localSphere{}, worldSphere{};
+        std::uint32_t visibilityMark=0; // original common support+64, ctor zero
 
         void Rebuild(const Matrix4& matrix) noexcept
         {

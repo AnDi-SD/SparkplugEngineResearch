@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <new>
 #include <utility>
 
 namespace sparkplug::reconstruction
@@ -82,6 +83,84 @@ namespace sparkplug::reconstruction
         }
         state.flushing=false;state.count=0;return true;
     }
+
+    bool spRenderer::EnqueueGeneralForAnalysis(GeneralQueueStateForAnalysis& state,
+        const GeneralQueueInputForAnalysis* input)
+    {
+        if(!state.enabled)return false; // native C050 gate precedes all inputs
+        if(state.dispatching||!input)return false; // explicit host guards
+        if(state.nineBucketMode)
+        {
+            if(!input->supportEnabled)return true;
+            if(input->mode>=state.buckets.size()||!input->general.renderable||!input->general.support)return false;
+            auto& bucket=state.buckets[input->mode];
+            if(bucket.size()>=GeneralQueueStateForAnalysis::MaximumEntries)return false;
+            try{bucket.push_back({input->general.renderable,input->general.support});}
+            catch(const std::bad_alloc&){return false;}
+            return true;
+        }
+        if(!input->general.renderable||!input->general.support
+            ||state.general.size()>=GeneralQueueStateForAnalysis::MaximumEntries)return false;
+        try{state.general.push_back(input->general);}
+        catch(const std::bad_alloc&){return false;}
+        return true;
+    }
+
+    bool spRenderer::FlushGeneralForAnalysis(GeneralQueueStateForAnalysis& state,
+        spCamera* camera,const std::array<bool,5>& phases,const GeneralDispatchForAnalysis& dispatch)
+    {
+        if(state.dispatching||state.general.size()>GeneralQueueStateForAnalysis::MaximumEntries)return false;
+        state.dispatching=true;
+        struct Reset final{bool& active;~Reset(){active=false;}} reset{state.dispatching};
+        if(state.nineBucketMode)
+        {
+            // These exact selected PC slots all point at5B7A00; the observer
+            // records calls only. No bucket categorization/drawing is invented.
+            const auto phase=[&](std::uint32_t slot)
+            {if(dispatch.pcBucketPhase)dispatch.pcBucketPhase(dispatch.context,slot,camera);};
+            if(phases[0])phase(0x20);
+            if(phases[1])phase(0x24);
+            if(phases[2])phase(0x28);
+            phase(0x3c);phase(0x40);
+            if(phases[3])phase(0x2c);
+            if(phases[4])phase(0x30);
+        }
+        else
+        {
+            if(!dispatch.sort)return false;
+            dispatch.sort(dispatch.context,state.general.data(),state.general.size(),
+                [](const GeneralEntryForAnalysis& a,const GeneralEntryForAnalysis& b) noexcept
+                {return evidence::pc::renderer_queue_math::LessGeneral(a.materialKey,a.meshIdentity,b.materialKey,b.meshIdentity);});
+            void* previous=nullptr;
+            for(std::size_t index=0;index<state.general.size();++index)
+            {
+                if(state.general.size()>GeneralQueueStateForAnalysis::MaximumEntries)return false;
+                void* support=state.general[index].support;
+                if(previous!=support)
+                {
+                    if(!support||!dispatch.prepare)return false;
+                    (void)dispatch.prepare(dispatch.context,support);
+                    previous=support;
+                }
+                // Native rereads the vector after support preparation. Direct
+                // mutation remains unsupported; refuse an invalidated index.
+                if(index>=state.general.size()||!dispatch.render)return false;
+                const auto entry=state.general[index];
+                if(!entry.renderable)return false;
+                (void)dispatch.render(dispatch.context,entry.renderable,entry.camera,support);
+            }
+        }
+        // Common4569E7 tail also runs after the bucket no-op phases.
+        ClearGeneralForAnalysis(state);
+        return true;
+    }
+
+    void spRenderer::ClearGeneralForAnalysis(GeneralQueueStateForAnalysis& state) noexcept
+    {state.general.clear();}
+    void spRenderer::ReleaseGeneralForAnalysis(GeneralQueueStateForAnalysis& state) noexcept
+    {std::vector<GeneralEntryForAnalysis>().swap(state.general);}
+    void spRenderer::ClearBucketQueuesForAnalysis(GeneralQueueStateForAnalysis& state) noexcept
+    {for(auto& bucket:state.buckets)bucket.clear();}
 
     spRenderer::spRenderer(const std::size_t textureStateCacheCount)
         : renderStateCache_(RenderStateCacheCount),

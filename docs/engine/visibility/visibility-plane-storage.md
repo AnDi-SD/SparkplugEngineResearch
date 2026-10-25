@@ -1,4 +1,4 @@
-# PC: массивы плоскостей видимости и общий блокер копирования
+# PC: массивы плоскостей видимости
 
 ## Что подтверждено
 
@@ -10,6 +10,7 @@
 | `46ADC0 → 13DF2F0` | всем live planes присваивается младший byte аргумента; activeCount = size при ненулевом byte, иначе0 | не удаляет первую плоскость и не меняет размер/буфер |
 | `45EA00 → 45E420` | уничтожение live elements, освобождение owned allocation, zero begin/end/capacity | не обнуляет allocator word00 и outer activeCount10 |
 | `45E530 → 13DFCF0` | copy-constructor vector: отдельно выделяет ровно logical size исходника | не копирует source capacity, allocator00, outer activeCount10; не является assignment45E870 |
+| `45E870 → 13B5E20` | vector assignment: self no-op; пустой источник освобождает destination buffer; непустой источник переиспользует достаточную capacity либо выделяет ровно source size | не копирует allocator00, outer activeCount10 и padding; не применяет resize growth1.5 |
 | `46C350 → 13DE550` | append plane-set в outer stack, включая spare capacity и relocation | не доказывает reserve-versus-size46C0F0 |
 
 Термины resize/insert/set-enabled-all аналитические. Исходные имена типа
@@ -33,10 +34,18 @@ Float equation копируется побитно, без нормализац�
 
 ### Copy-constructor и стек наборов
 
-Portable источник включает только fresh vector copy, не полный outer stack,
-не assignment и не неизвестный manager constructor. Копирование в уже
-сконструированный/self destination отклоняется host guard, а не объявляется
-доказанным native overwrite/error behavior.
+`InitializeVectorCopyForAnalysis` включает fresh vector copy. Его отказ для
+сконструированного/self destination — host guard, не native overwrite/error
+behavior. Отдельный `AssignVectorForAnalysis` выполняет присваивание уже
+сконструированному destination и допускает self no-op.
+
+Для assignment источник с logical size0 освобождает буфер назначения даже
+при собственной ненулевой capacity. Это отличается от resize0, который
+сохраняет буфер. Непустой source size не больше destination capacity сохраняет
+буфер, padding слотов и неиспользуемый хвост. При нехватке capacity выделяется
+ровно source size. Equation words, включая NaN payload и signed zero, и raw
+enabled byte копируются без арифметики. Allocator word и внешний activeCount
+назначения сохраняются во всех этих ветвях.
 
 ### Исходный путь
 
@@ -45,23 +54,39 @@ Allocation call46B4B3 передаёт строку по6DAF38:
 (`0x1A5`). Это доказанный **allocator header**, не найденный header плоскостей
 или translation unit Visibility. Подмена одного другим не допускается.
 
-## Что всё ещё блокирует полный путь
+## Assignment, outer count и отдельный reserve
 
 Оба callers45E870 (`46C88C` child descent и `46CC77` camera-near portal branch)
 после вызова **отдельно** копируют outer activeCount. Поэтому «просто скопировать
-20-byte plane-set» не является доказанной реализацией45E870.
+20-byte plane-set» не является реализацией45E870.
 
-`45E870 → slot13B1DE8 → 13B5E20` и
-`46C0F0 → slot13B20F0 → 13B92C0` входят вA0D3E0. СтатическиA0D3E0 обращается
-к общему protected dispatcher888940; последующий шифрованный материал не
-интерпретируется как обычный метод движка. Соседний45E880 имеет другое
-состояние/vtable/размер и не принят за искомую реализацию только по соседству.
+`45E870 → slot13B1DE8 → 13B5E20` проходит штатную защищённую подготовку
+и затем исполняет настоящее присваивание. Девять отдельных исходных вызовов
+закончились нормальным возвратом и уничтожением owned storage: self, два
+варианта пустого источника, оба пустых, shrink, равный размер, рост внутри
+capacity, рост с перевыделением и исходно пустое назначение. Текущий C++ helper
+после канонической сборки совпал на всех девяти входах: return identity,
+metadata, raw equation/enabled values, reuse и все bytes сохранённого буфера.
+Indeterminate padding нового native allocation не сравнивается с нулевой
+инициализацией host. Защищённая подготовка
+не подменялась успешным результатом или заранее расшифрованным телом.
+
+`46C0F0 → slot13B20F0 → 13B92C0` отдельно подготавливает внешний vector
+plane-set records. В настоящем Visibility constructor аргумент32 означает
+capacity32 при logical size0; это не создание32 live plane sets. Настоящие
+factory, deleting destructor и shutdown scratch pool завершились с
+освобождением всех выделений на этом входе. Полные populated reserve/relocation
+и allocator-failure paths не следуют из одного конструктора.
 
 Для портала установлен дополнительный смысл46CC90: после копирования
 унаследованного plane-set код **повторно включает все его плоскости**, включая
 отключённые ранее, прежде чем рекурсивно проверять destination-zone roots.
 Статическая caller связь и независимо исполненный all-enable подтверждены;
-сам blocked near-plane whole-call не объявлен пройденным.
+восемнадцать полных portal-вызовов, включая epsilon band, совпали с текущим
+C++ по словам плоскостей, enabled/count, аргументам рекурсии, порядку и меткам.
+Каждый исходный вызов использовал свежий guest и штатную подготовку assignment.
+Это ограниченная проверка выбранных входов, не численная гарантия для всего
+домена и не завершение полного visibility subsystem.
 
 [spVisibilityPlaneStorage.h](../../../Sparkplug/Analysis/PC/spVisibilityPlaneStorage.h)
 находится в analytical namespace, не в выдуманном original source tree.

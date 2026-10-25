@@ -46,6 +46,53 @@ native сцены; произвольный порядок singleton replacement
 одними лишь валидными pointers. Scene clone payload-copy отдельно ещё не
 исполнялся: vtable показывает inherited name-copy, не full deep scene copy.
 
+## Исходник CPU-фазы occlusion
+
+Частичный [spScene](../../../Sparkplug/Code/Sparkplug/spScene.h) содержит
+конкретное тело `ProcessOcclusionForAnalysis` для PC `45ED05..45EFE3`.
+Его явный `AnalysisConstruction` создаёт только аналитическое состояние:
+ordered entries и Scene stamp. Native factory, clone, System Root, четыре
+подсистемы и регистрация SceneManager этим конструктором не выполняются.
+RTTI metadata не регистрирует успешную замену native construction.
+Физический `spNamedObject` prefix подтверждён вызовом `413060` на том же
+`this` в `45EA30`, inherited name-copy `413120` и началом собственных полей
+в `+14`; соответствие registration base ID служит отдельной проверкой.
+
+Метод получает уже собранные borrowed output vectors Visibility и captured
+camera cache. Для каждого occluder он вычисляет view-space центр его world
+sphere: суммы идут `Y + Z + X + translation`. X/Y сохраняются как float,
+Z остаётся с 64-битной significand x87 до возведения в квадрат. Ключ равен
+`Z²` в orthographic branch byte `231`, иначе `(X² + Y²) + Z²`, с финальным
+float store. Общая [арифметика ключа](../../../Sparkplug/Analysis/PC/spOcclusionSceneMath.h)
+сохраняет этот порядок в finite/default-nearest domain.
+
+До 32 записей включительно используется восстановленная stable insertion
+`45E290`: одинаковые конечные ключи сохраняют входной порядок. Для большего
+cohort требуется явная policy. Доступный
+[LegacySortPolicy](../../../Sparkplug/Analysis/Host/LegacySortPolicy.h)
+использует версионный CRT sorter как техническую замену; native `45E7A0`
+является compiler introsort. Равенство tie permutations этой ветки не заявлено.
+
+После сортировки Scene вызывает реальное построение
+[camera planes](../visibility/occlusion-runtime.md) у очередного ненулевого
+volume. Оригинальный AL игнорируется; проверяется логический размер plane
+vector. Более дальний volume скрывается по sphere или, при пересечении,
+по реальному world point set. Затем строго содержащиеся support spheres
+получают `mark = SceneStamp - 1`. Скрытые записи заменяются на null; размер
+и порядок обоих output vectors сохраняются.
+
+На четырёх конечных сценариях (вложенные volumes, частичное перекрытие,
+orthographic и равная глубина) текущая CPU-фаза совпала с оригиналом по raw
+ключам, порядку, null-слотам, stamps и plane caches. Отдельно проверена
+композиция `ProcessVisibilityOcclusionForAnalysis`: она исполняет настоящее
+тело Visibility traversal, публикует Scene stamp, затем запускает CPU-фазу
+occlusion. Вход сравнения начинается до Visibility, а не с готового результата
+отбора. Это ограниченная квалификация represented graph и captured camera;
+она не распространяется на все геометрические и численные случаи.
+
+Borrowed cohorts не заменяют автоматическую Scene/partition регистрацию; полный
+`45EC70`, native construction/clone и lifetime подсистем этим телом не закрыты.
+
 ## Присоединение узлов — не просто `parent=...`
 
 Original421A60 сначала удерживает ребёнка, добавляет owned list entry,

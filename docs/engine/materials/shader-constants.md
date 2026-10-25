@@ -26,8 +26,10 @@ or a live shader backend. Source refuses missing callbacks for host safety.
 
 ## Parameter identity and exact storage contract
 
-Original4AE660 scans22 strings at6EFAE0, case-sensitive exact comparison;
-unknown/empty or array-suffixed names return0. Every original mapping:
+Original4AE660 uses the pointer table at6EFAE0: index0 is the empty sentinel,
+followed by22 named parameters (23pointer entries total). Comparison is
+case-sensitive and exact; unknown/empty or array-suffixed names return0.
+Every original named mapping:
 
 | ID | Name | ID | Name |
 | --- | --- | --- | --- |

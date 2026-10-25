@@ -75,6 +75,28 @@ namespace sparkplug::reconstruction
         }
     }
 
+    void spPCErrorManager::PrintErrorForAnalysis(const spError& error,const bool detailed,
+        const ConsoleForAnalysis& console) const
+    {
+        auto text=error.DescribeSeverityForAnalysis();
+        if(detailed && error.GetSourceFileForAnalysis())
+            text+="\n- "+std::string(error.GetSourceFileForAnalysis())+" ("+
+                std::to_string(error.GetSourceLineForAnalysis())+")";
+        const auto* head=GetHeadForAnalysis();
+        if(!head)return;
+        const auto severity=head->GetSeverityForAnalysis();
+        const std::uint32_t color=severity==spErrorSeverity::Information?0x0a:
+            severity==spErrorSeverity::Warning?0x0e:0x0c;
+        if(console)console(color,text);
+        else
+        {
+#if defined(_WIN32)
+            ::OutputDebugStringA(text.c_str());
+            ::OutputDebugStringA("\n");
+#endif
+        }
+    }
+
     void spPCErrorManager::NonModalHandlerForAnalysis(
         const AnalysisDispatch& dispatch,
         void*) noexcept

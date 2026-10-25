@@ -24,7 +24,8 @@ namespace sparkplug::reconstruction
             spRTTIManager::Instance().RegisterDeferredForAnalysis(DXVertexBufferRecord);
     }
 
-    spDXVertexBuffer::~spDXVertexBuffer() = default;
+    spDXVertexBuffer::~spDXVertexBuffer()
+    {if(deviceBuffer_&&deviceRelease_)(void)deviceRelease_(deviceContext_,deviceBuffer_);}
 
     const spRTTIRecord& spDXVertexBuffer::StaticRTTI() noexcept
     {
@@ -56,6 +57,7 @@ namespace sparkplug::reconstruction
         const std::uint32_t fvfCode,
         const std::uint32_t pool)
     {
+        if(deviceRelease_)return false; // Explicit host/COM modes do not mix.
         std::vector<std::byte> replacement;
         try
         {
@@ -73,6 +75,16 @@ namespace sparkplug::reconstruction
         pool_ = pool;
         initialized_ = true;
         return true;
+    }
+
+    bool spDXVertexBuffer::CreateDeviceBufferForAnalysis(std::uint32_t byteSize,std::uint32_t usage,
+        std::uint32_t fvfCode,std::uint32_t pool,DeviceCreateForAnalysis create,DeviceReleaseForAnalysis release,void* context) noexcept
+    {
+        if(initialized_||!create||!release||(deviceRelease_&&(deviceRelease_!=release||deviceContext_!=context)))return false;
+        deviceRelease_=release;deviceContext_=context;
+        (void)create(context,byteSize,usage,fvfCode,pool,&deviceBuffer_);
+        byteSize_=byteSize;usage_=usage;fvfCode_=fvfCode;pool_=pool;
+        return true; // Native AL=1 is not HRESULT acceptance.
     }
 
     void spDXVertexBuffer::ReleaseDeviceBufferForAnalysis() noexcept

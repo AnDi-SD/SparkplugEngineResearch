@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <utility>
 #include <vector>
 #include "spNodeTransformMath.h"
+#include "spBallisticColor.h"
 
 namespace sparkplug::evidence::pc
 {
@@ -173,6 +175,67 @@ namespace sparkplug::evidence::pc
     {
         std::uint32_t firstParticle = 0, particleCount = 0;
     };
+    // Original CPU stream: xyz, packed ARGB, then two float texture coordinates.
+    // An explicit provider owns the x87-sensitive packed-color conversion seam.
+    struct BallisticCpuPackedVertexForAnalysis
+    {
+        std::array<float,3> position{};
+        std::uint32_t color=0;
+        std::array<float,2> uv{};
+    };
+    static_assert(sizeof(BallisticCpuPackedVertexForAnalysis)==24);
+    static_assert(offsetof(BallisticCpuPackedVertexForAnalysis,color)==12);
+    static_assert(offsetof(BallisticCpuPackedVertexForAnalysis,uv)==16);
+    using BallisticCpuColorProviderForAnalysis=bool (*)(void*,float currentTime,
+        float birthTime,float lifetime,bool storedPosition,std::uint32_t begin,
+        std::uint32_t end,std::uint32_t& output);
+    [[nodiscard]] inline bool ReconstructedBallisticCpuColorProviderForAnalysis(void*,
+        float currentTime,float birthTime,float lifetime,bool storedPosition,
+        std::uint32_t begin,std::uint32_t end,std::uint32_t& output) noexcept
+    {
+        return EvaluateBallisticCpuColorForAnalysis(currentTime,birthTime,lifetime,
+            storedPosition,begin,end,output);
+    }
+    struct BallisticCpuPackedBatchForAnalysis
+    {
+        std::vector<BallisticCpuPackedVertexForAnalysis> vertices;
+        std::vector<std::uint16_t> indices;
+    };
+    // Input records are already in physical-ring traversal order. Color is
+    // required for a nonempty batch: ordinary double is not an implicit x87
+    // substitute. The callback and spans are synchronous borrowed interfaces.
+    [[nodiscard]] inline bool BuildBallisticCpuPackedBatchForAnalysis(
+        const std::vector<BallisticCpuParticleRecord>& records,
+        const BallisticCpuBatchForAnalysis& batch,
+        const BallisticCpuParametersForAnalysis& parameters,bool storedPosition,
+        const BallisticCpuBasisForAnalysis& basis,std::uint32_t colorBegin,
+        std::uint32_t colorEnd,BallisticCpuColorProviderForAnalysis color,void* context,
+        BallisticCpuPackedBatchForAnalysis& output)
+    {
+        if(batch.firstParticle>records.size() || batch.particleCount>records.size()-batch.firstParticle
+            || batch.particleCount>16384 || (batch.particleCount&&!color))return false;
+        BallisticCpuPackedBatchForAnalysis result;
+        result.vertices.reserve(std::size_t(batch.particleCount)*4);
+        result.indices.reserve(std::size_t(batch.particleCount)*6);
+        constexpr std::array<std::array<float,2>,4> uv{{{0,1},{0,0},{1,0},{1,1}}};
+        constexpr std::uint16_t pattern[]{0,1,2,0,2,3};
+        for(std::uint32_t n=0;n<batch.particleCount;++n)
+        {
+            BallisticCpuSampleForAnalysis sample;
+            const auto& record=records[batch.firstParticle+n];
+            const bool evaluated=storedPosition?EvaluateBallisticCpuStoredPositionForAnalysis(
+                record,parameters.currentTime,parameters.runtimeScales,sample)
+                :EvaluateBallisticCpuMotionForAnalysis(record,parameters,sample);
+            BallisticCpuQuadPositionsForAnalysis positions;
+            std::uint32_t packedColor=0;
+            if(!evaluated || !BuildBallisticCpuQuadPositionsForAnalysis(sample,basis,positions)
+                || !color(context,parameters.currentTime,record[6],record[7],storedPosition,
+                    colorBegin,colorEnd,packedColor))return false;
+            for(unsigned v=0;v<4;++v)result.vertices.push_back({positions[v],packedColor,uv[v]});
+            for(auto index:pattern)result.indices.push_back(std::uint16_t(n*4+index));
+        }
+        output=std::move(result);return true;
+    }
     // PC4B9830 and4BA910 share this batching rule. Capacity is in vertices
     // and uint16 indices, not bytes. The zero final batch on exact multiples
     // is original behavior; do not replace it with a full batch.

@@ -180,9 +180,97 @@ Cube result равен ordinary result, умноженному на шесть. 
 descriptor возвращает отказ host-слоя, сохраняя выходной аргумент; успешного
 backend по умолчанию у этого нового пути нет.
 
-Обычная цель и кубическая цель пока моделируют `Init` bool-состояниями backend.
-Измерение настоящей surface не означает завершённое восстановление всего
-CreateTexture/GetSurfaceLevel либо CreateCubeTexture/GetCubeMapSurface пути.
+## Создание и освобождение PC COM-ресурсов
+
+Восстановленные методы `InitializeDeviceTargetForAnalysis`,
+`ReleaseDeviceTargetForAnalysis` и `ReinitializeDeviceTargetForAnalysis`
+находятся в [общем PC lifecycle](../../../Sparkplug/Code/SparkplugDX/spDXRenderTarget_Device.cpp).
+Они принимают отдельное описание существующего target и backing texture из
+[spDXTextureResource.h](../../../Sparkplug/Code/SparkplugDX/spDXTextureResource.h).
+Это описание полей и ссылок, потребляемых операцией, а не подмена нативного
+конструктора или ABI объекта. COM-вызовы остаются явными внешними endpoints;
+порядок создания, присоединения, метаданных и освобождения выполняет общий
+восстановленный исходник.
+
+Обычный `Init` сначала вызывает release, затем проверяет engine-формат.
+Для допустимого формата он создаёт texture с одним уровнем, usage `1`, pool `0`
+и пустым shared handle, получает level-zero surface, измеряет её и присоединяет
+созданную texture к backing-объекту. После этого публикует width, height и
+engine-формат цели. Проверки ненулевых width/height в этом нативном `Init` нет.
+Обычный backing сохраняет преобразованный runtime-формат: например,
+`D3DFORMAT 0x17` становится значением `6`; неизвестные форматы проходят без
+преобразования.
+
+Cube `Init` передаёт устройству только width как размер квадратной texture,
+но записывает исходные width и height в метаданные backing и цели. На каждой
+из шести итераций он получает очередную surface, повторно измеряет face zero
+и заново присоединяет ту же texture. Cube backing сохраняет сырой D3DFORMAT.
+Повторное присоединение освобождает предыдущую texture-ссылку, записывает новую,
+обновляет поля и делает `AddRef`, затем вызывает построение младших mip-уровней.
+Следовательно, перенос присоединения за цикл изменил бы наблюдаемый порядок
+COM-вызовов.
+
+Обычный release выполняется только при наличии surface. Он освобождает texture
+из backing, затем вызывает собственный reset backing, который освобождает ту
+же ссылку ещё раз и очищает поле texture, после чего освобождает surface и
+очищает её поле. Cube release проверяет только face zero, освобождает texture,
+вызывает cube backing reset и освобождает все шесть surfaces по порядку.
+Cube backing reset дополнительно вызывает `Release` сохранённого device и
+оставляет поле device неизменным. Ненулевой результат COM `Release` не мешает
+очистке полей texture или surface. Эти особенности сохранены, а не заменены
+общей политикой RAII.
+
+`Reinit` допускается при ненулевых сохранённых размерах и формате, отличном
+от `6`. Он вызывает release, затем `Init`, который вызывает release повторно.
+Неподдерживаемый формат нового `Init` возвращает false уже после освобождения
+старых ресурсов и сохраняет старые размеры и формат цели.
+
+Нативные тела игнорируют HRESULT создания texture, получения surface и чтения
+descriptor. Ошибочный HRESULT с заполненными выходами поэтому продолжает
+обычный путь. Если выход не заполнен или равен NULL перед разыменованием,
+portable entry возвращает `completed=false`; он не объявляет такой путь
+успешным и не выполняет выдуманный rollback. Результат сохраняет созданную
+texture и ещё не освобождённые mip-local surfaces для явного учёта вызывающим
+host-слоем. Незаданный descriptor отличается от корректного descriptor при
+ошибочном HRESULT.
+
+Присоединение и reset backing находятся в
+[spDXTextureResource.cpp](../../../Sparkplug/Code/SparkplugDX/spDXTextureResource.cpp).
+Cube mip helper получает число уровней, выставляет общий байт обработки,
+обходит грани и соседние пары уровней, получает обе surfaces и их размеры,
+вызывает внешний `D3DXLoadSurfaceFromSurface` с полными прямоугольниками,
+пустыми palettes, filter `4` и color key `0`, затем освобождает source и
+destination. В конце общий байт очищается. Вычисления фильтра SDK не заменены
+самодельным алгоритмом. Host ограничивает число уровней диапазоном `1..32`
+по умолчанию; это не нативный предел.
+
+Если ordinary attachment получает byte count `0`, он вызывает восстановленный
+`MeasureDeviceByteCountForAnalysis` (`0x004AAC50`) перед завершающим `AddRef`.
+Метод сначала обнуляет поле `+0x48`, получает количество mip-уровней и обходит
+каждый уровень по порядку. Для DXT1 размер уровня равен
+`max(1, width >> 2) * max(1, height >> 2) * 8`; для DXT3 и DXT5 множитель равен
+`16`. Здесь также используется округление вниз, а не вверх. Для остальных
+форматов метод блокирует surface с пустым rectangle и flags `0`, прибавляет
+`pitch * height`, затем выполняет unlock. Каждый полученный surface
+освобождается после измерения. Все суммы и произведения сохраняют младшие
+32 бита; пиксельные данные этот метод не читает. Он возвращает true даже при
+нулевом количестве уровней, оставляя размер `0`.
+
+HRESULT получения surface, descriptor, блокировки и разблокировки не меняет
+этот путь при заполненных выходных данных. Host отдельно представляет
+незаполненный descriptor и locked rectangle: такой результат останавливает
+операцию как incomplete с сохранением полученной surface для явного учёта.
+Ограничение числа уровней по умолчанию равно `32` и принадлежит host-слою.
+
+Область target entry требует стабильных провайдеров без reentry и нулевого
+поля backing `+0x40`, содержащего указатель `spPalette`. У cube target два разных native relationships
+`+0x18/+0x28` в этом описании должны указывать на один backing. Отдельные
+конкретные тела [palette pool, замены владельца и typed attachment](sp-texture.md#pc-palette-индекс-устройства-и-замена-владельца)
+связывают nonzero palette с владельцем ordinary/cube texture и её captured
+COM-состоянием. Это отдельный вход; target carrier сам не создаёт такой
+владелец. Диагностическая ветвь invalid `Reinit` и произвольное aliasing
+остаются открытыми. Обычные виртуальные `Init` и CPU mip shadows сохраняют отдельную
+portable модель готовности; новые методы сами по себе не подключают live GPU.
 
 ## Что остаётся неизвестным
 
@@ -190,7 +278,7 @@ CreateTexture/GetSurfaceLevel либо CreateCubeTexture/GetCubeMapSurface пу�
 - original name четвёртого secondary target slot и имена дополнительных
   primary resource slots;
 - точный PC allocation size там, где factory закрыта `.rld`;
-- полное intrusive/COM владение backing textures и отказные ветви device API;
+- полное intrusive владение backing textures и их constructor/destructor;
 - связь target creation с material passes и фактическими renderer slots 0/1;
 - полные имена `eTBPixelFormat` enumerator-ов.
 

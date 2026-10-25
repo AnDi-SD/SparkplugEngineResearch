@@ -1,7 +1,7 @@
 ﻿# External headers
 
 No third-party implementation is vendored here. Run `../Prepare-Dependencies.ps1`
-from PowerShell, or `python tools/WinxRemix/prepare_dependencies.py` from the
+from PowerShell, or `python tools/WinxRemix/scripts/dependencies/prepare_dependencies.py` from the
 repository root. Downloads and generated headers stay in ignored `local-data/`.
 
 - Remix: https://github.com/NVIDIAGameWorks/dxvk-remix.git, pinned in

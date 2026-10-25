@@ -1,4 +1,5 @@
 #include "spPCShaderManager.h"
+#include "../SparkBase/spStream.h"
 #include <algorithm>
 namespace sparkplug::reconstruction
 {
@@ -29,6 +30,27 @@ namespace sparkplug::reconstruction
     }
     bool spPCShaderManager::SetFixedTemplateForAnalysis(std::unique_ptr<spPCEffectTemplate>& value)
     {if(fixedTemplate_||!value)return false;fixedTemplate_=std::move(value);return true;}
+    spPCShaderManager::StartupResultForAnalysis spPCShaderManager::StartForAnalysis(std::string_view root,
+        const StartupForAnalysis& input,spPCEffectTemplate::CompilerStateForAnalysis& state,std::string& diagnostic)
+    {
+        root=root.substr(0,root.find('\0'));
+        if(startupAttempted_||StandaloneScanAttemptedForAnalysis()||fixedTemplate_||!cache_.empty()||
+            !input.open||!input.scanHex||!input.decodeXml||!input.directory.first||!input.directory.next||
+            !input.directory.close||!input.loadStandalone||root.size()+17>=256)return {};
+        startupAttempted_=true;
+        if(!ScanStandaloneForAnalysis(root,input.directory,input.loadStandalone))return {};
+        const std::string filename=std::string(root)+"Shaders\\Fixed.rfx";
+        spPCRFXFileLoader loader;
+        // Assignment is deliberately BEFORE XML decoding/initialization.
+        fixedTemplate_=loader.LoadFileForAnalysis(input.open(filename),filename.c_str(),input.scanHex,state,diagnostic);
+        if(!fixedTemplate_)return {true,false};
+        const auto events=input.decodeXml(fixedTemplate_->DocumentForAnalysis());
+        if(!events)return {false,true}; // Unresolved host/library input, not native AL=0.
+        if(!fixedTemplate_->InitializeFromEventsForAnalysis(&*events))return {false,true};
+        // Native ignores the initialization result, and returns AL=1 whenever
+        // the load returned a template. completed also records our safe domain.
+        return {true,true};
+    }
     spPCShaderManager::SourceInputsForAnalysis spPCShaderManager::BuildSourceInputsForAnalysis(const KeyForAnalysis& key)
     {
         return BuildPCShaderSourceInputsForAnalysis(key);

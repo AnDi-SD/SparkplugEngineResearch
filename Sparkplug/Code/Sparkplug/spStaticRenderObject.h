@@ -39,6 +39,8 @@ namespace sparkplug::reconstruction
         { return support_.localSphere; }
         [[nodiscard]] const spRenderable::BoundingSphere& GetWorldBoundingSphereForAnalysis() const noexcept
         { return support_.worldSphere; }
+        [[nodiscard]] auto GetVisibilityMarkForAnalysis() const noexcept{return support_.visibilityMark;}
+        void SetVisibilityMarkForAnalysis(std::uint32_t value) noexcept{support_.visibilityMark=value;}
     private:
         evidence::pc::RenderSupportForAnalysis support_;
         spScene* scene_ = nullptr; // borrowed88, no registry operation implied

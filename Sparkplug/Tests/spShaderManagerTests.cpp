@@ -1,5 +1,7 @@
 #include "Code/SparkplugPC/spPCShaderManager.h"
 #include "Code/SparkplugDX/spDXRenderer.h"
+#include "Code/SparkBase/spStream.h"
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -9,6 +11,74 @@ namespace
 {
     int checks=0;
     void Check(bool ok,const char* label){++checks;if(!ok)throw std::runtime_error(label);}
+    std::string Quote(std::string_view text)
+    {
+        std::string out="\"";for(unsigned char c:text)
+        {if(c=='"'||c=='\\'){out+='\\';out+=c;}else if(c<32){out+="\\u00";out+="0123456789abcdef"[c>>4];out+="0123456789abcdef"[c&15];}else out+=c;}return out+'"';
+    }
+    struct StartupFile final : spStream
+    {
+        std::string data,name;std::vector<std::string>& trace;bool opened=false;
+        StartupFile(std::string bytes,std::string filename,std::vector<std::string>& events):data(std::move(bytes)),name(std::move(filename)),trace(events){}
+        ~StartupFile() override{if(opened)(void)Close();}
+        bool Open(const char* filename) override{return Open(1,filename);}
+        bool Open(std::uint32_t mode,const char* filename) override
+        {Check(mode==1&&filename==name&&!opened,"startup readonly filename");opened=true;trace.push_back("open:"+name);return true;}
+        bool Close() override{opened=false;trace.push_back("file-close");return true;}
+        bool Seek(SeekSource,std::int32_t) override{return false;}
+        bool GetCurrentPosition(std::uint32_t&) const override{return false;}
+        bool ReadData(void* out,std::uint32_t n) override
+        {Check(n==data.size(),"startup complete file read");std::memcpy(out,data.data(),n);trace.push_back("read:"+std::to_string(n));return n!=0;}
+        bool WriteData(const void*,std::uint32_t) override{return false;}
+        bool vfunc_WriteFromStream(spStream*,std::uint32_t) override{return false;}
+        bool GetSize(std::uint32_t* n) const override{*n=static_cast<std::uint32_t>(data.size());trace.push_back("size:"+std::to_string(data.size()));return true;}
+    };
+    std::string Startup(const std::string& mode)
+    {
+        Check(mode=="normal"||mode=="minimal"||mode=="null"||mode=="xml-unresolved","known startup case");
+        const std::string document=mode=="null"?"<RmDirectXEffect NAME=\"X\" TYPE=\"\"/>":mode=="minimal"?
+            "<RmDirectXEffect NAME=\"X\" TYPE=\"\"><RmStringVariable NAME=\"ID\" VALUE=\"1\"/></RmDirectXEffect>":
+            "<RmDirectXEffect NAME=\"X\" TYPE=\"\"><RmStringVariable NAME=\"ID\" VALUE=\"1\"/><RmPass><RmShader PIXEL_SHADER=\"FALSE\" CODE=\"x\"/></RmPass></RmDirectXEffect>";
+        spPCShaderManager manager;std::vector<std::string> trace;
+        spPCShaderManager::StartupForAnalysis input;
+        input.directory.first=[&](std::string_view pattern,std::string&)->std::intptr_t{trace.push_back("first:"+std::string(pattern));return -1;};
+        input.directory.next=[](std::intptr_t,std::string&)->bool{throw std::runtime_error("no next after failed first");};
+        input.directory.close=[&](std::intptr_t handle){Check(handle==-1,"close called with invalid handle");trace.push_back("find-close:-1");};
+        input.loadStandalone=[](std::string_view,bool)->std::unique_ptr<spDXShader>{throw std::runtime_error("no load in empty directory");};
+        input.open=[&](std::string_view filename)->std::unique_ptr<spStream>{return std::make_unique<StartupFile>(document,std::string(filename),trace);};
+        input.scanHex=[](std::string_view text,std::uint32_t& result){unsigned value=0;const int n=std::sscanf(std::string(text).c_str(),"%x",&value);if(n>0)result=value;return n;};
+        input.decodeXml=[&](std::string_view text)->std::optional<spPCEffectTemplate::XmlEventsForAnalysis>
+        {
+            const auto* effect=manager.FixedTemplateForAnalysis();
+            Check(effect&&!effect->ReadyForAnalysis()&&effect->DocumentForAnalysis()==text,"owner published before initialization");
+            if(mode=="xml-unresolved")return std::nullopt;
+            trace.push_back("initialize:owned");
+            if(mode=="minimal")return spPCEffectTemplate::XmlEventsForAnalysis{};
+            return spPCEffectTemplate::XmlEventsForAnalysis{{true,"RmPass",{}},{true,"RmShader",{{"PIXEL_SHADER","FALSE"},{"CODE","x"}}},{false,"RmShader",{}},{false,"RmPass",{}}};
+        };
+        spPCEffectTemplate::CompilerStateForAnalysis state;std::string diagnostic;
+        const auto result=manager.StartForAnalysis("root\\",input,state,diagnostic);const auto* effect=manager.FixedTemplateForAnalysis();
+        Check(result.nativeReturn==(mode!="null")&&result.completed==(mode!="xml-unresolved"),"distinct native AL and analytical completion");
+        Check(!state.active,"normal and metadata failure clear active flag");
+        const auto count=trace.size();
+        Check(!manager.StartForAnalysis("root\\",input,state,diagnostic).completed&&trace.size()==count,"repeat refused before mutation");
+        std::ostringstream out;out<<'['<<int(result.nativeReturn)<<',';
+        if(effect)out<<'['<<effect->IdentityForAnalysis()<<','<<Quote(effect->NameForAnalysis())<<','<<effect->KindForAnalysis()<<','<<int(effect->ReadyForAnalysis())<<','<<effect->PassesForAnalysis().size()<<']';else out<<"null";
+        out<<','<<int(state.active)<<",[";bool first=true;for(const auto& event:trace){if(!first)out<<',';first=false;out<<Quote(event);}out<<"]]";return out.str();
+    }
+    void DirectoryScan()
+    {
+        spPCShaderManager manager;std::vector<std::string> trace;spDXShaderManager::DirectoryForAnalysis directory;
+        directory.first=[&](std::string_view glob,std::string& name)->std::intptr_t{trace.push_back(std::string(glob));name="first";return glob.find("vsh")!=std::string_view::npos?11:22;};
+        directory.next=[&](std::intptr_t handle,std::string& name){if(handle==11&&name=="first"){name="rejected";return true;}return false;};
+        directory.close=[&](std::intptr_t handle){trace.push_back("close"+std::to_string(handle));};
+        auto load=[&](std::string_view name,bool pixel)->std::unique_ptr<spDXShader>
+        {trace.push_back(std::string(pixel?"PS:":"VS:")+std::string(name));if(name=="rejected")return nullptr;return std::make_unique<spPCVertexShader>();};
+        Check(manager.ScanStandaloneForAnalysis("root\\",directory,load),"native base scan completes");
+        Check(trace==std::vector<std::string>({"root\\Shaders\\*.vsh","VS:first","VS:rejected","close11","root\\Shaders\\*.psh","PS:first","close22"}),"VS then PS; retain only nonnull; close each cohort before next");
+        Check(manager.VertexShadersForAnalysis().size()==1&&manager.PixelShadersForAnalysis().size()==1,"two separately owned stage vectors");
+        const auto count=trace.size();Check(!manager.ScanStandaloneForAnalysis("root\\",directory,load)&&trace.size()==count,"repeat scan safe-domain guard");
+    }
     template<class T>void Array(std::ostream& out,const T& values){out<<'[';bool first=true;for(auto v:values){if(!first)out<<',';first=false;out<<v;}out<<']';}
     std::string Manager(const std::string& mode)
     {
@@ -99,12 +169,14 @@ int main(int argc,char** argv)
 {
     try
     {
-        if(argc==3&&std::string(argv[1])=="--case")std::cout<<Manager(argv[2])<<'\n';
+        if(argc==3&&std::string(argv[1])=="--startup")std::cout<<Startup(argv[2])<<'\n';
+        else if(argc==3&&std::string(argv[1])=="--case")std::cout<<Manager(argv[2])<<'\n';
         else if(argc==3&&std::string(argv[1])=="--key")std::cout<<Key(argv[2])<<'\n';
         else
         {
             for(const char* mode:{"factory","no-shader","cache","clone"})Manager(mode);
             for(const char* mode:{"components","colors","lights","uv","power","fixed"})Key(mode);
+            for(const char* mode:{"normal","minimal","null","xml-unresolved"})Startup(mode);DirectoryScan();
             const std::vector<unsigned> oversized(9);Check(!spDXRenderer::BuildShaderKeyForAnalysis(0,0,0,&oversized,{}),"host light-array bound");
             std::cout<<"PASS "<<checks<<'/'<<checks<<": shader manager/key\n";
         }

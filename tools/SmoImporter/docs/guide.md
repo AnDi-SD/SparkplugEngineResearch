@@ -193,4 +193,4 @@ dotnet run --project tools/SmoImporter/SmoImporter.FormatTests -- --porting-mode
 и большие многоматериальные GLB не предназначены для параллельного запуска.
 
 Полный контракт человеческого риггинга описан в
-[`BONE_BINDING_DESIGN.md`](../BONE_BINDING_DESIGN.md).
+[`BONE_BINDING_DESIGN.md`](bone-binding.md).

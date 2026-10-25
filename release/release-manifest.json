@@ -43,11 +43,11 @@
           "companionFiles": ["SparkplugViewerNative.dll"],
           "documents": [
             {
-              "source": "tools/SmoImporter/PACKAGE_README.md",
+              "source": "tools/SmoImporter/docs/releases/README.md",
               "name": "README.md"
             },
-            "tools/SmoImporter/CHANGELOG.md",
-            "tools/SmoImporter/RELEASE_NOTES_0.6.1.md"
+            "tools/SmoImporter/docs/releases/CHANGELOG.md",
+            "tools/SmoImporter/docs/releases/RELEASE_NOTES_0.6.1.md"
           ]
         },
         {
@@ -109,11 +109,11 @@
         "NOTICE.md",
         "ACKNOWLEDGEMENTS.md",
         {
-          "source": "tools/SmoImporter/PACKAGE_README.md",
+          "source": "tools/SmoImporter/docs/releases/README.md",
           "name": "README.md"
         },
-        "tools/SmoImporter/CHANGELOG.md",
-        "tools/SmoImporter/RELEASE_NOTES_0.6.1.md"
+        "tools/SmoImporter/docs/releases/CHANGELOG.md",
+        "tools/SmoImporter/docs/releases/RELEASE_NOTES_0.6.1.md"
       ]
     },
     {

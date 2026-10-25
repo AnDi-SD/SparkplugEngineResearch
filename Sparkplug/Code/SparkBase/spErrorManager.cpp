@@ -238,6 +238,22 @@ namespace sparkplug::reconstruction
         return true;
     }
 
+    spError* spErrorManager::CreateErrorForAnalysis(spErrorSeverity severity,
+        const std::uint32_t code,const char* sourceFile,const std::uint32_t sourceLine)
+    {
+        if(errorHead_ && static_cast<std::uint32_t>(errorHead_->severity_)>
+            static_cast<std::uint32_t>(severity)) severity=errorHead_->severity_;
+        constexpr std::size_t nativeErrorBytes=0x28;
+        if(static_cast<std::uint32_t>(severity)>=static_cast<std::uint32_t>(spErrorSeverity::Fatal)||
+            nativeErrorBytes>=dataStack_.size()-std::min(dataUsed_,dataStack_.size()))return nullptr;
+        auto error=std::make_unique<spError>(severity,code,sourceFile,sourceLine);
+        auto* result=error.get();
+        ownedErrors_.push_back(std::move(error));
+        dataUsed_+=nativeErrorBytes;
+        LinkErrorForAnalysis(*result);
+        return result;
+    }
+
     void spErrorManager::LinkErrorForAnalysis(spError& error) noexcept
     {
         error.next_ = errorHead_;
@@ -304,6 +320,7 @@ namespace sparkplug::reconstruction
             current->next_ = nullptr;
         }
         dataUsed_ = 0;
+        ownedErrors_.clear();
     }
 
     std::size_t spErrorManager::GetDataUsedForAnalysis() const noexcept

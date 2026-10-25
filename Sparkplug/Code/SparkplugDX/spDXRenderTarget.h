@@ -5,6 +5,7 @@
 
 #include "../Sparkplug/spRenderTarget.h"
 #include "../../Analysis/Host/spRenderTargetSurfaceHost.h"
+#include "spDXTextureResource.h"
 
 namespace sparkplug::reconstruction
 {
@@ -43,6 +44,18 @@ namespace sparkplug::reconstruction
             void* context,
             sparkplug::analysis::host::RenderTargetSurfaceDescriptionReader reader,
             std::uint32_t& size);
+
+        // Actual004CDC70/004CDD60/004CDBE0 on declared existing target/backing
+        // state. The bool-only portable facade above remains a CPU model.
+        [[nodiscard]] static DXResourceResultForAnalysis InitializeDeviceTargetForAnalysis(
+            DXRenderTargetStateForAnalysis&, DXResourceHandleForAnalysis device,
+            std::uint32_t width, std::uint32_t height, std::uint32_t pixelFormat,
+            const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] static bool ReleaseDeviceTargetForAnalysis(
+            DXRenderTargetStateForAnalysis&, const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] static DXResourceResultForAnalysis ReinitializeDeviceTargetForAnalysis(
+            DXRenderTargetStateForAnalysis&, DXResourceHandleForAnalysis device,
+            const DXTextureResourceAPIForAnalysis&);
 
     protected:
         using spRenderTarget::spRenderTarget;

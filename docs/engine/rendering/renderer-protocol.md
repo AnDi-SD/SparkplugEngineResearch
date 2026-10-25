@@ -67,6 +67,45 @@ slot4, затем renderable24(camera,support); failures игнорируютс�
 сбрасывает logical count, capacity сохраняется; C050 **не** сбрасывается.
 **456B10→456AC0** отдельно освобождает general vector.
 
+При true `75F8E8` support slot14 проверяется перед чтением raw mode14
+renderable. Disabled support даёт успешный skip. Mode выбирает один из
+девяти vectors `C064+16*mode`; record8 хранит `{renderable,support}` без
+camera/material key/mesh. Доказанного native guard для mode вне0..8 нет.
+Классификатор mode не подменяется значением материала или правилами PS2.
+
+Bucket flush вызывает PC primary slots в порядке `20/24/28/3C/40/2C/30`
+(byte offsets). Globals `740240..740244` разрешают первые три и последние
+две фазы; `3C/40` вызываются всегда. В известных PC Renderer/DX/PC tables
+все эти slots ведут на общий `5B7A00` no-op. Поэтому выполнение фаз не
+означает bucket drawing. Flush не очищает bucket contents: их отдельно
+очищает вызывающая Scene-фаза. Общий tail после **обеих** ветвей всё же
+очищает general vector, сохраняя capacity и `C050`.
+
+## Переносимые queue bodies и внешние границы
+
+`spRenderer::EnqueueGeneralForAnalysis` хранит borrowed general и bucket
+records. Вход явно предъявляет результат неизвестного material-owner
+`virtual1C`, Model mesh identity, support-enabled и raw mode. Lookup этих
+полей не объявляется восстановленным по одному enqueue body. Disabled
+`C050` проверяется до входа; bucket support проверяется до mode. Portable
+записи используют host pointers, а не притворяются native record20/record8 ABI.
+
+`FlushGeneralForAnalysis` реализует смену support, порядок prepare/render,
+игнорирование их false, PC no-op phases и общий logical clear.
+`ReleaseGeneralForAnalysis` освобождает только general storage;
+`ClearBucketQueuesForAnalysis` — явная операция вызывающей фазы.
+Предел65536 entries, отказ для mode вне0..8, NULL и reentry — host guards,
+не дополнительные правила оригинала. Внешняя мутация vectors во время
+dispatch не считается безопасной.
+
+Native `456090` — внутренний compiler sort с bool predicate `454970`,
+**не imported CRT qsort**. Queue body принимает явный sort dispatch.
+`LegacySortPolicy::General` может использовать общий versioned MSVCR71
+sorter как выбранную host policy; это не доказательство native permutation
+для равных ключей. У alpha и general остаются разные comparator contracts.
+Реальный sort implementation не превращает prepare/render callbacks в
+полную Scene/backend реализацию.
+
 `Code/Sparkplug/spRenderable.*`: raw field28 copy, обе callback groups/direct,
 stable erase/ordinal/full-word versus low-byte semantics. Original setter
 names не найдены, добавленный facade явно `ForAnalysis`. Null/4096/reentry/
@@ -76,7 +115,7 @@ Callback copy exclusions сохранены. Это callback phase, не цел�
 
 `Analysis/PC/spRendererQueueMath.h`: finite affine cached-world/view metric,
 priority wrap, alpha comparator и general predicate. Renderer queue ownership,
-Scene wiring, CRT sort и GPU не симулируются этим helper-ом. PC ABI дополнен
+Scene wiring и backend не симулируются этим helper-ом. PC ABI дополнен
 record8/20/24 и точными offsets renderer; прежний общий extentCA08 неизменен.
 
 Дальше: Scene45EC70 и SceneInit45D850→Partition/Occlusion, source derived

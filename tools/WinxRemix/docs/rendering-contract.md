@@ -72,15 +72,15 @@ D3D9 служит границей совместимости оригиналь
 - Идентификатор живого экземпляра: отделяет одинаковые сетки разных актёров
   и повторное использование адреса; сохраняет независимую историю движения.
 
-[ResourceIdentitySource](../winx_resource_identity.h) задаёт отдельные собственные
+[ResourceIdentitySource](../src/runtime/winx_resource_identity.h) задаёт отдельные собственные
 идентификаторы материала, содержимого геометрии и её неизменяемой привязки к
 материалу. Independent/selected и legacy expanded Surface rigid API key получается из meaningful vertex
 fields, порядка индексов и стабильного material ID живого владельца в registry.
 Адреса, API handles, SDK padding, world/frame и поколения в эти bytes не входят.
 Проверка владельца и актуальности перед draw сохраняется отдельно.
 
-[Skin resource](../winx_skin_gpu_submit.h) пока смешивает owner identity и
-material handle в ключе, который [CreateSurfaceGeometryOwned](../winx_surface_submit.h)
+[Skin resource](../src/skin/winx_skin_gpu_submit.h) пока смешивает owner identity и
+material handle в ключе, который [CreateSurfaceGeometryOwned](../src/surface/winx_surface_submit.h)
 передаёт как `MeshInfo.hash`. Indexed CPU Skin также сохраняет старую схему;
 legacy expanded Surface использует общий rigid content adapter.
 Поведение replacement на повторном запуске требует проверки
@@ -100,7 +100,7 @@ handle представляет последовательный UID, завис
 одного нашего API hash не обеспечивает постоянный USD ID и замену в игре.
 Существующие USD/stride/emission patches эту цепочку не меняют.
 
-Собственный [external asset identity patch](../renderer-resource-identity/README.md)
+Собственный [external asset identity patch](../patches/renderer-resource-identity/README.md)
 добавляет отдельные поля capture/replacement и сохраняет прежние geometry
 component hashes. Настройка выключена по умолчанию; caller должен заранее
 гарантировать постоянные ненулевые ID и неизменяемую привязку материала.
@@ -139,16 +139,16 @@ handles; постоянный ID capture/replacement требует отдель
 должна различать исходную camera selection, загруженную принадлежность сцене,
 логическую активность и актуальность producer данных.
 
-[SceneLightSnapshotSource](../winx_scene_light_snapshot.h) через
-[scene reader](../winx_scene_audit.h) обходит полный загруженный LightManager
+[SceneLightSnapshotSource](../src/scene/winx_scene_light_snapshot.h) через
+[scene reader](../src/scene/winx_scene_audit.h) обходит полный загруженный LightManager
 registry до 512 записей. Снимок владеет байтами и сохраняет inactive/disabled и
 dirty записи; reader проверяет ссылки и принадлежность сцене без camera selection.
-[Lights adapter](../winx_scene_lights.h) отдельно выбирает поддержанный активный
+[Lights adapter](../src/scene/winx_scene_lights.h) отдельно выбирает поддержанный активный
 прямой свет, без camera-frustum фильтра. Восемь исходных D3D slots каждого
 объекта не являются инвентарём света сцены.
 
-[LightPayloadSource](../winx_light_payload_source.h) через
-[native light reader](../winx_native_light_source.h) вычисляет наблюдаемые поля
+[LightPayloadSource](../src/lighting/winx_light_payload_source.h) через
+[native light reader](../src/native/winx_native_light_source.h) вычисляет наблюдаемые поля
 общим [PC4B53C0](../../../Sparkplug/Code/SparkplugDX/spPCLightPayload.h).
 Owned result различает `Invalid`, `Dirty`, `CachedMismatch` и `CachedEquivalent`,
 сохраняет cached/candidate слова, consumed/difference masks и отдельно
@@ -157,8 +157,8 @@ world inputs. Только `CachedEquivalent` разрешает source switch �
 непотребляемых native слов; exact-match флаги и schema журнала сохраняются.
 Dirty payload не обновляется, отказ оставляет cached native значения.
 
-[LightWorldObserver](../winx_light_world_observer.h) и
-[PC entry adapter](../winx_native_light_world_source.h) сохраняют owned before/after
+[LightWorldObserver](../src/lighting/winx_light_world_observer.h) и
+[PC entry adapter](../src/native/winx_native_light_world_source.h) сохраняют owned before/after
 bytes реальных исходных вызовов `4B58D0`, включая secondary `4B5960` после
 коррекции receiver. Оригинальный producer вызывается один раз, полный аргумент
 и opaque EAX сохраняются; dirty repair и повторного update нет. Публикация
@@ -187,7 +187,7 @@ SHA256. Неатомарный восьмибайтовый entry patch не я�
 Это не доказывает видимый receiver, влияние источника, тени, покрытие всех
 сцен или свежесть всех controller inputs.
 
-[Анализатор](../analyze_light_world_observer.py) коррелирует только одинаковые
+[Анализатор](../scripts/analysis/analyze_light_world_observer.py) коррелирует только одинаковые
 frame/scene с единственным packet исходной камеры и стабильной диагностикой
 кадра. Исходные row-vector view/projection применяются к cached world position.
 В зачёт наблюдавшегося включённого источника за камерой входят только
@@ -230,8 +230,8 @@ camera/frustum gate; per-object range/active selection света выполня
 Ambient/environment и некоторые direct/projected-shadow ветви остаются
 непокрытыми.
 
-[SceneGeometrySnapshotSource](../winx_scene_geometry_snapshot.h) выделяет
-membership reader из [scene geometry adapter](../winx_scene_geometry.h).
+[SceneGeometrySnapshotSource](../src/scene/winx_scene_geometry_snapshot.h) выделяет
+membership reader из [scene geometry adapter](../src/scene/winx_scene_geometry.h).
 Stateless std-only класс получает reader/mutation callbacks на один `Capture`
 и обходит загруженные partition children/zone roots без camera/active selection.
 Снимок владеет отсортированными уникальными `supports` и отдельными occurrences
@@ -250,15 +250,15 @@ pending — 32768, occurrences — 65536. `valid` квалифицирует mem
 или material eligibility.
 
 Изменение original selection остаётся в PC-адаптере; он добавляет поддержанные
-отсутствующие supports. [Independent source](../winx_independent_scene_source.h) получает этот
-реестр, а [submit](../winx_independent_scene_submit.h) может отправлять complete
+отсутствующие supports. [Independent source](../src/scene/winx_independent_scene_source.h) получает этот
+реестр, а [submit](../src/scene/winx_independent_scene_submit.h) может отправлять complete
 ordinary groups, которые исходная камера не выбрала. Ограничения сохраняются:
 только загруженная supported partition graph, известные ABI и ограниченные
 plain Model/unlit material inputs. Custom dynamic supports и обычная Scene
 без partition root не покрыты этим обходом. Skin зависит от оригинального
 mesh producer; обновление plain world root не доказывает свежесть всех потомков.
 
-[Пассивный geometry observer](../winx_geometry_snapshot_observer.h) через
+[Пассивный geometry observer](../src/scene/winx_geometry_snapshot_observer.h) через
 `-GeometrySnapshotObserver` наблюдает original selection до extension.
 Callback независим от прежнего ObserveOnly; на sampled кадрах с периодом 300
 он выполняет новый `ReadRegistry` вместо scope first-snapshot cache.
@@ -280,7 +280,7 @@ qualification. Camera/cached sphere diagnostics не доказывают пол
 всей реальной mesh. Запуск и CPU-проверка описаны в
 [руководстве](guide.md) и [устройстве адаптера](development.md).
 
-[FrameScheduler](../winx_frame_scheduler.h) задаёт в независимом API-пути порядок
+[FrameScheduler](../src/runtime/winx_frame_scheduler.h) задаёт в независимом API-пути порядок
 camera → полный поддержанный текущий direct light batch → instances. При
 включённых флагах этот путь работает до первого исходного draw. Неполный
 пакет света не разрешает геометрию. После COM-чтения target и `Release`
@@ -288,6 +288,14 @@ camera → полный поддержанный текущий direct light bat
 revision, epochs, scope и light witness проверяются перед экземплярами и
 после внешних API-вызовов. Уже вызванный частичный submit сохраняется в учёте
 draw и не разрешает повторить те же экземпляры через fallback.
+
+Внутри одной `DirectOperation` primary target допускает witness с полным
+покрытием D3D9 state hooks. После первого `GetRenderTarget(0)` и `Release`
+проверяются serial, primary identity, getter dispatch и native camera;
+последующие fences повторяют эти проверки без нового COM-запроса. Любое
+инвалидирование окончательно отклоняет witness этой операции. Без полного
+hook coverage сохраняется чтение target на каждом fence. Камера и остальная
+currentness этим witness не заменяются; COM-ссылка между fences не хранится.
 
 Следующий незакрытый сценарий — active point/spot за камерой с видимым receiver:
 полный реестр → исходный cache/slots → world/dirty/payload → API.
@@ -300,17 +308,17 @@ producer/update воспроизводится отдельно для RT. Ор�
 ## Границы модулей и классов
 
 Схема описывает направление зависимостей. Реализованы
-[RemixApiSession](../winx_remix_api_session.h),
-[RemixResourceRegistry](../winx_remix_resource_registry.h),
-[SceneLightSnapshotSource](../winx_scene_light_snapshot.h),
-[SceneGeometrySnapshotSource](../winx_scene_geometry_snapshot.h),
-[LightPayloadSource](../winx_light_payload_source.h),
-[LightWorldObserver](../winx_light_world_observer.h) и
-[FrameScheduler](../winx_frame_scheduler.h). Остальные имена задают границы
+[RemixApiSession](../src/runtime/winx_remix_api_session.h),
+[RemixResourceRegistry](../src/runtime/winx_remix_resource_registry.h),
+[SceneLightSnapshotSource](../src/scene/winx_scene_light_snapshot.h),
+[SceneGeometrySnapshotSource](../src/scene/winx_scene_geometry_snapshot.h),
+[LightPayloadSource](../src/lighting/winx_light_payload_source.h),
+[LightWorldObserver](../src/lighting/winx_light_world_observer.h) и
+[FrameScheduler](../src/runtime/winx_frame_scheduler.h). Остальные имена задают границы
 предстоящего переноса. Native/COM адаптеры и direct light ownership ещё сохраняют
 состояние proxy; полные `SceneSnapshot` и instance registry не выделены.
 
-[RigidGeometryPacketBuilder](../winx_rigid_geometry_packet.h) выделяет собственный
+[RigidGeometryPacketBuilder](../src/surface/winx_rigid_geometry_packet.h) выделяет собственный
 результат конверсии для independent и selected submit: expanded triangles,
 material coefficients и scoped provenance. Пакет не хранит native/COM pointers,
 API handles или `pNext`. В него также входят собственная поддержанная material recipe,
@@ -324,7 +332,7 @@ Material recipe, bootstrap устройства, собственная unlit po
 проверка актуальности предшествует публикации content hash и DDS. Отвергнутый
 захват не должен вновь заполнить кэш устаревшим хешем.
 
-[TextureMipSnapshotSource](../winx_texture_mip_snapshot.h) отдельно владеет raw
+[TextureMipSnapshotSource](../src/textures/winx_texture_mip_snapshot.h) отдельно владеет raw
 mip-пикселями и описанием managed2D ARGB/XRGB-текстуры. D3D-адаптер удерживает
 временную COM-ссылку до закрытия всех readonly Lock, освобождает её и только
 затем проверяет актуальность. Hash и DDS строятся из одного снимка; XRGB alpha
@@ -333,7 +341,7 @@ mip-пикселями и описанием managed2D ARGB/XRGB-текстур�
 сохраняют быстрый путь с проверкой поколений. Это ещё не persistent Toolkit ID
 и не квалификация времени жизни Model/Skin.
 
-[MaterialRecipeSource](../winx_material_recipe_source.h) читает ограниченную
+[MaterialRecipeSource](../src/materials/winx_material_recipe_source.h) читает ограниченную
 native material/pass/layer/texture цепочку в собственные значения и использует
 общие восстановленные PC mappings. Проекция equations в Remix и bootstrap
 остаются снаружи. Independent/selected submit отвергает textured packet при
@@ -410,7 +418,7 @@ reopen со всеми DDS/mips/bindings, согласованная Skin-ани
 ## Проверка первого backend-класса
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixApiSession.ps1 -Name fresh-session-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-RemixApiSession.ps1 -Name fresh-session-x86 -Platform x86
 ```
 
 Стенд использует pinned C API и собственные callbacks. Он проверяет version,
@@ -422,9 +430,9 @@ proxy дополнительно нужна сборка [Build-Probe](../Build-
 ## Проверка владельца ресурсов
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixResourceRegistry.ps1 -Name fresh-registry-x86 -Platform x86
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-ResourceOwnership.ps1 -Name fresh-registry-ownership
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SkinPacketSubmit.ps1 -Name fresh-registry-skin -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-RemixResourceRegistry.ps1 -Name fresh-registry-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-ResourceOwnership.ps1 -Name fresh-registry-ownership
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/skin/Test-SkinPacketSubmit.ps1 -Name fresh-registry-skin -Platform x86
 ```
 
 Самостоятельный стенд компилирует класс без proxy/Windows/D3D и проверяет две
@@ -439,13 +447,13 @@ test-only friend; production storage закрыто и доступно чере
 Самостоятельные проверки источника света и кадрового порядка:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-snapshot-x86 -Platform x86 -Suite LightSnapshot
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-frame-scheduler-x86 -Platform x86 -Suite Scheduler
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-payload-x86 -Platform x86 -Suite LightPayload
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-payload-x64 -Platform x64 -Suite LightPayload
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x86 -Platform x86 -Suite LightWorldObserver
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x64 -Platform x64 -Suite LightWorldObserver
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-NativeLightWorld.ps1 -Name fresh-native-light-world
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-snapshot-x86 -Platform x86 -Suite LightSnapshot
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-frame-scheduler-x86 -Platform x86 -Suite Scheduler
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-payload-x86 -Platform x86 -Suite LightPayload
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-payload-x64 -Platform x64 -Suite LightPayload
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x86 -Platform x86 -Suite LightWorldObserver
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x64 -Platform x64 -Suite LightWorldObserver
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/native/Test-NativeLightWorld.ps1 -Name fresh-native-light-world
 ```
 
 Самостоятельные suites `Test-FramePreparation` используют стандартный C++ без

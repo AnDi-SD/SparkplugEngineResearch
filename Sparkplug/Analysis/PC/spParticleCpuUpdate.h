@@ -27,6 +27,32 @@ namespace sparkplug::evidence::pc
         std::vector<ParticleCpuMaintenanceForAnalysis> maintenance;
     };
 
+    // Shared48D590 integration step, also used by the physical class ring.
+    // Caller owns prevalidation/transaction semantics. False may follow writes.
+    [[nodiscard]] inline bool IntegrateParticleCpuRecordForAnalysis(
+        BallisticCpuParticleRecord& record,float frameStart,float subDelta,
+        const std::array<float,3>& accelerationBegin,const std::array<float,3>& accelerationEnd)
+    {
+        if(!(record[7]>0))return false;
+        const double age=(double(frameStart)-record[6])/record[7];
+        for(unsigned c=0;c<3;++c)
+        {
+            double movement=double(subDelta)*record[c+3];
+            if(c==2)movement=float(movement);
+            record[c]=float(double(record[c])+movement);
+            double end=double(accelerationEnd[c])*double(0.01f);
+            double begin=double(accelerationBegin[c])*double(0.01f);
+            if(c==2){end=float(end);begin=float(begin);}
+            end=float(end*age);begin*=1.0-age;
+            if(c!=2)begin=float(begin);
+            double change=begin+end;
+            if(c!=0)change=float(change);
+            record[c+3]=float(double(record[c+3])+change);
+            if(!std::isfinite(record[c])||!std::isfinite(record[c+3]))return false;
+        }
+        return true;
+    }
+
     // PC48D450 plus the retirement part of48D210, for an existing active ring
     // with emission disabled (+58=0) and no modifiers (+84=0). This is neither
     // the full ParticleSystem update nor a replacement for its emitter/pool.
@@ -87,25 +113,8 @@ namespace sparkplug::evidence::pc
             for (std::uint32_t particle=0; particle<result.activeCount; ++particle)
             {
                 auto& record=result.records[particle];
-                // Original uses this frame-start age in EVERY substep.
-                const double age=(double(result.frameStart)-record[6])/record[7];
-                for (unsigned c=0; c<3; ++c)
-                {
-                    double movement=double(subDelta)*record[c+3];
-                    if (c==2) movement=float(movement); // Original z temporary store.
-                    record[c]=float(double(record[c])+movement);
-                    // PC constant3C23D70A, not subDelta. Retain the observed
-                    // component-specific float temporaries before velocity add.
-                    double end=double(p.accelerationEnd[c])*double(0.01f);
-                    double begin=double(p.accelerationBegin[c])*double(0.01f);
-                    if (c==2) {end=float(end);begin=float(begin);}
-                    end=float(end*age);begin*=1.0-age;
-                    if (c!=2) begin=float(begin);
-                    double change=begin+end;
-                    if (c!=0) change=float(change);
-                    record[c+3]=float(double(record[c+3])+change);
-                    if (!std::isfinite(record[c]) || !std::isfinite(record[c+3])) return false;
-                }
+                if(!IntegrateParticleCpuRecordForAnalysis(record,result.frameStart,subDelta,
+                    p.accelerationBegin,p.accelerationEnd))return false;
             }
         }
         output=std::move(result);

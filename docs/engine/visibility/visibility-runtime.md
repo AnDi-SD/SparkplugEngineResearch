@@ -5,18 +5,19 @@
 Original `45D850` SceneInit, `45F4D0` partition switch и `46D270` visibility
 processing исполнены на настоящих Scene/System/Zone/PartitionNode/Camera/
 Static/PCPartitionRenderable/RenderNode/Model объектах. Их factories, graph
-ownership и нормальное удаление настоящие. **Whole Visibility factory46D1C0
-не завершён**: установленный100k-instruction/2-second cap срабатывает в
-protected container helper46C0F0(this+40,32). Лимиты не повышались.
+ownership и нормальное удаление настоящие. Отдельный настоящий Visibility
+factory46D1C0, deleting destructor и shutdown scratch pool завершились без
+borrowed manager и освободили все выделения. Контракт46C0F0(this+40,32) —
+capacity32 при logical size0 внешнего plane-stack.
 
 В `VisibilityFixture` это явно **borrowed manager record**, не перехваченный
 успешный factory. Исполнены его Base ctor и оба настоящих scratch ctor4914E0/
 logical-resize491660(32), real pool allocation/shutdown. C18 уточнил прежнее
 аналитическое название reserve: count8 действительно становится32, не capacity.
-Операция46C0F0 опущена;
-capacity-only против logical-size contract пока unknown. SceneSetPartition
-перед использованием очищает plane stack. Поэтому результат не доказывает
-полный startup/constructor/allocator invariant менеджера.
+Операция46C0F0 в этих graph fixtures опущена; её capacity-only контракт
+проверен отдельно настоящим constructor. SceneSetPartition перед использованием
+очищает plane stack. Отдельный constructor не превращает прежние graph
+fixtures в полный cold engine startup и не квалифицирует allocator failure.
 
 ## Identity, layout и containers
 
@@ -111,23 +112,172 @@ including both tangent boundaries. Unordered NaN comparison does not reject
 in4902D0 and takes intersecting branch in490500. Numeric source uses double
 intermediates to approximate x87 extended work; no universal bit-exact claim.
 
-`Sparkplug/Code/Sparkplug/spVisibilityManager.{h,cpp}` implements only original
-identity/Base-only clone and borrowed **record-oriented selection**: frame
-publish, duplicate stamps, above per-kind predicates. Callers supply already
-computed world spheres/planes and payload→static→dynamic order. It does not
-walk a portable Scene, create a fake completed native constructor or silently
-substitute portal/occluder logic. `Analysis/PC/spVisibilityMath.h` contains the
-anonymous mathematical helpers; exact PC ABI in `SparkplugAbi.h`.
+`Sparkplug/Code/Sparkplug/spVisibilityManager.{h,cpp}` implements identity,
+Base-only clone, record predicates and `ProcessSceneForAnalysis`: frame
+publication, override camera, leaf/zone selection and ordered root traversal.
+Borrowed node views hold decoded payload/static/dynamic memberships; spatial
+queries use the concrete `spPartitionNode`/`spOctreeNode` implementations.
+Callers supply cached world spheres and camera planes. This interface is not
+the original Scene ABI or automatic graph registration.
+
+Normal traversal copies the six planes above, applies Octree selection and
+child plane reduction, and switches to the unclipped branch when no active
+planes remain. This branch also omits the dynamic Enabled test. The original
+Debug path repeats the selected system root once per Zone root entry rather
+than visiting each different root. Traversal stamps a node on every visit;
+support stamps provide deduplication. Final cleanup clears the first plane
+record's active count. Manager word10 is the secondary vtable and is preserved;
+the native ESI register changes receivers before this cleanup.
+
+Base graph frame/zone/support ordering and marks were compared with the
+original. Whole-frame flat and nested Octree composition also preserves child
+order, reduced raw planes, incoming flags and node/support/frame marks.
+When the active plane count becomes zero, children use unclipped traversal,
+including the original bypass of the dynamic support Enabled gate. Normal portal traversal is implemented in
+[spVisibilityPortal.cpp](../../../Sparkplug/Code/Sparkplug/spVisibilityPortal.cpp)
+as described below. Represented occluders use actual volume geometry through
+[spVisibilityOcclusion.cpp](../../../Sparkplug/Code/Sparkplug/spVisibilityOcclusion.cpp).
+The older `hasOccluders` flag explicitly denotes an unrepresented list and
+still refuses it before frame mutation. Stable borrowed views, finite camera
+values and host depth/visit bounds are required; failure after a missing
+reachable view or unavailable intersecting-volume geometry may leave a
+partially processed frame.
+
+`Analysis/PC/spVisibilityMath.h` contains anonymous mathematical helpers;
+exact PC ABI is recorded in `SparkplugAbi.h`. Neither the native constructor
+nor allocation-failure behavior is qualified by this traversal interface.
+
+## Occluder collection and point predicates
+
+Normal `46C6B8` checks each volume's C4 stamp before reading geometry. It
+classifies the world sphere against the current plane set: inside1 accepts,
+outside2 skips, intersecting3 calls `490360(count,packedXYZ)`. A nonzero AL
+from this helper rejects the volume; zero accepts it. Append precedes the
+accepted stamp write. A rejected volume keeps its previous stamp. Neither
+the volume Enabled flag nor the support sphere-culling switch bypasses this
+branch. Unclipped `46B9BC` skips the sphere/point predicates and writes the
+stamp **before** append. Both paths keep borrowed complete-volume pointers.
+
+The two direct-VM point helpers use an inclusive `±0.001f` band. For one
+enabled plane, points below the negative boundary contribute a negative sign;
+points above the positive boundary contribute a positive sign. Band points
+and unordered NaN comparisons contribute neither. A negative-only plane
+rejects a volume through `490360`; a positive-only result on **every** enabled
+plane accepts full containment through `490480`. Mixed signs or no signs do
+not count as full containment. Consequently, tangent plus inside counts as
+contained; tangent plus outside counts as outside; an all-tangent or empty
+point set satisfies neither predicate for an enabled plane. These are point
+set predicates, distinct from the strict sphere containment helper4903E0.
+
+Both helpers test cached activeCount0 before the vector: outside=false and
+contained=true on that branch. Disabled planes are skipped. Their shared
+source bodies are in [spVisibilityPointMath.h](../../../Sparkplug/Analysis/PC/spVisibilityPointMath.h),
+using integer significands for finite default-nearest x87 arithmetic. NaN
+points retain the neutral comparison behavior; consumed Inf values are an
+explicit incomplete numeric domain. This is semantic reconstruction from
+bounded original query behavior, not a recovered contiguous x86 body for
+the VM programs. Qualification of these direct point queries is separate from
+the measured [Manager/Scene CPU composition](../scene/scene-world.md#исходник-cpu-фазы-occlusion).
+
+## Portal traversal: source and qualification boundary
+
+Normal traversal processes portals after selected children. A closed portal
+or one already marked with the current stamp is skipped. Every other portal
+receives the stamp **before** its geometry is tested. A destination root may
+therefore be revisited, including `A → B → A`; portal and support stamps
+terminate the cycle and prevent duplicate visible supports. The host retains
+explicit depth/work bounds. The unclipped `46B870` branch does not process
+portals.
+
+The portal test adds the incoming displacement to cached camera position,
+spills each component to float, and evaluates the signed distance to the
+portal plane. Distance greater than `+.001f` rejects the portal. Below
+`-.001f`, the polygon is clipped against each enabled inherited plane with
+coplanar retention disabled. Empty output rejects the portal. A successful
+descent keeps the first two inherited equations, enables them, and appends
+one camera/edge plane per clipped edge in polygon order. The incoming
+displacement is preserved for this branch.
+
+The inclusive epsilon band tests all projected polygon edges, including the
+distinct summation order of the closing edge. Its source preserves the
+observed nearest64 arithmetic and float spill locations through
+[spVisibilityPortalMath.h](../../../Sparkplug/Analysis/PC/spVisibilityPortalMath.h).
+On acceptance it copies inherited plane values, enables all live planes,
+and computes the displaced incoming argument using the original operation
+order. The native assignment `45E870` completed independently on nine finite
+storage inputs; its vector and outer-count distinction is documented in
+[plane storage](visibility-plane-storage.md).
+
+Eighteen fresh original calls completed normally and matched current C++:
+far/partial/full clipping, closed/marked/reversed portals, a two-portal cycle,
+the inclusive band, both epsilon boundaries and adjacent float values,
+ordinary/closing polygon edges, projected outside rejection, a tilted plane,
+chained displacement and the Debug gate. Comparison includes ordered root
+entries, every plane equation word, enabled bytes, active counts, incoming
+displacement and node/portal/support stamps. Each fresh original call ran
+the protected assignment preparation itself when reached. Earlier capped
+calls remain unaccepted; no stopped guest was resumed and no successful
+assignment stub or predecoded body replaced that dependency.
+
+## Borrowed class memberships and host snapshot
+
+[spPartitionMembership.cpp](../../../Sparkplug/Code/Sparkplug/spPartitionMembership.cpp)
+contains concrete base PartitionNode dynamic/occluder insertions, both sides'
+removal/clear and reciprocal teardown. An insertion appends the opposite link
+before its own link and retains duplicates. Remove searches the first matching
+pointer, replaces that slot with the last pointer, pops once, then optionally
+calls the opposite remove with notification disabled. Missing pointers do not
+trigger a callback.
+
+Notifying clear takes the back pointer, calls opposite remove(false), then
+pops its own entry. It retains storage. Non-notifying clear releases its own
+vector storage and leaves opposite links untouched. This deliberate native
+quirk requires callers to repair a deliberately broken graph before peers are
+destroyed. These narrow methods do not implement the entire `4269C0` reset,
+which also touches collision and portal vectors. Derived spatial insertion
+overrides are refused where their placement body is unavailable; they are not
+replaced with successful base insertion.
+
+The [VisibilityGraphSnapshot](../../../Sparkplug/Analysis/Host/VisibilityGraphSnapshot.h)
+is our lifetime bridge. It follows actual source-class children, Zone roots and
+portal destinations and reads actual class-owned payload/static/dynamic/occluder
+lists. Current world bounds come from the source objects; model/world producers
+must run first. Repeated physical support identities share one snapshot record,
+so the concrete Manager deduplicates them through its real stamp logic. After
+the concrete Manager/Scene CPU call, the adapter publishes node/support marks
+back to source objects. Volumes and portals already receive their marks directly.
+
+One snapshot permits one Build attempt. Source owners and links remain stable
+through processing, and the snapshot outlives every use of borrowed Manager
+outputs. It creates no native Scene, source object owner or typed Scene registry.
+Host vector allocation exceptions are not converted to native failure results:
+insertion can retain the first append if the second allocation throws, and a
+snapshot Build can propagate an allocation exception. Atomic failure behavior
+and native allocator failure paths are not qualified.
+
+The compared finite membership protocol covers duplicate insertion, first-match
+removal, both notification modes, storage release and reciprocal object teardown.
+The represented Scene comparison also uses actual class-owned memberships and
+model/world producers, then builds the snapshot, runs Manager/Scene processing
+and publishes marks. It preserves the original ordered visible supports,
+occluder queue, plane/cache words and stamps on those inputs. This establishes
+the concrete CPU composition through the host lifetime bridge; typed Scene
+attachment and derived spatial placement remain separate engine operations.
 
 ## Open graph, not a completed visibility subsystem
 
-- Whole factory/46C0F0 protected container preparation and original methods/TU.
-- ZoneC4; concrete Octree child selection and packed child order/clipping.
-  Base PartitionNode v50 returns0, so arbitrary child arrays do not prove
-  ordinary visibility descent. Debug/unclipped is a separate route.
-- Portals use stamp34, enabled20, plane24 and clipping scratch54/80. Their
-  polygon/zone transform and epsilon branches are not fully executed here.
-- Occluder mesh/plane generation, volume-vs-support tests and Scene removal
-  from visible output; helper490360/490480 and actual opaque geometry next.
+- Full engine startup/allocator-failure invariants, populated outer-stack
+  reserve/relocation and original methods/TU.
+- Broader ZoneC4 input domains. Concrete Octree child
+  selection/reduction/order and nested frame composition are represented; Base PartitionNode v50
+  returns0, so ordinary Base traversal does not descend arbitrary children.
+- Portal inputs outside the compared finite domain, including arbitrary
+  nonfinite/degenerate polygons and nondefault floating environment.
+- Automatic typed Scene attachment, derived dynamic/occluder spatial placement
+  and nonpartition rendering. The measured represented-graph Manager/Scene CPU
+  composition is described in [Scene](../scene/scene-world.md#исходник-cpu-фазы-occlusion);
+  it does not establish full Scene rendering.
+  Fresh mesh/shape/world/camera bodies and finite native/current-source
+  comparisons are described in [Occlusion runtime](occlusion-runtime.md).
 - Scene45EC70 full invocation, ShadowVolumeManager/shader/device dependencies,
   native renderer startup and automatic portable Scene wiring.

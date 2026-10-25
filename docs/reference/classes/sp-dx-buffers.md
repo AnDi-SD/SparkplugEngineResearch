@@ -58,7 +58,7 @@ byteSize, usage, fvfCode, pool, &field10, nullptr
 ```
 
 Вызов идёт через смещение `+0x68` vtable D3D9 device. После него сохраняются
-FVF в `+0x14` и byte size в `+0x1C`.
+FVF в `+0x14` и byte size в `+0x1C`. HRESULT не проверяется, AL равен1.
 
 `spDXIndexBuffer::Initialize` аналогично вызывает device slot `+0x6C`, то есть
 `CreateIndexBuffer`:
@@ -66,6 +66,22 @@ FVF в `+0x14` и byte size в `+0x1C`.
 ```text
 byteSize, usage, format, pool, &field10, nullptr
 ```
+
+Здесь также игнорируется HRESULT и после вызова сохраняется byte size.
+Output у обоих wrappers указывает прямо на текущий handle: перед повторным
+созданием старый handle не освобождается и не обнуляется.
+
+Общий исходник сохраняет два явных режима. `InitializeForAnalysis` создаёт
+прежнюю CPU shadow storage для host-потребителей. `CreateDeviceBufferForAnalysis`
+реализует описанный COM protocol с provider для create/release и не выдаёт live
+handle за CPU bytes. Смешивание режимов и смена release provider у уже связанного
+объекта отклоняются как host-ограничение.
+
+Index helper `4B1FF0`, выраженный `ReleaseNativeDeviceBufferForAnalysis`, очищает
+handle только когда COM `Release` вернул0. При ненулевом оставшемся referencecount
+указатель сохраняется; последующее создание пишет в тот же slot. Native
+деструктор отдельно освобождает ненулевой handle один раз. Это различие важно
+для [reset renderer](../../engine/rendering/renderer-present-clear.md#порядок-reset-и-ресурсов).
 
 ## Связь с `spDXMeshCombiner`
 

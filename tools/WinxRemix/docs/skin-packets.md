@@ -55,7 +55,7 @@ triangle list/strip. Отрицательные веса и сумма, отли
 окончательный `Release`:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SystemSkinCapture.ps1 -Name packet-system-check
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/skin/Test-SystemSkinCapture.ps1 -Name packet-system-check
 ```
 
 ## Состояния материала и текстуры
@@ -98,7 +98,7 @@ width, height, rowBytes=`width*4`, dataBytes=`width*height*4`, затем BGRA-�
 Проверка файлов, mip-уровней и связей с фактическим shader selection:
 
 ```powershell
-python tools/WinxRemix/analyze_skin_materials.py path/to/run --output path/to/fresh-report.json
+python tools/WinxRemix/scripts/analysis/analyze_skin_materials.py path/to/run --output path/to/fresh-report.json
 ```
 
 Анализатор проверяет целостность захвата и явно отделяет отсутствующие
@@ -134,7 +134,7 @@ Decoder проверяет полную длину, диапазоны и кон
 ## Проверка и replay
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SkinPackets.ps1 -Name packet-check -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/skin/Test-SkinPackets.ps1 -Name packet-check -Platform x64
 local-data/rtx-remix/skin-packet-tests/packet-check/test_skin_packets.exe --inspect path/to/packet.skp
 local-data/rtx-remix/skin-packet-tests/packet-check/test_skin_packets.exe --deform-json path/to/packet.skp
 ```
@@ -148,18 +148,18 @@ local-data/rtx-remix/skin-packet-tests/packet-check/test_skin_packets.exe --defo
 Проверка адаптера с моделируемыми native/transport данными:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-NativeSkinVertices.ps1 -Name packet-adapter-check
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/native/Test-NativeSkinVertices.ps1 -Name packet-adapter-check
 ```
 
 Исправление strides и ограничения Remix skin описаны в
-[renderer-skinning-fix](../renderer-skinning-fix/README.md).
+[renderer-skinning-fix](../patches/renderer-skinning-fix/README.md).
 При выборе дальнейшего пути нужно сравнивать фактическую деформацию:
 близкая к 1 сумма весов сама по себе не доказывает эквивалентность
 явного последнего веса игры и неявного последнего веса Remix.
 
 ## Подготовка готовой геометрии
 
-[winx_skin_packet_remix.h](../winx_skin_packet_remix.h) содержит собственную
+[winx_skin_packet_remix.h](../src/skin/winx_skin_packet_remix.h) содержит собственную
 подготовку данных для Remix без зависимости от SDK и без вызовов renderer.
 `Bake` применяет общую формулу Fixed ко всем вершинам пакета и возвращает
 `BakedMesh`: мировые позиции, единичные направления нормалей, UV, цвет,
@@ -181,7 +181,7 @@ instance: повторное применение костей или world tran
 Загрузка через API, материал, камера и срок жизни renderer mesh остаются
 отдельными условиями подключения consumer.
 
-[winx_skin_packet_submit.h](../winx_skin_packet_submit.h) добавляет явную
+[winx_skin_packet_submit.h](../src/skin/winx_skin_packet_submit.h) добавляет явную
 границу `Prepare → Resource → Draw`. `Prepare` получает от политики материала
 отдельный массив API vertex colors: исходный COLOR0 нельзя автоматически
 считать albedo. Он по полям заполняет 64-байтные `remixapi_HardcodedVertex`,
@@ -210,7 +210,7 @@ submit. Повторный вход отклоняется; отложенный
 Проверка этой полной операции с регистрирующей реализацией API, без GPU:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SkinPacketSubmit.ps1 -Name fresh-submit-check
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/skin/Test-SkinPacketSubmit.ps1 -Name fresh-submit-check
 local-data/rtx-remix/skin-packet-submit-tests/fresh-submit-check/test_skin_packet_submit.exe --manifest paths.txt
 ```
 
@@ -220,7 +220,7 @@ Manifest содержит по одному пути к SKP1 на строку, 
 bridge, renderer или квалификации материала.
 
 `PrepareColor4` связывает эту подготовку с собственной начальной политикой
-[winx_skin_material_plan.h](../winx_skin_material_plan.h). Для отдельно
+[winx_skin_material_plan.h](../src/skin/winx_skin_material_plan.h). Для отдельно
 подтверждённого Fixed ColorMode 4 выбираются reflectance=`MatDiffuse.rgb` и
 emission=`authored COLOR0.rgb`. Старые `AmbientCol` и directional lighting
 в материал не запекаются; их восстановленная формула остаётся эталоном
@@ -247,7 +247,7 @@ material constant, поэтому tint должен попасть в texture pa
 
 ### Текущий пакет и подготовка состояния
 
-[winx_native_skin_packet_source.h](../winx_native_skin_packet_source.h)
+[winx_native_skin_packet_source.h](../src/native/winx_native_skin_packet_source.h)
 выделяет получение текущего пакета из sampled захвата. После установки
 наблюдателей `native_skin_source::Scope` сохраняет успешное наблюдение на время
 одного исходного Skin call. `CopyDraw` связывает его с текущим mesh submission
@@ -264,13 +264,13 @@ declaration и поколения ресурсов. Хеши исходных VB
 Сам `CopyDraw` не читает фактически привязанные D3D buffers/shaders/constants;
 их соответствие и неизменность после внешних вызовов проверяются отдельно.
 
-[winx_skin_draw_state.h](../winx_skin_draw_state.h) предоставляет общий
+[winx_skin_draw_state.h](../src/skin/winx_skin_draw_state.h) предоставляет общий
 `Snapshot` и `ReadSnapshot` для захвата и подготовки. Временные COM references
 освобождаются до возврата; ошибочное чтение сохраняет предыдущий результат.
 Снимок не содержит shader constants и сам по себе не защищает от изменения
 состояния во время внешнего вызова.
 
-[winx_skin_draw_plan.h](../winx_skin_draw_plan.h) соединяет этот снимок с
+[winx_skin_draw_plan.h](../src/skin/winx_skin_draw_plan.h) соединяет этот снимок с
 `skin_packet_submit::PrepareColor4`. Входной shader и смысл переданного
 `MatDiffuse` должны быть доказаны вызывающей стороной. Начальный контракт:
 
@@ -304,7 +304,7 @@ local-data/rtx-remix/skin-packet-submit-tests/fresh-submit-check/test_skin_packe
 Mesh, Instance и Blend в обе стороны x86/x64:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/skinning-bridge/Test-BakedPackets.ps1 -Name fresh-wire-check -Manifest paths.txt
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/patches/skinning-bridge/Test-BakedPackets.ps1 -Name fresh-wire-check -Manifest paths.txt
 ```
 
 Это обмен файлами с точной сверкой полей и байтов; IPC и renderer не запускаются.
@@ -320,16 +320,16 @@ Remix: вычитает первые B−1 весов последователь
 Даже маленькая разница не превращается автоматически в разрешение submit.
 
 Полное CPU/GPU-сравнение сохранённых пакетов и контроль передачи готовых
-вершин описаны в [инструкции GPU-стенда](../renderer-skinning-fix/README.md#сравнение-сохранённых-пакетов).
+вершин описаны в [инструкции GPU-стенда](../patches/renderer-skinning-fix/README.md#сравнение-сохранённых-пакетов).
 
 ## Общая проверка directional/color
 
-[Test-FixedLighting.ps1](../Test-FixedLighting.ps1) проверяет общую
+[Test-FixedLighting.ps1](../tests/lighting/Test-FixedLighting.ps1) проверяет общую
 [формулу света и цвета Fixed](../../../docs/engine/materials/shader-contract.md),
 включая directional, point и spot без specular, и собирает небольшой CPU replay:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FixedLighting.ps1 -Name fresh-lighting-check -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/lighting/Test-FixedLighting.ps1 -Name fresh-lighting-check -Platform x64
 local-data/rtx-remix/fixed-lighting-tests/fresh-lighting-check/test_fixed_lighting.exe --packet input.skp parameters.flp output.bin
 ```
 

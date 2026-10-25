@@ -36,7 +36,17 @@ namespace sparkplug::reconstruction
             std::uint32_t usage,
             std::uint32_t fvfCode,
             std::uint32_t pool);
-        void ReleaseDeviceBufferForAnalysis() noexcept;
+        void ReleaseDeviceBufferForAnalysis() noexcept; // CPU shadow only.
+        // Actual PC4B1F60 visible COM protocol, separate from the CPU shadow.
+        // Direct output slot; HRESULT ignored; stores FVF and byte size after
+        // CreateVertexBuffer. Reinitialization does not Release an old handle.
+        // The caller keeps the release context alive through destruction.
+        using DeviceCreateForAnalysis=std::int32_t (*)(void*,std::uint32_t,std::uint32_t,
+            std::uint32_t,std::uint32_t,std::uintptr_t*) noexcept;
+        using DeviceReleaseForAnalysis=std::uint32_t (*)(void*,std::uintptr_t) noexcept;
+        [[nodiscard]] bool CreateDeviceBufferForAnalysis(std::uint32_t byteSize,std::uint32_t usage,
+            std::uint32_t fvfCode,std::uint32_t pool,DeviceCreateForAnalysis,DeviceReleaseForAnalysis,void*) noexcept;
+        [[nodiscard]] std::uintptr_t DeviceBufferForAnalysis() const noexcept{return deviceBuffer_;}
 
         [[nodiscard]] bool IsInitializedForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetByteSizeForAnalysis() const noexcept;
@@ -53,5 +63,8 @@ namespace sparkplug::reconstruction
         std::uint32_t pool_ = 0;
         std::vector<std::byte> data_;
         bool initialized_ = false;
+        std::uintptr_t deviceBuffer_=0;
+        DeviceReleaseForAnalysis deviceRelease_=nullptr;
+        void* deviceContext_=nullptr;
     };
 }

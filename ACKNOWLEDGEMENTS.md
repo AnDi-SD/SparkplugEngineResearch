@@ -46,6 +46,15 @@ AnDi~SD aka @andisd — создатель SparkplugEngineResearch, автор S
 Winx Club на PC и PlayStation 2. Спасибо за дальнейшее исследование форматов
 и развитие независимых инструментов для игры.
 
+## PCSX2 Dev Team — VU disassembler
+
+Спасибо команде [PCSX2](https://github.com/PCSX2/pcsx2) за открытый
+дизассемблер VU microinstructions. Отдельный инструмент ResearchWorkbench
+использует его закреплённые таблицы и функции декодирования; происхождение,
+лицензия GPL-3.0-or-later и локальные изменения указаны в
+[манифесте](tools/ResearchWorkbench/ps2_vu_decoder_source.json).
+Инструмент не связан с engine-библиотекой проекта.
+
 ## Butermix
 
 Butermix предоставил изменённую копию раннего SmoViewer со следующими идеями и

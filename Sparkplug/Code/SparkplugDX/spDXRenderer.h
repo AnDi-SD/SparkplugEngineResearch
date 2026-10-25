@@ -5,6 +5,8 @@
 
 #include "../Sparkplug/spRenderer.h"
 #include "spDXShader.h"
+#include "spDXIndexBuffer.h"
+#include "spDXPalettePool.h"
 #include "../Sparkplug/spLightManager.h"
 #include "Analysis/PC/spRendererMatrixState.h"
 #include <map>
@@ -12,13 +14,17 @@
 #include <array>
 #include <optional>
 #include <vector>
+#include <functional>
+#include <string>
 
 namespace sparkplug::reconstruction
 {
     class spPCVertexDeclaration;
+    struct spPCVertexDeclarationDeviceForAnalysis;
     class spDXMaterial;
     class spDXTexture;
     class spDXLight;
+    class spPalette;
     class spMaterialPassLayer;
     class spMaterialTexture;
     class spPCShaderManager;
@@ -81,6 +87,139 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static PresentBoundaryForAnalysis PresentBeforeResetForAnalysis(
             std::uint32_t inhibitC1C0,const std::array<std::uint32_t,8>& parameters,
             DevicePresentForAnalysis,void*) noexcept;
+
+        using DeviceConfigurationForAnalysis=std::array<std::uint32_t,8>;
+        using PresentParametersForAnalysis=std::array<std::uint32_t,14>;
+        struct DeviceCapabilitiesForAnalysis
+        {std::uint32_t vertexVersion=0,pixelVersion=0;};
+        struct LifecycleResultForAnalysis
+        {bool completed=false,nativeReturn=false,restoreRequired=false;};
+        struct DeviceStateSelectorForAnalysis
+        {
+            // Captured globals7405C4,764240[256],7403D0/count740570.
+            // This is shared selector state, not a per-renderer/native layout.
+            std::uint8_t dirty=0;
+            std::array<std::uint8_t,256> cache{};
+            std::vector<std::uint32_t> table;
+        };
+        // PC4BCEC0 resolves to431760. Warm AL is an arbitrary cache BYTE,
+        // not normalized bool. Cold loops0..255 reset the temporary on EACH
+        // iteration, then write only cache[index] and clear dirty. Host bounds:
+        // index<256 and, only while dirty, table.size()<=256; no native guard.
+        [[nodiscard]] static std::optional<std::uint8_t> SelectDeviceStateForAnalysis(
+            DeviceStateSelectorForAnalysis&,std::uint32_t index) noexcept;
+        struct DeviceStateCachesForAnalysis
+        {
+            std::array<std::uint32_t,12> rawRender{};
+            std::array<std::uint32_t,TextureStateCacheCount> rawTexture{};
+            std::uint32_t materialE47C=0,fogCA20=0;
+            std::array<std::uint32_t,256> render{};
+            std::array<std::array<std::uint32_t,64>,8> texture{};
+            std::uint32_t lightListC190=0;
+            std::array<std::uint32_t,8> textureIdentitiesE480{};
+            std::uint32_t diffuseSourceE4E8=0,ambientSourceE4EC=0;
+        };
+        struct DeviceStateReadbackForAnalysis
+        {
+            // Actual external GetRenderState+E8/GetTextureStageState+108
+            // direct output slots. Nonzero HRESULT invalidates even an output
+            // the provider wrote. SetRenderState retains its existing cache
+            // semantics: requested value cached despite failed HRESULT.
+            std::function<std::int32_t(std::uintptr_t,std::uint32_t,std::uint32_t&)> render;
+            std::function<std::int32_t(std::uintptr_t,std::uint32_t,std::uint32_t,std::uint32_t&)> texture;
+            RenderStateSubmitForAnalysis submit=nullptr;
+            void* context=nullptr;
+        };
+        // Complete PC4BCF20 + shared454940 and real selector body. Explicit
+        // fixed PC raw72/device8x64 extents; not SDK defaults. All providers
+        // must remain stable and must not mutate/reenter these state inputs.
+        [[nodiscard]] static LifecycleResultForAnalysis RestoreDeviceStateCachesForAnalysis(
+            std::uintptr_t device,DeviceStateCachesForAnalysis&,DeviceStateSelectorForAnalysis&,
+            const DeviceStateReadbackForAnalysis&);
+        struct DeviceLifecycleAPIForAnalysis
+        {
+            // External IDirect3D9/Device9 contracts. Optional output means
+            // whether the provider supplied initialized native output bytes;
+            // it is not an HRESULT test added to the recovered algorithm.
+            // Host work bound: each adapter count must be <=256. No such
+            // guard exists in the original; stable real API inputs fit it.
+            std::function<std::uint32_t(std::uintptr_t)> adapterCount;
+            std::function<std::optional<DeviceCapabilitiesForAnalysis>(std::uintptr_t,std::uint32_t,std::uint32_t)> capabilities;
+            std::function<std::optional<std::array<char,17>>(std::uintptr_t,std::uint32_t)> adapterDescription;
+            std::function<std::optional<std::uint32_t>(std::uintptr_t,std::uint32_t)> displayFormat;
+            std::function<std::int32_t(std::uintptr_t,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,bool)> checkDeviceType;
+            std::function<std::int32_t(std::uintptr_t,std::uint32_t,std::uint32_t,std::uintptr_t,std::uint32_t,PresentParametersForAnalysis&,std::uintptr_t&)> create;
+            std::function<std::int32_t(std::uintptr_t,PresentParametersForAnalysis&)> reset;
+            spDXIndexBuffer::DeviceCreateForAnalysis createIndex=nullptr;
+            spDXIndexBuffer::DeviceReleaseForAnalysis releaseIndex=nullptr;
+            void* indexContext=nullptr;
+        };
+        struct ResetTargetForAnalysis
+        {std::function<void()> release;std::function<bool()> reinit;};
+        struct ResetLayerForAnalysis
+        {std::function<bool()> release,reinit;};
+        struct ResetResourcesForAnalysis
+        {
+            // These are actual resource virtual-call boundaries, not a fake
+            // high-level manager success callback. Cohorts are already-known
+            // borrowed inputs; callbacks retain their own concrete owners.
+            std::vector<ResetTargetForAnalysis> ordinary,cube;
+            std::vector<ResetLayerForAnalysis> layers;
+            std::vector<std::function<void(bool reinitialize)>> textures;
+            std::function<void()> unbindOrdinaryTarget;
+            // Primary+44/4BCF20 remains an explicit engine virtual boundary.
+            // Absent input stops there as incomplete/restoreRequired.
+            std::function<std::optional<bool>()> restore;
+        };
+        struct DeviceLifecycleStateForAnalysis
+        {
+            std::uintptr_t direct3D=0,device=0;
+            DeviceConfigurationForAnalysis copiedConfiguration{};
+            bool pixelShaders=false,vertexShaders=false;
+            std::uint32_t errorCode75AB9C=0;
+            std::uint32_t offscreenC1C0=0,wordC9EC=0,wordC9F0=0;
+            std::uint32_t declarationC9FC=0,wordCA00=0,paletteCA0C=0;
+            std::uint32_t boundVertexE44C=0,boundPixelE450=0;
+            std::array<std::uint32_t,8> lightIdentitiesC198{};
+            std::array<std::uint8_t,8> lightDirtyC1B8{};
+            std::shared_ptr<spDXIndexBuffer> persistentIndices;
+            std::vector<std::shared_ptr<spDXIndexBuffer>> transientIndices;
+            std::shared_ptr<spDXIndexBuffer> boundIndices;
+            std::shared_ptr<spDXVertexBuffer> boundVertices;
+        };
+        // PC4BCC80,4BCCF0,4BD050,4BD810. Captured-value portable inputs,
+        // not native layouts/singletons. No cohort mutation/reentry or native
+        // uint16 reference overflow is modeled. HRESULTs remain ignored at
+        // the original call sites. Native result and host completion differ.
+        [[nodiscard]] static LifecycleResultForAnalysis QueryDeviceCapabilitiesForAnalysis(
+            DeviceLifecycleStateForAnalysis&,std::uint32_t adapter,std::uint32_t type,const DeviceLifecycleAPIForAnalysis&);
+        [[nodiscard]] static LifecycleResultForAnalysis CreateDeviceForAnalysis(DeviceLifecycleStateForAnalysis&,
+            const DeviceConfigurationForAnalysis&,PresentParametersForAnalysis&,const DeviceLifecycleAPIForAnalysis&);
+        [[nodiscard]] static LifecycleResultForAnalysis BuildPresentParametersForAnalysis(DeviceLifecycleStateForAnalysis&,
+            DeviceConfigurationForAnalysis&,PresentParametersForAnalysis&,const DeviceLifecycleAPIForAnalysis&);
+        [[nodiscard]] static LifecycleResultForAnalysis ResetDeviceForAnalysis(DeviceLifecycleStateForAnalysis&,
+            DeviceConfigurationForAnalysis&,std::uint32_t indexBytes,const DeviceLifecycleAPIForAnalysis&,const ResetResourcesForAnalysis&);
+        // Startup carriers are defined in spDXRenderer_Startup.h so ordinary
+        // draw consumers do not depend on CPU buffers and shader loaders.
+        struct StartupStateForAnalysis;
+        struct StartupGlobalsForAnalysis;
+        struct StartupAPIForAnalysis;
+        // PC4BD700 secondary slot70. Host completion only: native has no
+        // defined AL result. Releases index owners, Device9, thenDirect3D9.
+        [[nodiscard]] static bool ReleaseStartupDeviceForAnalysis(StartupStateForAnalysis&,const StartupAPIForAnalysis&);
+        // PC4548E0 with actual platform-slot70 and existing CPU buffer bodies.
+        [[nodiscard]] static LifecycleResultForAnalysis InitializeCommonStartupForAnalysis(
+            StartupStateForAnalysis&,const DeviceConfigurationForAnalysis&,std::uint32_t indexCountInput,
+            std::uint32_t rawVertexBytes,const StartupAPIForAnalysis&);
+        [[nodiscard]] static LifecycleResultForAnalysis CreateStartupIndexForAnalysis(
+            StartupStateForAnalysis&,std::uint32_t indexBytes,const StartupAPIForAnalysis&);
+        // Complete PC4BD380 order, using existing recovered inner operations.
+        // Globals are explicit process inputs, not new renderer-owned managers.
+        // Only a fresh shader manager is supported; repeats are host-rejected
+        // before renderer mutation, not silently repaired by freeing templates.
+        [[nodiscard]] static LifecycleResultForAnalysis StartDeviceForAnalysis(StartupStateForAnalysis&,
+            StartupGlobalsForAnalysis&,DeviceConfigurationForAnalysis&,std::uint32_t indexCountInput,
+            std::uint32_t rawVertexBytes,const StartupAPIForAnalysis&,std::string& diagnostic);
         // PC4B0A90, analytical method name. Caller supplies the entry at
         // native E4F4+4*index; full array extent/startup are NOT invented.
         // Device HRESULT is ignored and a changed entry is cached regardless.
@@ -164,6 +303,16 @@ namespace sparkplug::reconstruction
         // are resolved from the actual reconstructed DXTexture by the caller.
         using DeviceTextureHandleForAnalysis=std::optional<std::uintptr_t> (*)(void*,const spDXTexture&) noexcept;
         using DevicePaletteSelectForAnalysis=std::int32_t (*)(void*,std::uint32_t) noexcept;
+        using DevicePalettePoolForAnalysis=DXPalettePoolForAnalysis;
+        using DevicePaletteEntriesForAnalysis=std::int32_t (*)(void*,std::uintptr_t,
+            std::uint32_t,const std::byte*) noexcept;
+        // Actual4BB7D0/4BB840; external COM SetPaletteEntries only. Palette
+        // entries must be initialized before registration consumes1024bytes.
+        [[nodiscard]] static LifecycleResultForAnalysis RegisterPaletteForAnalysis(
+            DevicePalettePoolForAnalysis&,std::uintptr_t device,spPalette&,
+            DevicePaletteEntriesForAnalysis,void*);
+        [[nodiscard]] static LifecycleResultForAnalysis RecyclePaletteIndexForAnalysis(
+            DevicePalettePoolForAnalysis&,const spPalette&);
         [[nodiscard]] static bool SelectPaletteForAnalysis(std::uint32_t& cachedIndex,
             std::optional<std::uint32_t> index,DevicePaletteSelectForAnalysis,void*) noexcept;
         // PC4BB650 identity-cache/COM portion, plus actual4BB1C0. Full native
@@ -399,6 +548,25 @@ namespace sparkplug::reconstruction
         // PC4AE140 ends the lookup map lifetime, leaving borrowed declarations
         // untouched. Host shared owners preserve declarations retained by meshes.
         void ClearVertexDeclarationsForAnalysis() noexcept { vertexDeclarations_.clear(); }
+        struct DeviceDeclarationLookupForAnalysis
+        {
+            bool completed=false;
+            std::shared_ptr<spPCVertexDeclaration> declaration;
+        };
+        // Actual4AE0E0 miss executes the common object/CPU builder and COM
+        // initialization before insertion. A stored null is a completed hit;
+        // existing entries are returned without validating device callbacks.
+        [[nodiscard]] DeviceDeclarationLookupForAnalysis GetDeviceVertexDeclarationForAnalysis(
+            std::uint32_t componentFlags,std::uintptr_t device,
+            const spPCVertexDeclarationDeviceForAnalysis&);
+        // Explicit decoded-map setup, not a recovered native insertion API.
+        // Unique keys and at most4096 entries are host input bounds.
+        [[nodiscard]] bool InsertCapturedVertexDeclarationForAnalysis(std::uint32_t,
+            std::shared_ptr<spPCVertexDeclaration>);
+        // Explicit declaration Release calls precede cache clearing. Shared
+        // host mesh owners may retain the now-empty object safely; they do not
+        // reproduce native dangling borrowed references.
+        [[nodiscard]] bool ReleaseDeviceVertexDeclarationsForAnalysis() noexcept;
 
       protected:
         spDXRenderer();

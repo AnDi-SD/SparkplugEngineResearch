@@ -40,6 +40,24 @@ Native вызывает импортированный `MessageBoxA`, затем
 Это явно безопасная аналитическая подмена внешнего side effect, не заявление
 об идентичности UI.
 
+## Console и очередь ошибок
+
+Отдельный console-only путь `004139C0` не вызывает этот handler. Он печатает
+один указанный error, выбирая console code по severity головы очереди:
+information `0x0A`, warning `0x0E`, остальные `0x0C`. Подробный текст имеет
+суффикс `\n- <source> (<line>)`; затем внешний printf добавляет перевод строки.
+Очередь и used bytes сохраняются, lazy handler остаётся неразрешённым.
+Именно этот путь использует
+[standalone shader loader](../../engine/materials/shader-manager-key.md#загрузка-одного-standalone-shader).
+
+Общий `CreateErrorForAnalysis` представляет nonfatal `0040EFA0`:40байт error
+занимают fixed data stack, новый error становится головой и наследует более
+высокую severity предыдущей головы. Message хранится отдельно с NUL.
+Data stack расходует ровно запрошенные байты, без дополнительного выравнивания.
+Переносимая ownership-коллекция обеспечивает срок жизни до `ClearForAnalysis`;
+она не воспроизводит native ABI объектов внутри byte stack. Fatal dispatch
+и allocator overflow остаются неподдержанными входами этого bounded метода.
+
 ## Границы описания
 
 Не найдены original TU/header, имя provider/callback typedef, точный контракт

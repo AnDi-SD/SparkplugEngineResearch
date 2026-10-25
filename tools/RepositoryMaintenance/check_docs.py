@@ -8,6 +8,7 @@ import unicodedata
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 import catalog
+import shader_registry
 
 ROOT = Path(__file__).resolve().parents[2]
 LINK = re.compile(r'!?\[([^\]\n]*)\]\(\s*(<[^>\n]+>|[^\s)]+)(?:\s+["\'][^\n]*?["\'])?\s*\)')
@@ -45,7 +46,7 @@ def heading_ids(text: str) -> set[str]:
 
 
 def check(root: Path, files: set[str]) -> list[str]:
-    errors = []
+    errors = shader_registry.validate(root, files)
     for relative in sorted(files):
         if relative.startswith(('research/', 'journal/', 'docs/research/')):
             errors.append(f'{relative}: research history belongs in the private tree')

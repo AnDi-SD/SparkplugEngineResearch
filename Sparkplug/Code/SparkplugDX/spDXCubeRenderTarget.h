@@ -5,6 +5,7 @@
 
 #include "../Sparkplug/spCubeRenderTarget.h"
 #include "../../Analysis/Host/spRenderTargetSurfaceHost.h"
+#include "spDXTextureResource.h"
 
 #include <array>
 
@@ -46,6 +47,16 @@ namespace sparkplug::reconstruction
             void* context,
             sparkplug::analysis::host::RenderTargetSurfaceDescriptionReader reader,
             std::uint32_t& size);
+
+        [[nodiscard]] static DXResourceResultForAnalysis InitializeDeviceTargetForAnalysis(
+            DXCubeRenderTargetStateForAnalysis&, DXResourceHandleForAnalysis device,
+            std::uint32_t width, std::uint32_t height, std::uint32_t pixelFormat,
+            DXTextureResourceGlobalsForAnalysis&, const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] static bool ReleaseDeviceTargetForAnalysis(
+            DXCubeRenderTargetStateForAnalysis&, const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] static DXResourceResultForAnalysis ReinitializeDeviceTargetForAnalysis(
+            DXCubeRenderTargetStateForAnalysis&, DXResourceHandleForAnalysis device,
+            DXTextureResourceGlobalsForAnalysis&, const DXTextureResourceAPIForAnalysis&);
 
     private:
         bool cubeTextureReady_ = false;

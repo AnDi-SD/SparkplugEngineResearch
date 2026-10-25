@@ -17,6 +17,7 @@ namespace sparkplug::evidence::pc {struct RenderNodeContextForAnalysis;}
 
 namespace sparkplug::reconstruction
 {
+    class spPartitionNode;
     // Scene-graph node which owns the renderables consumed by renderer and
     // scene-optimizer traversal. shared_ptr is the portable substitute for
     // the native intrusive references and does not claim native ABI layout.
@@ -75,6 +76,16 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const Vector3& GetReciprocalWorldScaleForAnalysis() const noexcept;
         [[nodiscard]] bool IsCulledForAnalysis(const FrustumPlanes& planes) const noexcept;
         void SetCullBypassForAnalysis(bool value) noexcept;
+        [[nodiscard]] bool GetCullBypassForAnalysis() const noexcept{return cullBypass_;}
+        [[nodiscard]] auto GetVisibilityMarkForAnalysis() const noexcept{return support_.visibilityMark;}
+        void SetVisibilityMarkForAnalysis(std::uint32_t value) noexcept{support_.visibilityMark=value;}
+        // PC425660/424D60/424DD0, borrowed native1C4 relationships. A direct
+        // reverse append does not invent a reciprocal insertion by itself.
+        [[nodiscard]] bool AppendPartitionForAnalysis(spPartitionNode* partition);
+        void RemovePartitionForAnalysis(spPartitionNode* partition,bool notify=true) noexcept;
+        void ClearPartitionsForAnalysis(bool notify=true) noexcept;
+        [[nodiscard]] const auto& GetPartitionsForAnalysis() const noexcept{return partitions_;}
+        [[nodiscard]] bool HasPartitionStorageForAnalysis() const noexcept{return partitions_.capacity()!=0;}
 
         // Explicit borrowed scene dependency; this does NOT create/register a
         // Scene or implement its partition/occlusion notifications. Native
@@ -99,5 +110,6 @@ namespace sparkplug::reconstruction
         std::array<std::uint8_t, 4> supportControls_{0, 1, 1, 1}; // native120..123
         spLightManager::CacheForAnalysis lightCache_;
         const spLightManager* sceneLightManager_ = nullptr;
+        std::vector<spPartitionNode*> partitions_; // borrowed native1C4
     };
 } // namespace sparkplug::reconstruction

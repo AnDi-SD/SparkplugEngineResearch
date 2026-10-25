@@ -184,6 +184,7 @@
 - [spPS2Mesh](sp-ps2-mesh.md).
 - [spPS2MeshData](sp-ps2-mesh-data.md).
 - [spPS2MeshDataSerializer](sp-ps2-mesh-data-serializer.md).
+- [spPS2PipelineManager / spPS2MicrocodeManager](sp-ps2-microcode-manager.md).
 - [spPS2TextureDataSerializer](sp-ps2-texture-data-serializer.md).
 - [spPS2VideoStream](sp-ps2-video-stream.md).
 - [spQuad3D](sp-quad-3d.md).
@@ -197,6 +198,7 @@
 - [spResource](sp-resource.md).
 - [spResourceFATSerializer](sp-resource-fat-serializer.md).
 - [spResourceManager](sp-resource-manager.md).
+- [spScene](sp-scene.md).
 - [spSceneGraphOptimizer](sp-scene-graph-optimizer.md).
 - [spSerializer](sp-serializer.md).
 - [spSerializerHook](sp-serializer-hook.md).

@@ -17,4 +17,4 @@ dotnet run --project tools/SmoImporter/SmoImporter.Gui/SmoImporter.Gui.csproj
 
 Запуск из корня полного репозитория; [зависимости сборки](../../CONTRIBUTING.md).
 
-[Подробное руководство](docs/guide.md) · [Привязка костей](BONE_BINDING_DESIGN.md) · [Устройство и проверки](docs/development.md).
+[Подробное руководство](docs/guide.md) · [Привязка костей](docs/bone-binding.md) · [Изменения](docs/releases/CHANGELOG.md) · [Устройство и проверки](docs/development.md).

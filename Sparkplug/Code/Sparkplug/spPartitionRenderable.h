@@ -18,6 +18,8 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const auto& GetRenderablesForAnalysis() const noexcept{return support_.renderables;}
         [[nodiscard]] const auto& GetLocalBoundingSphereForAnalysis() const noexcept{return support_.localSphere;}
         [[nodiscard]] const auto& GetWorldBoundingSphereForAnalysis() const noexcept{return support_.worldSphere;}
+        [[nodiscard]] auto GetVisibilityMarkForAnalysis() const noexcept{return support_.visibilityMark;}
+        void SetVisibilityMarkForAnalysis(std::uint32_t value) noexcept{support_.visibilityMark=value;}
         // Actual4D7260 submits both shared760058 pointers initialized by
         //6D38C0. These analytical getters expose that state, not a new inverse.
         [[nodiscard]] const evidence::pc::render_node_math::Matrix4& GetWorldMatrixForAnalysis() const noexcept

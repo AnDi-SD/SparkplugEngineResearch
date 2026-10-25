@@ -45,7 +45,25 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::uint32_t GetNativeByteCountForAnalysis() const noexcept { return byteCount_; }
         [[nodiscard]] const spPalette* GetPaletteForAnalysis() const noexcept { return palette_.get(); }
         void AdoptPaletteForAnalysis(std::unique_ptr<spPalette> palette) noexcept;
+        [[nodiscard]] DXResourceResultForAnalysis ReplaceDevicePaletteForAnalysis(
+            DXPalettePoolForAnalysis&,std::unique_ptr<spPalette>& incoming);
         [[nodiscard]] static constexpr bool HasLiveGraphicsBackendForAnalysis() noexcept { return false; }
+        [[nodiscard]] static bool ReleaseDeviceTextureForAnalysis(
+            DXTextureResourceStateForAnalysis&, const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] static DXResourceResultForAnalysis AttachDeviceTextureForAnalysis(
+            DXTextureResourceStateForAnalysis&, std::uint32_t width, std::uint32_t height,
+            std::uint32_t rawFormat, DXResourceHandleForAnalysis texture,
+            DXResourceHandleForAnalysis palette, std::uint32_t byteCount,
+            DXTextureResourceGlobalsForAnalysis&, const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] static DXResourceResultForAnalysis RegenerateDeviceMipsForAnalysis(
+            DXTextureResourceStateForAnalysis&, DXTextureResourceGlobalsForAnalysis&,
+            const DXTextureResourceAPIForAnalysis&);
+        [[nodiscard]] DXResourceResultForAnalysis AttachOwnedDeviceTextureForAnalysis(
+            DXTextureResourceStateForAnalysis&, std::uint32_t width, std::uint32_t height,
+            std::uint32_t rawFormat, DXResourceHandleForAnalysis texture,
+            std::unique_ptr<spPalette>& incoming, std::uint32_t byteCount,
+            DXPalettePoolForAnalysis&, DXResourceHandleForAnalysis rendererDevice,
+            DXTextureResourceGlobalsForAnalysis&, const DXTextureResourceAPIForAnalysis&);
 
     private:
         // Native ctor initializes3C/40/48 but leaves44 uninitialized. The

@@ -2,21 +2,54 @@
 
 Launcher → наша PC-прослойка → Remix bridge/renderer с отдельными патчами.
 
+## Организация файлов
+
+Рабочий код лежит в `src/`: `runtime` связывает D3D9 proxy, API session,
+реестр ресурсов и frame scheduler; `native` читает и наблюдает оригинальные
+объекты; `scene` готовит membership и independent/selected submit;
+`lighting`, `materials`, `textures`, `surface`, `skin`, `shaders` содержат
+соответствующие контракты и адаптеры. Перенос файлов сохраняет текущие
+границы поведения; состояние proxy ещё требует отдельной декомпозиции.
+
+В `tests/<подсистема>` находятся исходники проверок и их PowerShell/Python
+runners. Стенды патчей вынесены в `tests/patches/<комплект>`. Сами patches,
+закреплённые manifests и описание остаются в `patches/<комплект>`, а сборка
+и применение — в `scripts/patches/<комплект>`. Патчи и исторические manifests
+сохраняют исходные байты; записанные в них старые пути описывают свой снимок.
+
+`tests/Copy-SourceSnapshot.ps1` копирует дерево C++ и замыкание существующих
+quoted includes с сохранением путей от корня репозитория и сверкой hashes.
+Структура frozen inputs — `source/tools/WinxRemix/src`,
+`source/tools/WinxRemix/tests` и `source/Sparkplug` для общих заголовков.
+Список файлов в snapshot не является списком объектов линковки: runner
+по-прежнему явно выбирает нужный test translation unit.
+
+`Build-Probe.ps1 -SourceDirectory` принимает корень инструмента в таком
+снимке и читает `.cpp` и `.def` из одного снимка. Для старых frozen inputs
+сохранена поддержка прежней плоской структуры; если исторический снимок
+не содержал `.def`, используется текущий export definition с явной записью
+этого входа в build manifest. Внешние generated includes
+проверяются отдельно через `Prepare-Dependencies.ps1 -Offline`.
+
+Пути к анализаторам начинаются с `scripts/analysis`, к подготовке shaders —
+с `scripts/shaders`; конфигурация хранится в `config`. Основные root
+команды запуска и сборки сохраняют имена.
+
 [Контракт рендеринга](rendering-contract.md) описывает нативные источники,
 необходимые преобразования и границы классов. Инициализация API выделена в
-[RemixApiSession](../winx_remix_api_session.h), владение mesh/material ресурсами —
-в [RemixResourceRegistry](../winx_remix_resource_registry.h). Surface/Skin используют
+[RemixApiSession](../src/runtime/winx_remix_api_session.h), владение mesh/material ресурсами —
+в [RemixResourceRegistry](../src/runtime/winx_remix_resource_registry.h). Surface/Skin используют
 реестр через переходный facade. Обход загруженного реестра света выделен в
-[SceneLightSnapshotSource](../winx_scene_light_snapshot.h), порядок подготовки
-независимого API-кадра — в [FrameScheduler](../winx_frame_scheduler.h).
-[LightPayloadSource](../winx_light_payload_source.h) выделяет вычисление
+[SceneLightSnapshotSource](../src/scene/winx_scene_light_snapshot.h), порядок подготовки
+независимого API-кадра — в [FrameScheduler](../src/runtime/winx_frame_scheduler.h).
+[LightPayloadSource](../src/lighting/winx_light_payload_source.h) выделяет вычисление
 наблюдаемых light fields из native reader и использует общий PC4B53C0.
-[LightWorldObserver](../winx_light_world_observer.h) хранит пассивные before/after
+[LightWorldObserver](../src/lighting/winx_light_world_observer.h) хранит пассивные before/after
 samples исходных light world вызовов; PC entry hook и phase correlation находятся
-в [отдельном адаптере](../winx_native_light_world_source.h).
-[SceneGeometrySnapshotSource](../winx_scene_geometry_snapshot.h) выделяет
+в [отдельном адаптере](../src/native/winx_native_light_world_source.h).
+[SceneGeometrySnapshotSource](../src/scene/winx_scene_geometry_snapshot.h) выделяет
 чтение загруженной support membership из
-[scene geometry adapter](../winx_scene_geometry.h).
+[scene geometry adapter](../src/scene/winx_scene_geometry.h).
 COM/native readers, camera/light API и владение direct light handles остаются
 отдельными адаптерами с прежним состоянием proxy. Общий `SceneSnapshot` и
 реестр экземпляров ещё не выделены.
@@ -30,13 +63,123 @@ COM/native readers, camera/light API и владение direct light handles о
 scope и light witness. Учёт уже вызванных draw сохраняет запрет повторной
 отправки после частичного commit.
 
+`DirectOperation` хранит witness основного render target только на время
+своей синхронной подачи. При полном покрытии state hooks первый
+`GetRenderTarget(0)` и парный `Release` завершаются повторной проверкой
+state serial, primary identity, getter dispatch и native camera. Следующие
+проверки используют этот witness; изменение любого условия окончательно
+отзывает его для текущей операции. Setters, включая неуспешные, state-block
+Apply, Reset, Release и reentry сохраняют существующее инвалидирование.
+При отсутствии полного hook coverage остаётся прежнее чтение target на
+каждом fence. COM-ссылка и результат не переносятся в следующий кадр.
+
+Журнал independent submit содержит `targetQueries`, `targetCacheHits` и
+`targetInvalidations`. Поля `lightValidationCalls`,
+`lightValidationTimedCalls` и `lightValidationMicroseconds` отдельно измеряют
+через QPC полную проверку текущего light witness внутри `GroupCurrent`.
+Эти затраты уже входят в `submitMilliseconds`; `prepareMilliseconds` и
+`drawMilliseconds` также являются его частями и не прибавляются к нему.
+Измерение не пропускает проверки и не меняет их результат.
+
+Модуль [FrameProfile](../src/runtime/winx_frame_profile.h) добавляет наблюдение
+оставшейся CPU-подготовки с фиксированным хранилищем. Он включается вместе
+с журналом independent submit и пишет только итог кадра, без записей на каждый
+вызов. Текущая версия `cpuProfile.schema` — `2`; исходные пять метрик версии 1
+сохраняют имена и смысл. `cpuProfile.contexts` содержит `independentPrepare` для `PrepareDirect`,
+`independentGroup` для `GroupCurrent` и `other` для остальных вызовов на потоке
+кадра: в том числе source scanning, selected/legacy preparation и независимых
+проверок вне этих двух функций. `other` нельзя приписывать independent prepare.
+В каждом контексте измеряются `compareDrawInput`, `nativeInputCurrent`,
+`resourceInput`, `geometryExpand` и `geometryIdentity`. Последний включает
+content hash expanded geometry и его привязку к material identity до поиска
+mesh cache; он не включает поиск и создание API mesh. `geometryExpand`
+охватывает только `ExpandSurfaceGeometry` внутри `CaptureRigidGeometry`
+для independent/selected packets; другие legacy-конвертеры этим полем
+не покрыты. Контекст определяется внешним динамическим scope, поэтому
+reentrant callback внутри preparation/group наследует этот контекст.
+
+В версии 2 добавлены `lightCapture` и `lightValidation`. Первый scope охватывает
+каждый `ReadLights` с новым `LocalReadWindow`, включая ранний отказ или
+незавершённый из-за исключения capture. Второй начинается после возврата
+`ReadLights` в `DirectLightRegistryCurrent` и охватывает полный проход проверки
+света, преобразований и API-владельцев. Отказ до capture не создаёт эти scopes.
+На каждый вошедший scope приходится одна пара QPC, без таймера на отдельный
+источник. `lightCapture` также учитывает вызовы вне currentness-проверки;
+сопоставлять его с coarse `lightValidationMicroseconds` следует по контексту
+и фактическому набору вызовов, не суммой вложенных медиан.
+Измерения включают накладные расходы сбора своих счётчиков; они не вычитаются
+из длительности и сами по себе не доказывают ускорение.
+
+`cpuProfile.lightWork` содержит отдельные целочисленные счётчики в тех же трёх
+контекстах. `captureValid`, `captureInvalid`, `captureAborted` различают итог
+capture; `capturedRecords` — размер сохранённого префикса, `recordReadCalls`
+и `recordReadSucceeded` — попытки и успешные чтения полных записей. Успешно
+прочитанная запись может быть отвергнута структурной проверкой до включения
+в префикс. `virtualQueryCalls` учитывает и неуспешный системный запрос,
+`regionCacheHits` — найденную в прежнем восьмислотовом cache запись защиты,
+в том числе запрещающую чтение. `repeatedRegionQueries` отмечает повторный
+успешный запрос тех же границ региона после вытеснения. Отдельный наблюдатель
+хранит не более 64 пар границ внутри одного capture. `regionTrackingOverflows`
+считает запросы, чьи новые границы уже нельзя сохранить; при ненулевом значении
+повторы являются нижней границей, а не полной статистикой уникальных регионов.
+Этот наблюдатель не участвует в разрешении чтения и не переносится в следующий
+`LocalReadWindow`, даже при повторном использовании приёмника счётчиков.
+
+`validationAccepted`, `validationRejected`, `validationAborted` различают итог
+post-capture scope. `validationRecords` учитывает посещённые записи;
+`eligibleRecords` и `convertCalls` — записи, прошедшие active/type/dirty gates
+до исходного `Convert`. `witnessComparisons` считает сравнения адресов в
+прежнем линейном поиске, `ownerLookups` — обращения к карте API-владельцев.
+Ранние отказы сохраняют фактически исполненный префикс. Рабочие значения
+накапливаются локально и публикуются при закрытии scope; незакрытый scope
+отражается таймером `pendingCalls`. Reset кадра отбрасывает старые локальные
+значения вместе с таймером. Сбор данных выключается вместе с профилем.
+Новые счётчики не кэшируют результат проверки, native bytes или преобразования
+и не меняют порядок page/native/API/owner fences. Анализатор версии 1 должен
+отклонять schema 2; для неё нужен явный анализ нового формата с сохранением
+исходных записей и всех неполных наблюдений.
+
+Каждая запись содержит `calls`, `timedCalls`, `qpcFailures`, `pendingCalls`,
+`ticks` и `microseconds`. `calls` учитывает и ранний отказ. Неуспешный QPC
+или уменьшение counter записывается как `qpcFailures`; незавершённый при
+границе кадра scope — как `pendingCalls`. Выполняется
+`calls = timedCalls + qpcFailures + pendingCalls`. При недоступной частоте
+`microseconds` равен `null`; при неполном измерении сумма относится только
+к `timedCalls`, а не ко всем вызовам. Измерения inclusive: `resourceInput`
+уже входит в `nativeInputCurrent`, а callbacks могут создавать дополнительные
+вложенные измерения. Их нельзя складывать друг с другом или с coarse timers.
+QPC и сбор счётчиков сами добавляют CPU-затраты; результат — профиль
+инструментированной сборки, не доказательство ускорения.
+
+`DirectEndFrame` снимает `frameClock.counter` до записи JSON и сохраняет
+`frameClock.frequency`, `counterValid` и `frequencyValid`. При двух пригодных
+границах одной частоты длительность равна разности counter, делённой на
+frequency; кадровые IDs и `comparison` задают фактический интервал и режим.
+Таким образом, новые записи допускают frame/time join для FPS без смешения
+full-scene и diagnostic. Непригодную или немонотонную границу нельзя использовать
+для FPS. Это clock завершения кадра адаптера, не GPU completion или renderer
+screenshot counter. Счётчики и контекст принадлежат потоку; `DirectEndFrame`
+сбрасывает только свой поток после вывода, включая случай недоступного журнала.
+Таймер, пересёкший reentrant reset, не дописывается в следующий кадр. Порядок
+native/currentness fences, callbacks и исходные результаты не меняются.
+
+`SceneLightSnapshotSource::CaptureInto` заполняет переданный контейнер заново:
+сначала отзывает прежний результат и очищает records, затем полностью
+проверяет header, count, links, уникальность, класс и владельца каждого узла.
+Для visited addresses используется ограниченная таблица на стеке;
+предельный состав остаётся 512 записей. `DirectOperation` владеет контейнером
+для повторных light fences и сохраняет только его выделенную ёмкость.
+Каждый fence создаёт новый `LocalReadWindow`, читает текущие bytes и лишь
+после полного structural acceptance выполняет прежние conversion/owner checks.
+Это не кэш света между fences или кадрами и не атомарный snapshot.
+
 | Каталог | Ответственность |
 | --- | --- |
-| [direct-camera-bridge](../direct-camera-bridge/) | Передача камеры |
-| [skinning-bridge](../skinning-bridge/) | Bridge для skinning |
-| [renderer-skinning-fix](../renderer-skinning-fix/) | Патч renderer |
-| [renderer-alpha-fix](../renderer-alpha-fix/) | Emission прозрачных поверхностей renderer и парный графический стенд |
-| [server-instance-audit](../server-instance-audit/) | Диагностика экземпляров |
+| [direct-camera-bridge](../patches/direct-camera-bridge) | Передача камеры |
+| [skinning-bridge](../patches/skinning-bridge) | Bridge для skinning |
+| [renderer-skinning-fix](../patches/renderer-skinning-fix) | Патч renderer |
+| [renderer-alpha-fix](../patches/renderer-alpha-fix) | Emission прозрачных поверхностей renderer и парный графический стенд |
+| [server-instance-audit](../patches/server-instance-audit) | Диагностика экземпляров |
 | [third-party](../third-party/) | Описание внешних зависимостей |
 
 Общие исходники, native ABI и границы managed-слоя описаны в [общем ядре](../../shared-core.md). Алгоритмы форматного чтения и игрового поведения не копируются в интерфейс этого инструмента.
@@ -50,7 +193,7 @@ scope и light witness. Учёт уже вызванных draw сохраняе
 
 У закреплённого renderer Remix последний вес вычисляется как остаток до
 единицы, неположительные вклады пропускаются, нормаль нормализуется по xyz.
-Патч [шагов массивов](../renderer-skinning-fix/) этих правил не меняет.
+Патч [шагов массивов](../patches/renderer-skinning-fix) этих правил не меняет.
 Значит, исправленный transport/stride сам по себе не разрешает передачу
 произвольных игровых весов. Нужно проверить ошибку деформации на конкретной
 палитре, представление матриц и конечность нормалей. Ограничение Fixed.rfx
@@ -58,12 +201,12 @@ scope и light witness. Учёт уже вызванных draw сохраняе
 
 Искусственные сравнения API, контроль памяти и границы вывода о GPU описаны
 в [инструкции стенда Skin](skinning-fixture.md).
-Отдельный [compute-стенд](../renderer-skinning-fix/README.md#вычислительное-ядро-на-gpu)
+Отдельный [compute-стенд](../patches/renderer-skinning-fix/README.md#вычислительное-ядро-на-gpu)
 проверяет исходный shader напрямую и не требует запуска полного renderer.
 
 ## Снимок загруженной геометрии
 
-[SceneGeometrySnapshotSource](../winx_scene_geometry_snapshot.h) использует
+[SceneGeometrySnapshotSource](../src/scene/winx_scene_geometry_snapshot.h) использует
 стандартный C++ без Windows/D3D/Remix. Stateless-класс получает reader и
 mutation callback на каждый `Capture`, не сохраняет их и не фильтрует
 загруженный partition graph по камере или active flags. Сохраняется прежний
@@ -91,7 +234,7 @@ supports, 4096 элементов отдельного vector, 8 children на �
 `mutationSerial` берётся до обхода и сравнивается после. Это metadata нашего
 адаптера, без гарантии атомарного чтения, поколения native объекта или FreshRt.
 PC reader, scope cache и изменение исходной selection остаются в
-[winx_scene_geometry.h](../winx_scene_geometry.h). Original selection,
+[winx_scene_geometry.h](../src/scene/winx_scene_geometry.h). Original selection,
 world/resource/material eligibility и независимый API submit по-прежнему
 проверяются своими адаптерами. Выделение класса не квалифицирует все сцены,
 живую GPU-подачу или полный цикл Toolkit.
@@ -100,13 +243,13 @@ world/resource/material eligibility и независимый API submit по-п
 без запуска игры или GPU:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SceneGeometrySnapshot.ps1 -Name fresh-geometry-snapshot-x86 -Platform x86
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SceneGeometrySnapshot.ps1 -Name fresh-geometry-snapshot-x64 -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/scene/Test-SceneGeometrySnapshot.ps1 -Name fresh-geometry-snapshot-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/scene/Test-SceneGeometrySnapshot.ps1 -Name fresh-geometry-snapshot-x64 -Platform x64
 ```
 
 ## Пассивное наблюдение geometry scope
 
-[Geometry snapshot observer](../winx_geometry_snapshot_observer.h) подключает
+[Geometry snapshot observer](../src/scene/winx_geometry_snapshot_observer.h) подключает
 отдельный callback после исходной selection и перед её возможным расширением.
 Он работает независимо от прежнего `SceneGeometryObserveOnly` и не включает
 SceneGeometry extension или API submit. На кадрах, кратных 300, каждый
@@ -123,11 +266,11 @@ scope с отозванным fence не получает частичного �
 такой записи остаются диагностикой.
 
 World inputs квалифицируются общим
-[`ReadWorldInput`](../winx_independent_scene_source.h) с отдельным обработчиком
+[`ReadWorldInput`](../src/scene/winx_independent_scene_source.h) с отдельным обработчиком
 отказов, без изменения счётчиков independent submit. Если требуется, world
 matrix вычисляется из наблюдаемых cached PRS в собственном результате.
 Mesh-проверка использует
-[`ResolveCurrentResources`](../winx_native_mesh_source.h): нужны полные
+[`ResolveCurrentResources`](../src/native/winx_native_mesh_source.h): нужны полные
 uploaded VB и IB, совпадение обоих native CPU-covered диапазонов с uploads
 и текущий transport witness. `cpuVertexPartial`/`cpuIndexPartial` сохраняются:
 совпадение покрытых диапазонов partial CPU capture не является равенством
@@ -149,12 +292,12 @@ material/draw eligibility или визуальную правильность. 
 CPU-стенд исполняет адаптер на собственных данных, без оригинальной игры и GPU:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-GeometrySnapshotObserver.ps1 -Name fresh-geometry-observer
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/scene/Test-GeometrySnapshotObserver.ps1 -Name fresh-geometry-observer
 ```
 
 ## Собственный пакет жёсткой геометрии
 
-[RigidGeometryPacketBuilder](../winx_rigid_geometry_packet.h) отделяет результат
+[RigidGeometryPacketBuilder](../src/surface/winx_rigid_geometry_packet.h) отделяет результат
 преобразования от native/COM ресурсов и Remix SDK. Класс использует стандартный
 C++, получает converter и predicate актуальности на один `Capture` и возвращает
 собственные expanded triangle vertices, коэффициенты albedo/emission, признаки
@@ -164,7 +307,7 @@ vertex color/alpha, числовую provenance и материал. Converter �
 Пакет ограничен 98304 вершинами, каждые три образуют треугольник.
 
 Преобразование в `PrepareNativePacket` использует существующий
-[ExpandSurfaceGeometry](../winx_surface_geometry.h). Заимствованные native bytes
+[ExpandSurfaceGeometry](../src/surface/winx_surface_geometry.h). Заимствованные native bytes
 и layout потребляются до внешних COM/API-вызовов; backend отдельно перепаковывает
 собственные вершины в SDK structs. Predicate проверяется до и после конвертации.
 PC-адаптер сохраняет world/material/resource qualification, scope fences и
@@ -205,13 +348,13 @@ Legacy-вызовы без собственного mip snapshot сохраня�
 10 секунд. Перед сборкой требуется 512 МиБ доступной физической памяти:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RigidGeometryPacket.ps1 -Name fresh-rigid-geometry-packet-x86 -Platform x86
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RigidGeometryPacket.ps1 -Name fresh-rigid-geometry-packet-x64 -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/surface/Test-RigidGeometryPacket.ps1 -Name fresh-rigid-geometry-packet-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/surface/Test-RigidGeometryPacket.ps1 -Name fresh-rigid-geometry-packet-x64 -Platform x64
 ```
 
 ## Собственный снимок текстурных mip
 
-[TextureMipSnapshotSource](../winx_texture_mip_snapshot.h) — stateless-класс
+[TextureMipSnapshotSource](../src/textures/winx_texture_mip_snapshot.h) — stateless-класс
 стандартного C++ без COM, D3D, файлов и Remix API. `Capture` получает копию
 описания width/height/format/levels, reader и current predicate. Каждый mip
 владеет плотно упакованными raw DWORD-пикселями без padding исходных строк.
@@ -221,7 +364,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RigidGe
 но не разрешает native чтение или draw. Ошибка возвращает полностью пустой
 invalid snapshot; исключения передаются вызывающему коду.
 
-[Адаптер захвата](../winx_texture_mip_capture.h) проверяет managed2D/pool/usage,
+[Адаптер захвата](../src/textures/winx_texture_mip_capture.h) проверяет managed2D/pool/usage,
 удерживает временный `AddRef` и закрывает каждый успешный readonly `LockRect`
 одним `UnlockRect`, включая false/исключение predicate. Padding пропускается;
 до копирования проверяется представимость диапазона строк. Временная ссылка
@@ -249,13 +392,13 @@ texture formats/controllers и capture/replacement identity остаются о�
 процесс десятью секундами:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-TextureMipSnapshot.ps1 -Name fresh-texture-mip-x86 -Platform x86
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-TextureMipSnapshot.ps1 -Name fresh-texture-mip-x64 -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/textures/Test-TextureMipSnapshot.ps1 -Name fresh-texture-mip-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/textures/Test-TextureMipSnapshot.ps1 -Name fresh-texture-mip-x64 -Platform x64
 ```
 
 ## Содержимое и API-идентичность
 
-[ResourceIdentitySource](../winx_resource_identity.h) использует стандартный C++
+[ResourceIdentitySource](../src/runtime/winx_resource_identity.h) использует стандартный C++
 и переданный hash writer. Протокол записывает фиксированные 32/64-bit значения
 в little-endian; float — конечные IEEE-754 binary32 bits с сохранением signed
 zero. Native addresses, SDK padding, world/instance transforms, frame, scope и
@@ -276,6 +419,29 @@ color32 и порядок uint32 indices. Expanded использует посл
 98304 вершин и индексов. `BoundMesh` отдельно связывает geometry ID со стабильным
 material ID под domain `winx-bound-mesh-v1`.
 
+Canonical geometry payload по-прежнему собирается в фиксированный буфер
+4096 байт без whole-mesh allocation. На Windows x86/x64 одна целая вершина
+упаковывается раздельными копиями position12 / normal12 / UV8 / color4,
+если объявленные поля — C-массивы `float` достаточной длины и `uint32_t` color.
+Общая раскладка Vertex не требуется: leading/interleaved/trailing и SDK padding
+не копируется. Для volatile источника, иных field/container типов и платформ
+остаётся прежняя word serialization. Если вершина пересекает край буфера,
+она также проходит прежний scalar путь: размеры и момент каждого provider
+`Update` остаются прежними, без чтения последующих полей через callback/throw
+границу. Finite/count/index prevalidation завершается до `Hash::Reset`;
+недопустимый вход не изменяет hash state. Signed zero сохраняется побитово,
+`Material` и `BoundMesh` не меняют протокол. Hash exceptions продолжают
+распространяться без дополнительного flush во время unwinding.
+
+Проверка ResourceIdentity сопоставляет полный byte stream и Update chunks
+с независимым scalar oracle на границах буфера, разных layouts/padding,
+float edge cases и максимальном составе. Закреплённый XXH3 дополнительно
+сверяет streaming IDs с one-shot hash независимого canonical потока;
+его header заморожен и проверен по dependency SHA256 в test snapshot.
+Проверки provider callbacks/throws сохраняют точку чтения split-вершины
+и отсутствие hash mutation при позднем malformed компоненте. Сохранение
+ID в CPU fixture не заменяет игровую проверку производительности и изображения.
+
 Ordinary independent/selected путь и legacy expanded Surface используют общий
 `SurfaceRigidGeometryResourceStable`; `SurfaceGeometryResource` — тонкая обёртка
 того же пути, без собственного hash/cache алгоритма.
@@ -295,18 +461,18 @@ cache и адаптера content IDs. Они включают совместн�
 quarantined владельца. Эти CPU-проверки не запускают игру, GPU или Toolkit.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-ResourceOwnership.ps1 -Name fresh-rigid-resource-ownership
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-ResourceOwnership.ps1 -Name fresh-rigid-resource-ownership
 ```
 
 В [закреплённом renderer](rendering-contract.md#идентичность-ресурса-и-экземпляра)
 API hash является handle внешней таблицы. Geometry component hashes задаются
 процессным счётчиком; capturer использует их вместе с renderer material hash.
 External submit обходит обычный mesh/material replacement lookup.
-[Существующие USD patches](../renderer-usd-fix/README.md) исправляют захват
+[Существующие USD patches](../patches/renderer-usd-fix/README.md) исправляют захват
 внешнего материала и экспорт, но эту границу identity/replacement не меняют.
 Детерминированные CPU/API ключи не квалифицируют Toolkit replacement ID.
 
-[Отдельный renderer patch](../renderer-resource-identity/README.md) добавляет
+[Отдельный renderer patch](../patches/renderer-resource-identity/README.md) добавляет
 явную пару asset ID и `rtx.enableExternalAssetIdentity=false`. Допущена одна
 rigid Opaque поверхность без particles/GPU instancing. ID именуют capture и
 задают mesh/material mod lookup; material content hash BLAS и external instance
@@ -329,20 +495,20 @@ patch v2 и recording regression проверяют оба порядка сме
 исходных файла, требует 512 МиБ доступной памяти и использует `/W4 /WX`:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-ResourceIdentity.ps1 -Name fresh-resource-identity-x86 -Platform x86
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-ResourceIdentity.ps1 -Name fresh-resource-identity-x64 -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-ResourceIdentity.ps1 -Name fresh-resource-identity-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-ResourceIdentity.ps1 -Name fresh-resource-identity-x64 -Platform x64
 ```
 
 ## Чтение реестра света
 
-[SceneLightSnapshotSource](../winx_scene_light_snapshot.h) использует только
+[SceneLightSnapshotSource](../src/scene/winx_scene_light_snapshot.h) использует только
 стандартный C++ и переданные readers. Он проверяет полный загруженный intrusive
 реестр до 512 Light-записей, принадлежность сцене, ссылки, count и tail и
 возвращает собственные копии байтов. Camera selection, inactive/disabled flags
 и dirty bits не исключают записи из снимка. Класс не обновляет payload и не
 доказывает свежесть producer потомков; snapshot также не гарантирует атомарность.
 
-[LightPayloadSource](../winx_light_payload_source.h) использует стандартный C++
+[LightPayloadSource](../src/lighting/winx_light_payload_source.h) использует стандартный C++
 и общий [spPCLightPayload](../../../Sparkplug/Code/SparkplugDX/spPCLightPayload.h).
 Результат владеет cached/candidate массивами и возвращает `Invalid`, `Dirty`,
 `CachedMismatch` или `CachedEquivalent`. `worldDirtyMask = flags & 7` и
@@ -350,10 +516,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-Resourc
 планировании update. Candidate вычислен из наблюдаемых cached world values;
 это диагностический результат, который не доказывает свежесть world/controller.
 Только `CachedEquivalent` разрешает подмену потребляемых слов; остальные native
-слова сохраняются. Интеграция в [native reader](../winx_native_light_source.h)
+слова сохраняются. Интеграция в [native reader](../src/native/winx_native_light_source.h)
 сохраняет exact-match поведение, флаги включения/A/B и schema журнала.
 
-[LightWorldObserver](../winx_light_world_observer.h) заранее резервирует две
+[LightWorldObserver](../src/lighting/winx_light_world_observer.h) заранее резервирует две
 банки по 512 samples, ограничивает batch 4096 вызовами и не выделяет память в
 методах. Он сохраняет собственные before/after bytes, inherited flags, число
 вызовов и текущий context. Повторный завершённый вызов заменяет latest sample;
@@ -367,7 +533,7 @@ Stale/completed ticket не может отменить новую операц�
 | `NotObserved` | В квалифицированном batch нет sample этого Light; отсутствие producer этим не доказано |
 | `Unqualified` | Нет опубликованного batch либо не прошли context/identity проверки |
 
-[PC-адаптер](../winx_native_light_world_source.h) перехватывает entry `4B58D0`
+[PC-адаптер](../src/native/winx_native_light_world_source.h) перехватывает entry `4B58D0`
 восьмью полными байтами инструкций. Через него проходят primary/direct вызовы
 и secondary thunk `4B5960`, который заранее вычитает `B4` из receiver.
 Оригинал исполняется один раз с полным аргументом; opaque EAX передаётся без
@@ -396,7 +562,7 @@ Startup quiescence остаётся условием установки: вос�
 подтверждение исходного поведения, без утверждения о всех controllers,
 всех сценах, видимом receiver, влиянии света, тенях или результате GPU Remix.
 
-[Анализатор наблюдений](../analyze_light_world_observer.py) отдельно связывает
+[Анализатор наблюдений](../scripts/analysis/analyze_light_world_observer.py) отдельно связывает
 свет и единственный packet исходной камеры с одинаковыми frame/scene при
 стабильных диагностических полях кадра. Он использует исходные row-vector
 view/projection и cached world position. В зачёт наблюдавшегося включённого
@@ -461,18 +627,27 @@ per-object light cache. Явный dirty `8` включает
 цепочки Node → Light → DX; свежесть live custom overrides и controllers
 из него не следует, повторное выполнение producers адаптером не включено.
 
-[Адаптер чтения](../winx_scene_read_window.h) использует `ReadProcessMemory`
-в собственном процессе. Внутри одного обхода реестра повторный доступ к той же
-странице позволяет прочитать её целиком и скопировать соседние Light-записи
-из локального буфера. Для разрозненных адресов остаётся чтение точного диапазона.
-После возврата из обхода буфер уничтожается: каждая проверка актуальности
-заново читает байты, ссылки реестра и принадлежность объектов сцене.
+[Адаптер чтения](../src/scene/winx_scene_read_window.h) сохраняет общий
+`ReadProcessMemory` и прежнее окно из четырёх страниц как отдельные способы
+чтения. Обход Light-реестра использует `LocalReadWindow`: `VirtualQuery`
+проверяет committed-регионы с разрешённым чтением, после чего точный диапазон
+копируется в собственном процессе под SEH для access violation и in-page error.
+Guard, no-access и execute-only страницы отвергаются без обращения к их байтам.
+Границы PC-адресов и предел одного чтения в 16 КиБ сохраняются.
 
-Окно ограничено четырьмя страницами по 4096 байт; при другом размере системной
-страницы используется исходное чтение диапазона. Ошибка чтения страницы также
-оставляет точное чтение как запасной путь. Проверки границ PC-адреса, размера,
-защиты памяти и целостности связного списка сохраняются. Это способ чтения
-одного наблюдения, без гарантии атомарного снимка при параллельной записи.
+Локальное окно хранит защиту не более восьми регионов в течение одного
+синхронного обхода. Байты объектов не кэшируются; каждый запрос копирует их
+заново. Заголовки и записи проходят через одно окно, которое уничтожается
+до COM, Remix API или игрового вызова. Следующая проверка актуальности получает
+новое окно и заново проверяет ссылки реестра и принадлежность объектов сцене.
+
+Защита и отображение памяти должны оставаться неизменными до окончания обхода.
+Проверка `VirtualQuery` и последующее копирование не являются атомарной операцией:
+при параллельном `VirtualProtect`, освобождении или повторном отображении
+памяти эквивалентность `ReadProcessMemory` не гарантируется. Снимок также не
+обещает атомарности при параллельной записи payload. Ошибка чтения не публикует
+повреждённый заголовок или запись как действительные; уже проверенный префикс
+списка сохраняется с `valid=false`.
 
 `Test-SceneLights.ps1 -Name fresh-light-check` проверяет собственные буферы
 реестра, смену payload и состава, API Create/Draw/Destroy, границы страниц,
@@ -482,14 +657,14 @@ per-object light cache. Явный dirty `8` включает
 Самостоятельные CPU-стенды обхода и кадрового порядка:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-snapshot-x86 -Platform x86 -Suite LightSnapshot
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-frame-scheduler-x86 -Platform x86 -Suite Scheduler
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-payload-x86 -Platform x86 -Suite LightPayload
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-payload-x64 -Platform x64 -Suite LightPayload
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x86 -Platform x86 -Suite LightWorldObserver
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x64 -Platform x64 -Suite LightWorldObserver
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-NativeLightSource.ps1 -Name fresh-light-payload-integration
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-NativeLightWorld.ps1 -Name fresh-native-light-world
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-snapshot-x86 -Platform x86 -Suite LightSnapshot
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-frame-scheduler-x86 -Platform x86 -Suite Scheduler
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-payload-x86 -Platform x86 -Suite LightPayload
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-payload-x64 -Platform x64 -Suite LightPayload
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x86 -Platform x86 -Suite LightWorldObserver
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-FramePreparation.ps1 -Name fresh-light-world-observer-x64 -Platform x64 -Suite LightWorldObserver
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/native/Test-NativeLightSource.ps1 -Name fresh-light-payload-integration
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/native/Test-NativeLightWorld.ps1 -Name fresh-native-light-world
 ```
 
 `LightSnapshot` проверяет независимые readers, владение байтами, новый снимок
@@ -516,7 +691,7 @@ renderer, обновление всех producers, ambient/environment или ц
 
 ## Материалы FFP
 
-[MaterialRecipeSource](../winx_material_recipe_source.h) выделяет чтение
+[MaterialRecipeSource](../src/materials/winx_material_recipe_source.h) выделяет чтение
 обычного материала в stateless-класс стандартного C++. На один `Capture`
 передаются reader и request с числовыми адресами renderer/material/device
 и outer override. Результат владеет raw texture/material words, mapped stage,
@@ -533,7 +708,7 @@ material → pass → layer → texture holder → native texture служат p
 words. Ошибка чтения или неподдержанный вход возвращает пустой invalid recipe
 с причиной отказа; исходные записи остаются неизменными.
 
-[PC-адаптер](../winx_independent_scene_source.h) отдельно выполняет более узкий
+[PC-адаптер](../src/scene/winx_independent_scene_source.h) отдельно выполняет более узкий
 `Decode` texture/alpha operations, задаёт bootstrap stage arguments и сохраняет
 draw qualification. Даже valid recipe не доказывает фактическую привязку
 текстуры. В оригинале debug singleton создаётся лениво; его ненулевой byte
@@ -550,12 +725,12 @@ Toolkit. Самостоятельный CPU-стенд использует со
 сохраняет полный граф локальных include и не запускает игру или GPU:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-MaterialRecipeSource.ps1 -Name fresh-material-recipe-x86 -Platform x86
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-MaterialRecipeSource.ps1 -Name fresh-material-recipe-x64 -Platform x64
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/materials/Test-MaterialRecipeSource.ps1 -Name fresh-material-recipe-x86 -Platform x86
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/materials/Test-MaterialRecipeSource.ps1 -Name fresh-material-recipe-x64 -Platform x64
 ```
 
 Общий для привязанных D3D-ресурсов и native-входов
-[преобразователь геометрии](../winx_surface_geometry.h) получает наблюдаемый
+[преобразователь геометрии](../src/surface/winx_surface_geometry.h) получает наблюдаемый
 режим `LIGHTING` вместе с коэффициентами материала. Только явный unlit-вход
 разрешает отсутствие нормалей; их замена описана в
 [руководстве](guide.md#явные-ffp-материалы).
@@ -604,7 +779,7 @@ tone mapping и bloom: эти стадии меняют итоговые экр�
 
 Если геометрия и alpha присутствуют, а собственное свечение исчезает только
 в stochastic-ветви, применяется отдельный
-[патч накопления emission](../renderer-alpha-fix/README.md). Он сохраняет
+[патч накопления emission](../patches/renderer-alpha-fix/README.md). Он сохраняет
 прозрачность и добавляет свет слоёв с учётом их alpha и пропускания предыдущих
 слоёв. В инструкции приведены независимый графический эталон и границы проверки.
 

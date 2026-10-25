@@ -20,6 +20,9 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(spCloneManager&) const override;
         [[nodiscard]] std::uint32_t GetIndexForAnalysis() const noexcept{return index_;}
+        // Native renderer4BB7D0 writes+10 after SetPaletteEntries, including
+        // failed HRESULT. This is not a palette-constructor default override.
+        void SetDeviceIndexForAnalysis(std::uint32_t index) noexcept{index_=index;}
         [[nodiscard]] bool HasInitializedEntriesForAnalysis() const noexcept{return entriesInitialized_;}
         [[nodiscard]] const std::array<std::byte,EntryByteCount>& GetEntriesForAnalysis() const noexcept{return entries_;}
         [[nodiscard]] bool SetEntriesForAnalysis(const std::byte* entries,std::size_t byteCount) noexcept;

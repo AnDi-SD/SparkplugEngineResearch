@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "upstream": "https://github.com/PCSX2/pcsx2",
+  "commit": "265d123dc33ee0ddf9c31e5bdf6c03f9d64e9d34",
+  "spdx": "GPL-3.0-or-later",
+  "copyright": "2002-2026 PCSX2 Dev Team",
+  "files": [
+    {
+      "name": "DisVUmicro.h",
+      "bytes": 10284,
+      "sha256": "cc6cd114194513de8cd03f8e130e7ac0bead44abc74ff5df60862b74d81ea44c",
+      "gitBlobSha1": "8b06c8aa291b995f0bc251f19bc3c4693148b9de",
+      "upstreamPath": "pcsx2/DebugTools/DisVUmicro.h"
+    },
+    {
+      "name": "DisVUops.h",
+      "bytes": 15289,
+      "sha256": "9f9b3b09d528940e617f9012df2ea569be533479e098c52333d6c966dc28348a",
+      "gitBlobSha1": "d6f6d63f2523eccee34875759ede3820e0343969",
+      "upstreamPath": "pcsx2/DebugTools/DisVUops.h"
+    },
+    {
+      "name": "DisVU1Micro.cpp",
+      "bytes": 4412,
+      "sha256": "d438d2007f91d718338b5fbdd8b0cfa532b63258e07db6da261f8ce935c451e0",
+      "gitBlobSha1": "8fa4ecd77f61609756cd081b649c417807512ff8",
+      "upstreamPath": "pcsx2/DebugTools/DisVU1Micro.cpp"
+    },
+    {
+      "name": "VU.h",
+      "bytes": 4332,
+      "sha256": "c77e856f2ebe46a42cb3f1856afdec9f3662ca51fc7950454060b3ca4b2edea9",
+      "gitBlobSha1": "dc39935cd682c2dce78b37f3b42c45907963e3c6",
+      "upstreamPath": "pcsx2/VU.h"
+    },
+    {
+      "name": "COPYING.GPLv3",
+      "bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "gitBlobSha1": "94a9ed024d3859793618152ea559a168bbcbb5e2",
+      "upstreamPath": "COPYING.GPLv3"
+    },
+    {
+      "name": "VUops.cpp",
+      "bytes": 145702,
+      "sha256": "37d5098321e062956880637e90b6a975a8f28d88092a2f333f8f0d2e3750bd16",
+      "gitBlobSha1": "f3067e9da99fec13b715254f766a0c087e0e4d4d",
+      "upstreamPath": "pcsx2/VUops.cpp"
+    }
+  ],
+  "adapter": "ps2_vu_disassembler.cpp",
+  "contract": "Unmodified opcode functions/tables are external inputs, not linked into SparkplugEngine. Adapter preserves leaf symbols and text independently; no emulator state or VU execution.",
+  "tableRepairs": {
+    "count": 4,
+    "debuggerCells": "UPPER_FD_00/01/10/11_TABLE[1]",
+    "old": "SUBx/y/z/w",
+    "new": "SUBAx/y/z/w",
+    "reference": "pinned VUops.cpp interpreter tables3705..3748",
+    "externalFilesModified": false
+  }
+}

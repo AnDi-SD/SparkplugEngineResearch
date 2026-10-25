@@ -14,6 +14,6 @@ Partition, BSP, octree, зоны и порталы определяют прос
 - [PC polygon clipping: unnamed value helper и точные пограничные правила](polygon-clipping.md).
 - [PC: partition graph и статические render supports](partition-runtime.md).
 - [PC: SceneInit, partition transfer и spVisibilityManager](visibility-runtime.md).
-- [PC: массивы плоскостей видимости и общий блокер копирования](visibility-plane-storage.md).
+- [PC: массивы плоскостей видимости](visibility-plane-storage.md).
 
 <!-- catalog:end -->

@@ -1,7 +1,8 @@
 #pragma once
 // Inferred portable declaration. PC48D6F0/49BCE0/49C8D0 are executable-backed;
-// the lost source ABI and the frame simulation are not reconstructed here.
+// Source APIs and host-owned ring storage are not the lost native ABI.
 #include "spRenderable.h"
+#include "Analysis/PC/spBallisticCpuDraw.h"
 
 namespace sparkplug::evidence::pc {struct ParticleRandomForAnalysis;}
 
@@ -55,8 +56,71 @@ namespace sparkplug::reconstruction
         bool SampleEmissionRegionForAnalysis(sparkplug::evidence::pc::ParticleRandomForAnalysis&,
             std::uint32_t count,std::vector<Vector3>& output) const;
         const std::array<std::uint32_t,5>& GetPoolStateForAnalysis() const noexcept {return poolState_;}
+        struct ProductionForAnalysis final
+        {
+            std::uint32_t limitedRequest=0,created=0;
+            // Native48C400 returns limitedRequest even when the final128-batch
+            // remainder bug creates fewer records. Update ignores this return.
+        };
+        struct ModifierForAnalysis final
+        {
+            void (*apply)(void*,float delta)=nullptr; // original virtual24(delta)
+            void* context=nullptr; // borrowed, stable for the synchronous update
+            // Callback may edit records, not parameters/clock/links/owner life.
+        };
+        struct FrameOptionsForAnalysis final
+        {
+            float integrationRate=30; // native+B0, separate from emission rate
+            bool emissionEnabled=false; // explicit native+58 input, not guessed startup
+            std::vector<ModifierForAnalysis> modifiers;
+        };
+        struct FrameStateForAnalysis final {float delta=0,clock=0,accumulator=0;};
+        void SetFrameStateForAnalysis(FrameStateForAnalysis) noexcept;
+        [[nodiscard]] FrameStateForAnalysis GetFrameStateForAnalysis() const noexcept;
+        // Physical record index; explicit fixture/adapter setter, not an
+        // asserted original API. Callbacks may change record values, not links.
+        bool SetRecordForAnalysis(std::size_t,const ParticleRecordForAnalysis&) noexcept;
+        [[nodiscard]] bool ProduceParticlesForAnalysis(std::uint32_t requested,float time,
+            ProductionForAnalysis&,sparkplug::evidence::pc::ParticleRandomForAnalysis* random=nullptr,
+            std::string* error=nullptr);
+        //48D450/48D210 orchestration: physical ring retirement, actual producer,
+        // original requested-count debit, virtual modifier callbacks, integration.
+        // Host finite/count/reentry guards do not claim native fault behavior.
+        // Runtime refusal after mutation preserves completed native-order work;
+        // no rollback of records, callbacks, clocks or shared randomness is promised.
+        [[nodiscard]] bool UpdateForAnalysis(float delta,const FrameOptionsForAnalysis&,
+            sparkplug::evidence::pc::ParticleRandomForAnalysis* random=nullptr,std::string* error=nullptr);
+        struct CpuDrawInputForAnalysis final
+        {
+            std::array<float,9> cameraOrientation{1,0,0,0,1,0,0,0,1};
+            Vector3 nodePosition{},nodeScale{1,1,1};
+            std::array<float,2> runtimeScales{1,1}; // native100/104, explicit runtime values
+            std::uint32_t vertexCapacity=0,indexCapacity=0;
+        };
+        struct CpuDrawDispatchForAnalysis final
+        {
+            bool (*setWorld)(void*,const std::array<float,16>&)=nullptr;
+            // Raw clock/birth/lifetime preserve the existing x87 color model's
+            // inputs; passing only a rounded double age would lose precision.
+            evidence::pc::BallisticCpuColorProviderForAnalysis color=nullptr;
+            // Concrete packed24-byte vertices / uint16 indices; receiver must
+            // consume/copy synchronously. Native per-batch false is ignored.
+            bool (*uploadAndDraw)(void*,const evidence::pc::BallisticCpuPackedVertexForAnalysis*,
+                std::uint32_t vertexCount,const std::uint16_t*,std::uint32_t indexCount,
+                std::uint32_t primitiveKind,std::uint32_t primitiveCount)=nullptr;
+            void* context=nullptr;
+        };
+        struct CpuDrawStateForAnalysis final
+        {
+            std::uint8_t effectField1C=0; // reset only after successful SetWorld
+            std::uint32_t submittedBatches=0,rejectedSubmissionReplies=0; // host observations
+        };
+        [[nodiscard]] bool DrawCpuForAnalysis(const CpuDrawInputForAnalysis&,
+            const CpuDrawDispatchForAnalysis&,CpuDrawStateForAnalysis&,std::string* error=nullptr) const;
     private:
         bool CapacityForAnalysis(std::uint32_t& count) const noexcept;
+        bool ProduceParticlesImplForAnalysis(std::uint32_t,float,ProductionForAnalysis&,
+            sparkplug::evidence::pc::ParticleRandomForAnalysis*,std::string*);
         ParametersForAnalysis parameters_;
         std::weak_ptr<spRenderNode> renderNode_; // native +5C is borrowed; avoids graph cycle
         std::array<std::uint32_t,5> poolState_{};
@@ -67,5 +131,6 @@ namespace sparkplug::reconstruction
         std::vector<std::uint8_t> recordWritten_;
         std::uint32_t first_=0,boundary_=0;
         bool initialized_=false;
+        bool updating_=false;
     };
 }

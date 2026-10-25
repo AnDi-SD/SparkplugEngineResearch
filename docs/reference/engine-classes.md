@@ -60,7 +60,7 @@
 | `spCubeTexture` | `0x65557907` | Да | Да | [1](classes/sp-cube-texture.md) | [spCubeTexture.h](../../Sparkplug/Code/Sparkplug/spCubeTexture.h), [spCubeTexture.cpp](../../Sparkplug/Code/Sparkplug/spCubeTexture.cpp) |
 | `spCustomAppData` | `0x76181F6B` | Да | Да | — | [spExtensionData.h](../../Sparkplug/Code/Sparkplug/spExtensionData.h) |
 | `spDebugManager` | `0x37054B40` | Да | Да | [1](classes/sp-debug-manager.md) | [spDebugManager.h](../../Sparkplug/Code/Sparkplug/spDebugManager.h) |
-| `spDXAsmShaderParser` | `0x0B3E0AA9` | Да | — | — | — |
+| `spDXAsmShaderParser` | `0x0B3E0AA9` | Да | — | — | [spDXAsmShaderParser.h](../../Sparkplug/Code/SparkplugDX/spDXAsmShaderParser.h), [spDXAsmShaderParser.cpp](../../Sparkplug/Code/SparkplugDX/spDXAsmShaderParser.cpp) |
 | `spDXAudioBank` | `0x32A624E0` | Да | — | — | — |
 | `spDXAudioBankEntry` | `0x2CD93375` | Да | — | — | — |
 | `spDXAudioManager` | `0x116F7E16` | Да | — | — | — |
@@ -70,12 +70,12 @@
 | `spDXCamera` | `0x41672E34` | Да | — | — | [spDXCamera.h](../../Sparkplug/Code/SparkplugDX/spDXCamera.h) |
 | `spDXCombinedVB` | `0x4B18E622` | Да | — | [1](classes/sp-dx-combined-vb.md) | [spDXCombinedVB.h](../../Sparkplug/Code/SparkplugDX/spDXCombinedVB.h) |
 | `spDXCubeEnvMapLayer` | `0x31F91F84` | Да | — | — | — |
-| `spDXCubeRenderTarget` | `0x5249684C` | Да | — | — | [spDXCubeRenderTarget.h](../../Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.h) |
-| `spDXCubeTexture` | `0x5C542AD9` | Да | — | [1](classes/sp-dx-cube-texture.md) | [spDXCubeTexture.h](../../Sparkplug/Code/SparkplugDX/spDXCubeTexture.h), [spDXCubeTexture.cpp](../../Sparkplug/Code/SparkplugDX/spDXCubeTexture.cpp) |
+| `spDXCubeRenderTarget` | `0x5249684C` | Да | — | [1](classes/sp-render-target.md) | [spDXCubeRenderTarget.h](../../Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.h), [spDXCubeRenderTarget.cpp](../../Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.cpp), [spDXRenderTarget_Device.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget_Device.cpp) |
+| `spDXCubeTexture` | `0x5C542AD9` | Да | — | [1](classes/sp-dx-cube-texture.md), [2](classes/sp-render-target.md) | [spDXCubeTexture.h](../../Sparkplug/Code/SparkplugDX/spDXCubeTexture.h), [spDXCubeTexture.cpp](../../Sparkplug/Code/SparkplugDX/spDXCubeTexture.cpp), [spDXTextureResource.cpp](../../Sparkplug/Code/SparkplugDX/spDXTextureResource.cpp) |
 | `spDXCubeTextureSerializer` | `0x269C2481` | Да | — | [1](classes/sp-dx-cube-texture-serializer.md) | [spDXCubeTextureSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXCubeTextureSerializer.h), [spDXCubeTextureSerializer.cpp](../../Sparkplug/Code/SparkplugDX/spDXCubeTextureSerializer.cpp) |
 | `spDXEnvironmentMapLayer` | `0x3F424FCD` | Да | — | — | — |
 | `spDXGamepad` | `0x63663F48` | Да | — | — | — |
-| `spDXIndexBuffer` | `0x23022413` | Да | — | [1](classes/sp-dx-buffers.md) | [spDXIndexBuffer.h](../../Sparkplug/Code/SparkplugDX/spDXIndexBuffer.h) |
+| `spDXIndexBuffer` | `0x23022413` | Да | — | [1](classes/sp-dx-buffers.md) | [spDXIndexBuffer.h](../../Sparkplug/Code/SparkplugDX/spDXIndexBuffer.h), [spDXIndexBuffer.cpp](../../Sparkplug/Code/SparkplugDX/spDXIndexBuffer.cpp) |
 | `spDXInputDevice` | `0x2C2F3993` | Да | — | [1](classes/sp-dx-input-device.md) | [spDXInputDevice.h](../../Sparkplug/Code/SparkplugPC/spDXInputDevice.h), [spDXInputDevice.cpp](../../Sparkplug/Code/SparkplugPC/spDXInputDevice.cpp) |
 | `spDXInputManager` | `0x10F20027` | Да | — | [1](classes/sp-dx-input-manager.md) | [spDXInputManager.h](../../Sparkplug/Code/SparkplugPC/spDXInputManager.h) |
 | `spDXKeyboard` | `0x3A87729D` | Да | — | — | — |
@@ -91,15 +91,15 @@
 | `spDXMouse` | `0x72F650C7` | Да | — | [1](classes/sp-dx-mouse.md) | [spDXMouse.h](../../Sparkplug/Code/SparkplugPC/spDXMouse.h), [spDXMouse.cpp](../../Sparkplug/Code/SparkplugPC/spDXMouse.cpp) |
 | `spDXNetwork` | `0x41FB6C73` | Да | — | [1](classes/sp-dx-network.md) | [spDXNetwork.h](../../Sparkplug/Code/SparkplugDX/spDXNetwork.h) |
 | `spDXPixelShader` | `0x2B5D52DF` | Да | — | — | — |
-| `spDXRenderer` | `0x46004EE1` | Да | — | [1](classes/sp-renderer.md) | [spDXRenderer.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer.h) |
-| `spDXRenderTarget` | `0x189A4642` | Да | — | — | [spDXRenderTarget.h](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget.h) |
+| `spDXRenderer` | `0x46004EE1` | Да | — | [1](classes/sp-renderer.md) | [spDXRenderer.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer.h), [spDXRenderer.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer.cpp), [spDXRenderer_Init.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Init.cpp), [spDXRenderer_Startup.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Startup.h), [spDXRenderer_Startup.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Startup.cpp), [spDXRenderer_Palette.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Palette.cpp), [spDXRenderer_Declarations.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Declarations.cpp) |
+| `spDXRenderTarget` | `0x189A4642` | Да | — | [1](classes/sp-render-target.md) | [spDXRenderTarget.h](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget.h), [spDXRenderTarget.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget.cpp), [spDXRenderTarget_Device.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget_Device.cpp) |
 | `spDXSceneGraphOptimizer` | `0x7E120EC3` | Да | — | — | — |
 | `spDXSerializerHook` | `0x0D832A30` | Да | — | [1](classes/sp-serializer-hook.md), [2](classes/sp-serializer-manager.md) | [spSerializerHook.h](../../Sparkplug/Code/Sparkplug/spSerializerHook.h) |
 | `spDXShader` | `0x468A0AC1` | Да | — | — | [spDXShader.h](../../Sparkplug/Code/SparkplugDX/spDXShader.h) |
 | `spDXShaderEffect` | `0x394F7331` | Да | — | — | — |
 | `spDXShaderEffectSerializer` | `0x74DD1169` | Да | — | — | — |
 | `spDXShaderLayer` | `0x71643E66` | Да | — | — | [spDXShaderLayer.h](../../Sparkplug/Code/SparkplugDX/spDXShaderLayer.h) |
-| `spDXShaderManager` | `0x98BA76FE` | Да | — | — | [spDXShaderManager.h](../../Sparkplug/Code/SparkplugDX/spDXShaderManager.h) |
+| `spDXShaderManager` | `0x98BA76FE` | Да | — | — | [spDXShaderManager.h](../../Sparkplug/Code/SparkplugDX/spDXShaderManager.h), [spDXShaderManager.cpp](../../Sparkplug/Code/SparkplugDX/spDXShaderManager.cpp) |
 | `spDXShadowMeshSerializer` | `0x774E52E3` | Да | — | — | — |
 | `spDXShadowVolume` | `0x6EB62376` | Да | — | — | — |
 | `spDXShadowVolumeManager` | `0x04680BC1` | Да | — | — | — |
@@ -107,11 +107,11 @@
 | `spDXShadowVolumeSerializer` | `0x1137BB32` | Да | — | — | — |
 | `spDXSharedMeshData` | `0x293A2681` | Да | — | [1](classes/sp-dx-shared-mesh-data.md) | [spDXSharedMeshData.h](../../Sparkplug/Code/SparkplugDX/spDXSharedMeshData.h) |
 | `spDXSharedMeshDataSerializer` | `0x506F8A8C` | Да | — | — | [spDXSharedMeshDataSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXSharedMeshDataSerializer.h) |
-| `spDXTexture` | `0x3F3651B6` | Да | — | — | [spDXTexture.h](../../Sparkplug/Code/SparkplugDX/spDXTexture.h) |
+| `spDXTexture` | `0x3F3651B6` | Да | — | [1](classes/sp-render-target.md) | [spDXTexture.h](../../Sparkplug/Code/SparkplugDX/spDXTexture.h), [spDXTexture.cpp](../../Sparkplug/Code/SparkplugDX/spDXTexture.cpp), [spDXTextureResource.cpp](../../Sparkplug/Code/SparkplugDX/spDXTextureResource.cpp), [spDXTexture_Native.cpp](../../Sparkplug/Code/SparkplugDX/spDXTexture_Native.cpp) |
 | `spDXTextureDataSerializer` | `0x1C6D480F` | Да | Да | [1](classes/sp-dx-texture-data-serializer.md) | [spDXTextureDataSerializer.h](../../Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.h) |
 | `spDXTextureManager` | `0x3B9304C7` | Да | — | — | — |
 | `spDXTextureSerializer` | `0x196D44FE` | Да | — | — | [spDXTextureSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXTextureSerializer.h) |
-| `spDXVertexBuffer` | `0x37036C17` | Да | — | [1](classes/sp-dx-buffers.md) | [spDXVertexBuffer.h](../../Sparkplug/Code/SparkplugDX/spDXVertexBuffer.h) |
+| `spDXVertexBuffer` | `0x37036C17` | Да | — | [1](classes/sp-dx-buffers.md) | [spDXVertexBuffer.h](../../Sparkplug/Code/SparkplugDX/spDXVertexBuffer.h), [spDXVertexBuffer.cpp](../../Sparkplug/Code/SparkplugDX/spDXVertexBuffer.cpp) |
 | `spDXVertexDeclaration` | `0x33C42E58` | Да | — | [1](classes/sp-vertex-declaration.md) | [spDXVertexDeclaration.h](../../Sparkplug/Code/SparkplugDX/spDXVertexDeclaration.h) |
 | `spDXVertexShader` | `0x7A6743A9` | Да | — | — | [spDXVertexShader.h](../../Sparkplug/Code/SparkplugDX/spDXVertexShader.h) |
 | `spEditBox` | `0x253C432D` | Да | Да | — | — |
@@ -199,17 +199,17 @@
 | `spNodeSerializer` | `0x4545848A` | Да | Да | [1](classes/sp-node-serializer.md) | [spNodeSerializer.h](../../Sparkplug/Code/Sparkplug/spNodeSerializer.h) |
 | `spOBBBV` | `0x4DA04889` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-obbbv.md) | [spOBBBV.h](../../Sparkplug/Code/Sparkplug/spOBBBV.h) |
 | `spOBBBVSerializer` | `0x68EA2ED1` | Да | Да | [1](classes/sp-obb-bv-serializer.md) | [spOBBBVSerializer.h](../../Sparkplug/Code/Sparkplug/spOBBBVSerializer.h) |
-| `spOcclusionVolume` | `0x43D24430` | Да | Да | [1](classes/sp-occlusion-volume.md) | [spOcclusionVolume.h](../../Sparkplug/Code/Sparkplug/spOcclusionVolume.h) |
+| `spOcclusionVolume` | `0x43D24430` | Да | Да | [1](classes/sp-occlusion-volume.md) | [spOcclusionVolume.h](../../Sparkplug/Code/Sparkplug/spOcclusionVolume.h), [spOcclusionVolume.cpp](../../Sparkplug/Code/Sparkplug/spOcclusionVolume.cpp), [spOcclusionVolumeRuntime.cpp](../../Sparkplug/Code/Sparkplug/spOcclusionVolumeRuntime.cpp), [spOcclusionVolumeCamera.cpp](../../Sparkplug/Code/Sparkplug/spOcclusionVolumeCamera.cpp), [spPartitionMembership.cpp](../../Sparkplug/Code/Sparkplug/spPartitionMembership.cpp) |
 | `spOcclusionVolumeSerializer` | `0x7F3030B8` | Да | Да | — | [spOcclusionVolumeSerializer.h](../../Sparkplug/Code/Sparkplug/spOcclusionVolumeSerializer.h) |
 | `spOctreeNode` | `0x21A70829` | Да | Да | [1](classes/sp-octree-node.md) | [spOctreeNode.h](../../Sparkplug/Code/Sparkplug/spOctreeNode.h) |
 | `spOctreeNodeSerializer` | `0x05BC2A91` | Да | Да | — | [spOctreeNodeSerializer.h](../../Sparkplug/Code/Sparkplug/spOctreeNodeSerializer.h) |
 | `spPalette` | `0x591C0B9F` | Да | — | — | [spPalette.h](../../Sparkplug/Code/Sparkplug/spPalette.h) |
 | `spParser` | `0x3EC20087` | Да | — | [1](classes/sp-parser.md) | [spParser.h](../../Sparkplug/Code/Sparkplug/spParser.h) |
 | `spParticleFX` | `0x17ED7759` | Да | Да | — | — |
-| `spParticleSystem` | `0x5AFA1A4F` | Да | Да | [1](classes/sp-particle-system.md) | [spParticleSystem.h](../../Sparkplug/Code/Sparkplug/spParticleSystem.h) |
+| `spParticleSystem` | `0x5AFA1A4F` | Да | Да | [1](classes/sp-particle-system.md) | [spParticleSystem.h](../../Sparkplug/Code/Sparkplug/spParticleSystem.h), [spParticleSystem.cpp](../../Sparkplug/Code/Sparkplug/spParticleSystem.cpp), [spParticleSystemRuntime.cpp](../../Sparkplug/Code/Sparkplug/spParticleSystemRuntime.cpp) |
 | `spParticleSystemManager` | `0x00921A65` | Да | Да | — | — |
 | `spParticleSystemSerializer` | `0x047F310F` | Да | Да | — | [spParticleSystemSerializer.h](../../Sparkplug/Code/Sparkplug/spParticleSystemSerializer.h) |
-| `spPartitionNode` | `0x67672341` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-partition-node.md) | [spPartitionNode.h](../../Sparkplug/Code/Sparkplug/spPartitionNode.h) |
+| `spPartitionNode` | `0x67672341` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-partition-node.md) | [spPartitionNode.h](../../Sparkplug/Code/Sparkplug/spPartitionNode.h), [spPartitionNode.cpp](../../Sparkplug/Code/Sparkplug/spPartitionNode.cpp), [spPartitionMembership.cpp](../../Sparkplug/Code/Sparkplug/spPartitionMembership.cpp) |
 | `spPartitionNodeSerializer` | `0x452AB84A` | Да | Да | — | [spPartitionNodeSerializer.h](../../Sparkplug/Code/Sparkplug/spPartitionNodeSerializer.h) |
 | `spPartitionRenderable` | `0x94BBCA2A` | Да | Да | [1](classes/sp-partition-renderable.md) | [spPartitionRenderable.h](../../Sparkplug/Code/Sparkplug/spPartitionRenderable.h) |
 | `spPartitionRenderableSerializer` | `0x23675AA2` | Да | Да | — | [spPartitionRenderableSerializer.h](../../Sparkplug/Code/Sparkplug/spPartitionRenderableSerializer.h) |
@@ -234,9 +234,9 @@
 | `spPCRenderTarget` | `0x0C681FC8` | Да | — | — | [spPCRenderTarget.h](../../Sparkplug/Code/SparkplugPC/spPCRenderTarget.h) |
 | `spPCRenderTargetManager` | `0x165C006F` | Да | — | — | [spPCRenderTargetManager.h](../../Sparkplug/Code/SparkplugPC/spPCRenderTargetManager.h) |
 | `spPCRFXFileLoader` | `0x01A95832` | Да | — | [1](classes/sp-pc-effect-template.md) | [spPCRFXFileLoader.h](../../Sparkplug/Code/SparkplugPC/spPCRFXFileLoader.h) |
-| `spPCShaderManager` | `0xD5AE63DA` | Да | — | — | [spPCShaderManager.h](../../Sparkplug/Code/SparkplugPC/spPCShaderManager.h) |
+| `spPCShaderManager` | `0xD5AE63DA` | Да | — | — | [spPCShaderManager.h](../../Sparkplug/Code/SparkplugPC/spPCShaderManager.h), [spPCShaderManager.cpp](../../Sparkplug/Code/SparkplugPC/spPCShaderManager.cpp), [spPCShaderManager_Standalone.cpp](../../Sparkplug/Code/SparkplugPC/spPCShaderManager_Standalone.cpp) |
 | `spPCThread` | `0x438758EA` | Да | — | [1](classes/sp-pc-thread.md) | [spPCThread.h](../../Sparkplug/Code/SparkplugPC/spPCThread.h) |
-| `spPCVertexDeclaration` | `0x66353288` | Да | — | [1](classes/sp-vertex-declaration.md) | [spPCVertexDeclaration.h](../../Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.h) |
+| `spPCVertexDeclaration` | `0x66353288` | Да | — | [1](classes/sp-vertex-declaration.md) | [spPCVertexDeclaration.h](../../Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.h), [spPCVertexDeclaration.cpp](../../Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.cpp), [spPCVertexDeclarationDevice.h](../../Sparkplug/Code/SparkplugPC/spPCVertexDeclarationDevice.h), [spPCVertexDeclaration_Device.cpp](../../Sparkplug/Code/SparkplugPC/spPCVertexDeclaration_Device.cpp) |
 | `spPCVertexShader` | `0x59D92171` | Да | — | — | [spPCVertexShader.h](../../Sparkplug/Code/SparkplugPC/spPCVertexShader.h) |
 | `spPCVideoStream` | `0x1DC67471` | Да | — | [1](classes/sp-pc-video-stream.md) | [spPCVideoStream.h](../../Sparkplug/Code/SparkplugPC/spPCVideoStream.h), [spPCVideoStream.cpp](../../Sparkplug/Code/SparkplugPC/spPCVideoStream.cpp) |
 | `spPhysicsManager` | `0x436BFF01` | Да | — | — | — |
@@ -273,15 +273,15 @@
 | `spPS2Material` | `0x0F507BC8` | — | Да | [1](classes/sp-ps2-material.md) | [spPS2Material.h](../../Sparkplug/Code/Sparkplug/spPS2Material.h) |
 | `spPS2MaterialDataSerializer` | `0x69327633` | Да | Да | [1](classes/sp-ps2-material-data-serializer.md) | [spPS2MaterialDataSerializer.h](../../Sparkplug/Code/Sparkplug/spPS2MaterialDataSerializer.h) |
 | `spPS2Mesh` | `0x35ED77A5` | — | Да | [1](classes/sp-ps2-mesh.md) | [spPS2Mesh.h](../../Sparkplug/Code/Sparkplug/spPS2Mesh.h) |
-| `spPS2MeshData` | `0x737D740F` | Да | Да | [1](classes/sp-ps2-mesh-data.md) | [spPS2MeshData.h](../../Sparkplug/Code/Sparkplug/spPS2MeshData.h) |
+| `spPS2MeshData` | `0x737D740F` | Да | Да | [1](classes/sp-ps2-mesh-data.md) | [spPS2MeshData.h](../../Sparkplug/Code/Sparkplug/spPS2MeshData.h), [spPS2MeshData.cpp](../../Sparkplug/Code/Sparkplug/spPS2MeshData.cpp), [spPS2MeshDataNormalization.cpp](../../Sparkplug/Code/Sparkplug/spPS2MeshDataNormalization.cpp), [spPS2MeshDataPacket.cpp](../../Sparkplug/Code/Sparkplug/spPS2MeshDataPacket.cpp), [spPS2MeshDataStripPacket.cpp](../../Sparkplug/Code/Sparkplug/spPS2MeshDataStripPacket.cpp), [spPS2MeshPacketEmitter.cpp](../../Sparkplug/Code/Sparkplug/spPS2MeshPacketEmitter.cpp), [spPS2MeshPacketEmitter.h](../../Sparkplug/Code/Sparkplug/spPS2MeshPacketEmitter.h), [spPS2MeshStripSizing.h](../../Sparkplug/Analysis/PS2/spPS2MeshStripSizing.h), [spPS2MeshStripSizing.cpp](../../Sparkplug/Analysis/PS2/spPS2MeshStripSizing.cpp), [spPS2MeshPacketFormat.h](../../Sparkplug/Analysis/PS2/spPS2MeshPacketFormat.h) |
 | `spPS2MeshDataSerializer` | `0x6B0C238F` | Да | Да | [1](classes/sp-ps2-mesh-data-serializer.md) | [spPS2MeshDataSerializer.h](../../Sparkplug/Code/Sparkplug/spPS2MeshDataSerializer.h) |
-| `spPS2MicrocodeManager` | `0x0CEC4B69` | — | Да | — | — |
+| `spPS2MicrocodeManager` | `0x0CEC4B69` | — | Да | [1](classes/sp-ps2-microcode-manager.md) | [spPS2MicrocodeManager.h](../../Sparkplug/Code/SparkplugPS2/spPS2MicrocodeManager.h), [spPS2MicrocodeManager.cpp](../../Sparkplug/Code/SparkplugPS2/spPS2MicrocodeManager.cpp) |
 | `spPS2MirrorLayer` | `0x50CC6CA8` | — | Да | — | — |
 | `spPS2Mouse` | `0x5E6722F3` | — | Да | — | — |
 | `spPS2MultistreamManager` | `0x10960FFB` | — | Да | — | — |
 | `spPS2PartitionRenderable` | `0x8C2AA5B2` | — | Да | — | — |
 | `spPS2PartitionRenderableSerializer` | `0x24BCA235` | — | Да | — | — |
-| `spPS2PipelineManager` | `0x2E7FAA26` | — | Да | — | — |
+| `spPS2PipelineManager` | `0x2E7FAA26` | — | Да | [1](classes/sp-ps2-microcode-manager.md) | [spPS2PipelineManager.h](../../Sparkplug/Code/SparkplugPS2/spPS2PipelineManager.h), [spPS2PipelineManager.cpp](../../Sparkplug/Code/SparkplugPS2/spPS2PipelineManager.cpp) |
 | `spPS2ProjectionFX` | `0x1FDE147C` | — | Да | — | — |
 | `spPS2ProjectionManager` | `0xFF27F53A` | — | Да | — | — |
 | `spPS2Renderer` | `0x303652B8` | — | Да | — | [spPS2Renderer.h](../../Sparkplug/Code/SparkplugPS2/spPS2Renderer.h) |
@@ -300,9 +300,9 @@
 | `spRenderable` | `0x4FDA4542` | Да | Да | [1](classes/sp-renderable.md) | [spRenderable.h](../../Sparkplug/Code/Sparkplug/spRenderable.h) |
 | `spRenderableSerializer` | `0x4D694D82` | Да | Да | [1](classes/sp-renderable-serializer.md) | [spRenderableSerializer.h](../../Sparkplug/Code/Sparkplug/spRenderableSerializer.h) |
 | `spRenderController` | `0x14477AC7` | Да | Да | — | [spRenderController.h](../../Sparkplug/Code/Sparkplug/spRenderController.h) |
-| `spRenderer` | `0x2D9C0296` | Да | Да | [1](classes/sp-renderer.md) | [spRenderer.h](../../Sparkplug/Code/Sparkplug/spRenderer.h) |
+| `spRenderer` | `0x2D9C0296` | Да | Да | [1](classes/sp-renderer.md) | [spRenderer.h](../../Sparkplug/Code/Sparkplug/spRenderer.h), [spRenderer.cpp](../../Sparkplug/Code/Sparkplug/spRenderer.cpp) |
 | `spRenderMesh` | `0x67974A9C` | Да | Да | [1](classes/sp-render-mesh.md) | [spRenderMesh.h](../../Sparkplug/Code/Sparkplug/spRenderMesh.h) |
-| `spRenderNode` | `0x603625D0` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-render-node.md) | [spRenderNode.h](../../Sparkplug/Code/Sparkplug/spRenderNode.h) |
+| `spRenderNode` | `0x603625D0` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-render-node.md) | [spRenderNode.h](../../Sparkplug/Code/Sparkplug/spRenderNode.h), [spPartitionMembership.cpp](../../Sparkplug/Code/Sparkplug/spPartitionMembership.cpp) |
 | `spRenderNodeSerializer` | `0x66EF6060` | Да | Да | [1](classes/sp-render-node-serializer.md) | [spRenderNodeSerializer.h](../../Sparkplug/Code/Sparkplug/spRenderNodeSerializer.h) |
 | `spRenderTarget` | `0x00D1229C` | Да | Да | [1](classes/sp-render-target.md) | [spRenderTarget.h](../../Sparkplug/Code/Sparkplug/spRenderTarget.h) |
 | `spRenderTargetManager` | `0x546C50F2` | Да | Да | — | [spRenderTargetManager.h](../../Sparkplug/Code/Sparkplug/spRenderTargetManager.h) |
@@ -310,7 +310,7 @@
 | `spResourceManager` | `0xA4B9923B` | Да | Да | [1](classes/sp-resource-manager.md) | [spResourceManager.h](../../Sparkplug/Code/Sparkplug/spResourceManager.h) |
 | `spRigidBody` | `0x76BAFE79` | Да | — | — | — |
 | `spRTTIManager` | `0x5EA0637A` | Да | Да | — | [spBaseObject.h](../../Sparkplug/Code/SparkBase/spBaseObject.h) |
-| `spScene` | `0x6F927C11` | Да | Да | — | — |
+| `spScene` | `0x6F927C11` | Да | Да | [1](classes/sp-scene.md) | [spScene.h](../../Sparkplug/Code/Sparkplug/spScene.h), [spScene.cpp](../../Sparkplug/Code/Sparkplug/spScene.cpp) |
 | `spSceneGraphOptimizer` | `0x4FE639C2` | Да | Да | [1](classes/sp-scene-graph-optimizer.md) | [spSceneGraphOptimizer.h](../../Sparkplug/Code/Sparkplug/spSceneGraphOptimizer.h) |
 | `spSceneManager` | `0x67419388` | Да | Да | — | [spSceneManager.h](../../Sparkplug/Code/Sparkplug/spSceneManager.h) |
 | `spSerializer` | `0x42429877` | Да | Да | [1](classes/sp-serializer.md) | [spSerializer.h](../../Sparkplug/Code/Sparkplug/spSerializer.h) |
@@ -367,7 +367,7 @@
 | `spUVControllerSerializer` | `0x591224D0` | Да | Да | [1](classes/sp-uv-controller-serializer.md) | [spUVControllerSerializer.h](../../Sparkplug/Code/Sparkplug/spUVControllerSerializer.h) |
 | `spVertexBuffer` | `0x3C846352` | Да | Да | [1](classes/sp-vertex-buffer.md) | [spVertexBuffer.h](../../Sparkplug/Code/Sparkplug/spVertexBuffer.h) |
 | `spVideoStream` | `0x27DE5AF5` | Да | Да | [1](classes/sp-video-stream.md) | [spVideoStream.h](../../Sparkplug/Code/Sparkplug/spVideoStream.h), [spVideoStream.cpp](../../Sparkplug/Code/Sparkplug/spVideoStream.cpp) |
-| `spVisibilityManager` | `0x3D7F4387` | Да | Да | — | [spVisibilityManager.h](../../Sparkplug/Code/Sparkplug/spVisibilityManager.h) |
+| `spVisibilityManager` | `0x3D7F4387` | Да | Да | — | [spVisibilityManager.h](../../Sparkplug/Code/Sparkplug/spVisibilityManager.h), [spVisibilityManager.cpp](../../Sparkplug/Code/Sparkplug/spVisibilityManager.cpp), [spVisibilityPortal.cpp](../../Sparkplug/Code/Sparkplug/spVisibilityPortal.cpp), [spVisibilityOcclusion.cpp](../../Sparkplug/Code/Sparkplug/spVisibilityOcclusion.cpp) |
 | `spWidget` | `0x7CB52800` | Да | Да | — | — |
 | `spWindowsError` | `0x1DE8113F` | Да | — | [1](classes/sp-windows-error.md) | [spWindowsError.h](../../Sparkplug/Code/SparkBasePC/spWindowsError.h) |
 | `spWindowsFont` | `0x559D3113` | Да | — | — | — |

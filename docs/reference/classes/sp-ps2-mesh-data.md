@@ -86,12 +86,14 @@ inherited name-copy slot. Packet, transient inputs и рабочие счётч�
 `PreparationPlan`; этот объект не меняет mesh data и позволяет проверять
 решение native-функции безопасно.
 
-Собственно packet builder формирует EE/GS-специфичную цепочку DMA, VIF unpack и
-GIF records. Virtual paths `0x0015F1F0` и `0x0015F030` формируют 16-байтные
-records для разных способов группировки. Их PC-аналоги — `0x00475880` и
-`0x00474E00`. Восстанавливать эти байты как host-renderer API нельзя: без
-контракта PS2 DMA memory, cache synchronization и GS state такая реализация
-выглядела бы правдоподобно, но была бы ложной.
+Packet builder формирует EE DMA/VIF chain и данные для последующей VU/GS
+работы. Virtual paths `0x0015F1F0` и `0x0015F030` обслуживают различные index
+paths; их PC-аналоги — `0x00475880` и `0x00474E00`. Для Type2 восстановлена
+ограниченная сборка всех окончательных bytes, с отдельными streams либо
+interleaved records. Это аналитический byte buffer: он не отправляется
+host renderer, DMA или GS. Порядок normalization writes, component packing,
+zero padding, chunk capacity и незакрытые ветви описаны в
+[PS2 mesh preparation](../../engine/rendering/ps2-mesh-preparation.md).
 
 ## Связь с serializer
 
@@ -111,16 +113,40 @@ type даже в PC executable, а не случайно оставшийся PS
 ## Границы описания
 
 Portable-класс сохраняет native RTTI hierarchy, concrete factory, name-only
-clone, exact constructor tables и аппаратно-независимое планирование
-нормализации. ABI layouts остаются отдельными: PS2 exact `0x100`, PC observed
-`0x100`. Исполняемый packet не создаётся и состояние его наличия остаётся
-безопасно пустым.
+clone, exact constructor tables и планирование. Дополнительно реализованы
+raw-copy/default writes нормализации с маской untouched bytes и целый
+окончательный packet для поддержанных Type2 constructor formats, включая
+compatible weighted layouts с1..4 weights и bone indices. Grouped compressed
+Normal возвращает явный incomplete result. Expanded weighted normalization
+требует явных captured allocation bytes, иначе тоже incomplete. Type3 возвращает известный native false: PS2 stripifier `0x001C4FE0`
+безусловно отклоняет операцию. Для interleaved доступны raw Normal words.
+
+Отдельный prepopulated-strip API записывает payload через общий Type2
+component emitter с явными indices/ADC. Он не вызывает Type3 stripifier и
+не меняет outer packet state. Bounded unweighted UV0/Color payload в обоих
+grouping режимах сравнен с целым original direct return и временным frame
+cleanup; terminal allocator остаётся отдельной моделью.
+
+Integer reservation `0x00160750/0x001604B0` вынесен в отдельный
+[captured-value helper](../../../Sparkplug/Analysis/PS2/spPS2MeshStripSizing.h).
+Он сохраняет low32 результат и различие capacity A2, declared list count и
+counts реально пройденных records. Это исходник size операции, а не
+доказательство успешной внешней Type3 подготовки или безопасного allocation
+extent для произвольного captured state.
+
+ABI layouts остаются отдельными: PS2 exact `0x100`, PC observed `0x100`.
+Owning host vector и metadata — аналитическое представление, не PS2 DMA
+memory. Признак prepared появляется после успешной сборки этих bytes;
+никакого исполнения или native allocator parity он не утверждает.
 
 Открыты:
 
 - прямой PC `sizeof` и constructor body за `.rld`;
 - original header/TU и настоящие имена всех fields/methods/enums;
 - original имена счётчиков `+0x30/+0x34` и все варианты влияния `+0xF8`;
+- другие direct/prepopulated layouts, native allocator/fault domains и интеграция с внешним builder; bounded direct payload/end/frame-free и отдельный reservation helper не закрывают положительный Type3 path;
+- unknown allocation bytes без переданного snapshot и grouped compressed Normal;
+- нестандартные descriptor/order tables и native fault/allocation side effects;
 - полная бинарная grammar serializer и external packet load mode;
 - точное сопоставление descriptor words с GS/VIF component formats;
 - безопасная архитектура будущего PS2 backend, если проект когда-либо будет

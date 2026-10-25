@@ -1,6 +1,6 @@
 # Стенд геометрии Remix Skin
 
-[Test-RemixSkinning.ps1](../Test-RemixSkinning.ps1) запускает отдельную
+[Test-RemixSkinning.ps1](../tests/runtime/Test-RemixSkinning.ps1) запускает отдельную
 искусственную сцену через явную пару client/server и выбранный renderer.
 Результат сохраняется в новом `local-data/rtx-remix/skinning-fixtures/<Name>`.
 Скрипт проверяет SHA256 входных DLL/EXE, копирует исходники и зависимости
@@ -35,7 +35,7 @@
 Сначала можно собрать стенд без renderer:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSkinning.ps1 -Name fresh-skin-test -MaximumBones 4 -Subdivisions 24 -BuildOnly
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-RemixSkinning.ps1 -Name fresh-skin-test -MaximumBones 4 -Subdivisions 24 -BuildOnly
 ```
 
 Для запуска того же подготовленного каталога передают `-RunBuilt`, те же
@@ -52,7 +52,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSk
 
 `-MaximumWorkingSetMiB` по умолчанию равен 4096 и допускает 256..16384.
 Лимит конкретного запуска выбирают по текущим ресурсам, а не по верхней
-границе параметра. [Get-SystemMemory.ps1](../Get-SystemMemory.ps1) читает
+границе параметра. [Get-SystemMemory.ps1](../scripts/runtime/Get-SystemMemory.ps1) читает
 доступную физическую память и запас commit без WMI.
 Через интервалы ожидания 100 мс скрипт суммирует working set и private bytes
 своего клиента, оболочки и сервера, найденного по точному пути внутри каталога
@@ -89,7 +89,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSk
 `-HalfResolution`.
 
 ```powershell
-python tools/WinxRemix/analyze_remix_skinning.py local-data/rtx-remix/skinning-fixtures/fresh-skin-test --output local-data/rtx-remix/skinning-fixtures/fresh-skin-test/verdict.json
+python tools/WinxRemix/scripts/analysis/analyze_remix_skinning.py local-data/rtx-remix/skinning-fixtures/fresh-skin-test --output local-data/rtx-remix/skinning-fixtures/fresh-skin-test/verdict.json
 ```
 
 Анализатор требует нормальное завершение, полную последовательность снимков,
@@ -106,10 +106,10 @@ python tools/WinxRemix/analyze_remix_skinning.py local-data/rtx-remix/skinning-f
 
 | Режим | Деформация | Анализатор |
 | --- | --- | --- |
-| `Translation` — по умолчанию | Одинаковый перенос обеих костей | [analyze_skin_motion_history.py](../analyze_skin_motion_history.py) |
-| `Rotation` | Одинаковый поворот обеих костей вокруг Z | [analyze_skin_motion_rotation.py](../analyze_skin_motion_rotation.py) |
-| `Islands` | Разные матрицы костей и разные веса двух частей одной сетки | [analyze_skin_motion_islands.py](../analyze_skin_motion_islands.py) |
-| `Camera` | Неподвижные кости и геометрия; камера движется по X/Z и вращается вокруг Z | [analyze_skin_motion_camera.py](../analyze_skin_motion_camera.py) |
+| `Translation` — по умолчанию | Одинаковый перенос обеих костей | [analyze_skin_motion_history.py](../scripts/analysis/analyze_skin_motion_history.py) |
+| `Rotation` | Одинаковый поворот обеих костей вокруг Z | [analyze_skin_motion_rotation.py](../scripts/analysis/analyze_skin_motion_rotation.py) |
+| `Islands` | Разные матрицы костей и разные веса двух частей одной сетки | [analyze_skin_motion_islands.py](../scripts/analysis/analyze_skin_motion_islands.py) |
+| `Camera` | Неподвижные кости и геометрия; камера движется по X/Z и вращается вокруг Z | [analyze_skin_motion_camera.py](../scripts/analysis/analyze_skin_motion_camera.py) |
 
 В `Translation` и `Rotation` для каждой из двух исходных
 пар весов — `[0.25, 0.75]` и `[-0.25, 1.25]` — общий signed-адаптер создаёт
@@ -130,7 +130,7 @@ renderer. Это ожидание входит в общий лимит врем
 с этим режимом не совмещаются, поскольку оба профиля весов уже входят в тест.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSkinning.ps1 -Name fresh-motion-test -MotionHistory -Subdivisions 24 -BuildOnly
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-RemixSkinning.ps1 -Name fresh-motion-test -MotionHistory -Subdivisions 24 -BuildOnly
 ```
 
 Затем запускают этот каталог с `-RunBuilt`, теми же параметрами режима,
@@ -138,7 +138,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSk
 Для результата используется анализатор выбранного сценария:
 
 ```powershell
-python tools/WinxRemix/analyze_skin_motion_history.py local-data/rtx-remix/skinning-fixtures/fresh-motion-test --output local-data/rtx-remix/skinning-fixtures/fresh-motion-test/verdict.json
+python tools/WinxRemix/scripts/analysis/analyze_skin_motion_history.py local-data/rtx-remix/skinning-fixtures/fresh-motion-test --output local-data/rtx-remix/skinning-fixtures/fresh-motion-test/verdict.json
 ```
 
 Анализатор `Translation` сравнивает внутренние участки треугольников размером 24×24 пикселя.
@@ -184,7 +184,7 @@ renderer принимает первое обновление каждого т�
 поэтому неподвижные объекты при движении камеры должны давать ненулевое поле.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSkinning.ps1 -Name fresh-island-test -MotionHistory -MotionKind Islands -Subdivisions 24 -BuildOnly
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-RemixSkinning.ps1 -Name fresh-island-test -MotionHistory -MotionKind Islands -Subdivisions 24 -BuildOnly
 ```
 
 При последующем `-RunBuilt` сохраняют `-MotionKind Islands` и передают ту же
@@ -192,7 +192,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-RemixSk
 для движения камеры — `Camera` и его анализатор.
 
 ```powershell
-python tools/WinxRemix/analyze_skin_motion_islands.py local-data/rtx-remix/skinning-fixtures/fresh-island-test --output local-data/rtx-remix/skinning-fixtures/fresh-island-test/verdict.json
+python tools/WinxRemix/scripts/analysis/analyze_skin_motion_islands.py local-data/rtx-remix/skinning-fixtures/fresh-island-test --output local-data/rtx-remix/skinning-fixtures/fresh-island-test/verdict.json
 ```
 
 После команд удаления ресурсов стенд ожидает событие устройства D3D9 с пределом
@@ -203,7 +203,7 @@ python tools/WinxRemix/analyze_skin_motion_islands.py local-data/rtx-remix/skinn
 особенности ожидания и проверка без GPU описаны в
 [завершении процессов](process-lifetime.md).
 Подтверждение остановки bridge может предшествовать выходу его процесса;
-для этого ожидания существует отдельный [патч клиента](../skinning-bridge/README.md#ожидание-остановки-сервера).
+для этого ожидания существует отдельный [патч клиента](../patches/skinning-bridge/README.md#ожидание-остановки-сервера).
 
 Эти проверки используют восьмибитное изображение абсолютного движения и не
 читают float-буферы GPU. Непрерывно меняющиеся внутри треугольника веса,
@@ -212,5 +212,5 @@ python tools/WinxRemix/analyze_skin_motion_islands.py local-data/rtx-remix/skinn
 самостоятельных эталонов.
 
 [Контракт исходной деформации](../../../docs/engine/animation/skin-deformation.md)
-· [Патч renderer](../renderer-skinning-fix/README.md)
+· [Патч renderer](../patches/renderer-skinning-fix/README.md)
 · [Устройство адаптера](development.md)

@@ -25,6 +25,71 @@ namespace
         }
         Check(rejected, label);
     }
+    void AssignmentBatch()
+    {
+        unsigned self;
+        if (!(std::cin >> self) || self > 1)
+            throw std::runtime_error("bounded assignment selector");
+        const auto read = []
+        {
+            ps::PlaneSetForAnalysis value;
+            unsigned capacity;
+            if (!(std::cin >> value.allocatorWord >> value.logicalSize >> capacity >> value.activeCount) ||
+                capacity > 32 || value.logicalSize > capacity)
+                throw std::runtime_error("bounded assignment input range");
+            value.storage.resize(capacity);
+            for (auto& plane : value.storage)
+            {
+                for (auto& bits : plane.equation)
+                    if (!(std::cin >> bits)) throw std::runtime_error("assignment equation");
+                std::uint32_t tail;
+                if (!(std::cin >> tail)) throw std::runtime_error("assignment raw byte/padding");
+                plane.enabled = static_cast<std::uint8_t>(tail);
+                for (unsigned i = 0; i < 3; ++i)
+                    plane.padding[i] = static_cast<std::uint8_t>(tail >> (8 * (i + 1)));
+            }
+            return value;
+        };
+        auto source = read(), destination = read();
+        const auto snapshot = source;
+        auto& target = self ? source : destination;
+        const auto* before = target.storage.data();
+        const auto* result = &ps::AssignVectorForAnalysis(target, source);
+        bool unchanged = source.allocatorWord == snapshot.allocatorWord &&
+            source.logicalSize == snapshot.logicalSize && source.activeCount == snapshot.activeCount &&
+            source.storage.size() == snapshot.storage.size();
+        for (std::size_t i = 0; unchanged && i < source.storage.size(); ++i)
+            unchanged = source.storage[i].equation == snapshot.storage[i].equation &&
+                source.storage[i].enabled == snapshot.storage[i].enabled &&
+                source.storage[i].padding == snapshot.storage[i].padding;
+        const bool reused = before == target.storage.data();
+        std::cout << "{\"resultIsDestination\":" << (result == &target ? "true" : "false")
+                  << ",\"sourceUnchanged\":" << (unchanged ? "true" : "false")
+                  << ",\"allocatorWord\":" << target.allocatorWord
+                  << ",\"logicalSize\":" << target.logicalSize
+                  << ",\"capacity\":" << target.storage.size()
+                  << ",\"activeCount\":" << target.activeCount
+                  << ",\"bufferReused\":" << (reused ? "true" : "false") << ",\"planes\":[";
+        for (unsigned i = 0; i < target.logicalSize; ++i)
+        {
+            const auto& plane = target.storage[i];
+            std::cout << (i ? ",[" : "[");
+            for (auto bits : plane.equation) std::cout << bits << ',';
+            std::cout << unsigned(plane.enabled) << ']';
+        }
+        std::cout << "],\"reusedCapacityWords\":[";
+        if (reused)
+            for (std::size_t i = 0; i < target.storage.size(); ++i)
+            {
+                const auto& plane = target.storage[i];
+                if (i) std::cout << ',';
+                for (auto bits : plane.equation) std::cout << bits << ',';
+                std::uint32_t tail = plane.enabled;
+                for (unsigned j = 0; j < 3; ++j) tail |= std::uint32_t(plane.padding[j]) << (8 * (j + 1));
+                std::cout << tail;
+            }
+        std::cout << "]}\n";
+    }
     void Batch()
     {
         unsigned operations;
@@ -157,13 +222,44 @@ namespace
         Check(copy.logicalSize == 3 && copy.storage[2].equation == fill.equation &&
                   copy.storage[2].enabled == fill.enabled,
               "by-value fill survives growth from aliased storage");
+
+        ps::PlaneSetForAnalysis assigned;
+        assigned.allocatorWord = 29;
+        assigned.activeCount = 91;
+        ps::ResizeForAnalysis(assigned, 6, fill);
+        ps::ResizeForAnalysis(assigned, 4, fill);
+        for (auto& plane : assigned.storage) plane.padding = {4, 5, 6};
+        Check(&ps::AssignVectorForAnalysis(assigned, copy) == &assigned && assigned.logicalSize == 3 &&
+                  assigned.storage.size() == 6 && assigned.activeCount == 91 && assigned.allocatorWord == 29,
+              "assignment keeps spare capacity and destination outer metadata");
+        Check(assigned.storage[0].padding == std::array<std::uint8_t, 3>{4, 5, 6},
+              "assignment does not copy source padding");
+        assigned.storage[5].equation[0] = 0x7fc12345;
+        ps::AssignVectorForAnalysis(assigned, assigned);
+        Check(assigned.logicalSize == 3 && assigned.storage[5].equation[0] == 0x7fc12345,
+              "assignment self case preserves full buffer and unused tail");
+        ps::PlaneSetForAnalysis empty;
+        ps::AssignVectorForAnalysis(assigned, empty);
+        Check(assigned.logicalSize == 0 && assigned.storage.empty() && assigned.activeCount == 91 &&
+                  assigned.allocatorWord == 29,
+              "empty assignment releases storage but preserves outer metadata");
+        ps::ResizeForAnalysis(assigned, 6, fill);
+        ps::ResizeForAnalysis(empty, 7, fill);
+        ps::AssignVectorForAnalysis(assigned, empty);
+        Check(assigned.logicalSize == 7 && assigned.storage.size() == 7 &&
+                  assigned.storage[0].equation == fill.equation && assigned.activeCount == 91,
+              "assignment growth uses exact source size rather than resize growth");
+        CheckRejected([&] { ps::AssignVectorForAnalysis(assigned, invalid); },
+                      "host invalid assignment source guard");
     }
 } // namespace
 int main(int argc, char** argv)
 {
     try
     {
-        if (argc == 2 && std::string(argv[1]) == "batch")
+        if (argc == 2 && std::string(argv[1]) == "--assignment-batch")
+            AssignmentBatch();
+        else if (argc == 2 && std::string(argv[1]) == "batch")
             Batch();
         else
         {

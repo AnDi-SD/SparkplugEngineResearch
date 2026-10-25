@@ -1,0 +1,220 @@
+param(
+  [Parameter(Mandatory=$true)][ValidatePattern('^[a-zA-Z0-9_-]+$')][string]$Name,
+  [ValidateRange(1,4)][int]$MaximumBones=2,
+  [ValidateSet(1,24)][int]$Subdivisions=1,
+  [ValidateRange(256,16384)][int]$MaximumWorkingSetMiB=4096,
+  [ValidateRange(128,8192)][int]$MinimumAvailableMemoryMiB=512,
+  [switch]$HalfResolution,
+  [switch]$SignedWeights,
+  [switch]$MotionHistory,
+  [ValidateSet("Translation","Rotation","Islands","Camera")][string]$MotionKind="Translation",
+  [switch]$BuildOnly,[switch]$RunBuilt,
+  [string]$ClientDll,[string]$ServerExecutable,
+  [ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$ClientSha256,
+  [ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$ServerSha256,
+  [string]$RendererDirectory,
+  [ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$RendererSha256
+)
+$ErrorActionPreference='Stop'
+if(-not $MotionHistory -and $MotionKind -ne 'Translation'){throw 'MotionKind requires MotionHistory'}
+if($MotionHistory -and ($Subdivisions -ne 24 -or $MaximumBones -ne 2 -or $SignedWeights -or $HalfResolution)){throw 'MotionHistory uses Subdivisions24, MaximumBones2, full resolution and both authored weight profiles'}
+$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
+$run=Join-Path $root "local-data/rtx-remix/skinning-fixtures/$Name"
+$snapshot=Join-Path $run 'source/tools/WinxRemix'
+$fixtureSource=Join-Path $snapshot 'tests/runtime/test_remix_skinning.cpp'
+if($BuildOnly -and $RunBuilt){throw 'BuildOnly and RunBuilt are exclusive'}
+if(Test-Path -LiteralPath (Join-Path $run 'launch.json')){throw 'This fixture has already been launched; preserve its evidence'}
+if(-not $RunBuilt){
+  if(Test-Path -LiteralPath $run){throw 'Use a fresh evidence name'}
+  New-Item -ItemType Directory -Path $run | Out-Null
+  . (Join-Path $root 'tools/WinxRemix/tests/Copy-SourceSnapshot.ps1')
+  Copy-WinxRemixSourceSnapshot -RepositoryRoot $root -ToolDestination $snapshot
+  $files=@('scripts/analysis/analyze_skin_motion_history.py','scripts/analysis/analyze_skin_motion_rotation.py',
+      'scripts/analysis/analyze_skin_motion_islands.py','scripts/analysis/analyze_skin_motion_camera.py',
+      'scripts/analysis/analyze_remix_skinning.py','scripts/runtime/Get-SystemMemory.ps1','scripts/runtime/ProcessLifetime.ps1')
+  foreach($relative in $files) {
+    $target=Join-Path $snapshot $relative
+    New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root "tools/WinxRemix/$relative") -Destination $target
+  }
+  Copy-Item -LiteralPath $PSCommandPath -Destination $run
+  $include=Join-Path $run 'include/remix'
+  New-Item -ItemType Directory -Path $include -Force | Out-Null
+  Get-ChildItem -LiteralPath (Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include/remix') -File | ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $include}
+  $vswhere=Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
+  $installation=& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+  if(-not $installation){throw 'MSVC x86 tools not found'}
+  $vcvars=Join-Path $installation 'VC/Auxiliary/Build/vcvarsall.bat'
+  $commands=@"
+@echo off
+call "$vcvars" x86
+if errorlevel 1 exit /b %errorlevel%
+cl /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$run/include" /I"$snapshot" "$fixtureSource" /Fe:test_remix_skinning.exe /link user32.lib gdi32.lib
+exit /b %errorlevel%
+"@
+  $command=Join-Path $run 'build.cmd';[IO.File]::WriteAllText($command,$commands,[Text.Encoding]::ASCII)
+  Push-Location $run
+  try{& $env:ComSpec /d /c $command *> (Join-Path $run 'build.log');if($LASTEXITCODE -ne 0){throw 'Skin fixture build failed; see build.log'}}finally{Pop-Location}
+  $hashes=@(Get-ChildItem -LiteralPath $run -File -Recurse | Where-Object { $_.Extension -in '.h','.cpp','.exe','.ps1','.py' } | ForEach-Object {
+    @{path=$_.FullName.Substring($run.Length+1);sha256=(Get-FileHash -LiteralPath $_.FullName).Hash}
+  })
+  @{schema=1;status='BUILT';hashes=$hashes;nativeGameCodeExecuted=$false} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $run 'build.json') -Encoding UTF8
+}
+if($BuildOnly){Write-Output "Built isolated skin fixture: $run";return}
+$build=Get-Content -LiteralPath (Join-Path $run 'build.json') -Raw | ConvertFrom-Json
+foreach($file in $build.hashes){if((Get-FileHash -LiteralPath (Join-Path $run $file.path)).Hash -ne $file.sha256){throw "Frozen fixture changed: $($file.path)"}}
+# RunBuilt may still select an immutable pre-migration flat snapshot.
+if($RunBuilt -and -not (Test-Path -LiteralPath $fixtureSource)){$fixtureSource=Join-Path $run 'test_remix_skinning.cpp'}
+if($HalfResolution -and -not (Get-Content -LiteralPath $fixtureSource -Raw).Contains('--half-resolution')){throw 'This frozen fixture predates HalfResolution; build a fresh run'}
+if($SignedWeights -and -not (Get-Content -LiteralPath $fixtureSource -Raw).Contains('--signed-weights')){throw 'This frozen fixture predates SignedWeights; build a fresh run'}
+if($MotionHistory -and -not (Get-Content -LiteralPath $fixtureSource -Raw).Contains('--motion-history')){throw 'This frozen fixture predates MotionHistory; build a fresh run'}
+if($MotionKind -ne 'Translation' -and -not (Get-Content -LiteralPath $fixtureSource -Raw).Contains('--motion-kind')){throw 'This frozen fixture predates MotionKind; build a fresh run'}
+if(-not $ClientDll -or -not $ServerExecutable -or -not $ClientSha256 -or -not $ServerSha256){throw 'Explicit paired skin-wire binaries and reviewed SHA256 values are required'}
+if((Get-FileHash -LiteralPath $ClientDll).Hash -ne $ClientSha256 -or (Get-FileHash -LiteralPath $ServerExecutable).Hash -ne $ServerSha256){throw 'Paired bridge hash mismatch'}
+if(Get-Process WinxClub,WinxClubDebug,NvRemixBridge,test_remix_material,test_remix_skinning,test_emission_layers,floor_blend -ErrorAction SilentlyContinue){throw 'Another game or fixture is running'}
+$game=Join-Path $root 'local-data/Winx Club';$server=Join-Path $run '.trex'
+$runtime=Join-Path $game '.trex'
+if($RendererDirectory){
+  $runtime=[IO.Path]::GetFullPath($RendererDirectory)
+  if(-not $RendererSha256 -or (Get-FileHash -LiteralPath (Join-Path $runtime 'd3d9.dll')).Hash -ne $RendererSha256){throw 'Explicit reviewed renderer hash required'}
+  if(-not (Test-Path -LiteralPath (Join-Path $runtime 'usd') -PathType Container)){throw 'Renderer runtime must include its USD dependencies'}
+}elseif($RendererSha256){throw 'RendererSha256 requires RendererDirectory'}
+New-Item -ItemType Directory -Path $server | Out-Null
+Get-ChildItem -LiteralPath $runtime -File | Where-Object {$_.Extension -eq '.dll' -and $_.Name -notlike '*.remix-*'} | ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $server}
+Copy-Item -LiteralPath (Join-Path $runtime 'usd') -Destination $server -Recurse
+Copy-Item -LiteralPath $ClientDll -Destination (Join-Path $run 'd3d9.dll')
+Copy-Item -LiteralPath $ServerExecutable -Destination (Join-Path $server 'NvRemixBridge.exe')
+if($RendererDirectory -and (Get-FileHash -LiteralPath (Join-Path $server 'd3d9.dll')).Hash -ne $RendererSha256){throw 'Renderer changed during bundle copy'}
+$runtimeHashes=@(Get-ChildItem -LiteralPath $server -File -Recurse | ForEach-Object {
+  @{path=$_.FullName.Substring($server.Length+1);sha256=(Get-FileHash -LiteralPath $_.FullName).Hash}
+})
+[IO.File]::WriteAllText((Join-Path $server 'bridge.conf'),"clientChannelMemSize = 32MB`r`nexposeRemixApi = True`r`n",[Text.Encoding]::ASCII)
+$config=@'
+rtx.enableRaytracing = True
+rtx.useVertexCapture = True
+rtx.vertexColorIsBakedLighting = False
+rtx.debugView.composite.compositeViewIdx = 0
+rtx.debugView.debugViewIdx = 23
+rtx.localtonemap.exposure = 1
+rtx.localtonemap.shadows = 1
+rtx.upscalerType = 0
+rtx.resolutionScale = 1
+rtx.forceCameraJitter = False
+rtx.enableRayReconstruction = False
+rtx.initializer.asyncShaderPrewarming = False
+rtx.graphicsPreset = 4
+rtx.integrateIndirectMode = 0
+'@
+if($HalfResolution){$config=$config.Replace('rtx.upscalerType = 0','rtx.upscalerType = 2').Replace('rtx.resolutionScale = 1','rtx.resolutionScale = 0.5')}
+[IO.File]::WriteAllText((Join-Path $run 'rtx.conf'),$config,[Text.Encoding]::ASCII)
+[IO.File]::WriteAllText((Join-Path $run 'dxvk.conf'),"dxvk.numCompilerThreads = 1`r`n",[Text.Encoding]::ASCII)
+$runtimeScripts=Join-Path $snapshot 'scripts/runtime'
+if($RunBuilt -and -not (Test-Path -LiteralPath (Join-Path $runtimeScripts 'ProcessLifetime.ps1'))){$runtimeScripts=$run}
+. (Join-Path $runtimeScripts 'ProcessLifetime.ps1')
+$clientForced=$false;$exitPendingSince=$null;$process=$null;$ownedServers=@()
+$priorConfig=$env:DXVK_RTX_CONFIG_FILE;$priorAudit=$env:REMIX_BRIDGE_INSTANCE_AUDIT;$priorDxvkConfig=$env:DXVK_CONFIG_FILE
+$memoryScript=Join-Path $runtimeScripts 'Get-SystemMemory.ps1'
+$beforeMemory=& $memoryScript
+$beforeMemory | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'memory-before.json') -Encoding UTF8
+if ($beforeMemory.availablePhysicalBytes -lt ([long]$MinimumAvailableMemoryMiB*1MB) -or $beforeMemory.availableCommitBytes -lt 5GB) {
+  throw 'Insufficient available system memory for the declared reserve'
+}
+try{
+  $env:DXVK_RTX_CONFIG_FILE=Join-Path $run 'rtx.conf';$env:REMIX_BRIDGE_INSTANCE_AUDIT=Join-Path $run 'server-instance-audit.jsonl'
+  $env:DXVK_CONFIG_FILE=Join-Path $run 'dxvk.conf'
+  $arguments=@('--max-bones',"$MaximumBones",'--subdivisions',"$Subdivisions")
+  if($HalfResolution){$arguments+=@('--half-resolution','1')}
+  if($MotionHistory){$arguments+=@('--motion-history','1');if($MotionKind -ne 'Translation'){$kind=@{Rotation=1;Islands=2;Camera=3}[$MotionKind];$arguments+=@('--motion-kind',"$kind")}}
+  if($SignedWeights){$arguments+=@('--signed-weights','1')}
+  $process=Start-Process -FilePath (Join-Path $run 'test_remix_skinning.exe') -ArgumentList $arguments -WorkingDirectory $run -WindowStyle Hidden -PassThru
+  $null=$process.Handle # Retain exit status even when the child exits between samples.
+  @{schema=1;pid=$process.Id;started=(Get-Date).ToString('o');maximumBonesPerVertex=$MaximumBones;subdivisions=$Subdivisions;clientSha256=$ClientSha256;serverSha256=$ServerSha256;
+    rendererSha256=(Get-FileHash -LiteralPath (Join-Path $server 'd3d9.dll')).Hash;rendererDirectory=$runtime;runtimeHashes=$runtimeHashes;
+    maximumWorkingSetMiB=$MaximumWorkingSetMiB;minimumAvailableMemoryMiB=$MinimumAvailableMemoryMiB;compilerThreads=1;shaderPrewarming=$false;clientChannelMiB=32;graphicsPreset=4;indirectMode=0;
+    halfResolution=[bool]$HalfResolution;upscalerType=$(if($HalfResolution){2}else{0});resolutionScale=$(if($HalfResolution){0.5}else{1});
+    signedWeights=[bool]$SignedWeights;motionHistory=[bool]$MotionHistory;rotationHistory=($MotionKind -eq 'Rotation');islandHistory=($MotionKind -eq 'Islands');motionKind=$MotionKind;cameraHistory=($MotionKind -eq 'Camera');
+    gameAssetsUsed=$false;nativeGameCodeExecuted=$false} |
+    ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
+  Write-Output "Skin fixture launched PID $($process.Id): $run"
+  # Sample our shell, client and server from this unique fixture directory.
+  # A bounded failure gets a new run; no unrelated game/server is stopped.
+  $timer=[Diagnostics.Stopwatch]::StartNew();$peak=0L;$peakPrivate=0L;$memoryExceeded=$false;$systemPressure=$false;$timeout=$false
+  $memory=@();$ownedServers=@();$serverRecords=@{};$serverPath=Join-Path $server 'NvRemixBridge.exe'
+  while(-not (Wait-OwnedProcess $process 100)){
+    $process.Refresh()
+    $reportedExit=Get-OwnedProcessExitCode $process -AllowRunning
+    if($reportedExit -ne 259){
+      if($null -eq $exitPendingSince){$exitPendingSince=$timer.ElapsedMilliseconds}
+      if($timer.ElapsedMilliseconds-$exitPendingSince -gt 15000){$clientForced=$true;Stop-OwnedProcess $process;break}
+    }
+    $observedServers=@(Get-Process NvRemixBridge -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq $serverPath -and $_.StartTime -ge $process.StartTime})
+    foreach($child in $observedServers){if(-not $serverRecords.ContainsKey($child.Id)){$null=$child.Handle;$serverRecords[$child.Id]=$child}}
+    $ownedServers=@($serverRecords.Values)
+    $shellProcess=Get-Process -Id $PID
+    $workingSet=[long]$process.WorkingSet64+$shellProcess.WorkingSet64
+    $private=[long]$process.PrivateMemorySize64+$shellProcess.PrivateMemorySize64
+    foreach($child in $ownedServers){$child.Refresh();if(-not (Wait-OwnedProcess $child 0)){$workingSet+=$child.WorkingSet64;$private+=$child.PrivateMemorySize64}}
+    $peak=[Math]::Max($peak,$workingSet)
+    $peakPrivate=[Math]::Max($peakPrivate,$private)
+    $available=& $memoryScript
+    $memory+=@{elapsedSeconds=[Math]::Round($timer.Elapsed.TotalSeconds,3);workingSetBytes=$workingSet;privateBytes=$private;
+      availablePhysicalBytes=$available.availablePhysicalBytes;availableCommitBytes=$available.availableCommitBytes;serverPids=@($ownedServers | ForEach-Object {$_.Id})}
+    $systemPressure=$available.availablePhysicalBytes -lt ([long]$MinimumAvailableMemoryMiB*1MB) -or $available.availableCommitBytes -lt 512MB
+    $memoryExceeded=[Math]::Max($workingSet,$private) -gt ([long]$MaximumWorkingSetMiB*1MB)
+    $timeout=$timer.Elapsed.TotalSeconds -ge 150
+    if($memoryExceeded -or $systemPressure -or $timeout){
+      if($memoryExceeded -or $systemPressure){
+        $clientForced=$true;Stop-OwnedProcess $process
+        foreach($child in $ownedServers){if(-not (Wait-OwnedProcess $child 0) -and $child.Path -eq $serverPath){Stop-OwnedProcess $child}}
+        break
+      }
+      [void]$process.CloseMainWindow()
+      if(-not (Wait-OwnedProcess $process 3000)){$clientForced=$true;Stop-OwnedProcess $process}
+      foreach($child in $ownedServers){
+        if(-not (Wait-OwnedProcess $child 5000) -and $child.Path -eq $serverPath){Stop-OwnedProcess $child}
+      }
+      break
+    }
+  }
+  @{peakWorkingSetBytes=$peak;peakPrivateBytes=$peakPrivate;includesShell=$true;sampleMilliseconds=100;maximumWorkingSetMiB=$MaximumWorkingSetMiB;minimumAvailableMemoryMiB=$MinimumAvailableMemoryMiB;systemPressure=$systemPressure;exceeded=$memoryExceeded;samples=$memory} |
+    ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'memory.json') -Encoding UTF8
+  $exit=Get-OwnedProcessExitCode $process
+  @{pid=$process.Id;exited=(Get-Date).ToString('o');exitCode=$exit;clientSignaled=(Wait-OwnedProcess $process 0);clientForced=$clientForced;timeout=$timeout;memoryExceeded=$memoryExceeded;systemPressure=$systemPressure} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'exit.json') -Encoding UTF8
+  if($clientForced -or $timeout -or $memoryExceeded -or $systemPressure -or $exit -ne 0){throw 'Skin fixture failed or exceeded its bound; output is preserved'}
+  # The bridge is a separate process. Its inherited handles and runtime cleanup
+  # can outlive the client; client exit alone does not close this operation.
+  $cleanup=@();$cleanupFailed=$false
+  $remainingServers=@($serverRecords.Values)
+  foreach($child in $remainingServers){
+    $null=$child.Handle
+    $clean=(Wait-OwnedProcess $child 10000)
+    if(-not $clean){$cleanupFailed=$true;if($child.Path -eq $serverPath){Stop-OwnedProcess $child}}
+    if((Get-OwnedProcessExitCode $child) -ne 0){$cleanupFailed=$true}
+    $cleanup+=@{pid=$child.Id;normalExit=$clean;exitCode=(Get-OwnedProcessExitCode $child)}
+  }
+  @{clientExitCode=$exit;servers=$cleanup;cleanupFailed=$cleanupFailed;remaining=@(Get-Process NvRemixBridge -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq $serverPath} | ForEach-Object {$_.Id})} |
+    ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'cleanup.json') -Encoding UTF8
+  if($cleanupFailed -or $cleanup.Count -eq 0){throw 'Owned bridge did not finish after client exit; cleanup evidence preserved'}
+  $rows=@(Get-Content -LiteralPath (Join-Path $run 'fixture.jsonl') | ForEach-Object {$_ | ConvertFrom-Json})
+  if($rows[-1].event -ne 'complete'){throw 'Missing complete fixture event'}
+  $rows[-1] | ConvertTo-Json -Compress
+}finally{
+  $env:DXVK_RTX_CONFIG_FILE=$priorConfig;$env:REMIX_BRIDGE_INSTANCE_AUDIT=$priorAudit;$env:DXVK_CONFIG_FILE=$priorDxvkConfig
+  $finalRows=@();$finalErrors=@()
+  $retained=@(if($process){@{role='client';process=$process}};foreach($child in $ownedServers){@{role='server';process=$child}})
+  foreach($entry in $retained){
+    $owned=$entry.process;$row=@{role=$entry.role;pid=$owned.Id;forcedInFinally=$false;signaled=$false}
+    try{
+      if(-not (Wait-OwnedProcess $owned 0)){
+        $row.forcedInFinally=$true
+        if($entry.role -eq 'client'){$clientForced=$true}
+        Stop-OwnedProcess $owned
+      }
+      $row.signaled=Wait-OwnedProcess $owned 0;$row.exitCode=Get-OwnedProcessExitCode $owned
+    }catch{$row.error=$_.Exception.Message;$finalErrors+=$row.error}
+    finally{$owned.Dispose();$finalRows+=$row}
+  }
+  @{clientForced=$clientForced;processes=$finalRows;errors=$finalErrors;remaining=@($finalRows | Where-Object {-not $_.signaled} | ForEach-Object {$_.pid})} |
+    ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'final-cleanup.json') -Encoding UTF8
+  if($finalErrors.Count){throw 'Owned process cleanup failed; see final-cleanup.json'}
+}

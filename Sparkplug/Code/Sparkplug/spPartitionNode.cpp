@@ -30,14 +30,18 @@ namespace sparkplug::reconstruction
             collisions_.back()->RemovePartitionForAnalysis(this,false);
             collisions_.pop_back();
         }
+        ClearDynamicsForAnalysis(true);
+        ClearOccludersForAnalysis(true);
         payload_.reset();
         for(auto& child:children_)child.reset(); // native ascending child order
         children_.clear();
         for(auto& portal:portals_)portal.reset(); //426551..426590, before Zone
         portals_.clear();
         zone_.reset();
+        ClearOccludersForAnalysis(false); // native frees this storage before statics
         for(auto& object:statics_)object.reset(); //4265CE, after Zone
         statics_.clear();
+        ClearDynamicsForAnalysis(false); // native frees this storage after statics
     }
     spPartitionNode::spPartitionNode(std::size_t childCount) : children_(childCount)
     {

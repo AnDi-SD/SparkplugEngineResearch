@@ -32,7 +32,10 @@ def pristine():
 class Ps2ScalarPrefix:
     RETURN=0x20000000
 
-    def __init__(self,ranges,*,profile='r4000',stack_window=None,upper64=None,unsigned_division=False):
+    def __init__(self,ranges,*,profile='r4000',stack_window=None,upper64=None,unsigned_division=False,
+                 integer_multiply=False,hi1_lo1=None,raw_transfers=False,fpr_words=None,transfer_windows=None,
+                 raw_swc1_beq_delay=False,stack_store_delay=False,packet_calls=None,packet_gp=None,
+                 scalar_control=False,scalar_control_windows=None):
         ranges=tuple(ranges)
         if not 0<len(ranges)<=64 or sum(n for a,n in ranges)>0x40000:raise ValueError('Explicit bounded code ranges required')
         self.u=unicorn.Uc(unicorn.UC_ARCH_MIPS,unicorn.UC_MODE_MIPS64|unicorn.UC_MODE_LITTLE_ENDIAN)
@@ -48,21 +51,55 @@ class Ps2ScalarPrefix:
         if stack_window is not None or upper64 is not None:
             if stack_window is None or upper64 is None:raise ValueError('Stack window and explicit upper64 state must be supplied together')
             from ps2_stack_spills import StackSpills
-            self.stack_extension=StackSpills(stack_window,upper64)
+            self.stack_extension=StackSpills(stack_window,upper64,store_delay=stack_store_delay)
             start,length=self.stack_extension.window
             if any(start<a+n and a<start+length for a,n in ranges+((self.RETURN,4096),)):
                 raise ValueError('Stack window must not overlap original code or RETURN')
+        elif stack_store_delay:raise ValueError('Stack store-delay option requires explicit stack state')
+        if type(stack_store_delay) is not bool:raise ValueError('Explicit Boolean stack store-delay option required')
         self.division_extension=None
         if type(unsigned_division) is not bool:raise ValueError('Explicit Boolean unsigned_division option required')
         if unsigned_division:
             if self.stack_extension is None or profile=='integer-movz':raise ValueError('Unsigned division requires explicit stack state and R4000-based profile')
             from ps2_unsigned_division import UnsignedDivision
             self.division_extension=UnsignedDivision()
+        self.multiply_extension=None;self.raw_transfer_extension=None
+        if type(integer_multiply) is not bool or type(raw_transfers) is not bool or type(raw_swc1_beq_delay) is not bool:
+            raise ValueError('Explicit Boolean packet seam options required')
+        if integer_multiply:
+            if self.stack_extension is None or profile!='r4000':raise ValueError('Multiply seam requires explicit stack state and r4000 profile')
+            from ps2_integer_multiply import Positive31Multiply
+            self.multiply_extension=Positive31Multiply(hi1_lo1)
+        elif hi1_lo1 is not None:raise ValueError('HI1/LO1 state requires explicit multiply opt-in')
+        if raw_transfers:
+            if self.stack_extension is None or profile!='r4000':raise ValueError('Raw transfer seam requires explicit stack state and r4000 profile')
+            from ps2_raw_transfers import RawTransfers
+            self.raw_transfer_extension=RawTransfers(fpr_words,transfer_windows,beq_store_delay=raw_swc1_beq_delay)
+            for start,length,_ in self.raw_transfer_extension.windows:
+                if any(start<a+n and a<start+length for a,n in ranges+((self.RETURN,4096),)):
+                    raise ValueError('Transfer memory must not overlap original code or RETURN')
+        elif fpr_words is not None or transfer_windows is not None or raw_swc1_beq_delay:raise ValueError('Raw FPR state requires explicit transfer opt-in')
         raw,sections=pristine()
         for a,n in ranges:
             self.map(a,n);self.write(a,read_window('ps2',raw,a,n,sections)[0])
         self.map(self.RETURN,4096)
         self.reg('RA',self.RETURN)
+        self.call_extension=None
+        if packet_calls is not None:
+            from ps2_packet_calls import PacketCallBoundaries
+            if not isinstance(packet_calls,PacketCallBoundaries):raise ValueError('Only typed external packet primitives supported')
+            self.call_extension=packet_calls;packet_calls.attach(self,packet_gp)
+        elif packet_gp is not None:raise ValueError('Packet GP requires explicit typed primitive environment')
+        if type(scalar_control) is not bool:raise ValueError('Explicit Boolean scalar-control option required')
+        self.control_extension=None
+        if scalar_control:
+            if profile!='r4000' or self.stack_extension is None:raise ValueError('Explicit scalar control requires fresh r4000 profile and stack state')
+            from ps2_scalar_control import ScalarControlPairs
+            self.control_extension=ScalarControlPairs(scalar_control_windows)
+            for start,length,_ in self.control_extension.windows:
+                if any(start<a+n and a<start+length for a,n in ranges+((self.RETURN,4096),)):
+                    raise ValueError('Control data windows must not overlap code or RETURN')
+        elif scalar_control_windows is not None:raise ValueError('Control windows require explicit scalar-control option')
 
     def map(self,address,size):
         if not 0<size<=0x10000 or address<0 or address+size>0x100000000:raise ValueError('Explicit mapped window required')
@@ -109,14 +146,33 @@ class Ps2ScalarPrefix:
                         or op in (0x10,0x11,0x12) and (previous>>21)&31==8)
                     if transfer:raise RuntimeError(f'Unqualified stop in branch delay slot {address:08X};stop before branch {self.trace[-1]:08X}')
                 self.stop=address;u.emu_stop();return
+            if self.call_extension is not None:
+                plan=self.call_extension.plan(self,address)
+                if plan is not None:
+                    if len(self.trace)>=count:raise RuntimeError('Logical instruction cap before external primitive effect')
+                    self.call_extension.commit(self,plan);return
             if not any(a<=address and address+4<=a+n for a,n in self.ranges):raise RuntimeError(f'Outside declared original prefix {address:08X}')
             word=self.uint(address)
+            if self.control_extension is not None:
+                plan=self.control_extension.plan(self,address,word,stops)
+                if plan is not None:
+                    if len(self.trace)+len(plan['addresses'])>count:raise RuntimeError('Logical instruction cap before interpreted control pair')
+                    self.trace.extend(plan['addresses']);self.control_extension.commit(self,plan);return
             if self.stack_extension is not None:
                 plan=self.stack_extension.plan(self,address,word,stops)
                 if plan is not None:
-                    if len(self.trace)+1>count:raise RuntimeError('Logical instruction cap before interpreted stack operation')
+                    if len(self.trace)+len(plan['addresses'])>count:raise RuntimeError('Logical instruction cap before interpreted stack operation')
                     self.trace.extend(plan['addresses']);self.stack_extension.commit(self,plan);return
                 if len(self.trace)>=count:raise RuntimeError('Logical instruction cap in stack-spill profile')
+            for ext in (self.multiply_extension,self.raw_transfer_extension):
+                if ext is not None:
+                    plan=ext.plan(self,address,word,stops)
+                    if plan is not None:
+                        if len(self.trace)+len(plan['addresses'])>count:raise RuntimeError('Logical instruction cap before interpreted packet seam')
+                        if ext is self.raw_transfer_extension and self.call_extension is not None:
+                            self.call_extension.validate_transfer(plan)
+                        self.trace.extend(plan['addresses']);ext.commit(self,plan);return
+            if self.raw_transfer_extension is not None:self.raw_transfer_extension.guard_scalar(word)
             if self.accumulator_extension is not None:
                 plan=self.accumulator_extension.plan(self,address,word,stops)
                 if plan is not None:
@@ -155,9 +211,28 @@ class Ps2ScalarPrefix:
                 initialUpper64=[f'{v:016X}' for v in ext.initial_upper64],finalUpper64=[f'{v:016X}' for v in ext.upper64],
                 stackSpillInterpretation=ext.events,
                 instructionCountScope='Original instruction addresses,including all explicitly interpreted operations',
-                stackSpillScope='Aligned SP-based SQ/LQ within explicit mapped stack window;non-delay only;explicit upper64 GPR shadow;scalar ISA allowlist;not general EE CPU;guest code unchanged')
+                stackStoreDelayEnabled=ext.store_delay,
+                stackSpillScope='Aligned SP-based SQ/LQ within explicit mapped stack window;only opt-in BEQ-or-JAL/SQ paired slots;explicit upper64 GPR shadow;scalar ISA allowlist;not general EE CPU;guest code unchanged')
         if self.division_extension is not None:
             if self.division_extension.pending is not None:raise RuntimeError('Unverified DIVU/MFHI/MFLO effect at completion')
             result.update(unsignedDivisionObservations=self.division_extension.events,
                 unsignedDivisionScope='Original native DIVU/MFHI/MFLO,nonzero divisor,quotient/remainder<=INT32_MAX,no delay slots;HI0/LO0 and GPR low64 validated. No host-written result,HI1/LO1 or general EE division claim.')
+        if self.multiply_extension is not None:
+            ext=self.multiply_extension
+            result.update(multiplyInterpretation=ext.events,initialHi1Lo1=list(ext.initial_hi1_lo1),finalHi1Lo1=list(ext.hi1_lo1),
+                multiplyScope='Explicit host interpretation of original MULT(rd)/MULT1 words;nonnegative low32 operands/product<=INT32_MAX,upper64 GPR preservation,explicitHI1/LO1;no delay slots or general MMI/pipeline claim.',
+                instructionCountScope='Original instruction addresses,including explicitly host-interpreted operations')
+        if self.raw_transfer_extension is not None:
+            ext=self.raw_transfer_extension
+            result.update(rawTransferInterpretation=ext.events,initialFprWords=list(ext.initial_fpr_words),finalFprWords=list(ext.fpr_words),
+                transferWindows=list(ext.windows),beqStoreDelayEnabled=ext.beq_store_delay,
+                rawTransferScope='Explicit host MOVZ and raw32-bit LWC1/SWC1 interpretation;only opt-in BEQ/SWC1 paired slots;no other delay slots,COP1 arithmetic or FCR/status semantics;permissions and aligned mapped windows required.',
+                instructionCountScope='Original instruction addresses,including explicitly host-interpreted operations')
+        if self.call_extension is not None:
+            ext=self.call_extension
+            result.update(externalPrimitiveObservations=ext.events,remainingHeapAllocations=ext.allocations,
+                externalPrimitiveScope='Only explicitly typed terminal heap callbacks,memset,memcpy and ignored packet diagnostic;original JAL/RA/heap-wrapper traces validated;explicit bounded bump arena is research environment,not game allocator;external bodies not included in original instruction count.')
+        if self.control_extension is not None:
+            result.update(scalarControlInterpretation=self.control_extension.events,
+                scalarControlScope='All encountered integer J/JAL/JR/JALR,BEQ/BNE/BEQL/BNEL,BLTZ/BGEZ interpreted explicitly with validated scalar/stack/raw transfer slots;unknown controls/slots refuse before backend execution. Fresh instance only;no native backend integer transfers,hiddenflagpatches,codepatches or interrupt forwarding. Not general EE CPU/timing/exception semantics.')
         return result

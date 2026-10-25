@@ -53,9 +53,11 @@ namespace sparkplug::evidence::pc::renderer_queue_math
         return first.distanceSquared > second.distanceSquared ? -1 : 1;
     }
 
-    inline bool LessGeneral(const std::uint32_t firstMaterial, const std::uint32_t firstMesh,
+    // Native mesh identity is an unsigned32 address; uintptr_t also permits
+    // explicit host pointer identities without truncation. This is not ABI.
+    inline bool LessGeneral(const std::uint32_t firstMaterial, const std::uintptr_t firstMesh,
                             const std::uint32_t secondMaterial,
-                            const std::uint32_t secondMesh) noexcept
+                            const std::uintptr_t secondMesh) noexcept
     {
         return firstMaterial < secondMaterial ||
                (firstMaterial == secondMaterial && firstMesh < secondMesh);

@@ -1,4 +1,5 @@
 #include "Analysis/PC/spBallisticCpuDraw.h"
+#include "Analysis/Host/ParticleColorPolicy.h"
 
 #include <iomanip>
 #include <iostream>
@@ -166,6 +167,30 @@ int main(int argc, char** argv)
         auto hugeCamera=identity;hugeCamera[8]=1e30f;
         Check(!BuildBallisticCpuBasisForAnalysis(hugeCamera,{1,1,1},basis)
             && basis.forward==basisSaved.forward, "host math overflow is refused, not a fabricated collapsed quad");
+        Check(BuildBallisticCpuBasisForAnalysis(identity,{1,1,1},basis),"packing basis");
+        BallisticCpuPackedBatchForAnalysis packed;
+        record={1,2,3,0,0,0,0,2};p.currentTime=1;p.runtimeScales={1,1};
+        const auto color=[](void*,float time,float birth,float lifetime,bool stored,
+            std::uint32_t a,std::uint32_t b,std::uint32_t& out)
+            {if(a!=0x11223344 || b!=0xaabbccdd || time!=1 || birth!=0 || lifetime!=2 || !stored)return false;out=0xdeadbeef;return true;};
+        Check(BuildBallisticCpuPackedBatchForAnalysis({record},{0,1},p,true,basis,
+            0x11223344,0xaabbccdd,color,nullptr,packed),"explicit color policy packs actual stream");
+        Check(packed.vertices.size()==4 && packed.indices==std::vector<std::uint16_t>{0,1,2,0,2,3},"packed stream extents and index order");
+        Check(packed.vertices[0].position==std::array<float,3>{.5f,1.5f,3}
+            && packed.vertices[0].uv==std::array<float,2>{0,1} && packed.vertices[2].uv==std::array<float,2>{1,0}
+            && packed.vertices[3].color==0xdeadbeef,"packed vertex layout and corner color");
+        Check(!BuildBallisticCpuPackedBatchForAnalysis({record},{0,1},p,true,basis,0,0,nullptr,nullptr,packed)
+            && packed.vertices.size()==4,"no implicit approximate color and output preserved on refusal");
+        Check(BuildBallisticCpuPackedBatchForAnalysis({record},{1,0},p,true,basis,0,0,nullptr,nullptr,packed)
+            && packed.vertices.empty() && packed.indices.empty(),"empty final batch needs no color invocation");
+        record[7]=3;
+        Check(BuildBallisticCpuPackedBatchForAnalysis({record},{0,1},p,true,basis,0x7f132737,0xe24f65a3,
+            ReconstructedBallisticCpuColorProviderForAnalysis,nullptr,packed)
+            && packed.vertices.size()==4 && packed.vertices[0].color==0xa0263a5a
+            && packed.vertices[3].color==0xa0263a5a,"raw-input reconstructed color provider reaches concrete packed vertices");
+        std::uint32_t approximate=0;
+        Check(sparkplug::host::particle_color::HostApproximateArgbForAnalysis(nullptr,0x7f132737,0xe24f65a3,1.0/3,approximate)
+            && approximate==0xa0263b5a && approximate!=0xa0263a5a,"host color preserves known x87 counterexample as a limit");
         std::cout << "PASS Ballistic CPU draw: " << checks << " checks\n";
         return 0;
     }

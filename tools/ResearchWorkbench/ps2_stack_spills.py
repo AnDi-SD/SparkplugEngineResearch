@@ -15,7 +15,9 @@ MASK64=(1<<64)-1
 
 
 class StackSpills:
-    def __init__(self,window,upper64):
+    def __init__(self,window,upper64,*,store_delay=False):
+        if type(store_delay) is not bool:raise ValueError('Explicit Boolean stack store-delay option required')
+        self.store_delay=store_delay
         if len(window)!=2:raise ValueError('Explicit stack address and size required')
         address,size=window
         if not (0<=address<0x100000000 and 0<size<=0x10000 and address+size<=0x100000000 and address%16==size%16==0):
@@ -31,6 +33,8 @@ class StackSpills:
         # Refuse a quadword delay slot before executing the branch or link.
         if transfer(word) and any(a<=address+4 and address+8<=a+n for a,n in p.ranges):
             if self.is_quadword(p.uint(address+4)):
+                if self.store_delay and word>>26 in (3,4) and p.uint(address+4)>>26==0x1f:
+                    return self.plan_store_delay(p,address,word,stops)
                 raise ValueError('Stack SQ/LQ delay slot not qualified;rejected before branch')
         if not self.is_quadword(word):return None
         if p.trace and p.trace[-1]+4==address and transfer(p.uint(p.trace[-1])):
@@ -54,7 +58,39 @@ class StackSpills:
             registerBefore=f'{high:016X}{low:016X}',registerAfter=(f'{high:016X}{low:016X}' if store or rt==0 else f'{int.from_bytes(data,"little"):032X}'),
             transferBytes=data.hex(),nextPc=address+4)
 
+    def plan_store_delay(self,p,address,word,stops):
+        if address+4 in stops:raise ValueError('Stop inside interpreted BEQ-or-JAL/SQ slot')
+        if p.trace and p.trace[-1]+4==address and transfer(p.uint(p.trace[-1])):
+            raise ValueError('Stack store-delay pair reached in live branch delay slot')
+        op=word>>26
+        if op==4:
+            rs,rt=(word>>21)&31,(word>>16)&31
+            taken=p.reg(str(rs))==p.reg(str(rt))
+            displacement=(word&0xffff)-(0x10000 if word&0x8000 else 0)
+            next_pc=address+4+displacement*4 if taken else address+8
+            branch=dict(operation='BEQ/SQ',rs=rs,rt=rt,left=p.reg(str(rs)),right=p.reg(str(rt)),taken=taken)
+        elif op==3:
+            next_pc=((address+4)&0xf0000000)|((word&0x03ffffff)<<2)
+            if address+8>=0x80000000:raise ValueError('Stack JAL/SQ link outside reviewed positive32 code domain')
+            branch=dict(operation='JAL/SQ',linkRegister=31,linkBefore=p.reg('31'),linkAfter=address+8)
+        else:raise ValueError('Only BEQ-or-JAL/SQ stack pairs qualified')
+        if next_pc in (address,address+4):raise ValueError('Self/slot stack pair target rejected')
+        if next_pc not in stops and not any(a<=next_pc and next_pc+4<=a+n for a,n in p.ranges):
+            raise ValueError('Stack pair target outside declared original ranges')
+        slot=self.plan(p,address+4,p.uint(address+4),stops)
+        if op==3 and slot['register']==31:
+            low=address+8;high=self.upper64[31]
+            slot.update(registerBefore=f'{high:016X}{low:016X}',registerAfter=f'{high:016X}{low:016X}',
+                transferBytes=(low.to_bytes(8,'little')+high.to_bytes(8,'little')).hex(),linkVisibleAtSlot=True)
+            slot['memoryAfter']=slot['transferBytes']
+        return dict(addresses=[address,address+4],operationAddress=f'{address:08X}',word=f'{word:08X}',
+            slot=slot,nextPc=next_pc,**branch)
+
     def commit(self,p,plan):
+        if plan['operation'] in ('BEQ/SQ','JAL/SQ'):
+            if plan['operation']=='JAL/SQ':p.reg('31',plan['linkAfter'])
+            slot=plan['slot'];p.write(int(slot['effectiveAddress'],16),bytes.fromhex(slot['transferBytes']))
+            p.reg('PC',plan['nextPc']);self.events.append(plan);return
         data=bytes.fromhex(plan['transferBytes']);rt=plan['register']
         if plan['operation']=='SQ':p.write(int(plan['effectiveAddress'],16),data)
         elif rt!=0:

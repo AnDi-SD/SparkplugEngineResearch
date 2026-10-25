@@ -1,5 +1,7 @@
 param(
     [ValidateSet('RTX','Raster','Original')][string]$Mode='RTX',
+    [string]$GameDirectory='local-data/Winx Club',
+    [string]$ProbeDirectory='local-data/rtx-remix/build',
     [switch]$DebugMenu,
     [switch]$ShaderAudit,
     [switch]$ShaderSemantics,
@@ -59,14 +61,20 @@ if ($AutoSurfaceRoles -and $Mode -ne 'RTX') { throw 'AutoSurfaceRoles requires R
 if ($SceneLights -and ($Mode -ne 'RTX' -or -not $DebugMenu)) { throw 'SceneLights requires RTX and the verified DebugMenu build' }
 if ($SceneGeometry -and (-not $DebugMenu -or ($Mode -ne 'RTX' -and -not ($NativeSkinPackets -and $Mode -eq 'Original')))) { throw 'SceneGeometry requires verified DebugMenu and RTX, or Original Skin packet capture' }
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$game=Join-Path $root 'local-data/Winx Club'
-$build=Join-Path $root 'local-data/rtx-remix/build/d3d9.dll'
+$game=[IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($GameDirectory)) { $GameDirectory } else { Join-Path $root $GameDirectory }))
+$probe=[IO.Path]::GetFullPath($(if ([IO.Path]::IsPathRooted($ProbeDirectory)) { $ProbeDirectory } else { Join-Path $root $ProbeDirectory }))
+foreach ($directory in @($game,$probe)) {
+    if (-not $directory.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) {
+        throw 'Game and probe directories must be inside this workspace'
+    }
+}
+$build=Join-Path $probe 'd3d9.dll'
 if (-not (Test-Path -LiteralPath $build)) { throw 'Build the adapter with Build-Probe.ps1 first' }
 if ((Get-FileHash -LiteralPath (Join-Path $game 'd3d9.dll')).Hash -ne (Get-FileHash -LiteralPath $build).Hash) {
-    throw 'The installed adapter differs from the current build. Install/review it before running this profile.'
+    throw 'The selected game adapter differs from the selected build. Prepare/review that runtime before running this profile.'
 }
 $name="play-$($Mode.ToLowerInvariant())-$(Get-Date -Format 'yyyyMMdd-HHmmss-fff')"
-$options=@{ Name=$name; NoDrawTrace=$true }
+$options=@{ Name=$name; GameDirectory=$game; NoDrawTrace=$true }
 if ($DebugMenu) { $options.DebugMenu=$true }
 if ($ShaderAudit) { $options.ShaderAudit=$true }
 if ($ShaderSemantics) { $options.ShaderSemantics=$true }

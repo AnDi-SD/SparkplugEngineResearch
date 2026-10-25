@@ -17,7 +17,7 @@
       "group": "build"
     },
     {
-      "label": "Build SmoViewer",
+      "label": "Build SmoViewer (managed only)",
       "type": "process",
       "command": "dotnet.exe",
       "args": [
@@ -44,7 +44,7 @@
       "group": "build"
     },
     {
-      "label": "Build SMOTextureTool",
+      "label": "Build SMOTextureTool (managed only)",
       "type": "process",
       "command": "dotnet.exe",
       "args": [
@@ -57,11 +57,25 @@
       "group": "build"
     },
     {
+      "label": "Build SmoViewer",
+      "dependsOn": ["Build native viewer bridge", "Build SmoViewer (managed only)"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Build SMOTextureTool",
+      "dependsOn": ["Build native viewer bridge", "Build SMOTextureTool (managed only)"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
       "label": "Build applications",
       "dependsOn": [
         "Build native viewer bridge",
-        "Build SmoViewer",
-        "Build SMOTextureTool"
+        "Build SmoViewer (managed only)",
+        "Build SMOTextureTool (managed only)"
       ],
       "dependsOrder": "sequence",
       "problemMatcher": [],

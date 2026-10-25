@@ -21,6 +21,9 @@ namespace sparkplug::reconstruction
     }
     bool spPCVertexDeclaration::InitializeForAnalysis(std::uint32_t flags)
     {
+        // The extra CPU facade cannot mutate state owned by the device cache,
+        // including a known-null/released COM result. Host mode guard only.
+        if(HasDeviceInitializationForAnalysis())return false;
         if(!spDXVertexDeclaration::InitializeForAnalysis(flags))return false;
         return BuildElementsForAnalysis(flags,elements_,allocationBytes_);
     }

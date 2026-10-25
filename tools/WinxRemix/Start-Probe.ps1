@@ -163,7 +163,7 @@ if ($StartLevel) {
     Copy-Item -LiteralPath (Join-Path $game 'user.conf') -Destination (Join-Path $workingDirectory 'user.conf')
 }
 if ($SurfaceRoles) {
-    $surfaceRoleSource = Join-Path $PSScriptRoot 'surface-roles/mod.usda'
+    $surfaceRoleSource = Join-Path $PSScriptRoot 'config/surface-roles/mod.usda'
     $surfaceRoleDirectory = Join-Path $workingDirectory 'rtx-remix/mods/winx-surface-roles'
     New-Item -ItemType Directory -Force -Path $surfaceRoleDirectory | Out-Null
     Copy-Item -LiteralPath $surfaceRoleSource -Destination (Join-Path $surfaceRoleDirectory 'mod.usda')
@@ -171,7 +171,7 @@ if ($SurfaceRoles) {
 if ($AutoSurfaceRoles) {
     $legacyRoleFile = Join-Path $workingDirectory 'rtx-remix/mods/winx-surface-roles/mod.usda'
     if (Test-Path -LiteralPath $legacyRoleFile) {
-        $ownedRoleSource = Join-Path $PSScriptRoot 'surface-roles/mod.usda'
+        $ownedRoleSource = Join-Path $PSScriptRoot 'config/surface-roles/mod.usda'
         if ((Get-FileHash -LiteralPath $legacyRoleFile).Hash -ne (Get-FileHash -LiteralPath $ownedRoleSource).Hash) {
             throw 'Legacy surface-role mod was modified; preserve it and disable it explicitly before using automatic roles'
         }
@@ -193,7 +193,7 @@ if ($LiveConfig -or $AutoSurfaceRoles -or $SceneLights) {
     }
     $bridgeText += "`r`nexposeRemixApi = True`r`n"
     [IO.File]::WriteAllText($bridgeConfig,$bridgeText,[Text.UTF8Encoding]::new($false))
-    @{ existed=$bridgeExisted; temporarySha256=(Get-FileHash -LiteralPath $bridgeConfig).Hash } |
+    @{ existed=$bridgeExisted; targetPath=$bridgeConfig; temporarySha256=(Get-FileHash -LiteralPath $bridgeConfig).Hash } |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'bridge-config-state.json') -Encoding UTF8
     [IO.File]::WriteAllText((Join-Path $run 'live.conf'),'# Diagnostic settings only; restart to clear them.',[Text.UTF8Encoding]::new($false))
 }
@@ -272,14 +272,14 @@ try {
     }
     $gameProcess=Start-Process -FilePath $executable -WorkingDirectory $workingDirectory -WindowStyle Normal -PassThru
     if ($LiveConfig -or $AutoSurfaceRoles -or $SceneLights) {
-        $restoreScript = Join-Path $PSScriptRoot 'Restore-LiveConfig.ps1'
+        $restoreScript = Join-Path $PSScriptRoot 'scripts/runtime/Restore-LiveConfig.ps1'
         Start-Process -FilePath powershell -WindowStyle Hidden -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"'+$restoreScript+'"'),'-Run',('"'+$run+'"'),'-GamePid',$gameProcess.Id) | Out-Null
     }
     @{
         pid=$gameProcess.Id; started=(Get-Date).ToString('o'); environment=$values
         proxySha256=(Get-FileHash -LiteralPath (Join-Path $run 'd3d9.dll')).Hash
         executable=$executable; executableSha256=(Get-FileHash -LiteralPath $executable).Hash
-        workingDirectory=$workingDirectory; startLevel=$StartLevel
+        gameDirectory=$game; workingDirectory=$workingDirectory; startLevel=$StartLevel
         windowedOverride=$Windowed.IsPresent
         surfaceRolesSha256=$(if ($SurfaceRoles) { (Get-FileHash -LiteralPath $surfaceRoleSource).Hash } else { $null })
         autoSurfaceRoles=$AutoSurfaceRoles.IsPresent
@@ -318,6 +318,10 @@ try {
         sceneLightGain=$LightGain
         bridgeConfigSha256=$bridgeConfigSha256
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch.json') -Encoding UTF8
+    $launch=Get-Content -LiteralPath (Join-Path $run 'launch.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    Write-Output "Game=$game"
+    Write-Output "Adapter=$($launch.proxySha256) Client=$($launch.remixClientSha256)"
+    Write-Output "Renderer=$($launch.remixRendererSha256) Server=$($launch.remixServerSha256)"
     Write-Output "PID=$($gameProcess.Id) Run=$run"
 } finally {
     foreach ($key in $savedEnvironment.Keys) { [Environment]::SetEnvironmentVariable($key,$savedEnvironment[$key],'Process') }

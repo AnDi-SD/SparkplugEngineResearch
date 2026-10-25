@@ -968,7 +968,10 @@
         "pc": "0x415352A1"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXAsmShaderParser.h",
+        "Sparkplug/Code/SparkplugDX/spDXAsmShaderParser.cpp"
+      ]
     },
     {
       "name": "spDXAudioBank",
@@ -1103,9 +1106,13 @@
       "registrationBaseIds": {
         "pc": "0x0F8B095F"
       },
-      "documentation": [],
+      "documentation": [
+        "docs/reference/classes/sp-render-target.md"
+      ],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.h"
+        "Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.h",
+        "Sparkplug/Code/SparkplugDX/spDXCubeRenderTarget.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXRenderTarget_Device.cpp"
       ]
     },
     {
@@ -1119,11 +1126,13 @@
         "pc": "0x65557907"
       },
       "documentation": [
-        "docs/reference/classes/sp-dx-cube-texture.md"
+        "docs/reference/classes/sp-dx-cube-texture.md",
+        "docs/reference/classes/sp-render-target.md"
       ],
       "sources": [
         "Sparkplug/Code/SparkplugDX/spDXCubeTexture.h",
-        "Sparkplug/Code/SparkplugDX/spDXCubeTexture.cpp"
+        "Sparkplug/Code/SparkplugDX/spDXCubeTexture.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXTextureResource.cpp"
       ]
     },
     {
@@ -1184,7 +1193,8 @@
         "docs/reference/classes/sp-dx-buffers.md"
       ],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXIndexBuffer.h"
+        "Sparkplug/Code/SparkplugDX/spDXIndexBuffer.h",
+        "Sparkplug/Code/SparkplugDX/spDXIndexBuffer.cpp"
       ]
     },
     {
@@ -1448,7 +1458,13 @@
         "docs/reference/classes/sp-renderer.md"
       ],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXRenderer.h"
+        "Sparkplug/Code/SparkplugDX/spDXRenderer.h",
+        "Sparkplug/Code/SparkplugDX/spDXRenderer.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXRenderer_Init.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXRenderer_Startup.h",
+        "Sparkplug/Code/SparkplugDX/spDXRenderer_Startup.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXRenderer_Palette.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXRenderer_Declarations.cpp"
       ]
     },
     {
@@ -1461,9 +1477,13 @@
       "registrationBaseIds": {
         "pc": "0x00D1229C"
       },
-      "documentation": [],
+      "documentation": [
+        "docs/reference/classes/sp-render-target.md"
+      ],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXRenderTarget.h"
+        "Sparkplug/Code/SparkplugDX/spDXRenderTarget.h",
+        "Sparkplug/Code/SparkplugDX/spDXRenderTarget.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXRenderTarget_Device.cpp"
       ]
     },
     {
@@ -1565,7 +1585,8 @@
       },
       "documentation": [],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXShaderManager.h"
+        "Sparkplug/Code/SparkplugDX/spDXShaderManager.h",
+        "Sparkplug/Code/SparkplugDX/spDXShaderManager.cpp"
       ]
     },
     {
@@ -1675,9 +1696,14 @@
       "registrationBaseIds": {
         "pc": "0x2F281E13"
       },
-      "documentation": [],
+      "documentation": [
+        "docs/reference/classes/sp-render-target.md"
+      ],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXTexture.h"
+        "Sparkplug/Code/SparkplugDX/spDXTexture.h",
+        "Sparkplug/Code/SparkplugDX/spDXTexture.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXTextureResource.cpp",
+        "Sparkplug/Code/SparkplugDX/spDXTexture_Native.cpp"
       ]
     },
     {
@@ -1741,7 +1767,8 @@
         "docs/reference/classes/sp-dx-buffers.md"
       ],
       "sources": [
-        "Sparkplug/Code/SparkplugDX/spDXVertexBuffer.h"
+        "Sparkplug/Code/SparkplugDX/spDXVertexBuffer.h",
+        "Sparkplug/Code/SparkplugDX/spDXVertexBuffer.cpp"
       ]
     },
     {
@@ -3327,7 +3354,11 @@
         "docs/reference/classes/sp-occlusion-volume.md"
       ],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spOcclusionVolume.h"
+        "Sparkplug/Code/Sparkplug/spOcclusionVolume.h",
+        "Sparkplug/Code/Sparkplug/spOcclusionVolume.cpp",
+        "Sparkplug/Code/Sparkplug/spOcclusionVolumeRuntime.cpp",
+        "Sparkplug/Code/Sparkplug/spOcclusionVolumeCamera.cpp",
+        "Sparkplug/Code/Sparkplug/spPartitionMembership.cpp"
       ]
     },
     {
@@ -3446,7 +3477,9 @@
         "docs/reference/classes/sp-particle-system.md"
       ],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spParticleSystem.h"
+        "Sparkplug/Code/Sparkplug/spParticleSystem.h",
+        "Sparkplug/Code/Sparkplug/spParticleSystem.cpp",
+        "Sparkplug/Code/Sparkplug/spParticleSystemRuntime.cpp"
       ]
     },
     {
@@ -3498,7 +3531,9 @@
         "docs/reference/classes/sp-partition-node.md"
       ],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spPartitionNode.h"
+        "Sparkplug/Code/Sparkplug/spPartitionNode.h",
+        "Sparkplug/Code/Sparkplug/spPartitionNode.cpp",
+        "Sparkplug/Code/Sparkplug/spPartitionMembership.cpp"
       ]
     },
     {
@@ -3894,7 +3929,9 @@
       },
       "documentation": [],
       "sources": [
-        "Sparkplug/Code/SparkplugPC/spPCShaderManager.h"
+        "Sparkplug/Code/SparkplugPC/spPCShaderManager.h",
+        "Sparkplug/Code/SparkplugPC/spPCShaderManager.cpp",
+        "Sparkplug/Code/SparkplugPC/spPCShaderManager_Standalone.cpp"
       ]
     },
     {
@@ -3928,7 +3965,10 @@
         "docs/reference/classes/sp-vertex-declaration.md"
       ],
       "sources": [
-        "Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.h"
+        "Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.h",
+        "Sparkplug/Code/SparkplugPC/spPCVertexDeclaration.cpp",
+        "Sparkplug/Code/SparkplugPC/spPCVertexDeclarationDevice.h",
+        "Sparkplug/Code/SparkplugPC/spPCVertexDeclaration_Device.cpp"
       ]
     },
     {
@@ -4502,7 +4542,16 @@
         "docs/reference/classes/sp-ps2-mesh-data.md"
       ],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spPS2MeshData.h"
+        "Sparkplug/Code/Sparkplug/spPS2MeshData.h",
+        "Sparkplug/Code/Sparkplug/spPS2MeshData.cpp",
+        "Sparkplug/Code/Sparkplug/spPS2MeshDataNormalization.cpp",
+        "Sparkplug/Code/Sparkplug/spPS2MeshDataPacket.cpp",
+        "Sparkplug/Code/Sparkplug/spPS2MeshDataStripPacket.cpp",
+        "Sparkplug/Code/Sparkplug/spPS2MeshPacketEmitter.cpp",
+        "Sparkplug/Code/Sparkplug/spPS2MeshPacketEmitter.h",
+        "Sparkplug/Analysis/PS2/spPS2MeshStripSizing.h",
+        "Sparkplug/Analysis/PS2/spPS2MeshStripSizing.cpp",
+        "Sparkplug/Analysis/PS2/spPS2MeshPacketFormat.h"
       ]
     },
     {
@@ -4534,8 +4583,13 @@
       "registrationBaseIds": {
         "ps2": "0x44DE07FD"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-ps2-microcode-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2MicrocodeManager.h",
+        "Sparkplug/Code/SparkplugPS2/spPS2MicrocodeManager.cpp"
+      ]
     },
     {
       "name": "spPS2MirrorLayer",
@@ -4612,8 +4666,13 @@
       "registrationBaseIds": {
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-ps2-microcode-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2PipelineManager.h",
+        "Sparkplug/Code/SparkplugPS2/spPS2PipelineManager.cpp"
+      ]
     },
     {
       "name": "spPS2ProjectionFX",
@@ -4917,7 +4976,8 @@
         "docs/reference/classes/sp-renderer.md"
       ],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spRenderer.h"
+        "Sparkplug/Code/Sparkplug/spRenderer.h",
+        "Sparkplug/Code/Sparkplug/spRenderer.cpp"
       ]
     },
     {
@@ -4956,7 +5016,8 @@
         "docs/reference/classes/sp-render-node.md"
       ],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spRenderNode.h"
+        "Sparkplug/Code/Sparkplug/spRenderNode.h",
+        "Sparkplug/Code/Sparkplug/spPartitionMembership.cpp"
       ]
     },
     {
@@ -5094,8 +5155,13 @@
         "pc": "0x44DE07FD",
         "ps2": "0x44DE07FD"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-scene.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spScene.h",
+        "Sparkplug/Code/Sparkplug/spScene.cpp"
+      ]
     },
     {
       "name": "spSceneGraphOptimizer",
@@ -6115,7 +6181,10 @@
       },
       "documentation": [],
       "sources": [
-        "Sparkplug/Code/Sparkplug/spVisibilityManager.h"
+        "Sparkplug/Code/Sparkplug/spVisibilityManager.h",
+        "Sparkplug/Code/Sparkplug/spVisibilityManager.cpp",
+        "Sparkplug/Code/Sparkplug/spVisibilityPortal.cpp",
+        "Sparkplug/Code/Sparkplug/spVisibilityOcclusion.cpp"
       ]
     },
     {

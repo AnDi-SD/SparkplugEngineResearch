@@ -15,6 +15,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Run-WinxRemi
 Каждый запуск сохраняет применённую конфигурацию и хеш DLL в новой папке
 `local-data/rtx-remix/runs/play-*`.
 
+Для отдельного подготовленного runtime можно явно выбрать
+`-GameDirectory <каталог игры>` и `-ProbeDirectory <каталог сборки>`.
+Оба каталога должны находиться внутри workspace; DLL в выбранной игре
+сверяется с выбранной сборкой. Launcher выводит каталог игры и hashes
+adapter/client/renderer/server; полный manifest находится в `launch.json`.
+Это позволяет проверять новую сборку в отдельной копии игры.
+Временный `bridge.conf` восстанавливается именно в выбранном каталоге,
+если его содержимое не было независимо изменено после запуска.
+
 `Play-RTX-Debug.cmd` передаёт `-DebugMenu` и запускает уже существующий
 `WinxClubDebug.exe`, проверяя его хеш. F1 открывает штатное дебагменю;
 LOAD LEVEL позволяет переходить между уровнями. Основной EXE не заменяется.
@@ -164,7 +173,7 @@ sample в этом scope; `Unqualified` — отказ квалификации.
 выходного файла:
 
 ```powershell
-python tools/WinxRemix/analyze_light_world_observer.py local-data/rtx-remix/runs/fresh-light-world --output artifacts/WinxRemix/fresh-light-world-analysis.json
+python tools/WinxRemix/scripts/analysis/analyze_light_world_observer.py local-data/rtx-remix/runs/fresh-light-world --output artifacts/WinxRemix/fresh-light-world-analysis.json
 ```
 
 Сопоставление требует одинаковых frame/scene, единственного camera packet и
@@ -238,7 +247,7 @@ verified; собственный layout cache может заполняться.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Run-WinxRemix.ps1 -Mode RTX -DebugMenu -ShaderAudit
-python -B tools/WinxRemix/analyze_shader_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА
+python -B tools/WinxRemix/scripts/analysis/analyze_shader_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА
 ```
 
 Анализатор запускать после закрытия игры. Он требует установленную системную
@@ -270,7 +279,7 @@ Ex-only создание устройства не покрыто.
 Возврат штатного клиента Remix после выхода игры:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Restore-StockRemix.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/scripts/runtime/Restore-StockRemix.ps1
 ```
 
 Скрипт проверяет SHA256 оригинала и сохраняет текущую DLL перед заменой.
@@ -301,13 +310,13 @@ ShaderAudit и MaterialAudit. Пример универсального диаг
 шейдеров остаётся отдельной задачей.
 
 ```powershell
-python tools/WinxRemix/analyze_shader_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА
+python tools/WinxRemix/scripts/analysis/analyze_shader_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА
 ```
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Run-WinxRemix.ps1 -Mode RTX -DebugMenu -SceneLights -MaterialAudit -StartLevel 4 -Windowed
-python tools/WinxRemix/analyze_material_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА --verify-shaders
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-MaterialAudit.ps1
+python tools/WinxRemix/scripts/analysis/analyze_material_audit.py local-data/rtx-remix/runs/ИМЯ-ЗАПУСКА --verify-shaders
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/materials/Test-MaterialAudit.ps1
 ```
 
 Выборка: каждый 300-й кадр, начальная/Reset/F8 область той же диагностики.
@@ -347,5 +356,5 @@ commit `b81a7b566b1eeb9edb4dc2b3c9d3972e0f253ad4`, reference ветка Remix 1.
 Его рабочее дерево чистое. Push URL отключён как защита от случайной отправки;
 это не файловый read-only ACL. Proxy собирается отдельно от renderer.
 Экспериментальный Skin-путь дополнительно требует
-[исправленных шагов массивов renderer](../renderer-skinning-fix/README.md)
+[исправленных шагов массивов renderer](../patches/renderer-skinning-fix/README.md)
 и расширений моста, описанных в руководстве отправки Skin.

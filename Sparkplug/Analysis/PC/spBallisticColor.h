@@ -24,50 +24,11 @@ namespace sparkplug::evidence::pc::ballistic_color_math
         return NormalizeNearest(Wide::Shifted(value, 0), 0, false);
     }
 
-    inline Number MultiplyFloatNearest(const Number first, const float second) noexcept
-    {
-        std::uint32_t bits;
-        std::memcpy(&bits, &second, 4);
-        const auto field = (bits >> 23) & 255;
-        const auto significand = (bits & 0x7FFFFF) | (field ? 0x800000 : 0);
-        if (!first.mantissa || !significand) return {};
-        auto wide = Wide::Shifted(first.mantissa, 0);
-        wide.Multiply(significand);
-        return NormalizeNearest(wide, first.exponent + int(field ? field : 1) - 150,
-            first.negative != bool(bits >> 31));
-    }
+    using transform_const_math::MultiplyFloatNearest;
 
-    inline Number DividePositiveFloatNearest(const Number first, const float second) noexcept
-    {
-        if (!first.mantissa) return {};
-        std::uint32_t bits;
-        std::memcpy(&bits, &second, 4);
-        const auto field = (bits >> 23) & 255;
-        const auto significand = (bits & 0x7FFFFF) | (field ? 0x800000 : 0);
-        auto wide = Wide::Shifted(first.mantissa, 32);
-        std::uint64_t remainder = 0;
-        for (unsigned index = 4; index--;)
-        {
-            const auto dividend = (remainder << 32) | wide.words[index];
-            wide.words[index] = std::uint32_t(dividend / significand);
-            remainder = dividend % significand;
-        }
-        // The quotient has >=8 low bits beyond the 64-bit significand.
-        // A nonzero division remainder contributes sticky below all of them.
-        if (remainder) wide.words[0] |= 1;
-        return NormalizeNearest(wide,
-            first.exponent - int(field ? field : 1) + 150 - 32, first.negative);
-    }
+    using transform_const_math::DividePositiveFloatNearest;
 
-    inline int Compare(const Number first, const Number second) noexcept
-    {
-        if (!first.mantissa && !second.mantissa) return 0;
-        if (first.negative != second.negative) return first.negative ? -1 : 1;
-        const auto magnitude = first.exponent < second.exponent ? -1
-            : first.exponent > second.exponent ? 1
-            : first.mantissa < second.mantissa ? -1 : first.mantissa > second.mantissa ? 1 : 0;
-        return first.negative ? -magnitude : magnitude;
-    }
+    using transform_const_math::Compare;
 
     // Host domain: finite magnitude below2^32. Native FTOL2 also handles
     // larger/exceptional inputs, which are deliberately not claimed here.

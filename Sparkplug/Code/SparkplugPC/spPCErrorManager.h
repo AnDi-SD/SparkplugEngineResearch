@@ -7,6 +7,8 @@
 
 #include <cstdint>
 #include <memory>
+#include <functional>
+#include <string_view>
 
 namespace sparkplug::reconstruction
 {
@@ -37,6 +39,13 @@ namespace sparkplug::reconstruction
         // side effect is intentionally not reproduced by the portable seam.
         [[nodiscard]] static Presentation ClassifyForAnalysis(
             spErrorSeverity severity) noexcept;
+        using ConsoleForAnalysis=std::function<void(std::uint32_t,std::string_view)>;
+        // PC4139C0 prints one error with the HEAD severity's console color.
+        // It neither resolves the modal handler nor clears the queued chain.
+        // Callback models printf(code,"%s\n",text); absent callback uses the
+        // established nonmodal debugger output policy.
+        void PrintErrorForAnalysis(const spError&,bool detailed,
+            const ConsoleForAnalysis& console={}) const;
 
     private:
         static void NonModalHandlerForAnalysis(

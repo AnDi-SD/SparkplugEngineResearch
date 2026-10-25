@@ -60,6 +60,7 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const char* GetSourceFileForAnalysis() const noexcept;
         [[nodiscard]] std::uint32_t GetSourceLineForAnalysis() const noexcept;
         [[nodiscard]] const char* GetMessageForAnalysis() const noexcept;
+        [[nodiscard]] const spError* GetNextForAnalysis() const noexcept { return next_; }
 
         void SetMessageForAnalysis(const char* message);
 
@@ -121,6 +122,13 @@ namespace sparkplug::reconstruction
         [[nodiscard]] bool StoreMessageForAnalysis(
             spError& error,
             const char* message);
+        // PC40EFA0 nonfatal fresh error: consumes0x28 bytes of the fixed data
+        // stack, inherits a higher queued severity, and links before message
+        // storage. Portable ownership keeps that queued object alive until
+        // Clear. Fatal dispatch/allocation-overflow recovery are not modeled;
+        // those inputs are refused before mutation.
+        [[nodiscard]] spError* CreateErrorForAnalysis(spErrorSeverity severity,
+            std::uint32_t code,const char* sourceFile,std::uint32_t sourceLine);
         void LinkErrorForAnalysis(spError& error) noexcept;
         [[nodiscard]] std::string FormatChainForAnalysis(bool detailed) const;
         [[nodiscard]] bool HandleForAnalysis(
@@ -131,6 +139,7 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::size_t GetDataCapacityForAnalysis() const noexcept;
         [[nodiscard]] bool HadDataOverflowForAnalysis() const noexcept;
         [[nodiscard]] bool HadFatalForAnalysis() const noexcept;
+        [[nodiscard]] const spError* GetHeadForAnalysis() const noexcept { return errorHead_; }
 
     private:
         static spErrorManager* instance_;
@@ -138,6 +147,7 @@ namespace sparkplug::reconstruction
         std::vector<char> dataStack_;
         std::size_t dataUsed_ = 0;
         spError* errorHead_ = nullptr;
+        std::vector<std::unique_ptr<spError>> ownedErrors_;
         mutable AnalysisHandlerBinding handler_{};
         mutable bool handlerResolved_ = false;
         bool dataOverflow_ = false;

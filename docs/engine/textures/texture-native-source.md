@@ -31,3 +31,50 @@ The source stores analytical surface format separately from native runtime forma
 it cannot invent a valid writer format for fresh native-data input. A runtime
 writer also rejects stale/mismatched runtime versus surface format after reinit.
 The latter is a host safety guard; full original multi-COM reinit is still open.
+
+## Отдельный COM upload из готовых native records
+
+В [spDXTexture_Native.cpp](../../../Sparkplug/Code/SparkplugDX/spDXTexture_Native.cpp)
+реализован `UploadNativeDeviceTextureForAnalysis`: ветвь `0x004ABBA0` при
+ненулевом native flag. Она использует готовые records из общего
+[`spTextureData`](../../../Sparkplug/Code/Sparkplug/spTextureData.h),
+освобождает прежнюю COM texture, очищает её поле и передаёт это же поле как
+output slot `CreateTexture`. Устройство получает исходные width/height,
+levels `0`, usage `0`, pool `1`, пустой shared handle и формат
+`0/1/2/3 -> 0x15/DXT1/DXT3/DXT5`. HRESULT не определяет успешность этой ветви.
+
+Каждый record выполняет `GetSurfaceLevel`, `GetDesc`, `LockRect` с пустым
+rectangle и flags `0x10`. CPU копирует ровно `rowStride` байт каждой строки;
+источник продвигается на `rowStride`, назначение — на физический pitch.
+Padding назначения остаётся неизменным. Затем следуют `UnlockRect` и
+`Release` surface. Descriptor здесь не читается: незаполненный `GetDesc`
+не останавливает этот путь. Это отличается от измерения byte count, которому
+действительно нужны format/height из descriptor.
+
+После копирования вызывается `GetLevelCount` из helper `0x004AB030` и
+выставляется общий байт обработки mip. Если предоставленных уровней
+достаточно, байт очищается, затем отдельный `GetLevelCount` задаёт поле
+`+0x18`. Поля `1C/20/28/2C/24` получают source byte, flags, размеры и
+initialized. `44/48/31` и владелец palette остаются прежними; runtime
+attachment имеет другой контракт.
+
+COM provider передаёт реальный доступный для записи host span `pBits` с его
+размером. До копирования проверяются extent, pitch не меньше row stride и
+отсутствие пересечения с payload источника. Source records и providers
+должны оставаться стабильными без reentry; по умолчанию допускается не больше
+`32` mip-уровней. Это host-границы памяти, а не проверки оригинального кода.
+Незаданный lock output или недостаточный span дают incomplete с сохранением
+texture и acquired surface для явного учёта вызывающим слоем.
+
+Когда уровней недостаточно, переносимый вход останавливается после известного
+префикса helper с байтом обработки `1`, до непредставленного mip producer.
+Он не подставляет успешный callback для `0x0061039A`. Ветка cross conversion
+и её `0x0060FDB4` также остаются отдельными неподдержанными путями. Captured
+COM/base state этого входа не обновляет автоматически CPU mip shadow и не
+подключает live graphics backend.
+
+При этом ограниченные CPU-модели [raw mip-фильтрации](texture-missing-mips.md),
+[resize](texture-cross-upload.md) и [DXT mip-фильтрации](texture-compressed-mips.md)
+уже существуют и используются serializer-ом. Непредставленная в этом COM
+entry library-ветвь не означает отсутствия этих алгоритмов; модели не являются
+полной реализацией всех параметров исходного SDK wrapper.

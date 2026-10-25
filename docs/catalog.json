@@ -348,7 +348,7 @@
     },
     {
       "path": "docs/engine/materials/material-controllers.md",
-      "title": "PC material controllers and texture tracks — checkpoint 20",
+      "title": "PC material controllers and texture tracks",
       "category": "engine/materials"
     },
     {
@@ -424,6 +424,11 @@
     {
       "path": "docs/engine/materials/shader-contract.md",
       "title": "PC shader resources: исходник, программа и численный результат",
+      "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/materials/shader-discovery.md",
+      "title": "Поиск программ PC и PS2 и проверка полноты",
       "category": "engine/materials"
     },
     {
@@ -582,6 +587,11 @@
       "category": "engine/rendering"
     },
     {
+      "path": "docs/engine/rendering/cpu-preparation.md",
+      "title": "CPU-подготовка кадра: данные, порядок и владение",
+      "category": "engine/rendering"
+    },
+    {
       "path": "docs/engine/rendering/model-render-world.md",
       "title": "PC: модель, render-узел и точные правила копирования",
       "category": "engine/rendering"
@@ -589,6 +599,21 @@
     {
       "path": "docs/engine/rendering/projection-family.md",
       "title": "Проекции: геометрия, FX и разные интерфейсы PC/PS2",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/ps2-cpu-preparation.md",
+      "title": "PS2: scalar-подготовка параметров pipeline",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/ps2-mesh-preparation.md",
+      "title": "PS2: нормализация vertices и сборка mesh packet",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/renderer-boundary.md",
+      "title": "Граница CPU-подготовки и команд графическому устройству",
       "category": "engine/rendering"
     },
     {
@@ -618,7 +643,7 @@
     },
     {
       "path": "docs/engine/rendering/renderer-present-clear.md",
-      "title": "PC Clear / Present boundary",
+      "title": "PC Clear, Present и жизненный цикл устройства",
       "category": "engine/rendering"
     },
     {
@@ -644,6 +669,11 @@
     {
       "path": "docs/engine/rendering/scene-render-runtime.md",
       "title": "PC: целый SceneRender, Shadow manager и DX state cache",
+      "category": "engine/rendering"
+    },
+    {
+      "path": "docs/engine/rendering/source-map.md",
+      "title": "Исходники рендеринга: реализации и границы",
       "category": "engine/rendering"
     },
     {
@@ -908,7 +938,7 @@
     },
     {
       "path": "docs/engine/visibility/visibility-plane-storage.md",
-      "title": "PC: массивы плоскостей видимости и общий блокер копирования",
+      "title": "PC: массивы плоскостей видимости",
       "category": "engine/visibility"
     },
     {
@@ -1912,6 +1942,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-ps2-microcode-manager.md",
+      "title": "spPS2PipelineManager / spPS2MicrocodeManager",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-ps2-texture-data-serializer.md",
       "title": "spPS2TextureDataSerializer",
       "category": "reference/classes"
@@ -1979,6 +2014,11 @@
     {
       "path": "docs/reference/classes/sp-scene-graph-optimizer.md",
       "title": "spSceneGraphOptimizer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-scene.md",
+      "title": "spScene",
       "category": "reference/classes"
     },
     {
@@ -2710,6 +2750,56 @@
       "path": "docs/reference/game-classes.md",
       "title": "Классы игры",
       "category": "reference"
+    },
+    {
+      "path": "docs/reference/shaders.md",
+      "title": "Каталог шейдеров",
+      "category": "reference"
+    },
+    {
+      "path": "docs/reference/shaders/README.md",
+      "title": "Карточки шейдеров",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/ballistic-pfx.md",
+      "title": "BallisticPFX: частицы по времени",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/basic.md",
+      "title": "Basic: преобразование позиции",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/blur.md",
+      "title": "Blur: четыре выборки и яркость",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/bumpmap.md",
+      "title": "Bumpmap: tangent-space свет и normal map",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/fixed.md",
+      "title": "Fixed: Skin, свет и режимы цвета",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/luminance.md",
+      "title": "Luminance: выделение ярких значений",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/ps2-vu.md",
+      "title": "PS2: встроенные образы VU microcode",
+      "category": "reference/shaders"
+    },
+    {
+      "path": "docs/reference/shaders/shadow-volume-point.md",
+      "title": "ShadowVolumePoint: вершины теневого объёма",
+      "category": "reference/shaders"
     }
   ]
 }

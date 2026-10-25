@@ -14,8 +14,8 @@
 `Fixed.rfx` и D3DX9 SDK24 соответствующей архитектуры.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Build-ShaderSource.ps1 -Name shader-source-check
-python tools/WinxRemix/Prepare-SkinShaders.py --source-helper local-data/rtx-remix/shader-source-build/shader-source-check/shader_source.exe --fixed local-data/pc-pristine/Shaders/Fixed.rfx --output local-data/rtx-remix/skin-shader-contracts/skin-contract-check
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/scripts/build/Build-ShaderSource.ps1 -Name shader-source-check
+python tools/WinxRemix/scripts/shaders/Prepare-SkinShaders.py --source-helper local-data/rtx-remix/shader-source-build/shader-source-check/shader_source.exe --fixed local-data/pc-pristine/Shaders/Fixed.rfx --output local-data/rtx-remix/skin-shader-contracts/skin-contract-check
 ```
 
 Генератор принимает установленную реализацию Fixed и создаёт 160 вариантов:
@@ -91,18 +91,18 @@ API. `directLightsSubmitted` требует успешной отправки в
 выборках не является числом уникальных вершин сцены.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SkinShaderContract.ps1 -Name shader-contract-check -Platform x86 -Catalog local-data/rtx-remix/skin-shader-contracts/skin-contract-check/contracts.wsf
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SystemSkinCapture.ps1 -Name skin-device-check
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/skin/Test-SkinShaderContract.ps1 -Name shader-contract-check -Platform x86 -Catalog local-data/rtx-remix/skin-shader-contracts/skin-contract-check/contracts.wsf
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/skin/Test-SystemSkinCapture.ps1 -Name skin-device-check
 ```
 
 Собственные CPU/COM fixtures проверяют отдельные отказы, повторный вход и
 владение; игровой запуск подтверждает связь с фактическими исходными draw.
-Совместимость [постоянной геометрии с весами Fixed](../renderer-skinning-fix/README.md)
+Совместимость [постоянной геометрии с весами Fixed](../patches/renderer-skinning-fix/README.md)
 и визуальная проверка игрового live submit проверяются отдельно.
 
 ## Постоянная геометрия и изменяемая палитра
 
-[Адаптер signed skinning](../winx_skin_gpu_submit.h) передаёт исходные позиции,
+[Адаптер signed skinning](../src/skin/winx_skin_gpu_submit.h) передаёт исходные позиции,
 нормали, UV, явно подготовленные цвета и постоянные массивы весов/индексов.
 Палитра передаётся отдельным расширением instance. Её изменение между позами
 не пересоздаёт mesh. Текущая квалификация по-прежнему вычисляет CPU-эталон
@@ -129,7 +129,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-SystemS
 
 ## Идентичность экземпляра и экспериментальная отправка
 
-[Реестр экземпляров](../winx_native_instance_lifetime.h) связывает сцену,
+[Реестр экземпляров](../src/native/winx_native_instance_lifetime.h) связывает сцену,
 RenderNode owner, Skin, mesh и поколение устройства с собственным номером.
 Идентичность не зависит от номера кадра, позы или названия модели. Реестр
 ограничен 8192 записями; заполнение означает отказ, без переиспользования номера.
@@ -143,7 +143,7 @@ Device.Release удаляют записи устройства. Потеря п
 объектами и не продлевает их жизнь.
 
 `-SkinSubmit` включает экспериментальный путь для RTX с расширениями
-[моста](../skinning-bridge/README.md) и [рендерера](../renderer-skinning-fix/README.md).
+[моста](../patches/skinning-bridge/README.md) и [рендерера](../patches/renderer-skinning-fix/README.md).
 Обычная поставка Remix не подтверждает поддержку этого пути. Launcher включает
 Skin audit, native camera, native lights и общие material channels; каталог
 shader-контрактов обязателен. Material channels сохраняют уже существующие

@@ -9,7 +9,7 @@ Launcher сохраняет `Process` и открытый дескриптор �
 выполняется. Поэтому код выхода и строка об очистке в журнале сами по себе
 не подтверждают освобождение процесса.
 
-[ProcessLifetime.ps1](../ProcessLifetime.ps1) проверяет сигнал удерживаемого
+[ProcessLifetime.ps1](../scripts/runtime/ProcessLifetime.ps1) проверяет сигнал удерживаемого
 дескриптора через `WaitForSingleObject`. `Get-OwnedProcessExitCode` по умолчанию
 отклоняет чтение до сигнала. Режим `-AllowRunning` предназначен только для
 диагностики ожидающего выхода. `Stop-OwnedProcess` при необходимости вызывает
@@ -31,10 +31,10 @@ Launcher сохраняет `Process` и открытый дескриптор �
 ## Проверка без игры и GPU
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/Test-ProcessLifetime.ps1 -Name fresh-process-check
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxRemix/tests/runtime/Test-ProcessLifetime.ps1 -Name fresh-process-check
 ```
 
-[Стенд](../test_process_detach.cpp) собирает собственные EXE и DLL. При выходе
+[Стенд](../tests/runtime/test_process_detach.cpp) собирает собственные EXE и DLL. При выходе
 DLL сообщает вход в очистку и ждёт отдельное событие. Родитель проверяет,
 что код выхода уже появился, а сигнал процесса ещё отсутствует. В первом
 случае родитель разрешает нормальную очистку; во втором проверяет принудительное

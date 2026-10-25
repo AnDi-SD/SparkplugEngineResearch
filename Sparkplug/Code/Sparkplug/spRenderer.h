@@ -6,6 +6,7 @@
 #include "../SparkBase/spBaseObject.h"
 #include "Analysis/PC/spRendererQueueMath.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -131,6 +132,71 @@ namespace sparkplug::reconstruction
         // PC454850: sort even an empty queue, then flag44=1; adjacent support
         // reuse, ignored virtual results, live count reread, stale record bytes.
         [[nodiscard]] static bool FlushAlphaForAnalysis(AlphaQueueForAnalysis&,const AlphaDispatchForAnalysis&);
+
+        // PC456310/456910: separate normal record20 and nine record8 vectors.
+        // Pointers are borrowed. Portable records are NOT the native32 ABI.
+        struct GeneralEntryForAnalysis final
+        {
+            spRenderable* renderable=nullptr;
+            void* support=nullptr; // adjusted support interface, not always RenderNode
+            spCamera* camera=nullptr;
+            std::uint32_t materialKey=0;
+            std::uintptr_t meshIdentity=0;
+        };
+        struct BucketEntryForAnalysis final
+        {
+            spRenderable* renderable=nullptr;
+            void* support=nullptr;
+        };
+        struct GeneralQueueStateForAnalysis final
+        {
+            // Explicit host bound; no native vector limit is inferred.
+            static constexpr std::size_t MaximumEntries=65536;
+            std::vector<GeneralEntryForAnalysis> general;
+            std::array<std::vector<BucketEntryForAnalysis>,9> buckets;
+            bool enabled=false; // explicit caller state, not native startup evidence
+            bool nineBucketMode=false; // original75F8E8; startup value remains unknown
+            bool dispatching=false; // host enqueue/flush reentry guard
+        };
+        struct GeneralQueueInputForAnalysis final
+        {
+            GeneralEntryForAnalysis general;
+            // Original support slot14 and raw renderable14, supplied explicitly.
+            // No PC bucket classifier is invented. General branch ignores both.
+            bool supportEnabled=true;
+            std::uint32_t mode=0;
+        };
+        // materialKey is the observed material4C->18->10->virtual1C result;
+        // meshIdentity is Model/derived58 or0. Unknown owner lookup stays an
+        // explicit input boundary rather than a guessed material-pointer key.
+        // Disabled C050 returns false before input reads. Bucket disabled
+        // support returns true before mode/camera/key/mesh are consumed.
+        [[nodiscard]] static bool EnqueueGeneralForAnalysis(GeneralQueueStateForAnalysis&,
+            const GeneralQueueInputForAnalysis*);
+        struct GeneralDispatchForAnalysis final
+        {
+            using Less=bool (*)(const GeneralEntryForAnalysis&,const GeneralEntryForAnalysis&) noexcept;
+            // Native456090 is a compiler sort, NOT imported CRT qsort. Caller
+            // supplies its chosen sort policy; native tie permutation unproved.
+            void (*sort)(void*,GeneralEntryForAnalysis*,std::size_t,Less)=nullptr;
+            bool (*prepare)(void*,void* support)=nullptr;
+            bool (*render)(void*,spRenderable*,spCamera*,void* support)=nullptr;
+            // Seven selected PC virtual phases are all5B7A00 no-ops. Optional
+            // observer receives native byte slot20/24/28/3C/40/2C/30 and camera;
+            // this is not a replacement bucket renderer or bucket traversal.
+            void (*pcBucketPhase)(void*,std::uint32_t,spCamera*)=nullptr;
+            void* context=nullptr;
+        };
+        // flags correspond in order to globals740240..740244. Slots3C/40
+        // always run. Both branches clear only GENERAL logical contents;
+        // bucket contents/capacity and enabled C050 survive the flush.
+        [[nodiscard]] static bool FlushGeneralForAnalysis(GeneralQueueStateForAnalysis&,
+            spCamera*,const std::array<bool,5>&,const GeneralDispatchForAnalysis&);
+        // PC455FE0 logical clear versus456B10->456AC0 storage release.
+        static void ClearGeneralForAnalysis(GeneralQueueStateForAnalysis&) noexcept;
+        static void ReleaseGeneralForAnalysis(GeneralQueueStateForAnalysis&) noexcept;
+        // Explicit caller/Scene phase operation; flush does not drain buckets.
+        static void ClearBucketQueuesForAnalysis(GeneralQueueStateForAnalysis&) noexcept;
 
     protected:
         explicit spRenderer(std::size_t textureStateCacheCount);

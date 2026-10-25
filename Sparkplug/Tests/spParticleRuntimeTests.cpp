@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <string_view>
 
 using namespace sparkplug::reconstruction;
 namespace {
@@ -102,11 +103,153 @@ void Guards() {
     Check(a.GetRecordsForAnalysis()==b.GetRecordsForAnalysis()&&shared.index==explicitState.index&&shared.state==explicitState.state,"Original global PRNG identity is preserved");
     shared=saved;
 }
+void FrameAndPacking() {
+    using Random=spFunctionEval::RandomStateForAnalysis;
+    using Particle=spParticleSystem;
+    auto node=std::make_shared<spRenderNode>();Check(node->UpdateWorldForAnalysis(),"Frame node world");
+    const auto prepare=[&](Particle& particle,float rate=4) {
+        auto& p=particle.Parameters();p.flags={0,0,0};p.rate=rate;p.times={-1,1};
+        p.regionType=1;p.region={0,0,0};p.direction={1,0,0};p.velocity={2,2};p.angle={0,0};
+        p.acceleration={{{1,0,0},{1,0,0}}};particle.SetRenderNodeForAnalysis(node);
+    };
+    Particle p;prepare(p);Random random;std::string error;
+    Check(p.InitializeForAnalysis(&random,&error),"Frame non-loop Init");
+    Particle::ProductionForAnalysis production;
+    Check(p.ProduceParticlesForAnalysis(3,0,production,&random,&error)
+        && production.limitedRequest==3 && production.created==3,"Concrete producer fills free ring");
+    Check(p.GetPoolStateForAnalysis()[0]==3 && p.GetPoolStateForAnalysis()[1]==1,"Producer owned active/free state");
+    Particle::FrameOptionsForAnalysis options;options.integrationRate=0;
+    const auto initialRecords=p.GetRecordsForAnalysis();
+    Check(p.UpdateForAnalysis(1,options,&random,&error) && p.GetPoolStateForAnalysis()[0]==3,
+        "Strict retirement preserves exact lifetime endpoint");
+    Check(p.UpdateForAnalysis(.25f,options,&random,&error) && p.GetPoolStateForAnalysis()[0]==2
+        && p.GetRecordsForAnalysis()==initialRecords,"Physical retirement retains record bytes");
+
+    Particle emitted;prepare(emitted);Check(emitted.InitializeForAnalysis(&random,&error),"Emission Init");
+    Check(emitted.ProduceParticlesForAnalysis(3,0,production,&random,&error),"Emission prefill");
+    options.emissionEnabled=true;
+    Check(emitted.UpdateForAnalysis(1,options,&random,&error) && emitted.GetPoolStateForAnalysis()[0]==4
+        && emitted.GetFrameStateForAnalysis().accumulator==0,"Frame debit uses original request, not one actual free slot");
+    // The producer's original return and the actual write count differ at128.
+    Particle exact;prepare(exact,128);Check(exact.InitializeForAnalysis(&random,&error),"Exact128 Init");
+    const auto beforeRandom=random;
+    Check(exact.ProduceParticlesForAnalysis(128,0,production,&random,&error)
+        && production.limitedRequest==128 && production.created==0
+        && exact.GetPoolStateForAnalysis()[0]==0 && random.state==beforeRandom.state
+        && random.index==beforeRandom.index,"Producer preserves empty last128 batch and native return");
+
+    Particle loop;prepare(loop,3);loop.Parameters().flags[0]=1;
+    Check(loop.InitializeForAnalysis(&random,&error),"Loop Init via common producer");
+    loop.SetFrameStateForAnalysis({0,.75f,0});unsigned modifierCalls=0;
+    options.modifiers={{[](void* c,float){++*static_cast<unsigned*>(c);},&modifierCalls}};
+    Check(loop.UpdateForAnalysis(3,options,&random,&error) && loop.GetFrameStateForAnalysis().clock==2.75f
+        && loop.GetFrameStateForAnalysis().delta==1 && modifierCalls==0,"Loop full clock, clamped delta, one subtraction and no modifier");
+
+    Particle integrated;prepare(integrated);integrated.Parameters().flags[2]=1;
+    Check(integrated.InitializeForAnalysis(&random,&error)
+        && integrated.ProduceParticlesForAnalysis(1,0,production,&random,&error),"Integrated physical record Init");
+    struct ModifierContext {Particle* particle;unsigned calls=0;} modifier{&integrated};
+    options.emissionEnabled=false;
+    options.modifiers={{[](void* c,float delta){auto& m=*static_cast<ModifierContext*>(c);++m.calls;
+        const auto index=m.particle->GetLinksForAnalysis()[m.particle->GetFirstForAnalysis()][0];
+        auto record=m.particle->GetRecordsForAnalysis()[index];record[3]=10;
+        if(delta<0 || !m.particle->SetRecordForAnalysis(index,record))throw std::runtime_error("Modifier fixture");},&modifier}};
+    Check(integrated.UpdateForAnalysis(.1f,options,&random,&error),"Frame executes explicit modifier then integration");
+    const auto physical=integrated.GetLinksForAnalysis()[integrated.GetFirstForAnalysis()][0];
+    Check(modifier.calls==1 && integrated.GetRecordsForAnalysis()[physical][0]==1
+        && integrated.GetRecordsForAnalysis()[physical][3]==10.01f,"Modifier result feeds same-step concrete record integration");
+    options.modifiers.clear();
+    Check(integrated.UpdateForAnalysis(0,options,&random,&error)
+        && integrated.GetRecordsForAnalysis()[physical][0]==1
+        && integrated.GetRecordsForAnalysis()[physical][3]>10.01f,"Zero delta still changes velocity once");
+
+    struct DrawContext {bool worldReply=true;unsigned worlds=0,colors=0,draws=0;std::vector<unsigned> vertices;
+        std::vector<sparkplug::evidence::pc::BallisticCpuPackedVertexForAnalysis> stream;} draw;
+    Particle::CpuDrawDispatchForAnalysis dispatch;
+    dispatch.context=&draw;
+    dispatch.setWorld=[](void* c,const std::array<float,16>& world){auto& d=*static_cast<DrawContext*>(c);++d.worlds;
+        Check(world[12]==7 && world[13]==8 && world[14]==9,"Local draw SetWorld uses translation only");return d.worldReply;};
+    dispatch.color=[](void* c,float,float,float,bool,std::uint32_t,std::uint32_t,std::uint32_t& out)
+        {++static_cast<DrawContext*>(c)->colors;out=0x01020304;return true;};
+    dispatch.uploadAndDraw=[](void* c,const sparkplug::evidence::pc::BallisticCpuPackedVertexForAnalysis* v,
+        std::uint32_t count,const std::uint16_t* indices,std::uint32_t indexCount,std::uint32_t kind,std::uint32_t primitiveCount){
+        auto& d=*static_cast<DrawContext*>(c);++d.draws;d.vertices.push_back(count);
+        Check(kind==2 && primitiveCount==count/2 && indexCount==count/4*6,"Concrete external draw counts");
+        if(count){Check(indices[0]==0 && indices[5]==3 && v[0].color==0x01020304,"Concrete packed spans before upload");d.stream.assign(v,v+count);}return false;};
+    Particle::CpuDrawInputForAnalysis input;input.nodePosition={7,8,9};input.vertexCapacity=8;input.indexCapacity=12;
+    Particle::CpuDrawStateForAnalysis drawState;drawState.effectField1C=9;draw.worldReply=false;
+    Check(!p.DrawCpuForAnalysis(input,dispatch,drawState,&error) && drawState.effectField1C==9
+        && draw.draws==0,"SetWorld failure preserves byte and prevents packing/submission");
+    draw.worldReply=true;
+    Check(emitted.DrawCpuForAnalysis(input,dispatch,drawState,&error) && drawState.effectField1C==0
+        && drawState.submittedBatches==2 && drawState.rejectedSubmissionReplies==2
+        && draw.vertices==std::vector<unsigned>{8,0} && draw.colors==2,"Concrete batches retain empty final draw and ignore per-batch false");
+    dispatch.color=nullptr;
+    Check(!integrated.DrawCpuForAnalysis(input,dispatch,drawState,&error),"Nonempty core draw requires explicit color provider");
+}
+int ClosureCase(std::string_view name) {
+    Check(name=="init-directed" || name=="refill" || name=="retire" || name=="modifier"
+        || name=="zero" || name=="loop-once" || name=="draw-empty","Explicit closure case");
+    spParticleSystem particle;auto node=std::make_shared<spRenderNode>();
+    node->SetPositionForAnalysis({7,8,9});node->MarkLocalTransformDirtyForAnalysis();
+    Check(node->UpdateWorldForAnalysis(),"Closure world input");particle.SetRenderNodeForAnalysis(node);
+    auto& p=particle.Parameters();p.flags={std::uint8_t(name=="init-directed"),0,0};
+    p.rate=4;p.times={-1,1};p.regionType=1;p.region={1,2,3};p.direction={0,0,1};
+    p.velocity={2,2};p.angle={0,0};p.acceleration={{{1,.5f,0},{1,.5f,0}}};p.colors={0,0};
+    spFunctionEval::RandomStateForAnalysis random;random.Seed(5489);std::string error;
+    Check(particle.InitializeForAnalysis(&random,&error),error.c_str());
+    if(name!="init-directed") {
+        spParticleSystem::ProductionForAnalysis production;
+        const auto initial=name=="modifier" || name=="zero"?1u:name=="draw-empty"?4u:3u;
+        Check(particle.ProduceParticlesForAnalysis(initial,0,production,&random,&error),error.c_str());
+        p.flags[0]=name=="loop-once";p.flags[2]=name=="modifier" || name=="zero";
+    }
+    struct Context {spParticleSystem* particle;std::vector<std::uint32_t> modifierDelta,world;
+        struct Batch {std::uint32_t kind,count;std::vector<std::uint32_t> words;std::vector<std::uint16_t> indices;};
+        std::vector<Batch> batches;} context{&particle};
+    if(name!="init-directed") {
+        particle.SetFrameStateForAnalysis({0,name=="loop-once"?.75f:0,0});
+        spParticleSystem::FrameOptionsForAnalysis options;options.integrationRate=0;options.emissionEnabled=name=="refill";
+        if(name=="modifier")options.modifiers={{[](void* c,float delta){auto& x=*static_cast<Context*>(c);
+            x.modifierDelta.push_back(Bits(delta));const auto n=x.particle->GetLinksForAnalysis()[x.particle->GetFirstForAnalysis()][0];
+            auto record=x.particle->GetRecordsForAnalysis()[n];record[3]=10;
+            Check(x.particle->SetRecordForAnalysis(n,record),"Closure modifier record");},&context}};
+        const float delta=name=="refill"?1.f:name=="retire"?1.25f:name=="modifier"?.125f:name=="loop-once"?3.f:0;
+        Check(particle.UpdateForAnalysis(delta,options,&random,&error),error.c_str());
+    }
+    spParticleSystem::CpuDrawInputForAnalysis input;input.nodePosition={7,8,9};input.vertexCapacity=8;input.indexCapacity=12;
+    spParticleSystem::CpuDrawDispatchForAnalysis dispatch;dispatch.context=&context;
+    dispatch.setWorld=[](void* c,const std::array<float,16>& world){auto& out=static_cast<Context*>(c)->world;
+        for(float f:world)out.push_back(Bits(f));return true;};
+    dispatch.color=[](void*,float,float,float,bool,std::uint32_t a,std::uint32_t b,std::uint32_t& out)
+        {Check(!a&&!b,"Exact zero-color provider domain");out=0;return true;};
+    dispatch.uploadAndDraw=[](void* c,const sparkplug::evidence::pc::BallisticCpuPackedVertexForAnalysis* vertices,
+        std::uint32_t count,const std::uint16_t* indices,std::uint32_t indexCount,std::uint32_t kind,std::uint32_t primitives){
+        Context::Batch b{kind,primitives};const auto* bytes=reinterpret_cast<const std::uint8_t*>(vertices);
+        for(std::size_t n=0;n<std::size_t(count)*6;++n){std::uint32_t u;std::memcpy(&u,bytes+4*n,4);b.words.push_back(u);}
+        if(indexCount)b.indices.assign(indices,indices+indexCount);static_cast<Context*>(c)->batches.push_back(std::move(b));return false;};
+    spParticleSystem::CpuDrawStateForAnalysis state;state.effectField1C=9;
+    Check(particle.DrawCpuForAnalysis(input,dispatch,state,&error),error.c_str());
+    const auto array=[](const auto& values){std::cout<<'[';bool first=true;
+        for(auto value:values){std::cout<<(first?"":",")<<std::uint32_t(value);first=false;}std::cout<<']';};
+    std::cout<<"{\"first\":"<<particle.GetFirstForAnalysis()<<",\"boundary\":"<<particle.GetBoundaryForAnalysis()<<",\"pool\":";
+    array(particle.GetPoolStateForAnalysis());std::cout<<",\"records\":[";
+    bool first=true;for(const auto& record:particle.GetRecordsForAnalysis()){std::cout<<(first?"":",");first=false;
+        std::array<std::uint32_t,8> words{};for(unsigned n=0;n<8;++n)words[n]=Bits(record[n]);array(words);}
+    std::cout<<"],\"links\":[";first=true;for(const auto& link:particle.GetLinksForAnalysis()){std::cout<<(first?"":",");first=false;array(link);}
+    std::cout<<"],\"randomIndex\":"<<random.index<<",\"randomState\":";array(random.state);
+    std::cout<<",\"modifierDelta\":";array(context.modifierDelta);std::cout<<",\"world\":";array(context.world);
+    std::cout<<",\"effectField1C\":"<<unsigned(state.effectField1C)<<",\"batches\":[";first=true;
+    for(const auto& b:context.batches){std::cout<<(first?"":",")<<"{\"kind\":"<<b.kind<<",\"primitives\":"<<b.count<<",\"words\":";
+        first=false;array(b.words);std::cout<<",\"indices\":";array(b.indices);std::cout<<'}';}std::cout<<"]}\n";return 0;
+}
 }
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string_view(argv[1])=="--closure-case")return ClosureCase(argv[2]);
         Captures(argc==2?std::filesystem::path(argv[1]):std::filesystem::path(__FILE__).parent_path()/"Fixtures/particle-init.dat");
         Guards();
+        FrameAndPacking();
         std::cout<<"PASS "<<checks<<" particle CPU checks; "<<compared<<" original initialized words\n";return 0;
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }

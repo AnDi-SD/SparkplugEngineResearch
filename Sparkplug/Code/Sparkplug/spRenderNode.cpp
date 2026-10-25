@@ -35,6 +35,8 @@ namespace sparkplug::reconstruction
 
     spRenderNode::~spRenderNode()
     {
+        ClearPartitionsForAnalysis(true);
+        ClearPartitionsForAnalysis(false); //425092..B5 frees reverse storage before support teardown
         ClearRenderablesForAnalysis();
     }
 

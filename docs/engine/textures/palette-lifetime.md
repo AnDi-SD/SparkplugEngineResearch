@@ -28,7 +28,9 @@ and 1024 entry bytes, writes palette.index, returns true **even on failed HRESUL
 `4BB840` appends non-FFFFFFFF index to that free list (native `5956F0` allocation,
 `4BB730` count update) but does **not** reset palette.index. A register/unregister/
 reuse sequence proves index reuse and restored empty circular sentinel.
-Repeated unregister/overflow and actual device palette selection remain open.
+Repeated recycle/remove-all and counter wrap are now represented by concrete
+[palette-pool source operations](../../reference/classes/sp-texture.md#pc-palette-индекс-устройства-и-замена-владельца).
+Their bounded contract does not establish a live device palette-selection flow.
 
 ## Texture palette ownership hazards in the original
 
@@ -73,8 +75,14 @@ flag. They cannot be silently serialized as a valid all-black palette.
 `spDXTextureSerializer` reads/writes the exact palette bytes using the same runtime
 codec; CPU shadow leaves index unregistered rather than simulating a live GPU.
 
-Host ownership uses `unique_ptr`, replacing and releasing palettes safely. It
-deliberately does not reproduce native leaks, alias deletion or incorrect index
-unregistration. Failed source rereads retain the prior valid palette; malformed
-or uninitialized palettes fail before producing invented output. These are
-explicit safety differences, not claims that original code had rollback/RAII.
+The CPU codec's `AdoptPaletteForAnalysis` uses `unique_ptr` and retains its safe
+replacement policy. Failed source rereads retain the prior valid palette;
+malformed or uninitialized palettes fail before producing invented output.
+The separate recovered `ReplaceDevicePaletteForAnalysis` preserves the original
+recycle-NEW-before-delete-OLD order on valid distinct owners, while refusing
+NULL/alias hazards. `AttachOwnedDeviceTextureForAnalysis` joins that setter and
+the real index-pool operations to captured COM attachment before metadata
+publication. Its ownership/coherence and partial-failure boundaries are described
+in the linked class contract. Final portable RAII teardown still differs from
+the native DX destructor's surviving palette. None of these explicit host
+policies implies that the original had rollback or safe alias handling.

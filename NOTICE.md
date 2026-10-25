@@ -34,6 +34,18 @@ In particular, modifications to MPL-2.0-covered source files remain subject to t
 
 Separate files and independently written portions of a larger work are not required by this project to be licensed under the MPL-2.0 merely because they are combined with MPL-2.0-covered files.
 
+## PCSX2 VU disassembler
+
+The standalone ResearchWorkbench adapter `ps2_vu_disassembler.cpp` contains
+formatting code adapted from PCSX2, Copyright 2002-2026 PCSX2 Dev Team,
+licensed under GPL-3.0-or-later. This file is an explicit exception to the
+repository's default MPL-2.0 license and is not linked into SparkplugEngine.
+
+The unmodified decoder headers and GPL license are external build inputs.
+The pinned source, file hashes and local adapter repairs are recorded in
+[`ps2_vu_decoder_source.json`](tools/ResearchWorkbench/ps2_vu_decoder_source.json).
+Source: [PCSX2](https://github.com/PCSX2/pcsx2/tree/265d123dc33ee0ddf9c31e5bdf6c03f9d64e9d34/pcsx2/DebugTools).
+
 ## No warranty
 
 The project is provided without warranty. See the Mozilla Public License 2.0 for the applicable warranty disclaimer and limitation of liability.

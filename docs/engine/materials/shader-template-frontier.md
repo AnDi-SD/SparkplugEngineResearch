@@ -12,12 +12,22 @@ the result in manager40. Non-NULL result is passed to4D0650; loader cleaned
 through4C9790. 4D56D0 reads text via4D0A30 before parser processing.
 No whole parser/compiler execution is substituted by a fabricated result.
 
+Этот порядок теперь выражен общими методами manager и RFX loader, включая
+присваивание владельца **до** инициализации и игнорирование её AL в native
+startup. Границы повторного запуска, directory/per-file providers и отличие
+аннотаций `spDXAsmShaderParser` от внешнего assembler описаны в
+[shader manager](shader-manager-key.md#загрузка-при-запуске).
+
 4CFFE0 has separate611241 and611324 branches. The latter returns bytecode,
 error and constant-table interfaces; the table feeds original shader append
 4AF940. Bytecode size/data are then copied to shader48/4C. Exact upstream
-argument semantics, library attribution, format grammar, template ownership,
-all success/failure cleanup and cache-miss end-to-end execution remain open.
-These are the next connected research tasks, before claiming native rendering.
+argument semantics and library attribution are described in
+[RFX pipeline](rfx-pipeline.md). Отдельный standalone per-file load/assemble/
+annotations/device path представлен в
+[shader manager](shader-manager-key.md#загрузка-одного-standalone-shader).
+Это не закрывает все RFX failure cleanup, повторную загрузку, процессное владение
+manager или интеграцию с живым устройством. Наличие общего startup метода
+не означает полноту класса либо игровую квалификацию.
 
 ## Accounting change, not research gain
 

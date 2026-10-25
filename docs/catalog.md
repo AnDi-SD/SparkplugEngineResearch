@@ -91,7 +91,7 @@
 - [PC decoded material + SAN/scene/mesh → Skin draw](engine/materials/skin-material-mesh-render.md).
 - [PC full Skin material state protocol](engine/materials/skin-material-protocol.md).
 - [PC material color,](engine/materials/material-color.md).
-- [PC material controllers and texture tracks — checkpoint 20](engine/materials/material-controllers.md).
+- [PC material controllers and texture tracks](engine/materials/material-controllers.md).
 - [PC material installation and state batch](engine/materials/material-install.md).
 - [PC material lighting and color sources](engine/materials/material-lighting.md).
 - [PC material pass update and texture binding](engine/materials/material-pass-binding.md).
@@ -115,6 +115,7 @@
 - [RFX: от файла к shader](engine/materials/rfx-pipeline.md).
 - [Whole PC shader-manager generating miss](engine/materials/shader-generation.md).
 - [Материалы и шейдеры](engine/materials/README.md).
+- [Поиск программ PC и PS2 и проверка полноты](engine/materials/shader-discovery.md).
 
 ## Движок / Объекты, владение и уведомления
 
@@ -149,9 +150,10 @@
 
 ## Движок / Отрисовка
 
+- [CPU-подготовка кадра: данные, порядок и владение](engine/rendering/cpu-preparation.md).
 - [PC automatic draw: создание шейдера и повторное использование](engine/rendering/renderer-generated-draw.md).
 - [PC cached automatic weighted draw](engine/rendering/renderer-cached-draw.md).
-- [PC Clear / Present boundary](engine/rendering/renderer-present-clear.md).
+- [PC Clear, Present и жизненный цикл устройства](engine/rendering/renderer-present-clear.md).
 - [PC complete cached weighted submission](engine/rendering/renderer-weighted-submit.md).
 - [PC complete geometry submission](engine/rendering/renderer-submit.md).
 - [PC material UV → renderer matrix submission](engine/rendering/uv-renderer.md).
@@ -162,6 +164,10 @@
 - [PC scene boundaries and real material payload](engine/rendering/renderer-scene.md).
 - [PC: модель, render-узел и точные правила копирования](engine/rendering/model-render-world.md).
 - [PC: целый SceneRender, Shadow manager и DX state cache](engine/rendering/scene-render-runtime.md).
+- [PS2: scalar-подготовка параметров pipeline](engine/rendering/ps2-cpu-preparation.md).
+- [PS2: нормализация vertices и сборка mesh packet](engine/rendering/ps2-mesh-preparation.md).
+- [Граница CPU-подготовки и команд графическому устройству](engine/rendering/renderer-boundary.md).
+- [Исходники рендеринга: реализации и границы](engine/rendering/source-map.md).
 - [Отрисовка](engine/rendering/README.md).
 - [Проекции: геометрия, FX и разные интерфейсы PC/PS2](engine/rendering/projection-family.md).
 
@@ -231,7 +237,7 @@
 - [PC polygon clipping: unnamed value helper и точные пограничные правила](engine/visibility/polygon-clipping.md).
 - [PC: partition graph и статические render supports](engine/visibility/partition-runtime.md).
 - [PC: SceneInit, partition transfer и spVisibilityManager](engine/visibility/visibility-runtime.md).
-- [PC: массивы плоскостей видимости и общий блокер копирования](engine/visibility/visibility-plane-storage.md).
+- [PC: массивы плоскостей видимости](engine/visibility/visibility-plane-storage.md).
 - [Видимость и пространственные структуры](engine/visibility/README.md).
 
 ## Форматы
@@ -329,6 +335,7 @@
 ## Справочник
 
 - [Каталог классов](reference/classes.md).
+- [Каталог шейдеров](reference/shaders.md).
 - [Классы движка](reference/engine-classes.md).
 - [Классы игры](reference/game-classes.md).
 - [Справочник](reference/README.md).
@@ -513,6 +520,7 @@
 - [spPS2Mesh](reference/classes/sp-ps2-mesh.md).
 - [spPS2MeshData](reference/classes/sp-ps2-mesh-data.md).
 - [spPS2MeshDataSerializer](reference/classes/sp-ps2-mesh-data-serializer.md).
+- [spPS2PipelineManager / spPS2MicrocodeManager](reference/classes/sp-ps2-microcode-manager.md).
 - [spPS2TextureDataSerializer](reference/classes/sp-ps2-texture-data-serializer.md).
 - [spPS2VideoStream](reference/classes/sp-ps2-video-stream.md).
 - [spQuad3D](reference/classes/sp-quad-3d.md).
@@ -526,6 +534,7 @@
 - [spResource](reference/classes/sp-resource.md).
 - [spResourceFATSerializer](reference/classes/sp-resource-fat-serializer.md).
 - [spResourceManager](reference/classes/sp-resource-manager.md).
+- [spScene](reference/classes/sp-scene.md).
 - [spSceneGraphOptimizer](reference/classes/sp-scene-graph-optimizer.md).
 - [spSerializer](reference/classes/sp-serializer.md).
 - [spSerializerHook](reference/classes/sp-serializer-hook.md).
@@ -621,3 +630,15 @@
 - [wxVineClimbingState](reference/classes/wx-vine-climbing-state.md).
 - [wxVulnerableState](reference/classes/wx-vulnerable-state.md).
 - [Карточки классов](reference/classes/README.md).
+
+## Справочник / Карточки шейдеров
+
+- [BallisticPFX: частицы по времени](reference/shaders/ballistic-pfx.md).
+- [Basic: преобразование позиции](reference/shaders/basic.md).
+- [Blur: четыре выборки и яркость](reference/shaders/blur.md).
+- [Bumpmap: tangent-space свет и normal map](reference/shaders/bumpmap.md).
+- [Fixed: Skin, свет и режимы цвета](reference/shaders/fixed.md).
+- [Luminance: выделение ярких значений](reference/shaders/luminance.md).
+- [PS2: встроенные образы VU microcode](reference/shaders/ps2-vu.md).
+- [ShadowVolumePoint: вершины теневого объёма](reference/shaders/shadow-volume-point.md).
+- [Карточки шейдеров](reference/shaders/README.md).

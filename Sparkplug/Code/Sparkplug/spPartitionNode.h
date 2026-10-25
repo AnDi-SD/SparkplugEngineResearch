@@ -1,8 +1,8 @@
 #pragma once
 
 // Inferred source path; original PC RTTI proves the class/base names.
-// Partial file-resource ownership/query slice, NOT all33 native slots or
-// dynamic render/occlusion placement and Scene visibility initialization.
+// Partial file-resource ownership/query and base borrowed membership slice.
+// Not all33 slots, derived spatial placement or Scene initialization.
 #include "Code/SparkBase/spBaseObject.h"
 #include <array>
 #include <vector>
@@ -15,6 +15,8 @@ namespace sparkplug::reconstruction
     class spPartitionSystem;
     class spPartitionRenderable;
     class spStaticRenderObject;
+    class spRenderNode;
+    class spOcclusionVolume;
     class spCollisionInfo;
     class spPartitionNode : public spBaseObject
     {
@@ -38,6 +40,8 @@ namespace sparkplug::reconstruction
                                                std::unique_ptr<spPartitionNode> child) noexcept;
         // Legacy query fixture seam, independent of actual owned Zone below.
         void SetZonePresentForAnalysis(bool present) noexcept;
+        // Includes the legacy explicit query-fixture seam, as FindLeaf does.
+        [[nodiscard]] bool HasZoneForAnalysis() const noexcept;
         [[nodiscard]] spPartitionNode* GetParentForAnalysis() const noexcept{return parent_;}
         [[nodiscard]] std::uint32_t GetDebugColorForAnalysis() const noexcept{return debugColor_;}
         void SetDebugColorForAnalysis(std::uint32_t value) noexcept{debugColor_=value;}
@@ -60,10 +64,27 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const auto& GetCollisionsForAnalysis() const noexcept{return collisions_;}
         [[nodiscard]] const auto& GetStaticObjectsForAnalysis() const noexcept{return statics_;}
         void RemoveCollisionForAnalysis(spCollisionInfo* collision,bool notify=true) noexcept;
+        // Actual base426690/4266B0: append opposite borrowed link FIRST, then
+        // append own link, preserving duplicates. Derived spatial insertion is
+        // not supplied by these base bodies; unsupported overrides are refused.
+        [[nodiscard]] virtual bool InsertDynamicForAnalysis(spRenderNode* value);
+        [[nodiscard]] virtual bool InsertOccluderForAnalysis(spOcclusionVolume* value);
+        virtual void RemoveDynamicForAnalysis(spRenderNode* value,bool notify=true) noexcept;
+        virtual void RemoveOccluderForAnalysis(spOcclusionVolume* value,bool notify=true) noexcept;
+        // Native notifying clear drains BACK, calls opposite remove(false)
+        // before popping and keeps storage. Non-notifying clear frees own
+        // storage WITHOUT repairing opposite links; caller owns that hazard.
+        void ClearDynamicsForAnalysis(bool notify=true) noexcept;
+        void ClearOccludersForAnalysis(bool notify=true) noexcept;
+        [[nodiscard]] const auto& GetDynamicObjectsForAnalysis() const noexcept{return dynamics_;}
+        [[nodiscard]] const auto& GetOccludersForAnalysis() const noexcept{return occluders_;}
+        [[nodiscard]] bool HasDynamicStorageForAnalysis() const noexcept{return dynamics_.capacity()!=0;}
+        [[nodiscard]] bool HasOccluderStorageForAnalysis() const noexcept{return occluders_.capacity()!=0;}
+        [[nodiscard]] auto GetVisibilityMarkForAnalysis() const noexcept{return visibilityMark_;}
+        void SetVisibilityMarkForAnalysis(std::uint32_t value) noexcept{visibilityMark_=value;}
 
       protected:
         explicit spPartitionNode(std::size_t childCount);
-        [[nodiscard]] bool HasZoneForAnalysis() const noexcept;
 
       private:
         std::vector<std::unique_ptr<spPartitionNode>> children_;
@@ -77,5 +98,8 @@ namespace sparkplug::reconstruction
         std::unique_ptr<spPartitionRenderable> payload_;
         std::vector<spCollisionInfo*> collisions_;
         std::vector<std::shared_ptr<spStaticRenderObject>> statics_;
+        std::vector<spRenderNode*> dynamics_; // borrowed native20
+        std::vector<spOcclusionVolume*> occluders_; // borrowed native40
+        std::uint32_t visibilityMark_=0; // native7C
     };
 } // namespace sparkplug::reconstruction

@@ -7,12 +7,15 @@ from __future__ import annotations
 import argparse
 import json
 import posixpath
+import subprocess
 from pathlib import Path
+import shader_registry
 
 ROOT = Path(__file__).resolve().parents[2]
 START = '<!-- catalog:start -->'
 END = '<!-- catalog:end -->'
 CATEGORIES = {
+    'shaders': ('Карточки шейдеров', 'Назначение, входы, выходы и ограничения известных PC-программ. Полный перечень стадий находится в [каталоге шейдеров](../shaders.md).'),
     'architecture': ('Архитектура и жизненный цикл', 'Ядро связывает менеджеры и задаёт порядок обновления. Начните с [архитектуры](overview.md) и [PC-кадра](engine-frame.md).'),
     'objects': ('Объекты, владение и уведомления', 'Базовая объектная модель связывает идентичность, имена и время жизни. Регистрации и поля отдельных типов находятся в [справочнике классов](../../reference/classes.md).'),
     'resources': ('Ресурсы и сериализация', 'Загрузка восстанавливает объектный граф и его ссылки. Начните с [общего конвейера](pipeline.md); расположение байтов описано в [SMO/FFPS](../../formats/smo.md).'),
@@ -47,9 +50,22 @@ def link(label: str, target: str, source: str) -> str:
     return f'[{label}]({posixpath.relpath(target, posixpath.dirname(source))})'
 
 
+def public_document_paths(root: Path) -> set[str]:
+    """Respect the public Git composition, including local exclusion patterns."""
+    if (root / '.git').exists():
+        result = subprocess.run(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+                                cwd=root, check=True, capture_output=True)
+        return {p for p in result.stdout.decode('utf-8').split('\0')
+                if p.startswith('docs/') and p.endswith('.md') and (root / p).is_file()}
+    return {p.relative_to(root).as_posix() for p in (root / 'docs').rglob('*.md') if p.is_file()}
+
+
 def generated_files() -> dict[str, str]:
     generated = {}
+    public_paths = public_document_paths(ROOT)
     registry = json.loads((ROOT / 'docs/reference/classes.json').read_text(encoding='utf-8'))
+    if (ROOT / shader_registry.REGISTRY).is_file():
+        generated['docs/reference/shaders.md'] = shader_registry.document(ROOT)
     classes = registry['classes']
     for owner, heading in (('engine', 'Классы движка'), ('game', 'Классы игры')):
         source = f'docs/reference/{owner}-classes.md'
@@ -79,8 +95,11 @@ Class ID — идентификатор зарегистрированного �
 
 Карточка описывает известные части класса, а ссылка на исходники — имеющуюся реализацию. Ни то ни другое не означает полного восстановления всех методов. Для поиска имени или ID используйте поиск по странице соответствующего списка либо JSON.
 '''
-    folders = sorted(p for area in ('engine', 'game') for p in (ROOT / 'docs' / area).iterdir() if p.is_dir())
+    folders = sorted(p for area in ('engine', 'game') for p in (ROOT / 'docs' / area).iterdir()
+                     if p.is_dir() and any(path.startswith(p.relative_to(ROOT).as_posix() + '/') for path in public_paths))
     folders.append(ROOT / 'docs/reference/classes')
+    if (ROOT / 'docs/reference/shaders').is_dir():
+        folders.append(ROOT / 'docs/reference/shaders')
     for folder in folders:
         rel = folder.relative_to(ROOT).as_posix()
         source = rel + '/README.md'
@@ -92,12 +111,12 @@ Class ID — идентификатор зарегистрированного �
         current = path.read_text(encoding='utf-8-sig') if path.exists() else f'# {heading}\n\n{intro}\n'
         base = current.split(START, 1)[0].rstrip()
         rows = [base, '', START, '', '## Статьи', '']
-        files = sorted((p for p in folder.glob('*.md') if p.name != 'README.md'), key=lambda p: (title(p).casefold(), p.name))
+        files = sorted((p for p in folder.glob('*.md') if p.name != 'README.md' and p.relative_to(ROOT).as_posix() in public_paths), key=lambda p: (title(p).casefold(), p.name))
         rows += [f'- [{title(p)}]({p.name}).' for p in files]
         rows += ['', END, '']
         generated[source] = '\n'.join(rows)
     # Include newly generated pages before they are written.
-    paths = {p.relative_to(ROOT).as_posix() for p in (ROOT / 'docs').rglob('*.md') if p.name != 'catalog.md'} | set(generated)
+    paths = {p for p in public_paths if p != 'docs/catalog.md'} | set(generated)
     entries = []
     for path in sorted(paths):
         heading = generated[path].splitlines()[0][2:] if path in generated else title(ROOT / path)

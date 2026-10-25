@@ -14,19 +14,29 @@
 `spDXRenderer` helper4AE0E0 использует map по offsetF358:
 headF35C/countF360; key — **engine component mask**, value — declaration pointer.
 Actual hit возвращает pointer без factory/Init; stored null тоже возвращается,
-не создавая замену. Empty miss отдельно остановлен передfactory4AE111.
+не создавая замену.
 
 Полный miss также исполнен:factory4C9C20→vslot1C4C9D20→baseFVF init→
 element builder4C9A00→COM CreateVertexDeclaration(device slot158h)→
 native map insertion4AE060. Повторный ключ возвращает прежний объект без
 повторного COM create. Это общий cache, не уникальная declaration каждого mesh.
 
-Init4C9D20 **игнорирует HRESULT**, освобождает временный element array и
-сохраняет out pointer в18. Directed failure с явно нулевым COM out тоже
-кэширует объект, но с null COM field. Это не доказательство всех failed-out
-вариантов. Bind4C9D00 использует свой18 и device slot15Ch, игнорируя переданный
-аргумент и HRESULT. Destructor4C99A0 отпускает COM18, обнуляет его и вызывает
-base destructor. Renderer owns cached objects; mesh84 заимствует pointer.
+Init4C9D20 сначала обновляет FVF, затем строит временный element array.
+COM получает выходной указатель на **stack slot исходного аргумента flags**,
+а не прямо на поле18. После вызова Init игнорирует HRESULT, освобождает
+element array и только затем копирует временный output в18.
+
+Явно записанный null и ненулевой output при failed HRESULT оба сохраняются
+и кэшируются. Если COM не записал output, сохраняется исходное значение
+flags; для ненулевых flags это небезопасное значение, а не доказанный COM
+объект. Повторный Init не освобождает прежний18 перед перезаписью: старое
+владение может утечь. FVF обновляется до COM, старый18 сохраняется до
+последующей публикации нового output.
+
+Bind4C9D00 использует свой18 и device slot15Ch, игнорируя переданный
+аргумент и HRESULT. Destructor4C99A0 отпускает ненулевой COM18 и обнуляет
+его независимо от возвращённого reference count, затем вызывает base
+destructor. Renderer owns cached objects; mesh84 заимствует pointer.
 
 ## Element builder
 
@@ -66,4 +76,21 @@ Weights независимо от count занимают **один** element, �
 
 ## Восстановленные исходники
 
-Host использует shared_ptr вместо native borrowed pointer, не воспроизводя dangling references при раннем уничтожении renderer. Эти host lifetimes не выдаются за native teardown. All27 CTests pass.
+CPU builder остаётся общим. [Device Init/Bind/Release](../../../Sparkplug/Code/SparkplugPC/spPCVertexDeclaration_Device.cpp)
+и [renderer cache](../../../Sparkplug/Code/SparkplugDX/spDXRenderer_Declarations.cpp)
+используют явные COM endpoints. Provider отдельно сообщает, записал ли он
+valid/null output; HRESULT не подменяет это знание. Незаписанное ненулевое
+значение flags сохраняется, но переносимый Bind/Release возвращает incomplete
+без обращения по нему. Оригинальный опасный Bind/teardown этим не квалифицирован.
+
+Дополнительный CPU-only facade отделён признаком device initialization:
+его запись кэша не выдаётся за созданную COM declaration. После device Init,
+включая null или уже освобождённый output, CPU-only Init отклоняется до
+изменения layout. Смена release owner при живом handle тоже отклоняется до
+изменения состояния. Это host guards, а не обнаруженные проверки оригинала.
+
+Host использует shared_ptr вместо native borrowed pointer. Explicit Release
+очищает поля перед удалением записей кэша; если встретилось unsafe значение,
+сохраняется уже выполненный prefix, атомарного rollback нет. Равенство нулевых
+полей после Release не означает одинаковый host/native destructor lifetime.
+Полный renderer constructor/destructor и реальный GPU этой реализацией не закрыты.

@@ -236,6 +236,7 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXShaderManager.cpp
     Code/SparkplugDX/spDXShaderManager.h
     Code/SparkplugPC/spPCShaderManager.cpp
+    Code/SparkplugPC/spPCShaderManager_Standalone.cpp
     Code/SparkplugPC/spPCShaderManager.h
     Code/SparkplugPC/spPCShaderSource.h
     Code/Sparkplug/spParser.cpp
@@ -250,6 +251,9 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXVertexDeclaration.h
     Code/SparkplugPC/spPCVertexDeclaration.cpp
     Code/SparkplugPC/spPCVertexDeclaration.h
+    Code/SparkplugPC/spPCVertexDeclarationDevice.h
+    Code/SparkplugPC/spPCVertexDeclaration_Device.cpp
+    Code/SparkplugDX/spDXRenderer_Declarations.cpp
     Code/Sparkplug/spPartitionNode.cpp
     Code/Sparkplug/spPartitionNode.h
     Code/Sparkplug/spPartitionSystem.cpp
@@ -322,7 +326,17 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spLightManager.h
     Code/Sparkplug/spVisibilityManager.cpp
     Code/Sparkplug/spVisibilityManager.h
+    Code/Sparkplug/spVisibilityPortal.cpp
+    Code/Sparkplug/spVisibilityOcclusion.cpp
+    Code/Sparkplug/spScene.cpp
+    Code/Sparkplug/spScene.h
+    Code/Sparkplug/spPartitionMembership.cpp
+    Analysis/Host/VisibilityGraphSnapshot.cpp
+    Analysis/Host/VisibilityGraphSnapshot.h
     Analysis/PC/spVisibilityMath.h
+    Analysis/PC/spVisibilityPortalMath.h
+    Analysis/PC/spVisibilityPointMath.h
+    Analysis/PC/spOcclusionSceneMath.h
     Analysis/PC/spPolygonClip.h
     Code/Sparkplug/spLightData.cpp
     Code/Sparkplug/spLightData.h
@@ -433,6 +447,18 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spPS2Mesh.cpp
     Code/Sparkplug/spPS2Mesh.h
     Code/Sparkplug/spPS2MeshData.cpp
+    Analysis/PS2/spPS2MeshNormalPacking.cpp
+    Analysis/PS2/spPS2MeshNormalPacking.h
+    Analysis/PS2/spPS2MeshStripPreparation.cpp
+    Analysis/PS2/spPS2MeshStripPreparation.h
+    Analysis/PS2/spPS2MeshStripSizing.cpp
+    Analysis/PS2/spPS2MeshStripSizing.h
+    Analysis/PS2/spPS2MeshPacketFormat.h
+    Code/Sparkplug/spPS2MeshDataNormalization.cpp
+    Code/Sparkplug/spPS2MeshDataPacket.cpp
+    Code/Sparkplug/spPS2MeshDataStripPacket.cpp
+    Code/Sparkplug/spPS2MeshPacketEmitter.cpp
+    Code/Sparkplug/spPS2MeshPacketEmitter.h
     Code/Sparkplug/spPS2MeshData.h
     Code/Sparkplug/spPS2MeshDataSerializer.cpp
     Code/Sparkplug/spPS2MeshDataSerializer.h
@@ -468,6 +494,7 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spLensFlareSerializer.cpp
     Code/Sparkplug/spLensFlareSerializer.h
     Code/Sparkplug/spOcclusionVolume.cpp
+    Code/Sparkplug/spOcclusionVolumeCamera.cpp
     Code/Sparkplug/spOcclusionVolumeRuntime.cpp
     Code/Sparkplug/spOcclusionVolumeSerializer.cpp
     Code/Sparkplug/spOcclusionVolumeSerializer.h
@@ -573,6 +600,10 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXRenderer.cpp
     Code/SparkplugDX/spDXRenderer.h
     Code/SparkplugDX/spDXRenderer_Init.cpp
+    Code/SparkplugDX/spDXRenderer_Startup.cpp
+    Code/SparkplugDX/spDXRenderer_Palette.cpp
+    Code/SparkplugDX/spDXPalettePool.h
+    Code/SparkplugDX/spDXRenderer_Startup.h
     Code/SparkplugDX/spDXTextureManager.cpp
     Code/SparkplugDX/spDXTextureManager.h
     Code/SparkplugDX/spDXPixelShader.cpp
@@ -582,6 +613,10 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXCamera.cpp
     Code/SparkplugDX/spDXCamera.h
     Code/SparkplugDX/spDXRenderTarget.cpp
+    Code/SparkplugDX/spDXRenderTarget_Device.cpp
+    Code/SparkplugDX/spDXTextureResource.cpp
+    Code/SparkplugDX/spDXTexture_Native.cpp
+    Code/SparkplugDX/spDXTextureResource.h
     Code/SparkplugDX/spDXRenderTarget.h
     Code/SparkplugDX/spDXCubeRenderTarget.cpp
     Code/SparkplugDX/spDXCubeRenderTarget.h
@@ -591,6 +626,10 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugPS2/spPS2InputManager.h
     Code/SparkplugPS2/spPS2Renderer.cpp
     Code/SparkplugPS2/spPS2Renderer.h
+    Code/SparkplugPS2/spPS2PipelineManager.cpp
+    Code/SparkplugPS2/spPS2PipelineManager.h
+    Code/SparkplugPS2/spPS2MicrocodeManager.cpp
+    Code/SparkplugPS2/spPS2MicrocodeManager.h
     Code/SparkplugPS2/spPS2Camera.cpp
     Code/SparkplugPS2/spPS2Camera.h
     Code/SparkplugPS2/spPS2RenderTarget.cpp
@@ -871,6 +910,16 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugParserTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugParserTests COMMAND SparkplugParserTests)
     set_tests_properties(SparkplugParserTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPS2PipelineManagersTests Tests/spPS2PipelineManagersTests.cpp)
+    target_link_libraries(SparkplugPS2PipelineManagersTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPS2PipelineManagersTests COMMAND SparkplugPS2PipelineManagersTests)
+    set_tests_properties(SparkplugPS2PipelineManagersTests PROPERTIES TIMEOUT 20)
+    foreach(suite IN ITEMS RendererDeviceLifecycle RendererStartup BallisticColor PS2MeshPreparation ShaderStandalone PS2MeshStripPreparation PS2MeshNormalPacking RenderTargetLifecycle OcclusionCamera VisibilityPoint VisibilityOcclusion RendererPalette VisibilityOctree SceneOcclusion TextureNativeUpload VertexDeclarationDevice PartitionMembership PS2MeshStripSizing)
+        add_executable(Sparkplug${suite}Tests Tests/sp${suite}Tests.cpp)
+        target_link_libraries(Sparkplug${suite}Tests PRIVATE SparkplugEngine)
+        add_test(NAME Sparkplug${suite}Tests COMMAND Sparkplug${suite}Tests)
+        set_tests_properties(Sparkplug${suite}Tests PROPERTIES TIMEOUT 20)
+    endforeach()
     add_executable(SparkplugShaderConstantsTests Tests/spShaderConstantsTests.cpp)
     add_executable(SparkplugVertexShaderTests Tests/spVertexShaderTests.cpp)
     target_link_libraries(SparkplugVertexShaderTests PRIVATE SparkplugEngine)

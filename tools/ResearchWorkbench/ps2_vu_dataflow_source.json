@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "upstream": "https://github.com/PCSX2/pcsx2",
+  "commit": "265d123dc33ee0ddf9c31e5bdf6c03f9d64e9d34",
+  "license": "GPL-3.0-or-later reference sources remain external; this tool implements ISA facts independently",
+  "files": [
+    {
+      "name": "VUops.cpp",
+      "upstreamPath": "pcsx2/VUops.cpp",
+      "sha256": "37d5098321e062956880637e90b6a975a8f28d88092a2f333f8f0d2e3750bd16",
+      "gitBlobSha1": "f3067e9da99fec13b715254f766a0c087e0e4d4d"
+    },
+    {
+      "name": "VU1microInterp.cpp",
+      "upstreamPath": "pcsx2/VU1microInterp.cpp",
+      "sha256": "c08627212c76be223586bd7bac5587b92ff7e818c6acd1fe23e8e94d0b8f9d5d",
+      "gitBlobSha1": "fde3451226d263773a64238487bfc310d236a5ba"
+    },
+    {
+      "name": "VU0microInterp.cpp",
+      "upstreamPath": "pcsx2/VU0microInterp.cpp",
+      "sha256": "b68d9d4e09bddd5cbb28e3da1d8cb8c0710ae6d4d40dd58e4a983e5a606a4f96",
+      "gitBlobSha1": "9b7502802c6276f28ff06934173ad282a7dd4bdc"
+    }
+  ],
+  "facts": [
+    "VUops.cpp: individual opcode bodies and VUREGS metadata establish register fields, selected lanes and memory transfer widths",
+    "Both micro interpreters execute upper before publishing I-immediate and use pre-upper inputs for conflicting lower reads",
+    "E sets a two-pair countdown; a consecutive E resets it; branch target is installed after one delay pair",
+    "Branch-in-delay, M/D/T environment, unit-dependent address wrap and pipeline timing are deliberately unresolved",
+    "Pinned interpreters compare whole nonzero VFwrite metadata, regardless of lane masks; same destination discards the entire lower instruction including secondary VI/memory effects",
+    "Conflicting lower VF reads use a saved whole pre-upper VF; CLIP lower writes are discarded and CLIP lower reads use saved flags; other flag pipelines remain unresolved",
+    "Pending branch installation precedes E stop; outer Execute resolves a branch initiated in the E-delay pair before stopped-unit return; both local and outer states are recorded as reference models, not hardware claims"
+  ],
+  "numericQualification": false,
+  "executesVu": false
+}

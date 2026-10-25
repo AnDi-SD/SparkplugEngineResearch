@@ -2,7 +2,7 @@
 
 // Analytical helper namespace, NOT an original recovered class/template name.
 // PC46B720 logical resize,46ADC0 all-enabled,45EA00 vector destruction.
-// Does not implement unresolved45E870 assignment or46C0F0 outer-stack preparation.
+// PC45E870 assignment;46C0F0 outer-stack preparation remains separate.
 // Contract: docs/engine/visibility/visibility-plane-storage.md.
 #include <array>
 #include <algorithm>
@@ -96,4 +96,45 @@ namespace sparkplug::evidence::pc::visibility_storage
         value.logicalSize = 0;
         // Native only clears begin/end/capacity; field00/outer activeCount survive.
     }
+
+    inline PlaneSetForAnalysis& AssignVectorForAnalysis(PlaneSetForAnalysis& destination,
+                                                       const PlaneSetForAnalysis& source)
+    {
+        //45E870 -> original decoded13B5E20. This assigns the vector only:
+        // allocatorWord and outer activeCount remain destination-owned.
+        // Source size<=destination size, growth within capacity, exact new
+        // allocation and self assignment are distinct native branches.
+        if (source.logicalSize > source.storage.size() || source.storage.size() > 4096 ||
+            destination.logicalSize > destination.storage.size() || destination.storage.size() > 4096)
+            throw std::out_of_range("bounded plane assignment range required");
+        if (&destination == &source)
+            return destination;
+        if (!source.logicalSize)
+        {
+            // Native13B5E6E calls the owned-buffer release, not resize(0).
+            // Even a source with retained capacity releases destination storage.
+            ReleaseVectorForAnalysis(destination);
+            return destination;
+        }
+        if (source.logicalSize > destination.storage.size())
+        {
+            // Assignment allocates exactly source size; resize's1.5 growth
+            // rule does not apply. New native padding is indeterminate;
+            // this host representation initializes it to zero.
+            std::vector<Plane> replacement(source.logicalSize);
+            for (std::uint32_t i = 0; i < source.logicalSize; ++i)
+                CopyValueWithoutPadding(replacement[i], source.storage[i]);
+            destination.storage.swap(replacement);
+        }
+        else
+        {
+            // Copy assignment and suffix construction both write equations
+            // plus enabled byte. Existing padding and unused tail survive.
+            for (std::uint32_t i = 0; i < source.logicalSize; ++i)
+                CopyValueWithoutPadding(destination.storage[i], source.storage[i]);
+        }
+        destination.logicalSize = source.logicalSize;
+        return destination;
+    }
+
 } // namespace sparkplug::evidence::pc::visibility_storage

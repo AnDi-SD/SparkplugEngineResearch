@@ -20,11 +20,23 @@ if ($SourceDirectory) {
         throw 'Source snapshot must be inside the repository'
     }
 }
-$source = Join-Path $sourceRoot 'winx_d3d9_probe.cpp'
+$source = Join-Path $sourceRoot 'src/runtime/winx_d3d9_probe.cpp'
+if ($SourceDirectory -and -not (Test-Path -LiteralPath $source)) {
+    # Historical frozen sources retain their original flat include layout.
+    $source = Join-Path $sourceRoot 'winx_d3d9_probe.cpp'
+}
 if (-not (Test-Path -LiteralPath $source)) { throw 'Probe source is missing' }
 $remixInclude = Join-Path $root 'local-data/rtx-remix/upstream/dxvk-remix/public/include'
 if (-not (Test-Path -LiteralPath (Join-Path $remixInclude 'remix/remix_c.h'))) { throw 'The read-only Remix reference headers are required' }
-$exports = Join-Path $PSScriptRoot 'winx_d3d9_probe.def'
+$exports = Join-Path (Split-Path -Parent $source) 'winx_d3d9_probe.def'
+$exportsFromSourceSnapshot = Test-Path -LiteralPath $exports
+if (-not $exportsFromSourceSnapshot -and $SourceDirectory) {
+    # Older fixture snapshots did not copy the export definition. Preserve that
+    # build contract and record the current-tree export input explicitly.
+    $exports = Join-Path $PSScriptRoot 'src/runtime/winx_d3d9_probe.def'
+}
+if (-not (Test-Path -LiteralPath $exports)) { throw 'Probe export definition is missing' }
+$exportsSourcePath = $exports
 if ($Platform -eq 'x64') {
     # x64 uses undecorated C exports; Regex replacement must preserve function names.
     $exportText = [IO.File]::ReadAllText($exports) -replace '=_([A-Za-z0-9]+)@[0-9]+','=$1'
@@ -35,7 +47,7 @@ $commands = @"
 @echo off
 call "$environmentScript" $Platform
 if errorlevel 1 exit /b %errorlevel%
-cl /I"$dependencyInclude" /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$remixInclude" /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:$Platform user32.lib
+cl /I"$sourceRoot" /I"$dependencyInclude" /nologo /std:c++17 /EHsc /MT /O2 /W4 /I"$remixInclude" /LD "$source" /link /DEF:"$exports" /OUT:d3d9.dll /MACHINE:$Platform user32.lib
 exit /b %errorlevel%
 "@
 $commandFile = Join-Path $build 'build-probe.cmd'
@@ -48,6 +60,7 @@ try {
 Get-FileHash -LiteralPath (Join-Path $build 'd3d9.dll') -Algorithm SHA256
 @{schema=1;platform=$Platform;sourceDirectory=$sourceRoot;
   sourceSha256=(Get-FileHash -LiteralPath $source).Hash;
+  exportsSourcePath=$exportsSourcePath;exportsFromSourceSnapshot=$exportsFromSourceSnapshot;
   exportsSha256=(Get-FileHash -LiteralPath $exports).Hash;
   dllSha256=(Get-FileHash -LiteralPath (Join-Path $build 'd3d9.dll')).Hash} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $build 'build-manifest.json') -Encoding UTF8

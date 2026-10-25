@@ -1,0 +1,529 @@
+// Own integration test: real system D3D9 objects and production draw/texture
+// hooks, recording Remix API. GPU channel values are tested by the stock fixture.
+#define WINX_REMIX_TEST
+#include "../../src/runtime/winx_d3d9_probe.cpp"
+#include <cstdlib>
+static unsigned checks,apiDraws,nativeSourceChecks,nativeMaterialChecks,nativeTransportChecks,nativeTextureChecks;
+static uintptr_t nextHandle=1;
+static std::vector<remixapi_HardcodedVertex> lastVertices;
+static std::wstring lastAlbedo,lastEmission;
+static std::map<remixapi_MaterialHandle,std::pair<std::wstring,std::wstring>> recordedMaterials;
+struct RecordedSampler {uint8_t u=0,v=0,filter=0;};
+static std::map<remixapi_MaterialHandle,RecordedSampler> recordedSamplers;
+static RecordedSampler lastSampler;
+static std::map<remixapi_MeshHandle,remixapi_MaterialHandle> recordedMeshes;
+static std::map<remixapi_MeshHandle,std::vector<remixapi_HardcodedVertex>> recordedVertices;
+static remixapi_InstanceInfoBlendEXT lastBlend{};
+static remixapi_Transform lastTransform{};
+static bool rejectDraw;
+static void Check(bool ok,const char* message) {++checks;if(!ok){fprintf(stderr,"FAIL: %s\n",message);std::exit(1);}}
+static void Hr(HRESULT hr,const char* message) {Check(SUCCEEDED(hr),message);}
+static remixapi_ErrorCode REMIXAPI_CALL Config(const char*,const char*) {return REMIXAPI_ERROR_CODE_SUCCESS;}
+static remixapi_ErrorCode REMIXAPI_CALL Material(const remixapi_MaterialInfo* info,remixapi_MaterialHandle* out) {
+  lastAlbedo=info->albedoTexture?info->albedoTexture:L"";lastEmission=info->emissiveTexture?info->emissiveTexture:L"";
+  Check(!lastAlbedo.empty(),"API material has an explicit albedo texture");
+  *out=reinterpret_cast<remixapi_MaterialHandle>(nextHandle++);recordedMaterials[*out]={lastAlbedo,lastEmission};
+  recordedSamplers[*out]={info->wrapModeU,info->wrapModeV,info->filterMode};return REMIXAPI_ERROR_CODE_SUCCESS;
+}
+static remixapi_ErrorCode REMIXAPI_CALL Mesh(const remixapi_MeshInfo* info,remixapi_MeshHandle* out) {
+  Check(info->surfaces_count==1,"one complete surface per draw");const auto& s=info->surfaces_values[0];
+  lastVertices.assign(s.vertices_values,s.vertices_values+s.vertices_count);
+  Check(s.vertices_count==6&&s.indices_count==6,"strip expanded to two complete triangles");
+  *out=reinterpret_cast<remixapi_MeshHandle>(nextHandle++);recordedMeshes[*out]=s.material;recordedVertices[*out]=lastVertices;return REMIXAPI_ERROR_CODE_SUCCESS;
+}
+static remixapi_ErrorCode REMIXAPI_CALL Instance(const remixapi_InstanceInfo* info) {
+  ++apiDraws;Check(info->categoryFlags==0,"ordinary material is not a decal");
+  lastBlend=*static_cast<const remixapi_InstanceInfoBlendEXT*>(info->pNext);
+  lastTransform=info->transform;lastVertices=recordedVertices.at(info->mesh);
+  const auto& paths=recordedMaterials.at(recordedMeshes.at(info->mesh));lastAlbedo=paths.first;lastEmission=paths.second;
+  lastSampler=recordedSamplers.at(recordedMeshes.at(info->mesh));
+  return rejectDraw?REMIXAPI_ERROR_CODE_GENERAL_FAILURE:REMIXAPI_ERROR_CODE_SUCCESS;
+}
+static remixapi_ErrorCode REMIXAPI_CALL DeleteMesh(remixapi_MeshHandle) {return REMIXAPI_ERROR_CODE_SUCCESS;}
+static remixapi_ErrorCode REMIXAPI_CALL DeleteMaterial(remixapi_MaterialHandle) {return REMIXAPI_ERROR_CODE_SUCCESS;}
+struct Vertex {float x,y,z,nx,ny,nz;DWORD color;float u,v;};
+static std::vector<DWORD> Dds(const std::wstring& path) {
+  FILE* file=nullptr;Check(_wfopen_s(&file,path.c_str(),L"rb")==0&&file,"read emitted DDS");
+  fseek(file,0,SEEK_END);const auto length=ftell(file);rewind(file);Check(length>128&&length%4==0,"DDS payload size");
+  std::vector<DWORD> words(size_t(length)/4);Check(fread(words.data(),4,words.size(),file)==words.size(),"complete DDS read");fclose(file);return words;
+}
+#include "test_unlit_face_normals.h"
+#if defined(_M_IX86)
+#include "../native/test_native_material.h"
+static void NativeTexture(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS parameters) {
+  namespace transport=native_transport_source;
+  const auto initialChecks=checks,beforeDraws=apiDraws,beforeSubmits=materialChannelsSubmitted;
+  IDirect3DTexture9* a=nullptr;IDirect3DTexture9* b=nullptr;
+  Hr(device->CreateTexture(4,4,3,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&a,nullptr),"texture witness actual managed A Create");
+  Hr(device->CreateTexture(4,4,1,0,D3DFMT_X8R8G8B8,D3DPOOL_MANAGED,&b,nullptr),"texture witness actual managed X Create");
+  auto borrow=[&](IDirect3DTexture9* texture,transport::TextureWitness& value){std::unique_lock<std::recursive_mutex> lock(guard);
+    return transport::BorrowTexture(lock,device,texture,value);};
+  auto current=[&](const transport::TextureWitness& value){std::unique_lock<std::recursive_mutex> lock(guard);return transport::CurrentTexture(lock,value);};
+  auto initialize=[&](IDirect3DTexture9* texture,UINT levels,DWORD value){for(UINT level=0;level<levels;++level){D3DLOCKED_RECT rect{};
+    Hr(texture->LockRect(level,&rect,nullptr,0),"initialize actual managed texture");
+    for(UINT y=0;y<(4u>>level);++y)for(UINT x=0;x<(4u>>level);++x)
+      reinterpret_cast<DWORD*>(static_cast<uint8_t*>(rect.pBits)+size_t(y)*rect.Pitch)[x]=value+level;
+    Hr(texture->UnlockRect(level),"finish actual managed texture initialization");}};
+  initialize(a,3,0x80402010);initialize(b,1,0xff204060);
+  transport::TextureWitness original{};Check(borrow(a,original)&&current(original)&&original.texture==a&&original.device==device&&
+    original.width==4&&original.height==4&&original.levels==3&&original.format==D3DFMT_A8R8G8B8,"actual managed texture yields exact unbound witness");
+  auto binding=[&](IDirect3DBaseTexture9* expected){IDirect3DBaseTexture9* observed=nullptr;Hr(device->GetTexture(0,&observed),"inspect unchanged texture binding");
+    Check(observed==expected,"direct source does not change stage0 binding");if(observed)observed->Release();};
+  const auto path=[&](const wchar_t* name){return std::wstring(surfaceAssetDirectory)+L"\\"+name;};
+  const auto baselinePath=path(L"transport-bound.dds"),nullPath=path(L"transport-null.dds"),otherPath=path(L"transport-other.dds");
+  Hr(device->SetTexture(0,a),"bind baseline texture A");const auto boundHash=BoundChannelTextureHash(device);
+  Check(boundHash!=0&&material_channels::WriteTexture(device,baselinePath.c_str(),{1,1,1}),"bound source creates baseline DDS");
+  const auto baseline=Dds(baselinePath);
+  for(auto other:{static_cast<IDirect3DTexture9*>(nullptr),b}) {
+    Hr(device->SetTexture(0,other),"select null or different texture B");
+    std::unique_lock<std::recursive_mutex> lock(guard);transport::TextureWitness witness{};
+    Check(transport::BorrowTexture(lock,device,a,witness),"unbound A borrowed from lifecycle records");
+    Check(ChannelTextureHash(witness.texture)==boundHash,"direct A hash equals bound A hash with unrelated binding");
+    const auto output=other?otherPath:nullPath;
+    Check(material_channels::WriteTextureSource(witness.texture,output.c_str(),{1,1,1}),"direct A writer consumes qualified source pointer");
+    Check(transport::CurrentTexture(lock,witness),"all readonly hash/DDS calls preserve texture content witness");
+    binding(other);Check(Dds(output)==baseline,"direct unbound DDS bytes equal bound baseline");
+  }
+  Hr(device->SetTexture(0,nullptr),"restore unbound textures before writer tests");
+  D3DLOCKED_RECT rect{};Hr(a->LockRect(1,&rect,nullptr,D3DLOCK_READONLY),"actual readonly texture mip Lock");
+  Hr(a->UnlockRect(1),"actual readonly texture mip Unlock");Check(current(original),"readonly texture Lock preserves original content generation");
+  Hr(a->LockRect(1,&rect,nullptr,D3DLOCK_NO_DIRTY_UPDATE),"actual writable NO_DIRTY_UPDATE mip Lock");
+  transport::TextureWitness rejected{};Check(!borrow(a,rejected)&&!current(original)&&!surfaceChannelTextureHashes.count(a),"writable mip blocks borrow and invalidates cached hash");
+  *static_cast<DWORD*>(rect.pBits)=0xaabbccdd;Hr(a->UnlockRect(1),"actual writable mip Unlock");
+  transport::TextureWitness afterWrite{};Check(borrow(a,afterWrite)&&afterWrite.generation==original.generation&&afterWrite.contentGeneration>original.contentGeneration,
+    "successful Unlock exposes new content in same creation lifetime");
+  Check(ChannelTextureHash(a)!=boundHash,"lower mip write changes full-content hash");
+  IDirect3DSurface9* surface=nullptr;Hr(a->GetSurfaceLevel(2,&surface),"actual A mip surface exposure");
+  Hr(surface->LockRect(&rect,nullptr,D3DLOCK_READONLY),"readonly surface Lock");Hr(surface->UnlockRect(),"readonly surface Unlock");
+  Check(current(afterWrite),"readonly surface alias preserves content witness");
+  Hr(surface->LockRect(&rect,nullptr,0),"writable surface Lock");Check(!borrow(a,rejected)&&!surfaceChannelTextureHashes.count(a),"surface writer blocks owner texture borrow and invalidates hash");
+  *static_cast<DWORD*>(rect.pBits)=0x77665544;Hr(surface->UnlockRect(),"writable surface Unlock");
+  Check(borrow(a,afterWrite),"surface Unlock restores current owner borrow");surface->Release();
+  Check(current(afterWrite),"closed level surface Release preserves owning texture lifetime");
+  IDirect3DSurface9* dcSurface=nullptr;Hr(b->GetSurfaceLevel(0,&dcSurface),"actual X8R8G8B8 DC surface");
+  transport::TextureWitness beforeDC{};Check(borrow(b,beforeDC),"texture witness before actual GetDC");
+  HDC dc=nullptr;Hr(dcSurface->GetDC(&dc),"actual managed surface GetDC");Check(dc!=nullptr&&!borrow(b,rejected)&&!current(beforeDC),"open DC blocks texture borrow");
+  auto gdi=LoadLibraryExW(L"gdi32.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);Check(gdi!=nullptr,"system GDI for owned surface DC write");
+  auto pixel=reinterpret_cast<BOOL(WINAPI*)(HDC,int,int,COLORREF)>(GetProcAddress(gdi,"SetPixelV"));Check(pixel&&pixel(dc,0,0,RGB(12,34,56)),"actual GDI writes owned texture surface");
+  Hr(dcSurface->ReleaseDC(dc),"actual managed surface ReleaseDC");FreeLibrary(gdi);
+  transport::TextureWitness afterDC{};Check(borrow(b,afterDC)&&afterDC.contentGeneration>beforeDC.contentGeneration,"ReleaseDC exposes new texture content");dcSurface->Release();
+  Hr(b->LockRect(0,&rect,nullptr,D3DLOCK_READONLY),"read DC result through owned texture");
+  Check((*static_cast<DWORD*>(rect.pBits)&0xffffffu)==0x0c2238u,"GDI DC pixel reaches managed texture storage");Hr(b->UnlockRect(0),"finish DC result read");
+  IUnknown* identity=nullptr;Hr(a->QueryInterface(__uuidof(IUnknown),reinterpret_cast<void**>(&identity)),"actual texture IUnknown query");
+  Check(identity==reinterpret_cast<IUnknown*>(a),"system texture canonical interface is same hooked pointer");identity->Release();Check(current(afterWrite),"ordinary same-pointer QueryInterface preserves witness");
+  // The copy path is conservatively retired even if D3D rejects these tiny
+  // dimensions. This checks real hook dispatch without capturing the desktop.
+  Hr(a->GetSurfaceLevel(0,&surface),"surface for conservative front-buffer invalidation");
+  device->GetFrontBufferData(0,surface);Check(!borrow(a,rejected),"device GetFrontBufferData retires destination before forwarding");surface->Release();
+  IDirect3DSwapChain9* swap=nullptr;Hr(device->GetSwapChain(0,&swap),"actual swapchain writer interface");
+  Hr(b->GetSurfaceLevel(0,&surface),"surface for swapchain destination invalidation");
+  swap->GetFrontBufferData(surface);Check(!borrow(b,rejected),"swapchain GetFrontBufferData also retires destination");surface->Release();swap->Release();
+  a->Release();b->Release();
+  IDirect3DTexture9* resetTexture=nullptr;Hr(device->CreateTexture(4,4,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&resetTexture,nullptr),"fresh texture before Reset");
+  transport::TextureWitness beforeReset{};Check(borrow(resetTexture,beforeReset),"new texture registered before Reset");
+  Hr(device->Reset(&parameters),"actual Reset with caller-owned managed texture");
+  Check(!borrow(resetTexture,rejected)&&!current(beforeReset),"successful Reset cannot revive managed texture witness");resetTexture->Release();
+  IDirect3DTexture9* finalTexture=nullptr;Hr(device->CreateTexture(4,4,1,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&finalTexture,nullptr),"fresh post-reset texture Create");
+  transport::TextureWitness finalWitness{};Check(borrow(finalTexture,finalWitness)&&finalWitness.generation>beforeReset.generation,"post-reset Create establishes new texture lifetime");
+  Check(finalTexture->Release()==0&&!current(finalWitness),"actual texture final Release retains no registry reference and invalidates token");
+  Check(apiDraws==beforeDraws&&materialChannelsSubmitted==beforeSubmits,"texture boundary fixture does not submit API geometry");
+  nativeTextureChecks=checks-initialChecks;
+}
+static void NativeTransport(IDirect3DDevice9* device,D3DPRESENT_PARAMETERS parameters) {
+  // Actual system-D3D Create/Release/Reset hooks on resources owned solely by
+  // this fixture. No native producers and no bridge. The registry retains no
+  // COM refs; deliberately retained managed refs below belong to this caller.
+  namespace transport=native_transport_source;
+  const auto initialChecks=checks,beforeDraws=apiDraws,beforeSubmits=materialChannelsSubmitted;
+  struct Resources {IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;IDirect3DVertexDeclaration9* declaration=nullptr;};
+  const D3DVERTEXELEMENT9 elements[]={{0,0,D3DDECLTYPE_FLOAT3,0,D3DDECLUSAGE_POSITION,0},
+    {0,12,D3DDECLTYPE_FLOAT2,0,D3DDECLUSAGE_TEXCOORD,0},{0xff,0,D3DDECLTYPE_UNUSED,0,0,0}};
+  auto create=[&](Resources& resources) {
+    Hr(device->CreateVertexBuffer(3*20,0,0,D3DPOOL_MANAGED,&resources.vb,nullptr),"transport actual VB Create");
+    Check(TransportDeviceHooked(device),"first real resource installs both transport lifetime hooks after CreateDevice returns");
+    Hr(device->CreateIndexBuffer(3*2,0,D3DFMT_INDEX16,D3DPOOL_MANAGED,&resources.ib,nullptr),"transport actual IB Create");
+    Hr(device->CreateVertexDeclaration(elements,&resources.declaration),"transport explicit declaration Create");
+    Check((*reinterpret_cast<void***>(resources.vb))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DVertexBuffer9>)&&
+      (*reinterpret_cast<void***>(resources.vb))[11]==reinterpret_cast<void*>(BufferLockCall<IDirect3DVertexBuffer9,D3DVERTEXBUFFER_DESC>)&&
+      (*reinterpret_cast<void***>(resources.vb))[12]==reinterpret_cast<void*>(BufferUnlockCall<IDirect3DVertexBuffer9>),"real VB Release/Lock/Unlock hook gates installed");
+    Check((*reinterpret_cast<void***>(resources.ib))[2]==reinterpret_cast<void*>(SurfaceBufferRelease<IDirect3DIndexBuffer9>)&&
+      (*reinterpret_cast<void***>(resources.ib))[11]==reinterpret_cast<void*>(BufferLockCall<IDirect3DIndexBuffer9,D3DINDEXBUFFER_DESC>)&&
+      (*reinterpret_cast<void***>(resources.ib))[12]==reinterpret_cast<void*>(BufferUnlockCall<IDirect3DIndexBuffer9>),"real IB Release/Lock/Unlock hook gates installed");
+  };
+  auto witness=[&](const Resources& resources,native_mesh_source::TransportWitness& value) {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    return transport::Witness(borrow,device,resources.vb,resources.ib,resources.declaration,value);
+  };
+  auto current=[&](const native_mesh_source::TransportWitness& value) {
+    std::unique_lock<std::recursive_mutex> borrow(guard);return transport::Current(borrow,value);
+  };
+  auto release=[&](Resources& resources) {
+    void* vertex=resources.vb;void* index=resources.ib;void* declaration=resources.declaration;
+    Check(resources.vb->Release()==0,"unbound fixture VB final Release has no registry reference");resources.vb=nullptr;
+    Check(resources.ib->Release()==0,"unbound fixture IB final Release has no registry reference");resources.ib=nullptr;
+    const auto declarationRefs=resources.declaration->Release();resources.declaration=nullptr;
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(!transport::records.count(vertex)&&!transport::records.count(index),"actual final buffer Release erases both lifecycle records");
+    Check(declarationRefs!=0||!transport::records.count(declaration),"observed final declaration Release erases lifecycle record");
+  };
+  Resources first{};create(first);native_mesh_source::TransportWitness initial{};
+  Check(witness(first,initial)&&current(initial),"fresh real Creates grant current transport witness");
+  Check(initial.device==device&&initial.vertexBuffer==first.vb&&initial.indexBuffer==first.ib&&initial.declaration==first.declaration&&
+    initial.vertexBytes==60&&initial.indexBytes==6&&initial.indexFormat==D3DFMT_INDEX16,"actual Create result identities, device and ranges recorded");
+  {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(initial.elementCount==3&&!memcmp(initial.elements,elements,sizeof(elements)),"explicit actual declaration matches copied registry elements");
+    native_mesh_source::TransportWitness invalid{};
+    Check(!transport::Witness(borrow,device,first.ib,first.vb,first.declaration,invalid)&&!invalid.valid,"real wrong-kind triple cannot qualify");
+    Check(!transport::Witness(borrow,nullptr,first.vb,first.ib,first.declaration,invalid)&&!invalid.valid,"real objects cannot qualify for wrong device");
+  }
+  // D3D may intern declarations. Observe what this device returns; never
+  // equate a new Create observation serial with a new physical COM object.
+  IDirect3DVertexDeclaration9* repeated=nullptr;
+  Hr(device->CreateVertexDeclaration(elements,&repeated),"repeat actual declaration Create");
+  Resources repeatedKeys=first;repeatedKeys.declaration=repeated;native_mesh_source::TransportWitness repeatedWitness{};
+  Check(witness(repeatedKeys,repeatedWitness)&&current(repeatedWitness)&&repeatedWitness.declarationGeneration>initial.declarationGeneration,
+    "repeat Create grants a newer observation generation");
+  Check(current(initial)==(repeated!=first.declaration),"interned Create invalidates only the replaced observation token");
+  const bool interned=repeated==first.declaration;void* repeatedIdentity=repeated;
+  const auto repeatedRefs=repeated->Release();repeated=nullptr;
+  {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(repeatedRefs!=0||!transport::records.count(repeatedIdentity),"repeat declaration final Release retires when actual refcount reaches zero");
+  }
+  Check(!interned||(repeatedRefs!=0&&current(repeatedWitness)),"nonfinal Release of interned declaration preserves current generation");
+  native_mesh_source::TransportWitness beforeRelease{};Check(witness(first,beforeRelease),"first owned resources still have current records");
+  release(first);Check(!current(beforeRelease),"actual final resource releases invalidate retained witness");
+
+  Resources retained{};create(retained);native_mesh_source::TransportWitness beforeReset{};
+  Check(witness(retained,beforeReset),"managed caller-owned resources registered before Reset");
+  unsigned resetsBefore=0;{std::unique_lock<std::recursive_mutex> borrow(guard);resetsBefore=transport::resets;}
+  // Unbound managed resources can survive Reset. Registry identity does not:
+  // clear conservatively even though this caller still owns valid COM refs.
+  Hr(device->Reset(&parameters),"actual successful device Reset with caller-owned managed buffers");
+  {
+    std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(transport::resets==resetsBefore+1&&!transport::resetting.count(device),"actual Reset executes Begin/End registry fence");
+    Check(!transport::records.count(retained.vb)&&!transport::records.count(retained.ib)&&!transport::records.count(retained.declaration),
+      "Reset retires every pre-reset record despite surviving caller COM references");
+  }
+  Check(!current(beforeReset),"pre-reset witness remains rejected after successful Reset");
+  native_mesh_source::TransportWitness rejected{};Check(!witness(retained,rejected)&&!rejected.valid,"surviving managed objects are not silently requalified");
+  Resources fresh{};create(fresh);native_mesh_source::TransportWitness afterReset{};
+  Check(witness(fresh,afterReset)&&current(afterReset)&&afterReset.vertexGeneration>beforeReset.vertexGeneration&&
+    afterReset.indexGeneration>beforeReset.indexGeneration&&afterReset.declarationGeneration>beforeReset.declarationGeneration,
+    "new actual Creates restore qualification with new observation generations");
+  // No buffers/declarations were bound or submitted by this fixture.
+  release(retained);release(fresh);Check(!current(afterReset),"post-reset final Release again retires witness");
+  Check(apiDraws==beforeDraws&&materialChannelsSubmitted==beforeSubmits,"transport lifecycle fixture issues no API geometry or material draws");
+  nativeTransportChecks+=checks-initialChecks;
+}
+static void NativeRanges() {
+  namespace source=native_mesh_source;
+  source::Bytes partial{};partial.data.resize(16);partial.partial=true;
+  Check(!source::Covered(partial,0,1),"uncaptured native buffer has no covered draw bytes");
+  source::PutRange(partial,4,std::vector<uint8_t>{41,42,43,44});
+  Check(source::Covered(partial,4,4)&&source::Covered(partial,5,3),"partial native interval covers its exact byte range");
+  Check(!source::Covered(partial,3,2)&&!source::Covered(partial,7,2)&&!source::Covered(partial,16,1)&&
+    !source::Covered(partial,17,0)&&!source::Covered(partial,4,size_t(-1)),"partial coverage rejects gaps and overflowing bounds");
+  std::vector<uint8_t> uploaded(16,0xa5);memcpy(uploaded.data()+4,partial.data.data()+4,4);
+  Check(source::EqualsUpload(partial,uploaded),"upload comparison ignores bytes not captured from native inputs");
+  ++uploaded[5];Check(!source::EqualsUpload(partial,uploaded),"upload comparison detects a changed captured byte");--uploaded[5];
+  uploaded.pop_back();Check(!source::EqualsUpload(partial,uploaded),"upload comparison rejects a different buffer size");uploaded.push_back(0xa5);
+  source::PutRange(partial,10,std::vector<uint8_t>{51,52});
+  Check(!source::Covered(partial,4,8),"separated native ranges do not cover the gap between them");
+  source::PutRange(partial,8,std::vector<uint8_t>{49,50});
+  Check(source::Covered(partial,4,8)&&partial.ranges.size()==1,"adjacent native ranges merge into continuous coverage");
+  partial.verified=true;source::PutRange(partial,6,std::vector<uint8_t>{61,62,63,64});
+  Check(!partial.verified&&source::Covered(partial,4,8)&&partial.data[6]==61&&partial.data[9]==64,
+    "overlapping native input replaces bytes and requires upload reverification");
+  memcpy(uploaded.data()+4,partial.data.data()+4,8);Check(source::EqualsUpload(partial,uploaded),"merged captured ranges match uploaded bytes");
+  auto complete=partial;complete.partial=false;
+  Check(!source::EqualsUpload(complete,uploaded)&&source::EqualsUpload(complete,complete.data),"complete native captures compare every byte");
+}
+template<class Draw> static void NativeSource(IDirect3DDevice9* d,IDirect3DVertexBuffer9* vb,
+                                             IDirect3DIndexBuffer9* ib,const Draw& draw) {
+  // Synthetic ABI fixture for our adapter only. No game method, fixed-address
+  // memory or native hook is executed; original/debug qualification is separate.
+  namespace source=native_mesh_source;namespace abi=sparkplug::evidence::pc;
+  const auto initialChecks=checks;
+  NativeRanges();
+  Check(!source::enabled&&!source::active&&source::buffers.empty()&&!source::retainedBytes,"fresh native source fixture");
+  const bool oldSubmit=source::submitEnabled;const auto oldThread=source::ownerThread;
+  const auto oldMatched=source::matched,oldUsed=source::used,oldInvalidations=source::invalidations,oldMismatches=source::uploadMismatches;
+  const auto oldLayoutMismatches=source::layoutMismatches;const auto oldLayouts=source::layouts;
+  const auto vertexBytes=surfaceBuffers.at(vb).bytes,indexBytes=surfaceBuffers.at(ib).bytes;
+  auto address=[](const void* p){return uint32_t(reinterpret_cast<uintptr_t>(p));};
+  std::vector<uint8_t> renderer(0xf368);
+  abi::spDXMeshObservedLayout mesh{};abi::spDXVertexBufferLayout nativeVB{};abi::spDXIndexBufferLayout nativeIB{};
+  abi::spDXSharedMeshDataObservedLayout shared{};abi::spDXMaterialObservedLayout material{};
+  abi::spRendererDrawContextObservedLayout state{};
+  nativeVB.base.vtableAddress=abi::spDXVertexBufferVTable;nativeVB.direct3DVertexBuffer=address(vb);nativeVB.byteSize=UINT(vertexBytes.size());
+  nativeIB.base.vtableAddress=abi::spDXIndexBufferVTable;nativeIB.direct3DIndexBuffer=address(ib);nativeIB.byteSize=UINT(indexBytes.size());
+  shared.base.vtableAddress=abi::spDXSharedMeshDataVTable;shared.vertexBuffer=address(&nativeVB);shared.indexBuffer=address(&nativeIB);
+  material.base.base.vtableAddress=abi::spDXMaterialPrimaryVTable;material.base.materialVTable=abi::spDXMaterialInterfaceVTable;material.base.passCount=1;
+  mesh.base.base.base.base.base.vtableAddress=abi::spDXMeshVTable;mesh.base.base.secondaryVTable=abi::spDXMeshInterfaceVTable;
+  mesh.base.base.vertexCount=4;mesh.base.base.primitiveCount=2;mesh.indexType=3;mesh.vertexStride=sizeof(Vertex);
+  mesh.base.base.vertexComponentFlags=0x940; // Native position/normal/color/UV layout of Vertex.
+  mesh.vertexBuffer=address(&nativeVB);mesh.indexBuffer=address(&nativeIB);mesh.sharedMeshData=address(&shared);
+  IDirect3DVertexDeclaration9* declaration=nullptr;Hr(d->GetVertexDeclaration(&declaration),"native fixture declaration");
+  Check(declaration!=nullptr,"native fixture declaration exists");mesh.vertexDeclaration=address(declaration);declaration->Release();
+  state.device=address(d);state.vertexBuffer=mesh.vertexBuffer;state.indexBuffer=mesh.indexBuffer;
+  state.vertexDeclaration=mesh.vertexDeclaration;state.selectedMaterial=address(&material);
+  memcpy(renderer.data(),&abi::spPCRendererPrimaryVTable,4);
+  memcpy(renderer.data()+abi::spRendererDrawContextOffset,&state,sizeof(state));
+  D3DMATRIX oldWorld{},world{};Hr(d->GetTransform(D3DTS_WORLD,&oldWorld),"save native fixture world");
+  world=oldWorld;world._41=.25f;world._42=-.5f;world._43=.75f;
+  Hr(d->SetTransform(D3DTS_WORLD,&world),"native fixture translated world");memcpy(renderer.data()+0xca40,&world,sizeof(world));
+  source::Scope scope{nullptr,address(&mesh),address(renderer.data()),73};scope.value=mesh;scope.valid=true;
+  source::buffers.emplace(vb,source::Bytes{vertexBytes,19,address(&shared),address(&nativeVB)});
+  source::buffers.emplace(ib,source::Bytes{indexBytes,19,address(&shared),address(&nativeIB)});
+  source::retainedBytes=vertexBytes.size()+indexBytes.size();source::ownerThread=GetCurrentThreadId();
+  source::active=&scope;source::enabled=source::submitEnabled=true;
+  const source::DrawRange range{D3DPT_TRIANGLESTRIP,0,0,4,0,2};source::Geometry geometry{};
+  auto resolve=[&](){geometry={};return source::Resolve(d,range,vb,ib,0,sizeof(Vertex),geometry);};
+  Check(resolve(),"matching native mesh resolves against actual COM buffers");
+  D3DVERTEXELEMENT9 observedLayout[MAXD3DDECLLENGTH+1]{};UINT observedCount=MAXD3DDECLLENGTH+1;
+  Hr(d->GetVertexDeclaration(&declaration),"read native fixture layout");
+  Hr(declaration->GetDeclaration(observedLayout,&observedCount),"capture actual D3D layout");declaration->Release();
+  Check(geometry.componentFlags==0x940&&geometry.layout&&source::EqualLayout(geometry,observedLayout,observedCount),
+    "shared native emitter matches the actual bound declaration");
+  Check(!source::EqualLayout(geometry,observedLayout,observedCount-1),"truncated declaration cannot qualify");
+  ++observedLayout[0].Offset;
+  Check(!source::EqualLayout(geometry,observedLayout,observedCount),"changed declaration under the same flags key cannot qualify");
+  --observedLayout[0].Offset;
+  Check(geometry.vertices==&source::buffers.at(vb)&&geometry.indices==&source::buffers.at(ib)&&
+    geometry.mesh==address(&mesh)&&geometry.renderer==address(renderer.data())&&geometry.submission==73&&
+    geometry.range.type==range.type&&geometry.range.base==0&&geometry.range.minimum==0&&geometry.range.vertices==4&&
+    geometry.range.start==0&&geometry.range.count==2&&geometry.stride==sizeof(Vertex)&&!memcmp(&geometry.world,&world,sizeof(world)),
+    "native packet preserves exact source identity, range and world");
+  auto submit=[&](bool native,float firstX,const char* message){
+    const auto beforeUsed=source::used,beforeApi=apiDraws,beforeSubmitted=materialChannelsSubmitted;draw();
+    Check(source::used==beforeUsed+unsigned(native)&&apiDraws==beforeApi+1&&materialChannelsSubmitted==beforeSubmitted+1,message);
+    Check(lastVertices.size()==6&&lastVertices[0].position[0]==firstX,"selected source bytes reach recorded API mesh");
+    Check(lastTransform.matrix[0][3]==world._41&&lastTransform.matrix[1][3]==world._42&&lastTransform.matrix[2][3]==world._43,
+      "selected source world reaches API instance");
+  };
+  float firstX=0;memcpy(&firstX,vertexBytes.data(),4);
+  submit(true,firstX,"matching native draw reaches API exactly once");
+  Check(source::buffers.at(vb).verified&&source::buffers.at(ib).verified,"native bytes verified against both original uploads");
+  NativeMaterial(d,renderer,material,state,geometry,scope,draw);
+  auto& partialVB=source::buffers.at(vb);auto& partialIB=source::buffers.at(ib);
+  partialVB.partial=partialIB.partial=true;partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{0,indexBytes.size()}};
+  Check(resolve(),"fully covered partial buffers resolve for the draw");
+  partialVB.ranges={{0,sizeof(Vertex)},{2*sizeof(Vertex),vertexBytes.size()}};
+  Check(!resolve(),"a gap inside the declared vertex range rejects native submission");
+  source::PutRange(partialVB,sizeof(Vertex),std::vector<uint8_t>(vertexBytes.begin()+sizeof(Vertex),vertexBytes.begin()+2*sizeof(Vertex)));
+  Check(resolve(),"capturing the missing vertex interval restores native resolution");
+  partialIB.ranges={{0,2},{4,indexBytes.size()}};Check(!resolve(),"a missing index word rejects native submission");
+  source::PutRange(partialIB,2,std::vector<uint8_t>(indexBytes.begin()+2,indexBytes.begin()+4));
+  Check(resolve(),"capturing the missing index word restores native resolution");
+  scope.value.vertexBegin=1;scope.value.base.base.vertexCount=3;scope.value.base.base.primitiveCount=1;
+  partialVB.ranges={{sizeof(Vertex),vertexBytes.size()}};partialIB.ranges={{0,6}};
+  source::Geometry shifted{};
+  Check(source::Resolve(d,{D3DPT_TRIANGLESTRIP,1,0,3,0,1},vb,ib,0,sizeof(Vertex),shifted)&&shifted.range.base==1,
+    "nonzero vertex base checks coverage at base times stride");
+  partialVB.ranges={{0,3*sizeof(Vertex)}};
+  Check(!source::Resolve(d,{D3DPT_TRIANGLESTRIP,1,0,3,0,1},vb,ib,0,sizeof(Vertex),shifted),"vertex coverage at the wrong offset cannot qualify");
+  scope.value=mesh;scope.value.indexBegin=1;scope.value.base.base.primitiveCount=1;
+  partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{2,indexBytes.size()}};
+  Check(source::Resolve(d,{D3DPT_TRIANGLESTRIP,0,0,4,1,1},vb,ib,0,sizeof(Vertex),shifted)&&shifted.range.start==1,
+    "nonzero index start checks coverage in two-byte index elements");
+  partialIB.ranges={{0,6}};
+  Check(!source::Resolve(d,{D3DPT_TRIANGLESTRIP,0,0,4,1,1},vb,ib,0,sizeof(Vertex),shifted),"index coverage at the wrong offset cannot qualify");
+  scope.value=mesh;partialVB.ranges={{0,vertexBytes.size()}};partialIB.ranges={{0,indexBytes.size()}};
+  submit(true,firstX,"covered partial native buffers reach the common API converter");
+  partialVB.partial=partialIB.partial=false;partialVB.ranges.clear();partialIB.ranges.clear();
+  // Fault-inject only the adapter's audit snapshots after verification. Native
+  // captured bytes and actual COM buffers remain untouched. Distinct values
+  // prove which source the converter reads, including when mesh handles recur.
+  auto& auditVertices=surfaceBuffers.at(vb).bytes;auto& auditIndices=surfaceBuffers.at(ib).bytes;
+  for(unsigned i=0;i<4;++i){float x=0;memcpy(&x,auditVertices.data()+i*sizeof(Vertex),4);x+=8;memcpy(auditVertices.data()+i*sizeof(Vertex),&x,4);}
+  const WORD alternateIndices[]={1,0,3,2};memcpy(auditIndices.data(),alternateIndices,sizeof(alternateIndices));
+  float fallbackX=0;memcpy(&fallbackX,auditVertices.data()+sizeof(Vertex),4);
+  submit(true,firstX,"verified native source does not read altered audit snapshots");
+  const auto beforeLayoutMismatches=source::layoutMismatches;
+  scope.value.base.base.vertexComponentFlags=0x840;
+  Check(resolve()&&!source::EqualLayout(geometry,observedLayout,observedCount),"different native flags expose declaration mismatch");
+  submit(false,fallbackX,"mismatching native declaration retains the D3D source");
+  Check(source::layoutMismatches==beforeLayoutMismatches+1,"native declaration mismatch is counted");
+  scope.value.base.base.vertexComponentFlags=0x940;
+  submit(true,firstX,"matching native declaration resumes after mismatch");
+  ++scope.value.indexBegin;Check(!resolve(),"native range mismatch rejected");submit(false,fallbackX,"range mismatch retains D3D source");--scope.value.indexBegin;
+  ++source::buffers.at(vb).owner;Check(!resolve(),"native owner mismatch rejected");submit(false,fallbackX,"owner mismatch retains D3D source");--source::buffers.at(vb).owner;
+  ++source::buffers.at(ib).generation;Check(!resolve(),"mixed native buffer generations rejected");submit(false,fallbackX,"generation mismatch retains D3D source");--source::buffers.at(ib).generation;
+  D3DMATRIX otherWorld=world;otherWorld._41+=1;memcpy(renderer.data()+0xca40,&otherWorld,sizeof(otherWorld));
+  Check(!resolve(),"native world mismatch rejected");submit(false,fallbackX,"world mismatch retains D3D source");memcpy(renderer.data()+0xca40,&world,sizeof(world));
+  scope.value.componentWeightCount=4;Check(!resolve(),"skinned mesh remains outside static native cohort");submit(false,fallbackX,"skinned mesh retains D3D source");scope.value.componentWeightCount=0;
+  material.base.passCount=2;Check(!resolve(),"multipass mesh remains outside native cohort");submit(false,fallbackX,"multipass mesh retains D3D source");material.base.passCount=1;
+  source::buffers.at(vb).verified=source::buffers.at(ib).verified=false;
+  const auto mismatches=source::uploadMismatches;submit(false,fallbackX,"unverified different uploads retain D3D source");
+  Check(source::uploadMismatches==mismatches+1&&!source::buffers.at(vb).verified&&!source::buffers.at(ib).verified,"failed byte comparison never marks native data verified");
+  auditVertices=vertexBytes;auditIndices=indexBytes;submit(true,firstX,"exact source is reverified after audit fixture restoration");
+  void* locked=nullptr;
+  Hr(vb->Lock(0,0,&locked,D3DLOCK_READONLY),"native readonly VB lock");Hr(vb->Unlock(),"native readonly VB unlock");
+  Hr(ib->Lock(0,0,&locked,D3DLOCK_READONLY),"native readonly IB lock");Hr(ib->Unlock(),"native readonly IB unlock");
+  Check(resolve()&&source::buffers.at(vb).verified&&source::buffers.at(ib).verified,"readonly locks preserve native provenance");
+  submit(true,firstX,"readonly access preserves native submission");
+  Hr(vb->Lock(0,0,&locked,0),"native writable VB lock");
+  Check(!source::buffers.count(vb)&&source::buffers.count(ib)==1&&source::retainedBytes==indexBytes.size(),"writable VB lock invalidates native capture immediately");
+  memcpy(locked,vertexBytes.data(),vertexBytes.size());Hr(vb->Unlock(),"native writable VB unlock");
+  Check(!resolve(),"partial native buffer pair cannot resolve");submit(false,firstX,"written VB retains D3D upload source");
+  source::buffers.emplace(vb,source::Bytes{vertexBytes,19,address(&shared),address(&nativeVB)});source::retainedBytes+=vertexBytes.size();
+  Hr(ib->Lock(0,0,&locked,0),"native writable IB lock");
+  Check(!source::buffers.count(ib)&&source::buffers.count(vb)==1&&source::retainedBytes==vertexBytes.size(),"writable IB lock invalidates native capture immediately");
+  memcpy(locked,indexBytes.data(),indexBytes.size());Hr(ib->Unlock(),"native writable IB unlock");
+  Check(!resolve(),"written index pair cannot resolve");submit(false,firstX,"written IB retains D3D upload source");
+  source::Forget(vb);Check(source::buffers.empty()&&!source::retainedBytes,"native fixture releases all captured bytes");
+  source::active=nullptr;source::enabled=false;source::submitEnabled=oldSubmit;source::ownerThread=oldThread;
+  source::matched=oldMatched;source::used=oldUsed;source::invalidations=oldInvalidations;source::uploadMismatches=oldMismatches;
+  source::layoutMismatches=oldLayoutMismatches;source::layouts=oldLayouts;
+  Hr(d->SetTransform(D3DTS_WORLD,&oldWorld),"restore world after native fixture");ClearSurfaceBases();
+  nativeSourceChecks=checks-initialChecks-nativeMaterialChecks;
+}
+#endif
+int main() {
+  // The build wrapper is intentionally unchanged. Bound this owned system-D3D
+  // helper even if a driver/API call stalls; no PID-name based termination.
+  struct Watchdog {
+    HANDLE stop=CreateEventW(nullptr,TRUE,FALSE,nullptr),thread=nullptr;
+    static DWORD WINAPI Run(void* value) {
+      if(WaitForSingleObject(static_cast<HANDLE>(value),30000)==WAIT_TIMEOUT)
+        TerminateProcess(GetCurrentProcess(),0xE0524D01u);
+      return 0;
+    }
+    Watchdog(){Check(stop!=nullptr,"watchdog event");thread=CreateThread(nullptr,0,Run,stop,0,nullptr);Check(thread!=nullptr,"30-second owned-process watchdog");}
+    ~Watchdog(){SetEvent(stop);WaitForSingleObject(thread,1000);CloseHandle(thread);CloseHandle(stop);}
+  } watchdog;
+  frameId=1;autoSurfaceRoles=materialChannelsEnabled=true;preserveUnlitColor=false;
+  Check(!native_transport_source::enabled&&native_transport_source::records.empty(),"fresh transport registry before device creation");
+  native_transport_source::enabled=true;++nativeTransportChecks;
+  Check(GetFullPathNameW(L"assets",MAX_PATH,surfaceAssetDirectory,nullptr)!=0,"asset directory");
+  Check(CreateDirectoryW(surfaceAssetDirectory,nullptr)!=0,"fresh evidence directory");
+  remixapi_Interface recording{};recording.SetConfigVariable=Config;recording.CreateMaterial=Material;recording.CreateMesh=Mesh;
+  recording.DrawInstance=Instance;recording.DestroyMesh=DeleteMesh;recording.DestroyMaterial=DeleteMaterial;testRemixApi=&recording;
+  auto module=LoadLibraryExW(L"d3d9.dll",nullptr,LOAD_LIBRARY_SEARCH_SYSTEM32);Check(module!=nullptr,"system D3D9");
+  auto factory=reinterpret_cast<IDirect3D9*(WINAPI*)(UINT)>(GetProcAddress(module,"Direct3DCreate9"));Check(factory!=nullptr,"D3D factory");
+  auto d3d=factory(D3D_SDK_VERSION);Check(d3d!=nullptr,"D3D object");
+  HWND hwnd=CreateWindowW(L"STATIC",L"Winx channel integration",WS_OVERLAPPED,0,0,64,64,nullptr,nullptr,GetModuleHandleW(nullptr),nullptr);
+  Check(hwnd!=nullptr,"owned hidden window");Patch(d3d,16,reinterpret_cast<void*>(CreateDevice));
+  D3DPRESENT_PARAMETERS pp{};pp.Windowed=TRUE;pp.SwapEffect=D3DSWAPEFFECT_DISCARD;pp.hDeviceWindow=hwnd;
+  pp.BackBufferWidth=64;pp.BackBufferHeight=64;pp.BackBufferFormat=D3DFMT_X8R8G8B8;pp.EnableAutoDepthStencil=TRUE;pp.AutoDepthStencilFormat=D3DFMT_D24S8;
+  IDirect3DDevice9* d=nullptr;Hr(d3d->CreateDevice(0,D3DDEVTYPE_HAL,hwnd,D3DCREATE_SOFTWARE_VERTEXPROCESSING,&pp,&d),"real device with production hooks");
+#if defined(_M_IX86)
+  NativeTransport(d,pp);
+  NativeTexture(d,pp);
+#endif
+  D3DMATRIX identity{},projection{};identity._11=identity._22=identity._33=identity._44=1;
+  projection._11=projection._22=projection._33=projection._34=1;projection._43=-.1f;
+  Hr(d->SetTransform(D3DTS_WORLD,&identity),"world");Hr(d->SetTransform(D3DTS_VIEW,&identity),"view");Hr(d->SetTransform(D3DTS_PROJECTION,&projection),"projection");
+  for(auto state:{D3DRS_LIGHTING,D3DRS_SPECULARENABLE,D3DRS_ALPHATESTENABLE,D3DRS_ALPHABLENDENABLE})Hr(d->SetRenderState(state,0),"disabled state");
+  Hr(d->SetRenderState(D3DRS_ZENABLE,TRUE),"depth");Hr(d->SetRenderState(D3DRS_ZWRITEENABLE,TRUE),"depth write");
+  Hr(d->SetRenderState(D3DRS_ZFUNC,D3DCMP_LESSEQUAL),"depth compare");Hr(d->SetRenderState(D3DRS_CULLMODE,D3DCULL_NONE),"two sided");
+  // Disabled blending must ignore the stale additive factors.
+  Hr(d->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_ONE),"blend src");Hr(d->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_ONE),"blend dst");
+  constexpr DWORD format=D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_DIFFUSE|D3DFVF_TEX1;
+  const Vertex vertices[]={{-1,1,3,0,0,-1,0x00336699,0,0},{1,1,3,0,0,-1,0x8012a5ef,1,0},
+    {-1,-1,3,0,0,-1,0xffe08020,0,1},{1,-1,3,0,0,-1,0x40996633,1,1}};
+  IDirect3DVertexBuffer9* vb=nullptr;IDirect3DIndexBuffer9* ib=nullptr;void* bytes=nullptr;
+  Hr(d->CreateVertexBuffer(sizeof(vertices),0,format,D3DPOOL_MANAGED,&vb,nullptr),"VB");
+  Hr(vb->Lock(0,0,&bytes,0),"VB write");memcpy(bytes,vertices,sizeof(vertices));Hr(vb->Unlock(),"VB complete");
+  const WORD indices[]={0,1,2,3};Hr(d->CreateIndexBuffer(sizeof(indices),0,D3DFMT_INDEX16,D3DPOOL_MANAGED,&ib,nullptr),"IB");
+  Hr(ib->Lock(0,0,&bytes,0),"IB write");memcpy(bytes,indices,sizeof(indices));Hr(ib->Unlock(),"IB complete");
+  Hr(d->SetStreamSource(0,vb,0,sizeof(Vertex)),"vertex stream");Hr(d->SetIndices(ib),"indices");Hr(d->SetFVF(format),"declaration");
+  IDirect3DTexture9* texture=nullptr;Hr(d->CreateTexture(4,4,3,0,D3DFMT_A8R8G8B8,D3DPOOL_MANAGED,&texture,nullptr),"three mip texture");
+  D3DLOCKED_RECT lock{};
+  for(UINT level=0;level<3;++level){Hr(texture->LockRect(level,&lock,nullptr,0),"mip write");for(UINT y=0;y<(4u>>level);++y)for(UINT x=0;x<(4u>>level);++x)
+    reinterpret_cast<DWORD*>(static_cast<uint8_t*>(lock.pBits)+y*lock.Pitch)[x]=0x8080c040u+level;Hr(texture->UnlockRect(level),"mip complete");}
+  Hr(d->SetTexture(0,texture),"texture bind");Hr(d->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE),"RGB operation");
+  Hr(d->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE),"RGB texture");Hr(d->SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE),"RGB diffuse");
+  Hr(d->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_MODULATE),"alpha operation");Hr(d->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE),"alpha texture");
+  Hr(d->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE),"alpha diffuse");Hr(d->SetTextureStageState(1,D3DTSS_COLOROP,D3DTOP_DISABLE),"single stage");
+  Hr(d->SetSamplerState(0,D3DSAMP_MAGFILTER,D3DTEXF_POINT),"point sampler");
+  {
+    const auto previousOpaque=opaqueAlphaTest,previousComparison=keepTrivialAlphaTestForComparison;
+    const D3DRENDERSTATETYPE states[]={D3DRS_ALPHATESTENABLE,D3DRS_ALPHAFUNC,D3DRS_ALPHAREF,D3DRS_ALPHABLENDENABLE};
+    DWORD saved[4]{};for(unsigned i=0;i<4;++i)Hr(d->GetRenderState(states[i],&saved[i]),"save alpha provenance state");
+    opaqueAlphaTest=true;keepTrivialAlphaTestForComparison=false;
+    Hr(d->SetRenderState(D3DRS_ALPHATESTENABLE,TRUE),"enable trivial alpha input");
+    Hr(d->SetRenderState(D3DRS_ALPHAFUNC,D3DCMP_GREATEREQUAL),"native alpha input");
+    Hr(d->SetRenderState(D3DRS_ALPHAREF,0),"trivial reference");
+    Hr(d->SetRenderState(D3DRS_ALPHABLENDENABLE,FALSE),"opaque provenance draw");
+    {
+      ScopedOpaqueAlphaTest adjustment(d);DWORD actual=0,input=0;
+      Hr(d->GetRenderState(D3DRS_ALPHAFUNC,&actual),"read adjusted device alpha");
+      Check(adjustment.changed&&actual==D3DCMP_ALWAYS,"real device normalization retains its established result");
+      Check(adjustment.RecoverInput(d,D3DRS_ALPHAFUNC,actual,input)&&input==D3DCMP_GREATEREQUAL,
+        "same live scope recovers actual native input for independent comparison");
+      Check(!adjustment.RecoverInput(nullptr,D3DRS_ALPHAFUNC,actual,input),"foreign device gets no adjustment provenance");
+      Check(!adjustment.RecoverInput(d,D3DRS_ZFUNC,actual,input),"unrelated device state gets no alpha provenance");
+      Check(!adjustment.RecoverInput(d,D3DRS_ALPHAFUNC,D3DCMP_LESS,input),"unexpected current state cannot be reinterpreted");
+    }
+    DWORD restored=0;Hr(d->GetRenderState(D3DRS_ALPHAFUNC,&restored),"alpha restored after scope");
+    Check(restored==D3DCMP_GREATEREQUAL,"comparison provenance does not change restoration");
+    for(unsigned i=0;i<4;++i)Hr(d->SetRenderState(states[i],saved[i]),"restore alpha provenance state");
+    opaqueAlphaTest=previousOpaque;keepTrivialAlphaTestForComparison=previousComparison;
+  }
+  auto draw=[&](){ClearSurfaceBases();Hr(d->BeginScene(),"begin");Hr(d->DrawIndexedPrimitive(D3DPT_TRIANGLESTRIP,0,0,4,0,2),"production draw");Hr(d->EndScene(),"end");};
+  draw();Check(materialChannelsSubmitted==1&&apiDraws==1,"production draw reaches API");
+  Check(lastEmission.empty(),"unlit input creates no inferred emission");Check(!lastBlend.alphaBlendEnabled&&lastBlend.alphaTestCompareOp==7,"disabled alpha and stale blend state preserved");
+  const unsigned order[]={0,1,2,2,1,3};for(unsigned i=0;i<6;++i){Check(lastVertices[i].color==vertices[order[i]].color,"variable RGB and alpha unchanged");
+    Check(lastVertices[i].texcoord[0]==vertices[order[i]].u&&lastVertices[i].texcoord[1]==vertices[order[i]].v,"UV unchanged");}
+  auto dds=Dds(lastAlbedo);Check(dds.size()==53&&dds[7]==3&&dds[32]==0x8080c040&&dds[48]==0x8080c041&&dds[52]==0x8080c042,"all mips and texture alpha preserved");
+  const auto initialHash=BoundChannelTextureHash(d);const auto initialPath=lastAlbedo;
+  draw();Check(surfaceMeshCreates==1&&surfaceMaterialCreates==1,"unchanged content reuses API resources");
+  Hr(texture->LockRect(1,&lock,nullptr,D3DLOCK_READONLY),"readonly mip");Hr(texture->UnlockRect(1),"readonly complete");
+  Check(surfaceChannelTextureHashes.count(texture)==1&&BoundChannelTextureHash(d)==initialHash,"read-only access preserves cache");
+  Hr(texture->LockRect(1,&lock,nullptr,0),"lower mip update");*static_cast<DWORD*>(lock.pBits)=0x12345678;Hr(texture->UnlockRect(1),"lower mip commit");
+  Check(surfaceChannelTextureHashes.count(texture)==0,"writable texture lock invalidates identity");draw();
+  Check(BoundChannelTextureHash(d)!=initialHash&&lastAlbedo!=initialPath,"lower mip change creates a new material identity");
+  dds=Dds(lastAlbedo);Check(dds[48]==0x12345678,"lower mip write reaches new DDS");
+  IDirect3DSurface9* surface=nullptr;Hr(texture->GetSurfaceLevel(2,&surface),"mip surface");
+  Hr(surface->LockRect(&lock,nullptr,0),"surface update");*static_cast<DWORD*>(lock.pBits)=0x90abcdef;Hr(surface->UnlockRect(),"surface commit");surface->Release();
+  Check(surfaceChannelTextureHashes.count(texture)==0,"surface lock invalidates owning texture");draw();dds=Dds(lastAlbedo);Check(dds[52]==0x90abcdef,"surface write reaches DDS");
+  const auto submitted=materialChannelsSubmitted;keepMaterialChannelsForComparison=true;draw();Check(materialChannelsSubmitted==submitted,"live comparison uses original draw");keepMaterialChannelsForComparison=false;
+  rejectDraw=true;draw();Check(materialChannelsSubmitted==submitted&&materialChannelsRejected==1,"API draw failure falls back to completed D3D9 draw");rejectDraw=false;
+  Hr(d->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_ADD),"unsupported combiner");draw();Check(materialChannelsSubmitted==submitted,"unsupported combiner retains original draw");
+  Hr(d->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE),"restore combiner");draw();Check(materialChannelsSubmitted==submitted+1,"API path returns after fallback");
+  const auto reflectancePixels=Dds(lastAlbedo);
+  SetPreserveUnlitColor(true);Check(surfaceMeshes.empty()&&surfaceMaterials.empty(),"policy switch retires old resources before drawing");draw();
+  Check(!lastEmission.empty()&&Dds(lastAlbedo)==reflectancePixels,"preserving unlit signal adds emission without changing reflectance");
+  const auto unlitEmission=lastEmission;dds=Dds(lastEmission);
+  Check(dds[32]==0x8080c040&&dds[48]==0x12345678&&dds[52]==0x90abcdef,"original unlit texels and all mips reach emission");
+  for(unsigned i=0;i<6;++i)Check(lastVertices[i].color==vertices[order[i]].color,"unlit emission shares original interpolated RGBA");
+  Hr(d->SetRenderState(D3DRS_AMBIENT,0xff12ef45),"unused ambient");draw();
+  Check(lastEmission==unlitEmission,"unused ambient cannot alter unlit signal");
+  SetPreserveUnlitColor(false);draw();Check(lastEmission.empty(),"unlit preservation can be disabled without restart");
+  SetPreserveUnlitColor(true);draw();Check(lastEmission==unlitEmission,"unlit assets can be reused after restoring preservation");
+#if defined(_M_IX86)
+  NativeSource(d,vb,ib,draw);
+#endif
+  UnlitFaceNormals(d,vb,vertices,draw);
+  D3DMATERIAL9 material{};material.Diffuse={.6f,.4f,.2f,.5f};material.Ambient={.5f,.25f,.125f,1};material.Emissive={.1f,.2f,.3f,1};
+  Hr(d->SetRenderState(D3DRS_LIGHTING,TRUE),"lit material");Hr(d->SetRenderState(D3DRS_COLORVERTEX,FALSE),"constant material sources");
+  Hr(d->SetMaterial(&material),"lit coefficients");Hr(d->SetRenderState(D3DRS_AMBIENT,0xff408020),"lit ambient");
+  draw();Check(!lastEmission.empty(),"lit material creates independent emission");
+  dds=Dds(lastAlbedo);const auto aPixel=dds[32];dds=Dds(lastEmission);const auto ePixel=dds[32];
+  // A=(128,192,64)*(.6,.4,.2); E=T*(emissive+ambient*materialAmbient), rounded to UNORM8.
+  Check(aPixel==0x804d4d0d&&ePixel==0x801d3e14,"independent albedo and additive coefficient textures reach API");
+  for(const auto& vertex:lastVertices)Check(vertex.color==0x80ffffff,"material alpha replaces vertex alpha without tinting albedo");
+  Hr(d->SetRenderState(D3DRS_AMBIENT,0xffc02080),"changed ambient");draw();dds=Dds(lastAlbedo);Check(dds[32]==aPixel,"ambient cannot modify base albedo");
+  dds=Dds(lastEmission);Check(dds[32]!=ePixel,"ambient change updates additive channel");
+  const auto litSubmitted=materialChannelsSubmitted;Hr(d->SetRenderState(D3DRS_COLORVERTEX,TRUE),"vertex ambient mode");
+  Hr(d->SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE,D3DMCS_MATERIAL),"constant diffuse source");
+  Hr(d->SetRenderState(D3DRS_AMBIENTMATERIALSOURCE,D3DMCS_COLOR1),"varying ambient source");
+  Hr(d->SetRenderState(D3DRS_EMISSIVEMATERIALSOURCE,D3DMCS_MATERIAL),"constant emission source");
+  draw();Check(materialChannelsSubmitted==litSubmitted,"unrepresentable independent vertex ambient retains original draw");
+  Hr(d->SetTexture(0,nullptr),"unbind texture");Check(texture->Release()==0,"texture final release");Check(surfaceChannelTextureHashes.empty(),"released texture identity removed");
+  Hr(d->SetStreamSource(0,nullptr,0,0),"unbind vertices");Hr(d->SetIndices(nullptr),"unbind indices");vb->Release();ib->Release();
+  {std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(!native_transport_source::records.count(vb)&&!native_transport_source::records.count(ib),"main integration final buffer releases retire live transport records");++nativeTransportChecks;}
+  frameId=330;RetireSurfaceResources();Check(surfaceMeshes.empty()&&surfaceMaterials.empty()&&surfaceMeshBytes==0,"all API resources retired");
+  const auto deviceReferences=d->Release();
+  {std::unique_lock<std::recursive_mutex> borrow(guard);
+    Check(deviceReferences==0,"transport registry retains no extra device reference");++nativeTransportChecks;
+    bool hasDeviceRecord=false;for(const auto& entry:native_transport_source::records)if(entry.second.device==d)hasDeviceRecord=true;
+    Check(!hasDeviceRecord,"final real device Release leaves no live transport record");++nativeTransportChecks;}
+  native_transport_source::enabled=false;d3d->Release();DestroyWindow(hwnd);
+  printf("{\"status\":\"PASS\",\"checks\":%u,\"nativeSourceChecks\":%u,\"nativeMaterialChecks\":%u,\"nativeTransportChecks\":%u,\"nativeTextureChecks\":%u,\"submitted\":%u,\"rejected\":%u,\"meshCreates\":%u,\"materialCreates\":%u,\"assetBytes\":%zu}\n",checks,nativeSourceChecks,nativeMaterialChecks,nativeTransportChecks,nativeTextureChecks,materialChannelsSubmitted,materialChannelsRejected,surfaceMeshCreates,surfaceMaterialCreates,material_channels::assetBytes);
+}

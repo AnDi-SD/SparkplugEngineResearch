@@ -1,4 +1,4 @@
-# PC material controllers and texture tracks — checkpoint 20
+# PC material controllers and texture tracks
 
 ## Original classes, clocks and bindings
 
@@ -95,9 +95,16 @@ not a reproduced safe native clone claim.
 
 ## Remaining connected work
 
-UV transform/function evaluator math and nonempty UV codec, color-controller
-counterpart, native controller/track clone ownership, malformed/partial failure
-paths and native track release/reload variants, exact standalone track
-factory/copy, complete renderer state application, real-file/native FFPS save
-and live PC display remain open. Original API/source names remain separate
-name-only questions. No PS2 credit or 100% completion is inferred here.
+Finite UV transform/function evaluation and the nonempty nested codec are
+described in the canonical [UV/function contract](../platforms/uv-functions.md).
+That contract also distinguishes observed native UV clone topologies from
+portable clone parity, which remains refused. The connected material-to-device
+matrix boundary is described in [UV renderer submission](../rendering/uv-renderer.md);
+[material color control](material-color.md) is a separate contract.
+
+Exceptional math, malformed/partial/write/allocation failures, portable
+controller clone parity, native track release/reload variants and exact
+standalone track factory/copy remain partial. Complete setter/reset callers,
+whole-file save and live PC display are not established by these finite
+operations. Original API/source names remain separate name-only questions.
+No PS2 credit or whole-class completion is inferred here.

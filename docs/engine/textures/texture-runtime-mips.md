@@ -78,7 +78,10 @@ are safe host guards. Reads validate before state replacement; originals
 publish/create earlier and have incomplete rollback. Palette==1 fails explicitly.
 Other palette marker bytes behave as absent, matching native equality test.
 New formatInitialized flag prevents host zero from masquerading as native44.
-Unknown source/DXData payload is still rejected; nativeData source adapter is next.
+Unknown source/DXData payload is still rejected. The native-record source
+adapter and the separate recovered COM upload entry are described in
+[native texture data](texture-native-source.md); the CPU codec does not
+automatically acquire a live device.
 
 ## Real-resource lead and unclosed dependencies
 

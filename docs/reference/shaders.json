@@ -1,0 +1,458 @@
+{
+  "schemaVersion": 2,
+  "programs": [
+    {
+      "id": "pc.ballistic.vs",
+      "name": "BallisticPFX",
+      "platform": "pc",
+      "stage": "vertex",
+      "original": {
+        "file": "BallisticPFX.vsh",
+        "format": "assembly",
+        "profile": "vs_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/BallisticPFX.hlsl",
+        "entryPoint": "BallisticVS",
+        "profile": "vs_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/ballistic-pfx.md",
+      "purpose": "Движение, цвет и размер точечных частиц"
+    },
+    {
+      "id": "pc.basic.vs",
+      "name": "BasicShader",
+      "platform": "pc",
+      "stage": "vertex",
+      "original": {
+        "file": "BasicShader.vsh",
+        "format": "assembly",
+        "profile": "vs_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Basic.hlsl",
+        "entryPoint": "BasicVS",
+        "profile": "vs_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/basic.md",
+      "purpose": "Преобразование позиции четырьмя загруженными регистрами"
+    },
+    {
+      "id": "pc.blur.vs",
+      "name": "Blur",
+      "platform": "pc",
+      "stage": "vertex",
+      "original": {
+        "file": "Blur.vsh",
+        "format": "assembly",
+        "profile": "vs_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Blur.hlsl",
+        "entryPoint": "BlurVS",
+        "profile": "vs_3_0",
+        "defines": {
+          "SPARKPLUG_BLUR_VERTEX": 1
+        },
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/blur.md",
+      "purpose": "Экранный quad и четыре смещённых UV"
+    },
+    {
+      "id": "pc.blur.ps",
+      "name": "Blur",
+      "platform": "pc",
+      "stage": "pixel",
+      "original": {
+        "file": "Blur.psh",
+        "format": "assembly",
+        "profile": "ps_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Blur.hlsl",
+        "entryPoint": "BlurPS",
+        "profile": "ps_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/blur.md",
+      "purpose": "Среднее четырёх выборок RGBA"
+    },
+    {
+      "id": "pc.blur-luminance.ps",
+      "name": "BlurLuminance",
+      "platform": "pc",
+      "stage": "pixel",
+      "original": {
+        "file": "BlurLuminance.psh",
+        "format": "assembly",
+        "profile": "ps_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Blur.hlsl",
+        "entryPoint": "BlurLuminancePS",
+        "profile": "ps_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/blur.md",
+      "purpose": "Размытие с умножением RGB на яркость"
+    },
+    {
+      "id": "pc.bumpmap.ps",
+      "name": "Bumpmap",
+      "platform": "pc",
+      "stage": "pixel",
+      "original": {
+        "file": "Bumpmap.rfx",
+        "format": "rfx-assembly",
+        "profile": "ps_1_1",
+        "recordIndex": 0
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Bumpmap.hlsl",
+        "entryPoint": "BumpmapPS",
+        "profile": "ps_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/bumpmap.md",
+      "purpose": "Normal map, diffuse и specular восьмой степени"
+    },
+    {
+      "id": "pc.bumpmap.vs",
+      "name": "Bumpmap",
+      "platform": "pc",
+      "stage": "vertex",
+      "original": {
+        "file": "Bumpmap.rfx",
+        "format": "rfx-hlsl",
+        "profile": "vs_1_1",
+        "recordIndex": 1,
+        "entryPoint": "vs_main"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Bumpmap.hlsl",
+        "entryPoint": "BumpmapVS",
+        "profile": "vs_3_0",
+        "defines": {
+          "SPARKPLUG_BUMPMAP_VERTEX": 1
+        },
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/bumpmap.md",
+      "purpose": "Кодирование tangent-space направлений света и half-vector"
+    },
+    {
+      "id": "pc.fixed.vs",
+      "name": "Fixed",
+      "platform": "pc",
+      "stage": "vertex",
+      "original": {
+        "file": "Fixed.rfx",
+        "format": "rfx-hlsl-template",
+        "profile": "vs_1_1",
+        "recordIndex": 0,
+        "entryPoint": "Main"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Fixed.hlsl",
+        "entryPoint": "FixedVS",
+        "profile": "vs_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/fixed.md",
+      "purpose": "Skinning, выбранное освещение, ColorMode и UV"
+    },
+    {
+      "id": "pc.fixed.ps",
+      "name": "Fixed",
+      "platform": "pc",
+      "stage": "pixel",
+      "original": {
+        "file": "Fixed.rfx",
+        "format": "rfx-hlsl",
+        "profile": "ps_1_1",
+        "recordIndex": 1,
+        "entryPoint": "ps_main"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Fixed.hlsl",
+        "entryPoint": "FixedPS",
+        "profile": "ps_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/fixed.md",
+      "purpose": "Возврат интерполированного COLOR0 без texture samples"
+    },
+    {
+      "id": "pc.luminance.ps",
+      "name": "Luminance",
+      "platform": "pc",
+      "stage": "pixel",
+      "original": {
+        "file": "Luminance.psh",
+        "format": "assembly",
+        "profile": "ps_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/Luminance.hlsl",
+        "entryPoint": "LuminancePS",
+        "profile": "ps_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/luminance.md",
+      "purpose": "Умножение RGB на шестнадцатую степень яркости"
+    },
+    {
+      "id": "pc.shadow-volume-point.vs",
+      "name": "ShadowVolumePoint",
+      "platform": "pc",
+      "stage": "vertex",
+      "original": {
+        "file": "ShadowVolumePoint.vsh",
+        "format": "assembly",
+        "profile": "vs_1_1"
+      },
+      "reconstruction": {
+        "source": "Sparkplug/Shaders/PC/ShadowVolumePoint.hlsl",
+        "entryPoint": "ShadowVolumePointVS",
+        "profile": "vs_3_0",
+        "defines": {},
+        "status": "semantic-reconstruction"
+      },
+      "documentation": "docs/reference/shaders/shadow-volume-point.md",
+      "purpose": "Радиальное вытягивание теневого объёма точечного света"
+    }
+  ],
+  "executable": {
+    "embeddedProgramInventory": "open",
+    "knownEmbeddedPrograms": [],
+    "specializationSources": [
+      "Sparkplug/Code/SparkplugPC/spPCShaderSource.h",
+      "Sparkplug/Code/SparkplugPC/spPCShaderManager.cpp",
+      "Sparkplug/Code/SparkplugPC/spPCEffectTemplate.cpp"
+    ],
+    "documentation": [
+      "docs/engine/materials/shader-generation.md",
+      "docs/engine/materials/shader-compile.md",
+      "docs/engine/materials/shader-constants.md"
+    ]
+  },
+  "fixedVariants": {
+    "weights": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "colorModeBits": 4,
+    "maxLights": 8,
+    "orderedLightTypes": [
+      0,
+      1,
+      2
+    ],
+    "maxUvOutputs": 8,
+    "uvMaskBits": 8,
+    "specular": [
+      false,
+      true
+    ],
+    "note": "Valid source specializations are not independently observed game programs; manager bypasses zero-weight generation."
+  },
+  "pcExternalScope": {
+    "platform": "pc",
+    "resourceDirectory": "Shaders",
+    "originalFileCount": 9,
+    "enumeration": "external-resource-stages",
+    "completeness": "complete-for-inspected-directory",
+    "gameWideCompleteness": false,
+    "ps2Covered": false
+  },
+  "scope": {
+    "platforms": [
+      "pc",
+      "ps2"
+    ],
+    "completeness": "open"
+  },
+  "binaryPrograms": [
+    {
+      "id": "ps2.vu.0043a600",
+      "platform": "ps2",
+      "kind": "vu-upload-image",
+      "original": {
+        "file": "SLES_532.19",
+        "containerAddress": "0x0043A600",
+        "containerByteLength": 10528,
+        "payloadBytes": 10464,
+        "instructionPairs": 1308,
+        "uploadChunks": 6,
+        "microAddress": 0
+      },
+      "producer": {
+        "key": 0,
+        "tableSlot": 3,
+        "factory": "0x002076A0",
+        "getter": "0x00207600",
+        "upload": "0x002073F0"
+      },
+      "extractionStatus": "structure-validated",
+      "semanticStatus": "unrecovered",
+      "documentation": "docs/reference/shaders/ps2-vu.md",
+      "unit": null,
+      "runtimeQualified": false
+    },
+    {
+      "id": "ps2.vu.0043cf20",
+      "platform": "ps2",
+      "kind": "vu-upload-image",
+      "original": {
+        "file": "SLES_532.19",
+        "containerAddress": "0x0043CF20",
+        "containerByteLength": 12480,
+        "payloadBytes": 12408,
+        "instructionPairs": 1551,
+        "uploadChunks": 7,
+        "microAddress": 0
+      },
+      "producer": {
+        "key": 0,
+        "tableSlot": 6,
+        "factory": "0x002076A0",
+        "getter": "0x00207600",
+        "upload": "0x002073F0"
+      },
+      "extractionStatus": "structure-validated",
+      "semanticStatus": "unrecovered",
+      "documentation": "docs/reference/shaders/ps2-vu.md",
+      "unit": null,
+      "runtimeQualified": false
+    },
+    {
+      "id": "ps2.vu.0043ffe0",
+      "platform": "ps2",
+      "kind": "vu-upload-image",
+      "original": {
+        "file": "SLES_532.19",
+        "containerAddress": "0x0043FFE0",
+        "containerByteLength": 12592,
+        "payloadBytes": 12520,
+        "instructionPairs": 1565,
+        "uploadChunks": 7,
+        "microAddress": 0
+      },
+      "producer": {
+        "key": 0,
+        "tableSlot": 7,
+        "factory": "0x002076A0",
+        "getter": "0x00207600",
+        "upload": "0x002073F0"
+      },
+      "extractionStatus": "structure-validated",
+      "semanticStatus": "unrecovered",
+      "documentation": "docs/reference/shaders/ps2-vu.md",
+      "unit": null,
+      "runtimeQualified": false
+    },
+    {
+      "id": "ps2.vu.00443110",
+      "platform": "ps2",
+      "kind": "vu-upload-image",
+      "original": {
+        "file": "SLES_532.19",
+        "containerAddress": "0x00443110",
+        "containerByteLength": 1296,
+        "payloadBytes": 1272,
+        "instructionPairs": 159,
+        "uploadChunks": 1,
+        "microAddress": 0
+      },
+      "producer": {
+        "key": 1,
+        "tableSlot": null,
+        "factory": "0x00208680",
+        "getter": "0x00208640",
+        "upload": "0x00208490"
+      },
+      "extractionStatus": "structure-validated",
+      "semanticStatus": "unrecovered",
+      "documentation": "docs/reference/shaders/ps2-vu.md",
+      "unit": null,
+      "runtimeQualified": false
+    }
+  ],
+  "platformInventories": {
+    "pc": {
+      "imageFormat": "PE32",
+      "scanScope": "declared-raw-images",
+      "embeddedFramedPrograms": 0,
+      "generatedPrograms": "external-template-and-CPU-specialization",
+      "runtimeOnlySources": "open",
+      "documentation": "docs/engine/materials/shader-discovery.md"
+    },
+    "ps2": {
+      "imageFormat": "ELF32-MIPS",
+      "scanScope": "proven-DMA-RET-MPG-containers",
+      "semanticRecovery": "open",
+      "additionalUploadRoutes": "open",
+      "documentation": "docs/reference/shaders/ps2-vu.md"
+    }
+  },
+  "completeness": {
+    "status": "open",
+    "requirements": [
+      {
+        "id": "input-cohort",
+        "status": "partial",
+        "scope": "Declared canonical raw PC images and main PS2 ELF; other editions and runtime-only images remain open."
+      },
+      {
+        "id": "external-resources",
+        "status": "partial",
+        "scope": "PC Shaders directory is enumerated; PS2 PCK directories are enumerated but their payload code/streams are not closed."
+      },
+      {
+        "id": "pc-embedded-and-generated",
+        "status": "partial",
+        "scope": "Supported raw PE DXSO/text grammar and known source generation; packed/transient code and all callers remain open."
+      },
+      {
+        "id": "captured-program-source-identity",
+        "status": "bounded-complete",
+        "scope": "Declared historical PC capture corpus only; not every possible game draw or native selection key."
+      },
+      {
+        "id": "ps2-upload-images",
+        "status": "partial",
+        "scope": "Four complete DMA RET/NOP/MPG containers in the canonical main ELF; other upload grammars and units remain open."
+      },
+      {
+        "id": "producer-dispatch-closure",
+        "status": "open",
+        "scope": "Direct sites and literal stores only; indirect dispatch, table bounds and all selector values remain open."
+      },
+      {
+        "id": "material-constant-packet-contracts",
+        "status": "partial",
+        "scope": "Known PC constants and PS2 upload metadata; VU ISA, packet inputs, GS/GIF and material effects remain open."
+      },
+      {
+        "id": "behavior-and-scenes",
+        "status": "open",
+        "scope": "Source/byte identity is separate from numerical, rendered-image and all-scene qualification."
+      }
+    ],
+    "documentation": "docs/engine/materials/shader-discovery.md"
+  }
+}

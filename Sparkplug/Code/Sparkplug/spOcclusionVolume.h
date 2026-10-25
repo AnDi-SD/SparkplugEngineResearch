@@ -1,18 +1,21 @@
 #pragma once
 
 // Original TU is proven by PC 006E8D14. This is the shared, partial class:
-// geometry producer/driver, fresh PC Init and world positions. Camera silhouette
-// and scene/partition registration are separate unimplemented boundaries.
+// geometry producer/driver, fresh PC Init, world positions and camera silhouette.
+// Automatic scene/partition registration remains a separate boundary.
 #include "spNode.h"
 #include "../../Analysis/PC/GeometryHelper4604F0.h"
+#include "../../Analysis/PC/spVisibilityMath.h"
 #include <optional>
 
 namespace sparkplug::reconstruction
 {
+class spPartitionNode;
 class spOcclusionVolume final : public spNode
 {
 public:
     static constexpr spClassID ClassID=0x43D24430;
+    ~spOcclusionVolume() override;
     using PlaneForAnalysis=std::array<float,4>;
     struct FaceForAnalysis
     {
@@ -56,6 +59,29 @@ public:
     [[nodiscard]] const auto& GetLocalBoundsForAnalysis() const noexcept{return localBounds_;}
     [[nodiscard]] const auto& GetLocalSphereForAnalysis() const noexcept{return localSphere_;}
     [[nodiscard]] const auto& GetWorldSphereForAnalysis() const noexcept{return worldSphere_;}
+    [[nodiscard]] auto GetVisibilityMarkForAnalysis() const noexcept{return visibilityMark_;}
+    void SetVisibilityMarkForAnalysis(std::uint32_t value) noexcept{visibilityMark_=value;}
+    [[nodiscard]] bool AppendPartitionForAnalysis(spPartitionNode* partition);
+    void RemovePartitionForAnalysis(spPartitionNode* partition,bool notify=true) noexcept;
+    void ClearPartitionsForAnalysis(bool notify=true) noexcept;
+    [[nodiscard]] const auto& GetPartitionsForAnalysis() const noexcept{return partitions_;}
+    [[nodiscard]] bool HasPartitionStorageForAnalysis() const noexcept{return partitions_.capacity()!=0;}
+
+    struct CameraResultForAnalysis
+    {
+        bool completed=false,nativeReturn=false;
+    };
+    // PC46FFE0 /4702E0. Cached camera comparison uses componentwise <=.001,
+    // not exact equality. Neither method evaluates the Camera world transform.
+    // Native uninitialized false preserves old planes; host invalid topology,
+    // nonfinite/zero-scale inverse and work bounds return incomplete.
+    [[nodiscard]] CameraResultForAnalysis PrepareCameraForAnalysis(const Vector3& worldCamera);
+    [[nodiscard]] CameraResultForAnalysis BuildCameraPlanesForAnalysis(const Vector3& worldCamera);
+    [[nodiscard]] const auto& GetCachedCameraForAnalysis() const noexcept{return cachedCamera_;}
+    [[nodiscard]] const auto& GetCameraFacePlanesForAnalysis() const noexcept{return cameraFacePlanes_;}
+    [[nodiscard]] const auto& GetBorderPointsForAnalysis() const noexcept{return borderPoints_;}
+    [[nodiscard]] auto GetCameraWalkStampForAnalysis() const noexcept{return walkStamp_;}
+    [[nodiscard]] const auto& GetOcclusionPlanesForAnalysis() const noexcept{return cameraPlanes_;}
 
     // Explicit internal state for direct leaf comparisons. This does not
     // initialize an occluder, read geometry, construct faces or weld buffers.
@@ -89,6 +115,8 @@ public:
     [[nodiscard]] auto GetPlanarByteForAnalysis() const noexcept{return planar_;}
 private:
     bool initializationAttempted_=false,initialized_=false,cameraDirty_=false;
+    std::uint32_t visibilityMark_=0; // PC+C4, borrowed partition visibility stamp
+    std::vector<spPartitionNode*> partitions_; // borrowed nativeB4
     std::unique_ptr<spIndexBuffer> indices_;
     std::unique_ptr<spVertexBuffer> localVertices_;
     std::array<float,6> localBounds_{};
@@ -99,7 +127,10 @@ private:
     std::vector<std::uint16_t> triangleIndices_;
     std::vector<FaceForAnalysis> faces_;
     std::vector<std::unique_ptr<EdgeForAnalysis>> edges_;
-    std::vector<Vector3> borderPoints_; // PC+E8: driver reserves; no points added here
+    std::vector<Vector3> borderPoints_; // PC+E8: driver reserves; camera walk fills
+    Vector3 cachedCamera_{}; // native+118 is read only after Init/first dirty rebuild
+    std::vector<PlaneForAnalysis> cameraFacePlanes_; // native+108
+    evidence::pc::visibility_math::PlaneSet cameraPlanes_; // native+168; separate cached activeCount
     std::uint32_t walkStamp_=0;
     bool shapeBuffersPrepared_=false;
     // Actual PC factory initializes D4/160/164 to0, preserving only padding.
