@@ -368,6 +368,10 @@ else()
 endif()
 
 add_library(WinxAIManagers STATIC
+    Code/wxTargetManager.cpp
+    Code/wxTargetManager.h
+    Analysis/Host/wxTargetManagerHost.h
+    Analysis/PC/wxTargetManagerAbi.h
     Code/wxAIManager.cpp
     Code/wxAIManager.h
     Code/wxBacoManager.cpp
@@ -381,7 +385,7 @@ add_library(WinxAIManagers STATIC
 )
 
 target_include_directories(WinxAIManagers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(WinxAIManagers PUBLIC SparkBase)
+target_link_libraries(WinxAIManagers PUBLIC SparkBase SparkplugEngine WinxAssetManagers)
 target_compile_features(WinxAIManagers PUBLIC cxx_std_17)
 if(MSVC)
     target_compile_options(WinxAIManagers PRIVATE /W4 /permissive- /utf-8)
@@ -598,13 +602,152 @@ else()
     target_compile_options(WinxArrowTraps PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+add_library(WinxValueObjects STATIC
+    Code/wxVectorWrapper.cpp
+    Code/wxVectorWrapper.h
+    Analysis/PC/wxVectorWrapperAbi.h
+    Analysis/PS2/wxVectorWrapperAbi.h
+)
+target_include_directories(WinxValueObjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxValueObjects PUBLIC SparkBase)
+target_compile_features(WinxValueObjects PUBLIC cxx_std_17)
+
+add_library(WinxPerception STATIC
+    Code/wxPerception.cpp
+    Code/wxPerception.h
+    Analysis/Host/wxPerceptionHost.h
+    Analysis/PC/wxPerceptionAbi.h
+    Analysis/PC/wxPerceptionNumeric.h
+    Analysis/PS2/wxPerceptionAbi.h
+)
+target_include_directories(WinxPerception PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxPerception PUBLIC SparkBase)
+target_compile_features(WinxPerception PUBLIC cxx_std_20)
+
+add_library(WinxGameFlowStates STATIC
+    Code/wxGameFlowState.cpp
+    Code/wxGameFlowState.h
+    Analysis/Host/wxGameFlowStateHost.h
+    Code/wxGameFlowNavigation.cpp
+    Code/wxGameFlowNavigation.h
+    Analysis/Host/wxGameFlowNavigationHost.h
+    Analysis/PC/wxGameFlowStateAbi.h
+    Analysis/PS2/wxGameFlowStateAbi.h
+    Code/wxLoadSaveGameFlowState.cpp
+    Code/wxLoadSaveGameFlowState.h
+    Analysis/Host/wxLoadSaveGameFlowStateHost.h
+    Analysis/PC/wxLoadSaveGameFlowStateAbi.h
+    Analysis/PS2/wxLoadSaveGameFlowStateAbi.h
+    Code/wxDebugMenuGameFlowState.cpp
+    Code/wxDebugMenuGameFlowState.h
+    Code/wxDialogWindowGameFlowState.cpp
+    Code/wxDialogWindowGameFlowState.h
+    Analysis/Host/wxDebugMenuGameFlowStateHost.h
+    Analysis/Host/wxDialogWindowGameFlowStateHost.h
+    Analysis/PC/wxDebugMenuGameFlowStateAbi.h
+    Analysis/PC/wxDialogWindowGameFlowStateAbi.h
+    Analysis/PS2/wxDebugMenuGameFlowStateAbi.h
+    Analysis/PS2/wxDialogWindowGameFlowStateAbi.h
+    Code/wxCreditsMenuGameFlowState.cpp
+    Code/wxCreditsMenuGameFlowState.h
+    Analysis/Host/wxCreditsMenuGameFlowStateHost.h
+    Analysis/PC/wxCreditsMenuGameFlowStateAbi.h
+    Analysis/PS2/wxCreditsMenuGameFlowStateAbi.h
+    Code/wxCentreScreenGameFlowState.cpp
+    Code/wxCentreScreenGameFlowState.h
+    Analysis/Host/wxCentreScreenGameFlowStateHost.h
+    Analysis/PC/wxCentreScreenGameFlowStateAbi.h
+    Analysis/PS2/wxCentreScreenGameFlowStateAbi.h
+    Code/wxLogoAnimGameFlowState.cpp
+    Code/wxLogoAnimGameFlowState.h
+    Code/wxLogoSharedResourceLoading.cpp
+    Code/wxLogoSharedResourceLoading.h
+    Analysis/Host/wxLogoAnimGameFlowStateHost.h
+    Analysis/Host/wxLogoResourceLoadingHost.h
+    Analysis/PC/wxLogoAnimGameFlowStateAbi.h
+    Analysis/PS2/wxLogoAnimGameFlowStateAbi.h
+    Code/wxMenuGameFlowState.cpp
+    Code/wxMenuGameFlowState.h
+    Analysis/Host/wxMenuGameFlowStateHost.h
+    Analysis/PC/wxMenuGameFlowStateAbi.h
+    Analysis/PS2/wxMenuGameFlowStateAbi.h
+)
+target_include_directories(WinxGameFlowStates PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxGameFlowStates PUBLIC SparkplugEngine WinxAssetManagers)
+target_compile_features(WinxGameFlowStates PUBLIC cxx_std_17)
+add_library(WinxIdleAIAction STATIC
+    Code/wxIdleAIAction.cpp
+    Code/wxIdleAIAction.h
+    Analysis/Host/wxIdleAIActionHost.h
+    Analysis/PC/wxIdleAIActionAbi.h
+    Analysis/PS2/wxIdleAIActionAbi.h
+)
+target_include_directories(WinxIdleAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxIdleAIAction PUBLIC WinxAIActions WinxPerception)
+target_compile_features(WinxIdleAIAction PUBLIC cxx_std_20)
+add_library(WinxMinotaurDefendAIAction STATIC
+    Code/wxMinotaurDefendAIAction.cpp
+    Code/wxMinotaurDefendAIAction.h
+    Analysis/Host/wxMinotaurDefendAIActionHost.h
+    Analysis/PC/wxMinotaurDefendAIActionAbi.h
+    Analysis/PS2/wxMinotaurDefendAIActionAbi.h
+)
+target_include_directories(WinxMinotaurDefendAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxMinotaurDefendAIAction PUBLIC WinxAIActions WinxPerception SparkplugEngine)
+target_compile_features(WinxMinotaurDefendAIAction PUBLIC cxx_std_20)
+add_library(WinxSleepingAIAction STATIC
+    Code/wxIceGargoyleSleepingAIAction.cpp
+    Code/wxIceGargoyleSleepingAIAction.h
+    Analysis/Host/wxIceGargoyleSleepingAIActionHost.h
+    Analysis/PC/wxIceGargoyleSleepingAIActionAbi.h
+    Analysis/PS2/wxIceGargoyleSleepingAIActionAbi.h
+)
+target_include_directories(WinxSleepingAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxSleepingAIAction PUBLIC WinxAIActions SparkplugEngine WinxAIManagers)
+target_compile_features(WinxSleepingAIAction PUBLIC cxx_std_17)
+add_library(WinxTrollBeforeFightAIAction STATIC
+    Code/wxTrollBeforeFightAIAction.cpp
+    Code/wxTrollBeforeFightAIAction.h
+    Analysis/Host/wxTrollBeforeFightAIActionHost.h
+    Analysis/PC/wxTrollBeforeFightAIActionAbi.h
+    Analysis/PS2/wxTrollBeforeFightAIActionAbi.h
+)
+target_include_directories(WinxTrollBeforeFightAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxTrollBeforeFightAIAction PUBLIC WinxAIActions SparkplugEngine)
+target_compile_features(WinxTrollBeforeFightAIAction PUBLIC cxx_std_17)
+add_library(WinxGUI STATIC
+    Code/wxButton.cpp
+    Code/wxButton.h
+    Analysis/Host/wxButtonHost.h
+    Analysis/PC/wxButtonAbi.h
+    Analysis/PS2/wxButtonAbi.h
+    Code/wxHUDPart.cpp
+    Code/wxHUDPart.h
+    Analysis/Host/wxHUDPartHost.h
+    Analysis/PC/wxHUDPartAbi.h
+)
+target_include_directories(WinxGUI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxGUI PUBLIC SparkplugEngine WinxEntities)
+target_compile_features(WinxGUI PUBLIC cxx_std_17)
+if(MSVC)
+    foreach(module IN ITEMS WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
+        target_compile_options(${module} PRIVATE /W4 /permissive- /utf-8)
+    endforeach()
+endif()
+
 add_library(WinxGameCore STATIC
     Code/wxFaceData.cpp
     Code/wxFaceData.h
+    Code/wxGameTimer.cpp
+    Code/wxGameTimer.h
+    Analysis/Host/wxGameTimerHost.h
+    Analysis/PC/wxGameTimerAbi.h
+    Analysis/PS2/wxGameTimerAbi.h
 )
 target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxEntities WinxCharacterStates WinxCharacterStateMachines WinxCharacters WinxBacoStateMachines WinxAIActions WinxAIBehaviors WinxAIManagers WinxProjectiles WinxProjectileManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
 target_compile_features(WinxGameCore PUBLIC cxx_std_17)
+target_link_libraries(WinxGameCore PUBLIC WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
 if(MSVC)
     target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
 endif()
@@ -638,6 +781,28 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(WinxSleepingAIActionTests Tests/wxIceGargoyleSleepingAIActionTests.cpp)
+    target_link_libraries(WinxSleepingAIActionTests PRIVATE WinxSleepingAIAction WinxGameCore)
+    add_test(NAME WinxSleepingAIActionTests COMMAND WinxSleepingAIActionTests)
+    set_tests_properties(WinxSleepingAIActionTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxWxButtonTests Tests/wxButtonTests.cpp)
+    add_executable(WinxWxButtonNotifyTests Tests/wxButtonNotifyTests.cpp)
+    target_link_libraries(WinxWxButtonNotifyTests PRIVATE WinxGUI)
+    add_test(NAME WinxWxButtonNotifyTests COMMAND WinxWxButtonNotifyTests)
+    set_tests_properties(WinxWxButtonNotifyTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxHUDPartTests Tests/wxHUDPartTests.cpp)
+    target_link_libraries(WinxHUDPartTests PRIVATE WinxGUI)
+    add_test(NAME WinxHUDPartTests COMMAND WinxHUDPartTests)
+    set_tests_properties(WinxHUDPartTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
+    add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
+    set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
+    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+        add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
+        target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
+        add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)
+        set_tests_properties(Winx${suite}Tests PROPERTIES TIMEOUT 20)
+    endforeach()
     add_executable(WinxGhoulJumpingStateTests Tests/wxGhoulJumpingStateTests.cpp)
     target_link_libraries(WinxGhoulJumpingStateTests PRIVATE WinxCharacterStates)
     add_test(NAME WinxGhoulJumpingStateTests COMMAND WinxGhoulJumpingStateTests)

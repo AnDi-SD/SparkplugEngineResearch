@@ -17,7 +17,8 @@ namespace sparkplug::reconstruction
         const bool registered = spRTTIManager::Instance().RegisterDeferredForAnalysis(record);
     }
 
-    spEntity::spEntity(spEntityHost& host) : host_(host)
+    spEntity::spEntity(spEntityHost& host, std::uint32_t initialField20)
+        : host_(host), field20_(initialField20)
     {
         host_.AddToEngineManagerForAnalysis(*this);
     }

@@ -52,6 +52,12 @@ namespace sparkplug::reconstruction
         bool vfunc_14(spBaseObject& destination, spCloneManager& manager) const override;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
 
+        // PC421330, native slot+2C: own name first, then child virtual calls
+        // in list order. Literal case-sensitive equality or substring search.
+        // A null query is our explicit refusal, not a native successful input.
+        [[nodiscard]] virtual spNode* FindNodeForAnalysis(
+            const char* name, bool recursive, bool substring);
+
         // Portable names for the executable-backed local transform state.
         // These raw analytical setters do not imply native invalidation or
         // scene registrations. Mark dirty explicitly before updating caches.

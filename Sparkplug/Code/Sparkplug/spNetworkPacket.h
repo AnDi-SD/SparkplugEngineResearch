@@ -27,6 +27,9 @@ namespace sparkplug::reconstruction
         [[nodiscard]] static const spRTTIRecord& StaticRTTI() noexcept;
         [[nodiscard]] const spRTTIRecord& vfunc_18() const noexcept override;
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(spCloneManager&) const override;
+        [[nodiscard]] bool FillForAnalysis(std::uint16_t source,std::uint16_t destination,
+            std::uint16_t type,std::uint8_t useTcp,std::uint32_t field1,std::uint32_t field2,
+            std::uint16_t size,const void* data);
         [[nodiscard]] bool ReadForAnalysis(spStream&);
         [[nodiscard]] bool WriteForAnalysis(spStream&) const;
         [[nodiscard]] const spNetworkPacketHeaderForAnalysis& HeaderForAnalysis() const noexcept{return header_;}
@@ -36,7 +39,7 @@ namespace sparkplug::reconstruction
         [[nodiscard]] const std::uint8_t* KnownPayloadForAnalysis(std::size_t) const;
         [[nodiscard]] std::size_t KnownPayloadPrefixForAnalysis() const noexcept{return knownPrefix_;}
     private:
-        [[nodiscard]] bool ReadFailure(const char*) const;
+        [[nodiscard]] bool ReportFailure(const char*) const;
         [[nodiscard]] bool WriteFailure(spStream&,const char*) const;
         std::shared_ptr<spNetworkPacketHost> host_;
         spNetworkPacketHeaderForAnalysis header_;

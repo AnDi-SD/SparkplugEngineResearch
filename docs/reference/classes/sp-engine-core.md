@@ -62,6 +62,12 @@ intrusive `+0x1C`, восстанавливает base support-vptr и вызы�
 | final owned manager/object | `+0x154` | `+0x14C` |
 | exact size | `0x158` | `0x150` |
 
+В известной PC-цепочке создания `0041B3B0` поле core `+44` получает
+`spGUIManager` из factory `00452380`, а `+4C` — `spNetworkManager` из
+factory `004512D0`. В обновлении `0041CD50` GUI receiver передаётся
+`00451F70`, сетевой singleton — `00451830` (Pump). Создание объекта
+сетевого менеджера не устанавливает запуск его служб или настройку endpoint.
+
 PS2 constructor дополнительно доказывает self-links `+0x104 = this+0x4C` и
 `+0x148 = this+0x88`, а также helper-конструкцию двух двухэлементных контейнеров
 со strides `0x3C` и `0x44`. PC destructor вызывает аналоги с теми же strides,
@@ -112,8 +118,14 @@ PC `0x0041C110` и PS2 `0x00131C90`:
 4. немедленно возвращают false при первой ошибке;
 5. только после всех успехов пишут `1` в `+0x14`.
 
-PC `0x0041B6B0` последовательно поднимает network, utility, special-fx, input,
-sound и graphics managers. `0x0041B900` продолжает shadow volume, particle,
+PC `0x0041B6B0` вызывает manager stages через slots `48`, `50`, `4C`, `54`,
+`58`, `5C`. Последний связан со строкой `Failed to initialize network managers`.
+В известных PC-таблицах `spEngineCore` и `wxEngineCore` slot `5C` ведёт в
+`0x004D74A0` — `mov al,1; ret 8`. Этот этап возвращает успех без вызова
+Start/config сетевого менеджера. Сам объект менеджера создаётся ранее:
+Initialize `0041C110` вызывает stage `+28` (`0041B3B0`), затем stage `+2C`
+(`0041B6B0`). Другие callers и runtime-подмены этим наблюдением не исключены.
+`0x0041B900` продолжает shadow volume, particle,
 bloom и связанные graphics groups. `0x0041BA70` поднимает physics, font,
 resource, serializer, render-target и GUI managers. Названия групп опираются
 на точные error strings `0x006DBFEC..0x006DC244`; concrete class каждого

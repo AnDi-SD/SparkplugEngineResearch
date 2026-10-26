@@ -1,5 +1,25 @@
 # Сеть PC: объекты и формат пакета
 
+Связи запуска/уведомлений и выбранный самостоятельный путь —
+[контракт сетевой сессии](network-session.md). Он отделяет восстановленные
+операции от собственных bootstrap, framing и coordinator WinxCoop.
+
+## Подключение к EngineCore
+
+Известная PC-стадия создания `0041B3B0` создаёт холодный NetworkManager и
+хранит его в core `+4C`. Обновление `0041CD50` вызывает его Pump через
+singleton. Однако отдельный сетевой initializer slot `5C` в базовой и Winx
+таблицах EngineCore возвращает true без запуска служб. Исходный producer
+адресов/портов, начальной конфигурации ID и byte разрешения обработки ещё
+нужно установить. Подробнее — [EngineCore](../../reference/classes/sp-engine-core.md).
+
+Даже явный NetworkManager Start создаёт первоначально ненастроенный граф:
+его Server не получает слушающую роль, а Peer направлен к службе, названной
+в диагностике DGE. Слово Server в имени класса само по себе не означает
+ведущий игровой ПК. Назначение роли, endpoints, ID pool и разрешения
+обработки требует отдельного установленного bootstrap. Из известного
+EngineCore пути готовая LAN-сессия не следует.
+
 ## Граница исследования
 
 Девять concrete классов прошли factory, RTTI, Clone и два удаления: 45 операций. Factory базы `spNetwork` равна нулю. Ее getter, null Clone и вторичный объектный интерфейс подтверждены отдельно. Нулевой factory не объявляется признаком абстрактного C++ класса.
@@ -65,6 +85,20 @@ ReadData/WriteData потока. Clone 004999C0 создает свежие head
 
 ## Оценка и открытые части
 
+[spNetworkPeer](../../reference/classes/sp-network-peer.md) содержит создание,
+Copy/Clone, Open/Close, принятие TCP-потока и отправку пакетов через общие
+Packet/SocketStream/MemoryStream. Его первый аргумент Send записывается в
+Packet.Source, Destination берётся из ID Peer или заменяется наFFFF.
+Короткие/нулевые отправки сохраняются как исходный signed результат.
+
+[spNetworkServer](../../reference/classes/sp-network-server.md) описывает
+подтверждённые операции создания, открытия, остановки, списка peers и отдельных
+packet handlers, выдачу ID, TCP admission, dispatcher и ограниченный worker.
+Начальное заполнение ID pool, надёжный TCP adapter и реальное исполнение
+потоков остаются открытыми. Исходный worker теряет разделённые между
+проходами packet fragments; детали — в карточке Server. Сетевой Server сам по себе не задаёт игровую
+модель полномочий, управление персонажем или переход уровня.
+
 Сокетные методы `spDXNetwork`, создание, Clone и освобождение восстановлены
 как общий компонент с явным платформенным адаптером. Layout, операции,
 общие наборы и особенности ошибок описаны в [карточке класса](../../reference/classes/sp-dx-network.md).
@@ -76,7 +110,10 @@ ReadData/WriteData потока. Clone 004999C0 создает свежие head
 
 [spNetworkManager](../../reference/classes/sp-network-manager.md) связывает server,
 peer, matchmaking, controller, timer и debug. Восстановлены запуск, остановка,
-ошибки, обработка очереди до 25 пакетов за вызов, probe/Hello, рассылка и ввод.
+ошибки, обработка очереди до 25 пакетов за вызов, probe/Ready/Hello и рассылка.
+Клавиатурные операции `451A00`/`451AD0` принадлежат
+[GUIManager](../../reference/classes/sp-gui-manager.md); сетевого ввода они
+не устанавливают.
 Особенности владения оставшимися пакетами при остановке сохранены и описаны в карточке.
 
 [spNetworkMatchmaking](../../reference/classes/sp-network-matchmaking.md) владеет

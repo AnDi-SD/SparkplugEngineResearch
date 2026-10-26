@@ -25,10 +25,12 @@ namespace
         std::int32_t sendResult=1;
         bool failOpen=false,failPeer=false;
         std::uint32_t phase=0,ticks=0;
+        std::uint16_t serverId=0;
         std::uint8_t active=0;
-        std::vector<Handle> children;
-        std::map<Handle,std::pair<std::uint32_t,std::uint32_t>> childKeys;
-        std::map<std::uint32_t,bool> changed,pressed;
+        const spNetworkManager* observerOwner=nullptr;
+        std::vector<Handle> observerRecipients;
+        std::vector<Handle> owners;
+        std::map<Handle,std::pair<std::uint32_t,std::uint32_t>> ownerKeys;
         unsigned kind=0;
         static std::string Name(Service s)
         {
@@ -65,7 +67,7 @@ namespace
         void StartTimer(Handle) override{events.push_back("timer-start");}
         void RefreshTimer(Handle) override{events.push_back("timer-refresh");}
         void SetPeerTimestamp(Handle,std::uint32_t t) override{Check(t==ticks,"peer timestamp");}
-        std::uint16_t ServerId(Handle) override{return 0;}
+        std::uint16_t ServerId(Handle) override{return serverId;}
         bool OpenServer(Handle) override{events.push_back("server-open");return !failOpen;}
         bool ConnectPeer(Handle,std::uint32_t v) override{events.push_back("peer-connect:"+std::to_string(v));return !failPeer;}
         void SetServerPeer(Handle,Handle) override{events.push_back("server-peer");}
@@ -81,12 +83,19 @@ namespace
         {Check(n.code==35&&n.sender==&m&&n.word0C==1&&n.word04==0&&n.word08==0&&n.word14==0&&n.word1C==reinterpret_cast<std::uintptr_t>(text.c_str()),"complete error notification");events.push_back("error-notification:"+std::to_string(n.word18)+":"+text);}
         void Log(Handle,const std::string& category,std::int32_t level,const std::string& format,const std::vector<std::uint32_t>& args) override
         {Check(category=="Network Manager","category");if(format.find("%d")!=std::string::npos)Check(args.size()==2,"format arguments");events.push_back("log:"+std::to_string(level)+":"+format);}
-        std::vector<Handle> Children(spNetworkManager&) override{return children;}
-        std::uint32_t ChildClassId(Handle h) override{return childKeys.at(h).first;}
-        std::uint32_t ChildField2C(Handle h) override{return childKeys.at(h).second;}
-        void Notify(Handle,const spNetworkManagerNotificationForAnalysis& n) override{events.push_back("notify:"+std::to_string(n.code)+":"+std::to_string(n.word18)+":"+std::to_string(n.word1C));}
-        bool InputChanged(Handle,std::uint32_t k) override{return changed[k];}
-        bool InputPressed(Handle,std::uint32_t k) override{return pressed[k];}
+        std::vector<Handle> NotificationOwners(spNetworkManager&) override{return owners;}
+        std::uint32_t OwnerClassId(Handle h) override{return ownerKeys.at(h).first;}
+        std::uint32_t OwnerField2C(Handle h) override{return ownerKeys.at(h).second;}
+        void Notify(Handle owner,const spNetworkManagerNotificationForAnalysis& n) override
+        {
+            if(n.code==0x20)
+            {
+                Check(n.sender==observerOwner&&n.word04==0&&n.word08==0&&n.word0C==0&&
+                    n.word14==0&&n.word18==0xffff&&n.word1C==0,"complete observer notification");
+                observerRecipients.push_back(owner);
+            }
+            events.push_back("notify:"+std::to_string(n.code)+":"+std::to_string(n.word18)+":"+std::to_string(n.word1C));
+        }
         Handle Packet(std::uint16_t type,std::vector<std::uint8_t> data={},std::uint32_t a=0,std::uint32_t b=0)
         {Handle h=next++;packets[h]={type,a,b,std::move(data)};return h;}
     };
@@ -102,8 +111,9 @@ namespace
         "error-0-lock","error-3-lock","error-10-lock","shutdown-queue","pump-empty","pump-disabled","pump-unknown","pump-25","pump-26",
         "handshake-short","handshake-id","handshake-other","probe","probe-zero","probe-negative","hello-request","hello-request-zero","hello-request-negative",
         "hello-reply","hello-reply-invalid","hello-reply-zero-latency","hello-reply-series","connect","connect-open-failure","connect-peer-failure","connect-probe-zero","timeout-equal","timeout-expired",
-        "recipient-first","recipient-same","recipient-replace","recipient-null","input-default","input-shift40","input-shift52","input-disabled","broadcast-full","broadcast-empty",
-        "lazy-log","singleton-delete-old","shutdown-null"};
+        "broadcast-full","broadcast-empty",
+        "lazy-log","singleton-delete-old","shutdown-null","observers-full","observers-empty","observers-duplicates",
+        "ready","ready-zero","ready-negative","ready-raw0","ready-raw1","ready-raw255"};
     std::string Run(const std::string& mode)
     {
         Check(std::find(std::begin(Modes),std::end(Modes),mode)!=std::end(Modes),"known case");
@@ -114,6 +124,15 @@ namespace
         auto start=[&](){results.push_back(source->StartForAnalysis());};
         auto enqueue=[&](std::vector<Host::Handle> packets){auto n=h->events.size();for(auto p:packets)source->EnqueueForAnalysis(p);h->events.resize(n);};
         if(mode=="defaults")state(*source);
+        else if(mode.rfind("observers-",0)==0)
+        {
+            h->observerOwner=source.get();
+            if(mode=="observers-full")h->owners={1000,1001};
+            if(mode=="observers-duplicates")h->owners={1001,1000,1001};
+            source->NotifyObserversForAnalysis();
+            Check(h->observerRecipients==h->owners,"observer list order, duplicates and no filtering");
+            state(*source);
+        }
         else if(mode=="singleton-delete-old")
         {auto second=std::make_unique<spNetworkManager>();source.reset();results.push_back(spNetworkManager::CurrentForAnalysis()==nullptr);state(*second);second.reset();}
         else if(mode=="lazy-log")
@@ -138,24 +157,26 @@ namespace
         }
         else if(mode.rfind("notify-",0)==0)
         {if(mode=="notify-enabled")source->SetControlsForAnalysis(0,0,255);std::uint32_t n=26;source->vfunc_0C(&n);state(*source);}
-        else if(mode.rfind("recipient-",0)==0)
-        {source->SetRecipientForAnalysis(1000);if(mode!="recipient-first")source->SetRecipientForAnalysis(mode=="recipient-same"?1000:mode=="recipient-replace"?1001:0);state(*source);}
         else
         {
             start();source->SetControlsForAnalysis(1,0,1);
             if(mode=="pump-disabled")source->SetControlsForAnalysis(1,0,0);
-            if(mode=="shutdown-queue"||mode=="shutdown-null")
-            {auto a=h->Packet(1),b=h->Packet(9);enqueue(mode=="shutdown-null"?std::vector<Host::Handle>{a,0,b}:std::vector<Host::Handle>{a,b});source->StopForAnalysis();state(*source);}
-            else if(mode.rfind("input-",0)==0)
+            if(mode.rfind("ready",0)==0)
             {
-                if(mode!="input-disabled")source->SetRecipientForAnalysis(1000);
-                for(auto key:{0u,1u,13u,15u,29u,99u})h->changed[key]=true;for(auto key:{0u,1u,15u})h->pressed[key]=true;
-                if(mode=="input-shift40")h->pressed[40]=true;if(mode=="input-shift52")h->pressed[52]=true;
-                results.push_back(source->DispatchInputForAnalysis());state(*source);
+                h->serverId=mode.rfind("ready-raw",0)==0?0xbeef:0x2468;
+                h->sendResult=mode=="ready-zero"?0:mode=="ready-negative"?-1:1;
+                const std::uint8_t raw=mode=="ready-raw0"?0:mode=="ready-raw1"?1:mode=="ready-raw255"?255:0x82;
+                results.push_back(source->SendReadyForAnalysis(raw));state(*source);
+                const auto s=source->GetStateForAnalysis();
+                Check(s.statistics[3]==std::uint32_t(h->sendResult>0)&&
+                    s.statistics[10]==std::uint32_t(h->sendResult<=0)&&s.error==(h->sendResult>0?0u:4u),
+                    "ready send counter and error routing");
             }
+            else if(mode=="shutdown-queue"||mode=="shutdown-null")
+            {auto a=h->Packet(1),b=h->Packet(9);enqueue(mode=="shutdown-null"?std::vector<Host::Handle>{a,0,b}:std::vector<Host::Handle>{a,b});source->StopForAnalysis();state(*source);}
             else if(mode.rfind("broadcast-",0)==0)
             {
-                if(mode=="broadcast-full"){h->children={1000,1001,1002};h->childKeys={{1000,{0x1234,0x55}},{1001,{0x1234,0x99}},{1002,{0x1234,0x55}}};}
+                if(mode=="broadcast-full"){h->owners={1000,1001,1002};h->ownerKeys={{1000,{0x1234,0x55}},{1001,{0x1234,0x99}},{1002,{0x1234,0x55}}};}
                 enqueue({h->Packet(2,{},0x1234,0x55)});results.push_back(source->PumpForAnalysis());state(*source);
             }
             else if(mode.rfind("probe",0)==0||mode.rfind("hello-request",0)==0||mode.rfind("hello-reply",0)==0||mode.rfind("connect",0)==0)

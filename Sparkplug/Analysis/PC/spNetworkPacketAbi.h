@@ -9,6 +9,7 @@ namespace sparkplug::reconstruction::pc
             PacketType=0x14,UseTcp=0x16,DataField1=0x18,DataField2=0x1c,
             PayloadSize=0x20,Payload=0x24,PayloadCapacity=256,WireHeaderSize=17;
         static constexpr std::uint32_t Factory=0x499960,Constructor=0x4995b0,
-            Clone=0x4999c0,Destructor=0x499630,Read=0x4996d0,Write=0x499850;
+            Clone=0x4999c0,Destructor=0x499630,Fill=0x499650,FillBody=0x13d5590,
+            Read=0x4996d0,Write=0x499850;
     };
 }

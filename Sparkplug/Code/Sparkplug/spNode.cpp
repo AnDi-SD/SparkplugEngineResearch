@@ -1,4 +1,5 @@
 #include "spNode.h"
+#include <cstring>
 #include "spCollisionInfo.h"
 #include "../../Analysis/PC/spNodeTransformMath.h"
 
@@ -7,6 +8,20 @@
 
 namespace sparkplug::reconstruction
 {
+    spNode* spNode::FindNodeForAnalysis(const char* name,
+        bool recursive, bool substring)
+    {
+        if(!name)return nullptr;
+        if(const auto* ownName=GetName())
+            if(substring?std::strstr(ownName,name)!=nullptr:std::strcmp(ownName,name)==0)
+                return this;
+        if(recursive)
+            for(const auto& child:children_)
+                if(child)
+                    if(auto* found=child->FindNodeForAnalysis(name,recursive,substring))
+                        return found;
+        return nullptr;
+    }
     namespace
     {
         std::unique_ptr<spBaseObject> CreateNode()

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WinxCoop.ActorProbe</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/RuntimeProbe/**/*.cs" />
+    <ProjectReference Include="../SmoViewer/SmoNativeValidator.Core/SmoNativeValidator.Core.csproj" />
+  </ItemGroup>
+</Project>

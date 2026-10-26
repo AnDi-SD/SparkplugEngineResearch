@@ -85,6 +85,14 @@ int main()
     Require(entity && entity->IsKindOf(0x22875AA1), "factory and native ancestry");
     Require(host.calls == std::vector<std::string>{
         "engine-add", "engine-remove", "game-add"}, "manager handoff order");
+    Require(entity->GetField20ForAnalysis()==3,"registered wxEntity preserves default Entity type3");
+    {
+        Host derivedHost;
+        wxEntity derivedBase(derivedHost,1);
+        Require(derivedBase.GetField20ForAnalysis()==1,"derived wxHUDPart can pass Entity type1");
+        Require(derivedHost.calls==std::vector<std::string>{"engine-add","engine-remove","game-add"},
+            "explicit Entity type preserves manager handoff");
+    }
     const auto& bytes = entity->GetOwnBytesForAnalysis();
     Require(bytes[0] == 0 && bytes[0x38-0x28] == 1
         && bytes[0x39-0x28] == 1 && bytes[0x88-0x28] == 1,

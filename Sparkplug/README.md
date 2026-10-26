@@ -2,6 +2,28 @@
 
 Общая восстановленная реализация движка. Её используют приложения из `tools/`; форматные и игровые алгоритмы не должны дублироваться в каждом приложении. Восстановление отдельных классов и методов продолжается.
 
+[spMessageQueue](../docs/reference/classes/sp-message-queue.md) сохраняет
+unsigned сроки, стабильную вставку и жизнь сообщения до возврата Notify.
+Direct callbacks могут очищать очередь, добавлять сообщения и вызывать Tick
+вложенно; рассылка использует общий `spSubscriptionManager`. Portable storage
+явно заменяет native pool. Проверка — `SparkplugMessageQueueTests`.
+
+Общие [notification helpers](../docs/engine/notification-routing.md) строят
+direct и broadcast сообщения с одним заимствованным frame. Broadcast использует
+настоящий SubscriptionManager; изменения packet видны следующим подписчикам.
+Исходный C++ владелец этих standalone операций неизвестен. Проверка —
+`SparkplugNotificationTests`.
+
+[spGUIObject](../docs/reference/classes/sp-gui-object.md),
+[spWidget](../docs/reference/classes/sp-widget.md) и
+[spButton](../docs/reference/classes/sp-button.md) сохраняют подтверждённые
+ветви выбора Node, raw state bytes, Copy/clone и историю collision groups
+при привязке. Поиск Node и collision groups используют общие классы;
+внешние связи задаёт отдельный GUI host. Неизвестные
+протоколы уведомлений отмечаются обязательной границей. Проверка —
+`SparkplugGUIObjectTests`; базовый конструктор `spEntity` сохраняет default `3`,
+а GUI явно передаёт исходное значение `1`.
+
 [spInputDevice](../docs/reference/classes/sp-input-device.md) маршрутизирует
 подтверждённые логические запросы к физическим кодам. Родственные
 [spDXInputDevice](../docs/reference/classes/sp-dx-input-device.md) и
@@ -55,7 +77,18 @@ Named clone и PC-преобразование осевого отрезка с 
 
 В `SparkNetwork` также находится [spNetworkDebug](../docs/reference/classes/sp-network-debug.md): PC-журнал, дамп пакета, частота кадров и жизненный цикл. Внешние часы, поток, блокировка и вывод назначаются через отдельный host. Проверка — `SparkplugNetworkDebugTests`.
 
-[spNetworkManager](../docs/reference/classes/sp-network-manager.md) восстанавливает PC-запуск и остановку сетевых служб, ошибки, очередь, probe/Hello, уведомления и ввод matchmaking. Внешние службы предоставляет `spNetworkManagerHost`; проверка — `SparkplugNetworkManagerTests`.
+[spNetworkManager](../docs/reference/classes/sp-network-manager.md) восстанавливает PC-запуск и остановку сетевых служб, ошибки, очередь, probe/Ready/Hello и уведомления. Внешние службы предоставляет `spNetworkManagerHost`; проверка — `SparkplugNetworkManagerTests`.
+
+[spNetworkPeer](../docs/reference/classes/sp-network-peer.md) владеет TCP/UDP
+потоками и общим буфером отправки; использует существующие Packet и streams.
+[spNetworkServer](../docs/reference/classes/sp-network-server.md) содержит
+подтверждённые операции listener lifecycle, списка peers, выдачи ID,
+протокольных обработчиков, TCP admission, dispatcher и ограниченного worker.
+Потоки и внешние службы задаются Host; неизвестная начальная конфигурация и
+границы framing указаны в карточке. Проверки — `SparkplugNetworkPeerTests`
+и `SparkplugNetworkServerTests`; `SparkplugNetworkFlowTests` проверяет общий
+граф Manager/Server/Peer/StateCtrl/Packet/streams с явными внешними fixtures,
+без настоящих сокетов и игрового процесса.
 
 [spNetworkMatchmaking](../docs/reference/classes/sp-network-matchmaking.md) содержит PC-жизненный цикл, закрытие соединения и обработку входящих данных с уведомлением `0x22`. Он использует общий `spMemoryStream` и явный `spNetworkMatchmakingHost` для socket service и вывода; проверка — `SparkplugNetworkMatchmakingTests`.
 

@@ -56,21 +56,24 @@ namespace sparkplug::reconstruction
         virtual bool OpenServer(Handle)=0;
         virtual bool ConnectPeer(Handle,std::uint32_t)=0;
         virtual void SetServerPeer(Handle,Handle)=0;
-        virtual std::int32_t SendPeer(Handle,std::uint16_t destination,std::uint16_t type,
+        // Peer Send4830A0 maps its first argument to Packet.Source; its own ID
+        // becomes Packet.Destination unless the raw override byte is nonzero.
+        // Keep this literal mapping, not inferred routing-friendly names.
+        virtual std::int32_t SendPeer(Handle,std::uint16_t packetSource,std::uint16_t type,
             const std::vector<std::uint8_t>& data,std::uint8_t tcp,
-            std::uint32_t field1,std::uint32_t field2,std::uint32_t finalWord)=0;
+            std::uint32_t destinationOverride,std::uint32_t field1,std::uint32_t field2)=0;
         virtual const spNetworkManagerPacketForAnalysis& ReadPacket(Handle)=0;
         virtual void DeletePacket(Handle) noexcept=0;
         virtual void ForwardNotification(spNetworkManager&,const void*)=0; // root40F960
         virtual void DispatchError(spNetworkManager&,const spNetworkManagerNotificationForAnalysis&,const std::string&)=0;
         virtual void Log(Handle,const std::string& category,std::int32_t level,
             const std::string& format,const std::vector<std::uint32_t>& arguments)=0;
-        virtual std::vector<Handle> Children(spNetworkManager&)=0;
-        virtual std::uint32_t ChildClassId(Handle)=0;
-        virtual std::uint32_t ChildField2C(Handle)=0;
+        // BaseObject+04 reverse-reference list: borrowed referring owners,
+        // not an owned child hierarchy. Preserve list order and duplicates.
+        virtual std::vector<Handle> NotificationOwners(spNetworkManager&)=0;
+        virtual std::uint32_t OwnerClassId(Handle)=0;
+        virtual std::uint32_t OwnerField2C(Handle)=0;
         virtual void Notify(Handle,const spNetworkManagerNotificationForAnalysis&)=0;
-        virtual bool InputChanged(Handle,std::uint32_t key)=0;
-        virtual bool InputPressed(Handle,std::uint32_t key)=0;
     };
     void SetNetworkManagerFactoryHostForAnalysis(std::shared_ptr<spNetworkManagerHost>);
     [[nodiscard]] std::shared_ptr<spNetworkManagerHost> GetNetworkManagerFactoryHostForAnalysis();

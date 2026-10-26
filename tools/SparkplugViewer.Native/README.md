@@ -21,4 +21,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/SparkplugViewer.Native
 
 Если автоматический поиск Visual Studio недоступен, `-VisualStudioPath` задаёт существующую установку явно. Приложение должно использовать DLL, совместимую с текущей обвязкой.
 
+Для восстановленных компонентов доступны также `GUIObject`, `Entity`,
+`VectorWrapper`, `Perception`, `GameFlowState`, `GameFlowNavigation`,
+`LoadSaveGameFlowState`, `DebugDialogGameFlowState`, `CreditsMenuGameFlowState`,
+`IdleAIAction`, `MinotaurDefendAIAction`, `CentreScreenGameFlowState`,
+`WxButton`, `WxEntity`, `HUDPart`, `GameTimer`, `LogoAnimGameFlowState`,
+`MessageQueue`, `Notification`, `SleepingAIAction`, `TrollBeforeFightAIAction`,
+`TargetManager`, `WxButtonNotify`, `MenuGameFlowState`
+и существующий общий `SparkBase`.
+Эти suites собирают общие
+исходники и проверяют их portable контракты; они не запускают оригинальную
+игру и не подтверждают поддержку новых компонентов в публичном C ABI.
+
 [Архитектура общего ядра](../shared-core.md) · [Правила разработки](../../CONTRIBUTING.md).

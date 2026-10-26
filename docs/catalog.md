@@ -8,6 +8,7 @@
 
 ## Движок
 
+- [Notification routing](engine/notification-routing.md).
 - [Движок Sparkplug](engine/README.md).
 
 ## Движок / Анимация и скелеты
@@ -53,6 +54,7 @@
 - [Общие классы движка: дополнительный проход](engine/architecture/engine-core-remainder.md).
 - [Платформенные классы движка: PC и PS2, 10 сентября 2026](engine/architecture/engine-platform-remainder.md).
 - [Порядок обновления PC-кадра](engine/architecture/engine-frame.md).
+- [Самостоятельная сетевая сессия и границы оригинального стека](engine/architecture/network-session.md).
 - [Сеть PC: объекты и формат пакета](engine/architecture/network-family.md).
 - [Таймеры PC и PS2: идентичность, состояния и границы часов](engine/architecture/timer-family.md).
 
@@ -256,6 +258,9 @@
 
 ## Игра
 
+- [wxButton: состояние и выбор узла](game/wx-button.md).
+- [wxHUDPart: сбор кнопок, поиск и выбор](game/wx-hud-part.md).
+- [wxTargetManager: ресурс стрелки и ограниченное владение](game/wx-target-manager.md).
 - [Игра Winx Club](game/README.md).
 
 ## Игра / Искусственный интеллект
@@ -347,6 +352,7 @@
 - [`spNetworkDebug`](reference/classes/sp-network-debug.md).
 - [`spNetworkManager`](reference/classes/sp-network-manager.md).
 - [`spNetworkMatchmaking`](reference/classes/sp-network-matchmaking.md).
+- [`spNetworkPeer`](reference/classes/sp-network-peer.md).
 - [`spNetworkStateCtrl`](reference/classes/sp-network-state-ctrl.md).
 - [`wxBacoAIBehavior` и общая база `wxBaseAIBehavior`](reference/classes/wx-baco-ai-behavior.md).
 - [`wxBacoManager`](reference/classes/wx-baco-manager.md).
@@ -354,6 +360,7 @@
 - [`wxBacoStateMachine`](reference/classes/wx-baco-state-machine.md).
 - [`wxBirdMovingState`](reference/classes/wx-bird-moving-state.md).
 - [`wxBossMovingState`](reference/classes/wx-boss-moving-state.md).
+- [`wxCentreScreenGameFlowState`](reference/classes/wx-centre-screen-game-flow-state.md).
 - [`wxCrouchingState`](reference/classes/wx-crouching-state.md).
 - [`wxDateIdleState`](reference/classes/wx-date-idle-state.md).
 - [`wxDateReactionState`](reference/classes/wx-date-reaction-state.md).
@@ -375,13 +382,17 @@
 - [`wxIceGargoyleMovingState`](reference/classes/wx-ice-gargoyle-moving-state.md).
 - [`wxIceWormHolesState`](reference/classes/wx-ice-worm-holes-state.md).
 - [`wxIceWormMovingState`](reference/classes/wx-ice-worm-moving-state.md).
+- [`wxIdleAIAction`](reference/classes/wx-idle-ai-action.md).
+- [`wxLogoAnimGameFlowState`](reference/classes/wx-logo-anim-game-flow-state.md).
 - [`wxMikaelOpenGateState`, `wxMikaelWandringState`, `wxWandringNPCWaitState`](reference/classes/wx-npc-states.md).
 - [`wxMikaelWaitingState`](reference/classes/wx-mikael-waiting-state.md).
+- [`wxMinotaurDefendAIAction`](reference/classes/wx-minotaur-defend-ai-action.md).
 - [`wxMinotaurMovingState`](reference/classes/wx-minotaur-moving-state.md).
 - [`wxMinotaurStunnedState`](reference/classes/wx-minotaur-stunned-state.md).
 - [`wxMosquitoHurtState`](reference/classes/wx-mosquito-hurt-state.md).
 - [`wxMosquitoMovingState`](reference/classes/wx-mosquito-moving-state.md).
 - [`wxOpenGateState`](reference/classes/wx-open-gate-state.md).
+- [`wxPerception`: поиск цели и ограниченный Copy](reference/classes/wx-perception.md).
 - [`wxProjectile`](reference/classes/wx-projectile.md).
 - [`wxProjectileManager`](reference/classes/wx-projectile-manager.md).
 - [`wxShadowBeastHurtState`](reference/classes/wx-shadow-beast-hurt-state.md).
@@ -409,6 +420,7 @@
 - [spBoxBV](reference/classes/sp-box-bv.md).
 - [spBoxBVSerializer](reference/classes/sp-box-bv-serializer.md).
 - [spBSPNode](reference/classes/sp-bsp-node.md).
+- [spButton](reference/classes/sp-button.md).
 - [spCamera](reference/classes/sp-camera.md).
 - [spCameraDataSerializer](reference/classes/sp-camera-data-serializer.md).
 - [spCameraSerializer](reference/classes/sp-camera-serializer.md).
@@ -451,6 +463,8 @@
 - [spFunctionEvalSerializer](reference/classes/sp-function-eval-serializer.md).
 - [spGameLevel](reference/classes/sp-game-level.md).
 - [spGameLevelSerializer](reference/classes/sp-game-level-serializer.md).
+- [spGUIManager](reference/classes/sp-gui-manager.md).
+- [spGUIObject](reference/classes/sp-gui-object.md).
 - [spIndexBuffer](reference/classes/sp-index-buffer.md).
 - [spInputDevice](reference/classes/sp-input-device.md).
 - [spInputManager](reference/classes/sp-input-manager.md).
@@ -477,11 +491,13 @@
 - [spMeshData](reference/classes/sp-mesh-data.md).
 - [spMeshDataSerializer](reference/classes/sp-mesh-data-serializer.md).
 - [spMeshNavigationSet](reference/classes/sp-mesh-navigation-set.md).
+- [spMessageQueue](reference/classes/sp-message-queue.md).
 - [spModel](reference/classes/sp-model.md).
 - [spModelSerializer](reference/classes/sp-model-serializer.md).
 - [spNavigationGraph](reference/classes/sp-navigation-graph.md).
 - [spNavigationPortal](reference/classes/sp-navigation-portal.md).
 - [spNetworkPacket](reference/classes/sp-network-packet.md).
+- [spNetworkServer](reference/classes/sp-network-server.md).
 - [spNode](reference/classes/sp-node.md).
 - [spNodeController](reference/classes/sp-node-controller.md).
 - [spNodeSerializer](reference/classes/sp-node-serializer.md).
@@ -572,6 +588,7 @@
 - [spUVControllerSerializer](reference/classes/sp-uv-controller-serializer.md).
 - [spVertexBuffer](reference/classes/sp-vertex-buffer.md).
 - [spVideoStream](reference/classes/sp-video-stream.md).
+- [spWidget](reference/classes/sp-widget.md).
 - [spWindowsError](reference/classes/sp-windows-error.md).
 - [spZone](reference/classes/sp-zone.md).
 - [spZonePortal](reference/classes/sp-zone-portal.md).
@@ -601,18 +618,25 @@
 - [wxCharacter](reference/classes/wx-character.md).
 - [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxCharacterStateMachine](reference/classes/wx-character-state-machine.md).
+- [wxCreditsMenuGameFlowState](reference/classes/wx-credits-menu-game-flow-state.md).
+- [wxDebugMenuGameFlowState](reference/classes/wx-debug-menu-game-flow-state.md).
 - [wxDefendingState](reference/classes/wx-defending-state.md).
+- [wxDialogWindowGameFlowState](reference/classes/wx-dialog-window-game-flow-state.md).
 - [wxDroidHurtState](reference/classes/wx-droid-hurt-state.md).
 - [wxDyingState](reference/classes/wx-dying-state.md).
 - [wxEntity](reference/classes/wx-entity.md).
 - [wxFrogAttackState](reference/classes/wx-frog-attack-state.md).
 - [wxFrogBackFlipState](reference/classes/wx-frog-back-flip-state.md).
 - [wxGameFlowState](reference/classes/wx-game-flow-state.md).
+- [wxGameTimer](reference/classes/wx-game-timer.md).
 - [wxGhoulJumpingState](reference/classes/wx-ghoul-jumping-state.md).
 - [wxHangingState](reference/classes/wx-hanging-state.md).
 - [wxHurtState](reference/classes/wx-hurt-state.md).
+- [wxIceGargoyleSleepingAIAction](reference/classes/wx-ice-gargoyle-sleeping-ai-action.md).
 - [wxIceWormAttackState](reference/classes/wx-ice-worm-attack-state.md).
 - [wxKnutAttackState](reference/classes/wx-knut-attack-state.md).
+- [wxLoadSaveGameFlowState](reference/classes/wx-load-save-game-flow-state.md).
+- [wxMenuGameFlowState](reference/classes/wx-menu-game-flow-state.md).
 - [wxMinotaurAttackState](reference/classes/wx-minotaur-attack-state.md).
 - [wxMinotaurDefenseState](reference/classes/wx-minotaur-defense-state.md).
 - [wxMosquitoAttackState](reference/classes/wx-mosquito-attack-state.md).
@@ -627,6 +651,8 @@
 - [wxSpiderHurtState](reference/classes/wx-spider-hurt-state.md).
 - [wxStickingLeftState и wxStickingRightState](reference/classes/wx-sticking-states.md).
 - [wxStrafingState](reference/classes/wx-strafing-state.md).
+- [wxTrollBeforeFightAIAction](reference/classes/wx-troll-before-fight-ai-action.md).
+- [wxVectorWrapper](reference/classes/wx-vector-wrapper.md).
 - [wxVineClimbingState](reference/classes/wx-vine-climbing-state.md).
 - [wxVulnerableState](reference/classes/wx-vulnerable-state.md).
 - [Карточки классов](reference/classes/README.md).

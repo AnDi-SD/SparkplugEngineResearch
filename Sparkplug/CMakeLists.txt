@@ -12,6 +12,11 @@ add_library(SparkBase STATIC
     Code/SparkBase/spAsyncFileStreamManager.h
     Code/SparkBase/spBaseObject.cpp
     Code/SparkBase/spBaseObject.h
+    Code/SparkBase/spNotification.h
+    Code/SparkBase/spBroadcastNotification.cpp
+    Code/SparkBase/spBroadcastNotification.h
+    Analysis/Host/spNotificationHost.h
+    Analysis/Host/spBroadcastNotificationHost.h
     Code/SparkBase/spErrorManager.cpp
     Code/SparkBase/spErrorManager.h
     Code/SparkBase/spStreamError.cpp
@@ -65,6 +70,14 @@ add_library(SparkNetwork STATIC
     Code/Sparkplug/spNetworkPacket.h
     Analysis/Host/spNetworkPacketHost.h
     Analysis/PC/spNetworkPacketAbi.h
+    Code/Sparkplug/spNetworkPeer.cpp
+    Code/Sparkplug/spNetworkPeer.h
+    Analysis/Host/spNetworkPeerHost.h
+    Analysis/PC/spNetworkPeerAbi.h
+    Code/Sparkplug/spNetworkServer.cpp
+    Code/Sparkplug/spNetworkServer.h
+    Analysis/Host/spNetworkServerHost.h
+    Analysis/PC/spNetworkServerAbi.h
     Code/SparkBase/spSocketStream.cpp
     Code/SparkBase/spSocketStream.h
     Analysis/Host/spSocketStreamHost.h
@@ -658,6 +671,23 @@ endif()
 target_include_directories(SparkplugEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(SparkplugEngine PUBLIC cxx_std_17)
 target_link_libraries(SparkplugEngine PUBLIC SparkBase SparkEntities SparkNetwork)
+target_sources(SparkplugEngine PRIVATE
+    Code/Sparkplug/spMessageQueue.cpp
+    Code/Sparkplug/spMessageQueue.h
+    Analysis/Host/spMessageQueueHost.h
+    Analysis/Host/spMessageQueueStorage.h
+    Analysis/PC/spMessageQueueAbi.h
+    Analysis/PS2/spMessageQueueAbi.h
+    Code/Sparkplug/spGUIObject.cpp
+    Code/Sparkplug/spGUIObject.h
+    Code/Sparkplug/spWidget.cpp
+    Code/Sparkplug/spWidget.h
+    Code/Sparkplug/spButton.cpp
+    Code/Sparkplug/spButton.h
+    Analysis/Host/spGUIHost.h
+    Analysis/PC/spGUIAbi.h
+    Analysis/PS2/spGUIAbi.h
+)
 
 if(MSVC)
     target_compile_options(SparkBase PUBLIC /EHsc)
@@ -734,6 +764,18 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugNetworkPacketTests PRIVATE SparkNetwork)
     add_test(NAME SparkplugNetworkPacketTests COMMAND SparkplugNetworkPacketTests)
     set_tests_properties(SparkplugNetworkPacketTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkPeerTests Tests/spNetworkPeerTests.cpp)
+    target_link_libraries(SparkplugNetworkPeerTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkPeerTests COMMAND SparkplugNetworkPeerTests)
+    set_tests_properties(SparkplugNetworkPeerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkServerTests Tests/spNetworkServerTests.cpp)
+    target_link_libraries(SparkplugNetworkServerTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkServerTests COMMAND SparkplugNetworkServerTests)
+    set_tests_properties(SparkplugNetworkServerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNetworkFlowTests Tests/spNetworkFlowTests.cpp)
+    target_link_libraries(SparkplugNetworkFlowTests PRIVATE SparkNetwork)
+    add_test(NAME SparkplugNetworkFlowTests COMMAND SparkplugNetworkFlowTests)
+    set_tests_properties(SparkplugNetworkFlowTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSocketStreamTests Tests/spSocketStreamTests.cpp)
     target_link_libraries(SparkplugSocketStreamTests PRIVATE SparkNetwork)
     add_test(NAME SparkplugSocketStreamTests COMMAND SparkplugSocketStreamTests)
@@ -768,6 +810,18 @@ if(BUILD_TESTING)
     set_tests_properties(SparkplugDerivedErrorTests PROPERTIES TIMEOUT 20)
 
     add_executable(SparkEntityTests Tests/spEntityTests.cpp)
+    add_executable(SparkplugGUIObjectTests Tests/spGUIObjectTests.cpp)
+    add_executable(SparkplugMessageQueueTests Tests/spMessageQueueTests.cpp)
+    add_executable(SparkplugNotificationTests Tests/spNotificationTests.cpp)
+    target_link_libraries(SparkplugNotificationTests PRIVATE SparkBase)
+    add_test(NAME SparkplugNotificationTests COMMAND SparkplugNotificationTests)
+    set_tests_properties(SparkplugNotificationTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugMessageQueueTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugMessageQueueTests COMMAND SparkplugMessageQueueTests)
+    set_tests_properties(SparkplugMessageQueueTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugGUIObjectTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugGUIObjectTests COMMAND SparkplugGUIObjectTests)
+    set_tests_properties(SparkplugGUIObjectTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkEntityTests PRIVATE SparkEntities)
     add_test(NAME SparkEntityTests COMMAND SparkEntityTests)
     set_tests_properties(SparkEntityTests PROPERTIES TIMEOUT 20)

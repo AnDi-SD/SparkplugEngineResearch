@@ -187,6 +187,11 @@
       "category": "engine/architecture"
     },
     {
+      "path": "docs/engine/architecture/network-session.md",
+      "title": "Самостоятельная сетевая сессия и границы оригинального стека",
+      "category": "engine/architecture"
+    },
+    {
       "path": "docs/engine/architecture/overview.md",
       "title": "Архитектура Sparkplug",
       "category": "engine/architecture"
@@ -470,6 +475,11 @@
       "path": "docs/engine/materials/skin-owned-material-render.md",
       "title": "PC Skin-owned material + SAN/scene/mesh → draw",
       "category": "engine/materials"
+    },
+    {
+      "path": "docs/engine/notification-routing.md",
+      "title": "Notification routing",
+      "category": "engine"
     },
     {
       "path": "docs/engine/objects/README.md",
@@ -1292,6 +1302,21 @@
       "category": "game/triggers"
     },
     {
+      "path": "docs/game/wx-button.md",
+      "title": "wxButton: состояние и выбор узла",
+      "category": "game"
+    },
+    {
+      "path": "docs/game/wx-hud-part.md",
+      "title": "wxHUDPart: сбор кнопок, поиск и выбор",
+      "category": "game"
+    },
+    {
+      "path": "docs/game/wx-target-manager.md",
+      "title": "wxTargetManager: ресурс стрелки и ограниченное владение",
+      "category": "game"
+    },
+    {
       "path": "docs/reference/README.md",
       "title": "Справочник",
       "category": "reference"
@@ -1364,6 +1389,11 @@
     {
       "path": "docs/reference/classes/sp-bsp-node.md",
       "title": "spBSPNode",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-button.md",
+      "title": "spButton",
       "category": "reference/classes"
     },
     {
@@ -1572,6 +1602,16 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-gui-manager.md",
+      "title": "spGUIManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-gui-object.md",
+      "title": "spGUIObject",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-index-buffer.md",
       "title": "spIndexBuffer",
       "category": "reference/classes"
@@ -1702,6 +1742,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-message-queue.md",
+      "title": "spMessageQueue",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-model-serializer.md",
       "title": "spModelSerializer",
       "category": "reference/classes"
@@ -1739,6 +1784,16 @@
     {
       "path": "docs/reference/classes/sp-network-packet.md",
       "title": "spNetworkPacket",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network-peer.md",
+      "title": "`spNetworkPeer`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-network-server.md",
+      "title": "spNetworkServer",
       "category": "reference/classes"
     },
     {
@@ -2207,6 +2262,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-widget.md",
+      "title": "spWidget",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-windows-error.md",
       "title": "spWindowsError",
       "category": "reference/classes"
@@ -2367,6 +2427,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-centre-screen-game-flow-state.md",
+      "title": "`wxCentreScreenGameFlowState`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state-machine.md",
       "title": "wxCharacterStateMachine",
       "category": "reference/classes"
@@ -2379,6 +2444,11 @@
     {
       "path": "docs/reference/classes/wx-character.md",
       "title": "wxCharacter",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-credits-menu-game-flow-state.md",
+      "title": "wxCreditsMenuGameFlowState",
       "category": "reference/classes"
     },
     {
@@ -2402,8 +2472,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-debug-menu-game-flow-state.md",
+      "title": "wxDebugMenuGameFlowState",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-defending-state.md",
       "title": "wxDefendingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-dialog-window-game-flow-state.md",
+      "title": "wxDialogWindowGameFlowState",
       "category": "reference/classes"
     },
     {
@@ -2487,6 +2567,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-game-timer.md",
+      "title": "wxGameTimer",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-ghoul-attack-state.md",
       "title": "`wxGhoulAttackState`",
       "category": "reference/classes"
@@ -2532,6 +2617,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ice-gargoyle-sleeping-ai-action.md",
+      "title": "wxIceGargoyleSleepingAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-ice-worm-attack-state.md",
       "title": "wxIceWormAttackState",
       "category": "reference/classes"
@@ -2547,8 +2637,28 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-idle-ai-action.md",
+      "title": "`wxIdleAIAction`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-knut-attack-state.md",
       "title": "wxKnutAttackState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-load-save-game-flow-state.md",
+      "title": "wxLoadSaveGameFlowState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-logo-anim-game-flow-state.md",
+      "title": "`wxLogoAnimGameFlowState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-menu-game-flow-state.md",
+      "title": "wxMenuGameFlowState",
       "category": "reference/classes"
     },
     {
@@ -2559,6 +2669,11 @@
     {
       "path": "docs/reference/classes/wx-minotaur-attack-state.md",
       "title": "wxMinotaurAttackState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-minotaur-defend-ai-action.md",
+      "title": "`wxMinotaurDefendAIAction`",
       "category": "reference/classes"
     },
     {
@@ -2609,6 +2724,11 @@
     {
       "path": "docs/reference/classes/wx-pc-app.md",
       "title": "wxPCApp",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-perception.md",
+      "title": "`wxPerception`: поиск цели и ограниченный Copy",
       "category": "reference/classes"
     },
     {
@@ -2712,8 +2832,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-troll-before-fight-ai-action.md",
+      "title": "wxTrollBeforeFightAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-try2-hoist-state.md",
       "title": "`wxTry2HoistState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-vector-wrapper.md",
+      "title": "wxVectorWrapper",
       "category": "reference/classes"
     },
     {

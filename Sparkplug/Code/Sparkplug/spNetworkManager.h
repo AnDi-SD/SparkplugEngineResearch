@@ -39,13 +39,14 @@ namespace sparkplug::reconstruction
         void RefreshTimerForAnalysis();
         bool StartConnectionForAnalysis();
         bool SendProbeForAnalysis();
+        // PC450B70 and4516F0; these are manager-owned operations, not backend stubs.
+        void NotifyObserversForAnalysis();
+        bool SendReadyForAnalysis(std::uint8_t ready);
         bool SendHelloRequestForAnalysis();
         bool HandleIdReplyForAnalysis();
         bool HandleHelloReplyForAnalysis();
         bool BroadcastPacketForAnalysis();
         bool PumpForAnalysis();
-        bool DispatchInputForAnalysis();
-        void SetRecipientForAnalysis(Handle);
         [[nodiscard]] StateForAnalysis GetStateForAnalysis() const;
         [[nodiscard]] static spNetworkManager* CurrentForAnalysis() noexcept;
         [[nodiscard]] static spNetworkManager& GetOrCreateForAnalysis();
@@ -68,7 +69,7 @@ namespace sparkplug::reconstruction
         std::shared_ptr<spNetworkManagerHost> host_;
         StateForAnalysis state_;
         Handle server_=0,peer_=0,matchmaking_=0,debug_=0,controller_=0,timer_=0;
-        Handle queueLock_=0,errorLock_=0,currentPacket_=0,recipient_=0;
+        Handle queueLock_=0,errorLock_=0,currentPacket_=0;
         std::deque<Handle> queue_;
         std::optional<std::array<std::uint32_t,28>> statistics_;
         // Constructor-initialized ancillary fields; types/uses still unknown.

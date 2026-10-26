@@ -19,8 +19,10 @@ namespace sparkplug::reconstruction
         // including its lazy factory. The returned handle is borrowed.
         virtual Handle ResolveNetworkManager()=0;
         virtual bool StartConnection(Handle)=0; // original004513A0; result ignored
-        virtual void ManagerOperation450B70(Handle)=0; // original name unknown
-        virtual void ManagerOperation4516F0(Handle,std::uint32_t)=0;
+        // Dispatch to the separately reconstructed manager operations. Keep
+        // original-address API labels; original C++ names remain unknown.
+        virtual void ManagerOperation450B70(Handle)=0; // NotifyObserversForAnalysis
+        virtual void ManagerOperation4516F0(Handle,std::uint32_t)=0; // SendReadyForAnalysis(low byte)
         virtual void RefreshTimer(Handle)=0; // original00450B60
     };
     void SetNetworkStateCtrlFactoryHostForAnalysis(std::shared_ptr<spNetworkStateCtrlHost>);

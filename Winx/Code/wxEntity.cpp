@@ -33,7 +33,8 @@ namespace winx::reconstruction
         }
     }
 
-    wxEntity::wxEntity(wxEntityHost& host) : spEntity(host), host_(host)
+    wxEntity::wxEntity(wxEntityHost& host,std::uint32_t initialField20)
+        : spEntity(host,initialField20), host_(host)
     {
         ownBytes_[0x38 - 0x28] = 1;
         ownBytes_[0x39 - 0x28] = 1;

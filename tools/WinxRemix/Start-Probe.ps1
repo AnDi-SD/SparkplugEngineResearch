@@ -182,6 +182,10 @@ if ($AutoSurfaceRoles) {
 if ($ShaderAudit) {
     New-Item -ItemType Directory -Path (Join-Path $run 'shaders-client'),(Join-Path $run 'shaders-server') | Out-Null
 }
+$savedEnvironment = @{}
+$gameProcess = $null
+$launchError = $null
+try {
 if ($LiveConfig -or $AutoSurfaceRoles -or $SceneLights) {
     if ($Backend -ne 'remix') { throw 'Live config requires the Remix backend' }
     $bridgeConfig = Join-Path $game '.trex/bridge.conf'
@@ -189,12 +193,20 @@ if ($LiveConfig -or $AutoSurfaceRoles -or $SceneLights) {
     $bridgeText = ''
     if ($bridgeExisted) {
         Copy-Item -LiteralPath $bridgeConfig -Destination (Join-Path $run 'bridge.conf.before')
-        $bridgeText = [IO.File]::ReadAllText($bridgeConfig)
+        $bridgeText = [IO.File]::ReadAllText((Join-Path $run 'bridge.conf.before'))
     }
     $bridgeText += "`r`nexposeRemixApi = True`r`n"
-    [IO.File]::WriteAllText($bridgeConfig,$bridgeText,[Text.UTF8Encoding]::new($false))
-    @{ existed=$bridgeExisted; targetPath=$bridgeConfig; temporarySha256=(Get-FileHash -LiteralPath $bridgeConfig).Hash } |
+    $beforeSha256=$(if ($bridgeExisted) { (Get-FileHash -LiteralPath (Join-Path $run 'bridge.conf.before')).Hash } else { $null })
+    if ($bridgeExisted -and (Get-FileHash -LiteralPath $bridgeConfig).Hash -ne $beforeSha256) { throw 'Bridge config changed before temporary update; preserving it' }
+    if (-not $bridgeExisted -and (Test-Path -LiteralPath $bridgeConfig)) { throw 'Bridge config appeared before temporary update; preserving it' }
+    $temporaryBytes=[Text.UTF8Encoding]::new($false).GetBytes($bridgeText)
+    $sha256=[Security.Cryptography.SHA256]::Create()
+    try { $temporarySha256=[BitConverter]::ToString($sha256.ComputeHash($temporaryBytes)).Replace('-','') } finally { $sha256.Dispose() }
+    # Publish undo provenance before mutation. Ambiguous partial IO still
+    # fails closed instead of overwriting independently changed content.
+    @{ schema=2; existed=$bridgeExisted; targetPath=$bridgeConfig; beforeSha256=$beforeSha256; temporarySha256=$temporarySha256 } |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'bridge-config-state.json') -Encoding UTF8
+    [IO.File]::WriteAllBytes($bridgeConfig,$temporaryBytes)
     [IO.File]::WriteAllText((Join-Path $run 'live.conf'),'# Diagnostic settings only; restart to clear them.',[Text.UTF8Encoding]::new($false))
 }
 # Record the effective bridge configuration as well as renderer settings. This
@@ -207,7 +219,6 @@ if ($Backend -eq 'remix') {
         $bridgeConfigSha256 = (Get-FileHash -LiteralPath (Join-Path $run 'bridge.conf')).Hash
     }
 }
-$savedEnvironment = @{}
 $values = @{
     WINX_REMIX_BACKEND=$Backend
     WINX_REMIX_TRACE=$(if ($NoDrawTrace) { $null } else { Join-Path $run 'draws.jsonl' })
@@ -265,7 +276,6 @@ $values = @{
     DXVK_SHADER_DUMP_PATH=$(if ($ShaderAudit -and $Backend -eq 'remix') { Join-Path $run 'shaders-server' } else { $null })
     DXVK_RTX_CONFIG_FILE=$config
 }
-try {
     foreach ($key in $values.Keys) {
         $savedEnvironment[$key]=[Environment]::GetEnvironmentVariable($key,'Process')
         [Environment]::SetEnvironmentVariable($key,$values[$key],'Process')
@@ -323,6 +333,26 @@ try {
     Write-Output "Adapter=$($launch.proxySha256) Client=$($launch.remixClientSha256)"
     Write-Output "Renderer=$($launch.remixRendererSha256) Server=$($launch.remixServerSha256)"
     Write-Output "PID=$($gameProcess.Id) Run=$run"
+} catch {
+    $launchError=$_
+    if (-not $gameProcess) {
+        $rollbackError=$null
+        $configState=Join-Path $run 'bridge-config-state.json'
+        if (Test-Path -LiteralPath $configState) {
+            try { & (Join-Path $PSScriptRoot 'scripts/runtime/Restore-LiveConfig.ps1') -Run $run }
+            catch {
+                $rollbackError=$_.Exception.ToString()
+                $launchError.Exception.Data['WinxRemixConfigRollbackError']=$rollbackError
+                Write-Warning ('Launch failed and config rollback was refused/failed: '+$_.Exception.Message) -WarningAction Continue
+            }
+        }
+        try {
+            @{ schema=1; gameProcessCreated=$false; error=$launchError.Exception.ToString(); rollbackAttempted=(Test-Path -LiteralPath $configState);
+               rollbackError=$rollbackError; restored=(Test-Path -LiteralPath (Join-Path $run 'bridge-config-restored.json')) } |
+                ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'launch-failure.json') -Encoding UTF8
+        } catch { $launchError.Exception.Data['WinxRemixFailureReceiptError']=$_.Exception.Message }
+    }
+    throw $launchError
 } finally {
     foreach ($key in $savedEnvironment.Keys) { [Environment]::SetEnvironmentVariable($key,$savedEnvironment[$key],'Process') }
 }

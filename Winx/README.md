@@ -6,6 +6,104 @@
 
 [Устройство игры](../docs/game/README.md) · [Каталог игровых классов](../docs/reference/game-classes.md) · [Правила разработки](../CONTRIBUTING.md).
 
+## Восприятие и game flow
+
+[wxGameTimer](../docs/reference/classes/wx-game-timer.md) объединяет настоящие
+общие TaskTimer, Queue и внешний spTimer. Start/Pause сохраняют собственный
+pause byte, clone создаёт пустую очередь и заново задаёт clock limit;
+destructor сохраняет исходную политику singleton. Проверка — `WinxGameTimerTests`.
+
+[wxButton](../docs/game/wx-button.md) добавляет игровой state selector и
+refresh gate поверх общего `spButton`, сохраняя повторное чтение флагов Node,
+собственный Copy строк и PC lifecycle. Notify `1C/1` выполняет общий broadcast,
+затем передаёт исходный frame в spButton; остальные ветви явно открыты.
+Проверка — `WinxWxButtonTests`.
+
+[wxHUDPart](../docs/game/wx-hud-part.md) хранит borrowed список wxButton,
+обрабатывает matching `2715`, подавляет дубликаты и выполняет точный поиск и
+виртуальное выделение. Copy сохраняет исходные пропуски полей; cleanup использует
+общий SubscriptionManager. HUDManager startup и Init остаются открытыми.
+Проверка — `WinxHUDPartTests`.
+
+[wxCentreScreenGameFlowState](../docs/reference/classes/wx-centre-screen-game-flow-state.md)
+создаёт material/pass/layer через реальные общие типы и сохраняет отдельное
+16-bit владение raw material. Повторный Entry и destructor оставляют прежнюю
+ссылку согласно оригиналу. GUI/FPU Slot30 открыт; проверка —
+`WinxCentreScreenGameFlowStateTests`.
+
+[wxLogoAnimGameFlowState](../docs/reference/classes/wx-logo-anim-game-flow-state.md)
+использует общий AssetManager BuildPath и отдельную восстановленную операцию
+замены двух resource-ссылок. Reset и Start встроенного spTimer получают разные
+samples; Entry/Exit сохраняют ref16, input reload и native destructor order.
+Slot30 остаётся явной открытой границей. Проверка — `WinxLogoAnimGameFlowStateTests`.
+
+[wxPerception](../docs/reference/classes/wx-perception.md) содержит bounded
+поиск ближайшей цели, правило выбора последней при равенстве и доказанные
+поля Copy. Привязка целей и arithmetic domain заданы явно; заполненные
+контейнеры и неизвестные ссылки не получают неподтверждённый shallow Copy.
+Проверка — `WinxPerceptionTests`.
+
+[wxIdleAIAction](../docs/reference/classes/wx-idle-ai-action.md) сбрасывает
+необязательную команду на входе и непосредственно использует общий
+`wxPerception` при выборе действия. Сохраняет собственные no-op Notify/Clear
+и повторное чтение owner после запроса. Проверка — `WinxIdleAIActionTests`.
+
+[wxMinotaurDefendAIAction](../docs/reference/classes/wx-minotaur-defend-ai-action.md)
+использует общие Perception и RNG, сохраняет deadline wrap и отдельные повторные
+чтения таймера PS2. Неизвестные собственные state handlers возвращают явный
+unqualified status. Проверка — `WinxMinotaurDefendAIActionTests`.
+
+[wxIceGargoyleSleepingAIAction](../docs/reference/classes/wx-ice-gargoyle-sleeping-ai-action.md)
+сохраняет обе собственные стадии, Wake, raw stamp wrap и командный byte `1B`.
+Время читается из настоящего TaskTimer prefix игрового таймера; холодный
+TargetManager в явном PC-профиле создаётся общей реализацией и сохраняется
+у приложения. Default profile, PS2, холодные часы и selector сохраняют свои
+отдельные границы. Проверка — `WinxSleepingAIActionTests`.
+
+[wxTrollBeforeFightAIAction](../docs/reference/classes/wx-troll-before-fight-ai-action.md)
+использует общий RNG и настоящий TaskTimer prefix, сохраняя четыре стадии,
+strict unsigned time gates и повторное обновление cooldown в phase2. PS2
+floating predicate остаётся явной границей. Проверка — `WinxTrollBeforeFightAIActionTests`.
+
+[wxTargetManager](../docs/game/wx-target-manager.md) восстанавливает загрузку
+Node через общий AssetManager path, scale/dirty/disable/attach и default lifetime.
+Native ref16 отделён от C++ ownership; active handlers остаются открытыми.
+Проверка — `WinxTargetManagerTests`.
+
+[wxGameFlowState](../docs/reference/classes/wx-game-flow-state.md) сохраняет
+PC-конструктор с owned task timer, fresh clone, sentinel setter, шесть
+листовых hooks и переназначение кодов ресурсов. Singleton input и часы
+приходят через обязательный host; PS2-конструктор остаётся отдельной границей.
+Проверка — `WinxGameFlowStateTests`.
+
+[wxMenuGameFlowState](../docs/reference/classes/wx-menu-game-flow-state.md)
+добавляет owned TaskTimer и Menu hooks `24/28/2C`. Конструктор выполняет
+Reset, повторно читает timer slot и вызывает Start. Destructor сохраняет
+raw ownership и повторные чтения после callback. Entry/own44/Slot30 остаются
+явно открытыми. Проверка — `WinxMenuGameFlowStateTests`.
+
+[wxLoadSaveGameFlowState](../docs/reference/classes/wx-load-save-game-flow-state.md)
+добавляет реальные input reset/mode hooks. PS2 отдельно вызывает load-save
+manager и, при состоянии `4`, controller. Захваченный owner сохраняется,
+а input `member1C` повторно читается после Reset. Проверка —
+`WinxLoadSaveGameFlowStateTests`; завершённые hooks и consumer-entry prefixes
+учитываются раздельно.
+
+[wxDebugMenuGameFlowState](../docs/reference/classes/wx-debug-menu-game-flow-state.md)
+и [wxDialogWindowGameFlowState](../docs/reference/classes/wx-dialog-window-game-flow-state.md)
+сохраняют input reset/mode hooks, очистку области окна и вызовы внешних
+consumers. Проверка — `WinxDebugDialogGameFlowStateTests`; parent construction
+квалифицируется для PC, PS2 completion и consumer prefixes разделены.
+
+[wxCreditsMenuGameFlowState](../docs/reference/classes/wx-credits-menu-game-flow-state.md)
+сохраняет два raw флага, повторные input reads и собственную completion sequence
+с внешними controller/service вызовами. Проверка — `WinxCreditsMenuGameFlowStateTests`.
+
+[wxVectorWrapper](../docs/reference/classes/wx-vector-wrapper.md) хранит три
+raw слова, восстанавливает собственный Copy и clone. PC signaling NaN в Y/Z
+отвергается явным guard; PS2 raw transfers рассматриваются отдельно.
+Проверка — `WinxVectorWrapperTests`.
+
 ## Состояния персонажа
 
 [wxStrafingState](../docs/reference/classes/wx-strafing-state.md) сохраняет

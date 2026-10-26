@@ -148,6 +148,18 @@ namespace sparkplug::reconstruction
         {Increment(7);SetErrorForAnalysis(4);return false;}
         Increment(0);return true;
     }
+    void spNetworkManager::NotifyObserversForAnalysis()
+    {
+        spNetworkManagerNotificationForAnalysis n;n.code=0x20;n.sender=this;n.word18=0xffff;
+        for(auto owner:host_->NotificationOwners(*this))host_->Notify(owner,n);
+    }
+    bool spNetworkManager::SendReadyForAnalysis(std::uint8_t ready)
+    {
+        Log(0,"Sending Ready to start to DGE");
+        if(host_->SendPeer(peer_,host_->ServerId(server_),3,{ready},1,0,0,0)<=0)
+        {Increment(10);SetErrorForAnalysis(4);return false;}
+        Increment(3);return true;
+    }
     bool spNetworkManager::SendHelloRequestForAnalysis()
     {
         Log(0,"Sending Hello Request to DGE");const auto time=TimerMilliseconds();
@@ -179,9 +191,9 @@ namespace sparkplug::reconstruction
     bool spNetworkManager::BroadcastPacketForAnalysis()
     {
         const auto& p=Packet();
-        for(auto child:host_->Children(*this))
-            if(host_->ChildClassId(child)==p.field1&&host_->ChildField2C(child)==p.field2)
-            {spNetworkManagerNotificationForAnalysis n;n.code=0x1f;n.sender=this;n.word18=p.field1;n.word1C=p.field2;host_->Notify(child,n);}
+        for(auto owner:host_->NotificationOwners(*this))
+            if(host_->OwnerClassId(owner)==p.field1&&host_->OwnerField2C(owner)==p.field2)
+            {spNetworkManagerNotificationForAnalysis n;n.code=0x1f;n.sender=this;n.word18=p.field1;n.word1C=p.field2;host_->Notify(owner,n);}
         return true;
     }
     spNetworkManager::Handle spNetworkManager::PopPacket()
@@ -208,27 +220,6 @@ namespace sparkplug::reconstruction
             default:Log(0,"Got an unknown packet in the queue");break;
             }
             host_->DeletePacket(currentPacket_);currentPacket_=0;
-        }
-        return true;
-    }
-    void spNetworkManager::SetRecipientForAnalysis(Handle recipient)
-    {
-        spNetworkManagerNotificationForAnalysis n;n.code=0x17;n.sender=this;
-        if(recipient_)host_->Notify(recipient_,n);
-        recipient_=recipient;n.code=0x16;if(recipient_)host_->Notify(recipient_,n);
-    }
-    bool spNetworkManager::DispatchInputForAnalysis()
-    {
-        if(!matchmaking_||!recipient_)return true;
-        const bool alternate=host_->InputPressed(matchmaking_,0x28)||host_->InputPressed(matchmaking_,0x34);
-        const auto& map=alternate?sparkplug::evidence::pc::NetworkManagerAlternateKeys:sparkplug::evidence::pc::NetworkManagerDefaultKeys;
-        for(std::uint32_t key=0;key<100;++key)if(host_->InputChanged(matchmaking_,key))
-        {
-            const auto mapped=map[key];const bool pressed=host_->InputPressed(matchmaking_,key);
-            spNetworkManagerNotificationForAnalysis n;n.sender=this;
-            if(pressed){n.code=mapped?0x13:0x14;n.word18=mapped?std::uint32_t(std::int32_t(mapped<128?mapped:int(mapped)-256)):key;}
-            else {if(mapped)continue;n.code=0x15;n.word18=key;}
-            host_->Notify(recipient_,n);
         }
         return true;
     }

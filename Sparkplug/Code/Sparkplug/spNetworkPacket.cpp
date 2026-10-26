@@ -46,35 +46,47 @@ namespace sparkplug::reconstruction
         if(!vfunc_14(*clone,manager))return nullptr;
         return clone;
     }
-    bool spNetworkPacket::ReadFailure(const char* text) const
+    bool spNetworkPacket::ReportFailure(const char* text) const
     {
         if(!host_)throw std::logic_error("NetworkPacket diagnostic host is unavailable");
         host_->ReportFailure(text);return false;
     }
     bool spNetworkPacket::WriteFailure(spStream& stream,const char* text) const
     {
-        (void)ReadFailure(text);(void)stream.Close();return false;
+        (void)ReportFailure(text);(void)stream.Close();return false;
+    }
+    bool spNetworkPacket::FillForAnalysis(std::uint16_t source,std::uint16_t destination,
+        std::uint16_t type,std::uint8_t useTcp,std::uint32_t field1,std::uint32_t field2,
+        std::uint16_t size,const void* data)
+    {
+        // Native Fill commits the complete header before checking its size.
+        header_.source=source;header_.destination=destination;header_.packetType=type;
+        header_.useTcp=useTcp;header_.dataField1=field1;header_.dataField2=field2;header_.size=size;
+        if(size>PayloadCapacity)return ReportFailure("Cannot fill spNetworkPacket, packet is too small");
+        // SetPayload preserves the original untouched tail and the knowledge
+        // of earlier writes. Its null/nonzero guard is explicitly portable.
+        SetPayloadForAnalysis(data,size);return true;
     }
     bool spNetworkPacket::ReadForAnalysis(spStream& stream)
     {
         std::uint32_t size=0,position=0;
         (void)stream.GetSize(&size);(void)stream.GetCurrentPosition(position);
         if(position>=size)return false;
-        if(!ReadLittle(stream,header_.source))return ReadFailure("Error while reading <Source> of received packet.");
-        if(!ReadLittle(stream,header_.destination))return ReadFailure("Error while reading <Destination> of received packet.");
+        if(!ReadLittle(stream,header_.source))return ReportFailure("Error while reading <Source> of received packet.");
+        if(!ReadLittle(stream,header_.destination))return ReportFailure("Error while reading <Destination> of received packet.");
         auto type=header_.packetType.value_or(0);
-        if(!ReadLittle(stream,type))return ReadFailure("Error while reading <PacketType> of received packet.");
+        if(!ReadLittle(stream,type))return ReportFailure("Error while reading <PacketType> of received packet.");
         header_.packetType=type;
         auto tcp=header_.useTcp.value_or(0);
-        if(!ReadLittle(stream,tcp))return ReadFailure("Error while reading <UseTcp> of received packet.");
+        if(!ReadLittle(stream,tcp))return ReportFailure("Error while reading <UseTcp> of received packet.");
         header_.useTcp=tcp;
-        if(!ReadLittle(stream,header_.dataField1))return ReadFailure("Error while reading <PacketDataField1> of received packet.");
-        if(!ReadLittle(stream,header_.dataField2))return ReadFailure("Error while reading <PacketDataField2> of received packet.");
-        if(!ReadLittle(stream,header_.size))return ReadFailure("Error while reading <Size> of received packet.");
+        if(!ReadLittle(stream,header_.dataField1))return ReportFailure("Error while reading <PacketDataField1> of received packet.");
+        if(!ReadLittle(stream,header_.dataField2))return ReportFailure("Error while reading <PacketDataField2> of received packet.");
+        if(!ReadLittle(stream,header_.size))return ReportFailure("Error while reading <Size> of received packet.");
         // Explicit portable guard. Original has a256-byte allocation but no
         // bound check here. Oversize prefixes are preserved, transfer rejected.
         if(header_.size>PayloadCapacity)throw std::length_error("NetworkPacket payload exceeds original allocation");
-        if(!stream.ReadData(payload_->data(),header_.size))return ReadFailure("Error while reading <Data> of received packet.");
+        if(!stream.ReadData(payload_->data(),header_.size))return ReportFailure("Error while reading <Data> of received packet.");
         knownPrefix_=std::max<std::size_t>(knownPrefix_,header_.size);return true;
     }
     bool spNetworkPacket::WriteForAnalysis(spStream& stream) const

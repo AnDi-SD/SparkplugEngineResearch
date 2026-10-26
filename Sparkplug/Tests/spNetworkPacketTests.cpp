@@ -68,6 +68,38 @@ namespace
         s<<','<<h.dataField1<<','<<h.dataField2<<','<<h.size<<','<<Quote(Hex(p.KnownPayloadForAnalysis(p.KnownPayloadPrefixForAnalysis()),p.KnownPayloadPrefixForAnalysis()))<<']';return s.str();
     }
     const char* Modes[]={"defaults","clone","copy","roundtrip-0","roundtrip-1","roundtrip-3","roundtrip-16","roundtrip-255","roundtrip-256","roundtrip-zero-fields","truncated-0","truncated-1","truncated-3","truncated-5","truncated-6","truncated-9","truncated-13","truncated-16","truncated-17","truncated-19","write-fail-1","write-fail-2","write-fail-3","write-fail-4","write-fail-5","write-fail-6","write-fail-7","write-fail-8"};
+    const char* SetupModes[]={"three-raw255","zero","one","full256","oversize257","reuse-short"};
+    std::string RunSetup(const std::string& mode)
+    {
+        Check(std::find(std::begin(SetupModes),std::end(SetupModes),mode)!=std::end(SetupModes),"known Packet Fill case");
+        auto host=std::make_shared<Host>();spNetworkPacket packet(host);
+        const std::vector<unsigned> sizes=mode=="reuse-short"?std::vector<unsigned>{5,1}:
+            std::vector<unsigned>{mode=="zero"?0u:mode=="one"?1u:mode=="three-raw255"?3u:mode=="full256"?256u:257u};
+        std::ostringstream out;out<<"{\"observations\":[";
+        std::vector<std::uint8_t> known;
+        for(unsigned phase=0;phase<sizes.size();++phase)
+        {
+            if(phase)out<<',';
+            const auto size=sizes[phase];auto data=Payload(size);
+            for(auto& byte:data)byte=static_cast<std::uint8_t>(byte+phase*19u);
+            const auto result=packet.FillForAnalysis(mode=="zero"?0:0x1234,mode=="three-raw255"?0xfedc:0xffff,
+                mode=="zero"?0:0x8765,phase?0:255,0x11223344,0x80000000,static_cast<std::uint16_t>(size),size?data.data():nullptr);
+            Check(result==(size<=256),"original Fill accepts capacity and rejects greater size");
+            if(size<=256)
+            {
+                if(known.size()<size)known.resize(size);
+                std::copy(data.begin(),data.end(),known.begin());
+            }
+            Check(packet.KnownPayloadPrefixForAnalysis()==known.size(),"Fill preserves known payload tail");
+            Check(Hex(packet.KnownPayloadForAnalysis(known.size()),known.size())==Hex(known.data(),known.size()),"Fill copies prefix and retains old tail");
+            const auto& h=packet.HeaderForAnalysis();Check(h.packetType.has_value()&&h.useTcp.has_value(),"Fill writes header even on size refusal");
+            out<<"{\"header\":["<<h.source<<','<<h.destination<<','<<*h.packetType<<','<<unsigned(*h.useTcp)<<','
+                <<h.dataField1<<','<<h.dataField2<<','<<h.size<<"],\"resultLowByte\":"<<result
+                <<",\"knownPrefix\":"<<known.size()<<",\"payload\":"<<Quote(Hex(known.data(),known.size()))<<'}';
+        }
+        Check(host->events==(mode=="oversize257"?std::vector<std::string>{"error:Cannot fill spNetworkPacket, packet is too small"}:std::vector<std::string>{}),"Fill diagnostic only on oversize");
+        out<<"],\"events\":[";for(unsigned i=0;i<host->events.size();++i){if(i)out<<',';out<<Quote(host->events[i]);}out<<"]}";return out.str();
+    }
     std::string Run(const std::string& mode)
     {
         Check(std::find(std::begin(Modes),std::end(Modes),mode)!=std::end(Modes),"known packet case");
@@ -125,6 +157,12 @@ namespace
         auto wire=Wire(257);Check(memory.ResizeAndSetSize(static_cast<std::uint32_t>(wire.size())),"oversize input");std::memcpy(memory.GetBuffer(),wire.data(),wire.size());oversize=false;
         try{(void)packet.ReadForAnalysis(memory);}catch(const std::length_error&){oversize=true;}
         Check(memory.GetCurrentPosition(position)&&position==17&&oversize,"oversize read stops after the original header prefix");
+        spNetworkPacket noHost(nullptr);bool missingHost=false;
+        try{(void)noHost.FillForAnalysis(1,2,3,255,4,5,257,nullptr);}catch(const std::logic_error&){missingHost=true;}
+        Check(missingHost&&noHost.HeaderForAnalysis().size==257&&noHost.KnownPayloadPrefixForAnalysis()==0,"missing Fill diagnostic host guard follows original header writes");
+        bool nullPayload=false;
+        try{(void)packet.FillForAnalysis(6,7,8,255,9,10,1,nullptr);}catch(const std::invalid_argument&){nullPayload=true;}
+        Check(nullPayload&&packet.HeaderForAnalysis().source==6&&packet.HeaderForAnalysis().size==1,"portable null payload guard follows original header writes");
     }
 }
 int main(int argc,char** argv)
@@ -132,7 +170,8 @@ int main(int argc,char** argv)
     try
     {
         if(argc==3&&std::string(argv[1])=="--case"){std::cout<<Run(argv[2])<<'\n';return 0;}
-        for(const auto* mode:Modes)(void)Run(mode);QualifiedGuards();
-        std::cout<<"PASS "<<std::size(Modes)<<" Packet operation cases and explicit guards\n";return 0;
+        if(argc==3&&std::string(argv[1])=="--setup-case"){std::cout<<RunSetup(argv[2])<<'\n';return 0;}
+        for(const auto* mode:Modes)(void)Run(mode);for(const auto* mode:SetupModes)(void)RunSetup(mode);QualifiedGuards();
+        std::cout<<"PASS "<<std::size(Modes)<<" Packet cases, "<<std::size(SetupModes)<<" Fill cases and explicit guards\n";return 0;
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }

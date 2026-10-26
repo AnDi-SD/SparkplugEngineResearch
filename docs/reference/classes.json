@@ -446,8 +446,13 @@
         "pc": "0x7CB52800",
         "ps2": "0x7CB52800"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-button.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spButton.h",
+        "Sparkplug/Code/Sparkplug/spButton.cpp"
+      ]
     },
     {
       "name": "spCamera",
@@ -2197,7 +2202,9 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
+      "documentation": [
+        "docs/reference/classes/sp-gui-manager.md"
+      ],
       "sources": []
     },
     {
@@ -2212,8 +2219,13 @@
         "pc": "0x22875AA1",
         "ps2": "0x22875AA1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-gui-object.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spGUIObject.h",
+        "Sparkplug/Code/Sparkplug/spGUIObject.cpp"
+      ]
     },
     {
       "name": "spIndexBuffer",
@@ -2897,8 +2909,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-message-queue.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spMessageQueue.h",
+        "Sparkplug/Code/Sparkplug/spMessageQueue.cpp"
+      ]
     },
     {
       "name": "spMirrorLayer",
@@ -3208,8 +3225,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-peer.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkPeer.h"
+      ]
     },
     {
       "name": "spNetworkServer",
@@ -3221,8 +3242,12 @@
       "registrationBaseIds": {
         "pc": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-network-server.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spNetworkServer.h"
+      ]
     },
     {
       "name": "spNetworkStateCtrl",
@@ -6199,8 +6224,13 @@
         "pc": "0x7339573D",
         "ps2": "0x7339573D"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-widget.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spWidget.h",
+        "Sparkplug/Code/Sparkplug/spWidget.cpp"
+      ]
     },
     {
       "name": "spWindowsError",
@@ -7169,8 +7199,13 @@
         "pc": "0x2CD270BB",
         "ps2": "0x2CD270BB"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/wx-button.md"
+      ],
+      "sources": [
+        "Winx/Code/wxButton.h",
+        "Winx/Code/wxButton.cpp"
+      ]
     },
     {
       "name": "wxCabinetPuzzle",
@@ -7199,8 +7234,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-centre-screen-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCentreScreenGameFlowState.h",
+        "Winx/Code/wxCentreScreenGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxChallengeGameFlowState",
@@ -7559,8 +7599,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-credits-menu-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCreditsMenuGameFlowState.h",
+        "Winx/Code/wxCreditsMenuGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxCrouchingState",
@@ -7802,8 +7847,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-debug-menu-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDebugMenuGameFlowState.h",
+        "Winx/Code/wxDebugMenuGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxDeepWater",
@@ -7902,8 +7952,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-dialog-window-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDialogWindowGameFlowState.h",
+        "Winx/Code/wxDialogWindowGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxDiaryMenuGameFlowState",
@@ -8722,7 +8777,10 @@
       "documentation": [
         "docs/reference/classes/wx-game-flow-state.md"
       ],
-      "sources": []
+      "sources": [
+        "Winx/Code/wxGameFlowState.h",
+        "Winx/Code/wxGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxGameOverGameFlowState",
@@ -8751,8 +8809,13 @@
         "pc": "0x1ACD36E2",
         "ps2": "0x1ACD36E2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-game-timer.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGameTimer.h",
+        "Winx/Code/wxGameTimer.cpp"
+      ]
     },
     {
       "name": "wxGargoyleIceWall",
@@ -9306,8 +9369,13 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/wx-hud-part.md"
+      ],
+      "sources": [
+        "Winx/Code/wxHUDPart.h",
+        "Winx/Code/wxHUDPart.cpp"
+      ]
     },
     {
       "name": "wxHurtAIAction",
@@ -9511,8 +9579,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-gargoyle-sleeping-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceGargoyleSleepingAIAction.h",
+        "Winx/Code/wxIceGargoyleSleepingAIAction.cpp"
+      ]
     },
     {
       "name": "wxIceGargoyleStateMachine",
@@ -9690,8 +9763,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-idle-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIdleAIAction.h",
+        "Winx/Code/wxIdleAIAction.cpp"
+      ]
     },
     {
       "name": "wxInputDeviceInterface",
@@ -10126,8 +10204,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-load-save-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxLoadSaveGameFlowState.h",
+        "Winx/Code/wxLoadSaveGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxLoadSavePS2Manager",
@@ -10169,8 +10252,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-logo-anim-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxLogoAnimGameFlowState.h",
+        "Winx/Code/wxLogoAnimGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxMagicMenuGameFlowState",
@@ -10257,8 +10345,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-menu-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMenuGameFlowState.h",
+        "Winx/Code/wxMenuGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxMikaelAIBehavior",
@@ -10427,8 +10520,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-minotaur-defend-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMinotaurDefendAIAction.h",
+        "Winx/Code/wxMinotaurDefendAIAction.cpp"
+      ]
     },
     {
       "name": "wxMinotaurDefenseState",
@@ -11003,8 +11101,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-perception.md"
+      ],
+      "sources": [
+        "Winx/Code/wxPerception.h",
+        "Winx/Code/wxPerception.cpp"
+      ]
     },
     {
       "name": "wxPerceptionTrigger",
@@ -12321,8 +12424,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/wx-target-manager.md"
+      ],
+      "sources": [
+        "Winx/Code/wxTargetManager.h",
+        "Winx/Code/wxTargetManager.cpp"
+      ]
     },
     {
       "name": "wxTargetRegion",
@@ -12549,8 +12657,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-troll-before-fight-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxTrollBeforeFightAIAction.h",
+        "Winx/Code/wxTrollBeforeFightAIAction.cpp"
+      ]
     },
     {
       "name": "wxTrollMovingState",
@@ -12659,8 +12772,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-vector-wrapper.md"
+      ],
+      "sources": [
+        "Winx/Code/wxVectorWrapper.h",
+        "Winx/Code/wxVectorWrapper.cpp"
+      ]
     },
     {
       "name": "wxVibrationManager",

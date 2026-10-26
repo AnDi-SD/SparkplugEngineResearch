@@ -47,9 +47,10 @@ PC-форма без transform состоит из 236 inline `spMeshBV` под 
 двух корневых ID-only ссылок на `spMeshBV`. Primitive-only форма на PC относится
 к четырём inline `spOBBBV`; на PS2 — к одному `spBoxBV` и одному `spSphereBV`.
 
-Отсутствие Group или Transform сохранено декодером явно как `null`. Мы пока не
-подменяем его предполагаемым runtime-default: конструктор `spCollisionInfo` ещё
-не восстановлен с достаточной уверенностью.
+Отсутствие Group или Transform сохраняется форматным декодером как `null`.
+PC factory создаёт `spCollisionInfo` размером `0x8C` с group `1` по `+0x18`.
+Это runtime default PC-объекта, отдельный от признака отсутствия поля в файле;
+он не присваивается автоматически историческим PS2 metadata observations.
 
 ## Primitive relationship
 
@@ -77,6 +78,17 @@ executable и допустимы по базовому типу serializer, но
 Поле является обычным `UInt32`; значения 1 и 2 — единственные наблюдаемые, но
 декодер намеренно не превращает их в неподтверждённый enum и не запрещает другие
 32-битные значения.
+
+PC Node хранит owning vector указателей на CollisionInfo по begin/end/capacity
+`+0x68/+0x6C/+0x70`. Attach устанавливает у Info обратный Node pointer `+0x10`
+и не увеличивает intrusive count самого Info: Node владеет им напрямую.
+Primitive по `+0x14` удерживается отдельно.
+
+GUI-код временно присваивает этому же group `4`. Это происходит при
+[`spGUIObject`](sp-gui-object.md) binding и при name-based инициализации
+[`spWidget`](sp-widget.md)/[`spButton`](sp-button.md). Точное предметное значение
+group `4` для collision queries здесь не выводится. Сохранение и восстановление
+GUI history используют `GetGroupForAnalysis/SetGroupForAnalysis` общего класса.
 
 ## Transform
 

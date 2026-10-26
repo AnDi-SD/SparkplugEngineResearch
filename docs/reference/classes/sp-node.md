@@ -23,7 +23,7 @@
 | `+0x30` | `0x0C` | local scale |
 | `+0x3C` | `4` | scene/runtime registration link; точный тип неизвестен |
 | `+0x40` | `0x24` | local 3×3 orientation matrix |
-| `+0x64` | platform | контейнер intrusive `spCollisionInfo*` |
+| `+0x64` | platform | контейнер `spCollisionInfo*` |
 
 На PC collision vector занимает `0x10` (`allocator/begin/end/capacityEnd`),
 после него лежат cached-world position `+0x74`, scale `+0x80`, orientation
@@ -82,9 +82,29 @@ Destructor последовательно:
 
 Открыты: original header/TU и method names, остальные dirty/cache masks,
 семантика dirty bits `2/4`, frame caller и полная семантика callbacks,
-bounds aggregation, recursive name lookup,
+bounds aggregation, неизвестные derived name-lookup overrides,
 полное portable scene/derived virtual world подключение, collision ownership API и serializer reader behavior
 для legacy отсутствующего `esfNodeIsAnimated`.
+
+### Поиск по имени
+
+Общий виртуальный `FindNodeForAnalysis(name, recursive, substring)`
+восстанавливает PC slot `+0x2C`. Он сначала проверяет собственное имя.
+Ненулевой substring flag выбирает буквальный case-sensitive поиск подстроки;
+нулевой — точное сравнение C strings. Node без имени не совпадает, но при
+recursive flag поиск продолжается в children. Пустое строковое имя отлично
+от отсутствующего имени и может совпасть с пустым запросом.
+
+При ненулевом recursive flag дети обходятся в исходном порядке через их
+виртуальный Find slot с теми же flags. Возвращается первый найденный Node,
+поэтому глубина обхода имеет приоритет над следующими siblings. Результат
+заимствуется без изменения reference count. Для GUI этот же метод обслуживает
+`NORMAL`, `DISABLED`, `HIGHLIGHTED`, `PUSHED` и `GUICollision`.
+
+Portable null-query guard возвращает null до чтения имени. Это собственный
+отказ для недопустимого входа. Квалифицированы стабильные ациклические графы
+фактических `spNode`; мутации children и неизвестные derived overrides во
+время поиска не объявляются закрытыми.
 
 ### Поля serializer
 

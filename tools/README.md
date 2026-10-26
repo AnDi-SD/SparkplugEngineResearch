@@ -12,6 +12,7 @@
 | WinxHairPatcher | Настройка внешних волос Bloom в совместимом PC EXE | [Открыть](WinxHairPatcher/README.md) |
 | SanToVmd | Перенос SAN-анимаций тела и пальцев на MMD-модель | [Открыть](SanToVmd/README.md) |
 | WinxRemix | Экспериментальный адаптер Winx Club к RTX Remix | [Открыть](WinxRemix/README.md) |
+| WinxCoop | Исследование LAN-кооператива для двух игроков в оригинальной Winx Club | [Открыть](WinxCoop/README.md) |
 
 ## Общие и служебные компоненты
 

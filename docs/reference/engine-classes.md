@@ -29,7 +29,7 @@
 | `spBoxProjectionSerializer` | `0x5730539D` | Да | Да | — | — |
 | `spBSPNode` | `0x7362AB22` | Да | Да | [1](classes/sp-bsp-node.md) | [spBSPNode.h](../../Sparkplug/Code/Sparkplug/spBSPNode.h) |
 | `spBSPNodeSerializer` | `0x84ACA2BA` | Да | Да | — | [spBSPNodeSerializer.h](../../Sparkplug/Code/Sparkplug/spBSPNodeSerializer.h) |
-| `spButton` | `0x2CD270BB` | Да | Да | — | — |
+| `spButton` | `0x2CD270BB` | Да | Да | [1](classes/sp-button.md) | [spButton.h](../../Sparkplug/Code/Sparkplug/spButton.h), [spButton.cpp](../../Sparkplug/Code/Sparkplug/spButton.cpp) |
 | `spCamera` | `0x18DF3845` | Да | Да | [1](classes/sp-camera.md) | [spCamera.h](../../Sparkplug/Code/Sparkplug/spCamera.h) |
 | `spCameraData` | `0x24BB4C41` | Да | Да | — | [spCameraData.h](../../Sparkplug/Code/Sparkplug/spCameraData.h) |
 | `spCameraDataSerializer` | `0x759F1687` | Да | Да | [1](classes/sp-camera-data-serializer.md) | [spCameraDataSerializer.h](../../Sparkplug/Code/Sparkplug/spCameraDataSerializer.h) |
@@ -135,8 +135,8 @@
 | `spGameCore` | `0x54DC7524` | Да | Да | — | — |
 | `spGameLevel` | `0x4A45115B` | Да | Да | [1](classes/sp-game-level.md) | [spGameLevel.h](../../Sparkplug/Code/Sparkplug/spGameLevel.h) |
 | `spGameLevelSerializer` | `0x72B27469` | Да | Да | [1](classes/sp-game-level-serializer.md) | [spGameLevelSerializer.h](../../Sparkplug/Code/Sparkplug/spGameLevelSerializer.h) |
-| `spGUIManager` | `0x73634C2D` | Да | Да | — | — |
-| `spGUIObject` | `0x7339573D` | Да | Да | — | — |
+| `spGUIManager` | `0x73634C2D` | Да | Да | [1](classes/sp-gui-manager.md) | — |
+| `spGUIObject` | `0x7339573D` | Да | Да | [1](classes/sp-gui-object.md) | [spGUIObject.h](../../Sparkplug/Code/Sparkplug/spGUIObject.h), [spGUIObject.cpp](../../Sparkplug/Code/Sparkplug/spGUIObject.cpp) |
 | `spIndexBuffer` | `0x77D5669F` | Да | Да | [1](classes/sp-index-buffer.md) | [spIndexBuffer.h](../../Sparkplug/Code/Sparkplug/spIndexBuffer.h) |
 | `spInputDevice` | `0x4C615DE6` | Да | Да | [1](classes/sp-input-device.md) | [spInputDevice.h](../../Sparkplug/Code/Sparkplug/spInputDevice.h), [spInputDevice.cpp](../../Sparkplug/Code/Sparkplug/spInputDevice.cpp) |
 | `spInputManager` | `0x55A1304D` | Да | Да | [1](classes/sp-input-manager.md) | [spInputManager.h](../../Sparkplug/Code/Sparkplug/spInputManager.h) |
@@ -173,7 +173,7 @@
 | `spMeshDataSerializer` | `0x66380037` | Да | Да | [1](classes/sp-mesh-data-serializer.md) | [spMeshDataSerializer.h](../../Sparkplug/Code/Sparkplug/spMeshDataSerializer.h) |
 | `spMeshNavigationSet` | `0x7297173C` | Да | Да | [1](classes/sp-mesh-navigation-set.md) | [spMeshNavigationSet.h](../../Sparkplug/Code/Sparkplug/spMeshNavigationSet.h) |
 | `spMeshNavigationSetSerializer` | `0x050A5628` | Да | Да | — | [spMeshNavigationSetSerializer.h](../../Sparkplug/Code/Sparkplug/spMeshNavigationSetSerializer.h) |
-| `spMessageQueue` | `0xC32F87A0` | Да | Да | — | — |
+| `spMessageQueue` | `0xC32F87A0` | Да | Да | [1](classes/sp-message-queue.md) | [spMessageQueue.h](../../Sparkplug/Code/Sparkplug/spMessageQueue.h), [spMessageQueue.cpp](../../Sparkplug/Code/Sparkplug/spMessageQueue.cpp) |
 | `spMirrorLayer` | `0x46B61C67` | Да | Да | [1](classes/sp-material-render-target-texture.md) | — |
 | `spModel` | `0x763277DB` | Да | Да | [1](classes/sp-model.md) | [spModel.h](../../Sparkplug/Code/Sparkplug/spModel.h) |
 | `spModelSerializer` | `0xDB55C34A` | Да | Да | [1](classes/sp-model-serializer.md) | [spModelSerializer.h](../../Sparkplug/Code/Sparkplug/spModelSerializer.h) |
@@ -191,8 +191,8 @@
 | `spNetworkManager` | `0x0546DEC1` | Да | — | [1](classes/sp-network-manager.md) | [spNetworkManager.h](../../Sparkplug/Code/Sparkplug/spNetworkManager.h) |
 | `spNetworkMatchmaking` | `0x18B864AC` | Да | — | [1](classes/sp-network-matchmaking.md) | [spNetworkMatchmaking.cpp](../../Sparkplug/Code/Sparkplug/spNetworkMatchmaking.cpp), [spNetworkMatchmaking.h](../../Sparkplug/Code/Sparkplug/spNetworkMatchmaking.h) |
 | `spNetworkPacket` | `0x0546DE34` | Да | — | [1](classes/sp-network-packet.md) | [spNetworkPacket.h](../../Sparkplug/Code/Sparkplug/spNetworkPacket.h) |
-| `spNetworkPeer` | `0x18B4576B` | Да | — | — | — |
-| `spNetworkServer` | `0x7259443E` | Да | — | — | — |
+| `spNetworkPeer` | `0x18B4576B` | Да | — | [1](classes/sp-network-peer.md) | [spNetworkPeer.h](../../Sparkplug/Code/Sparkplug/spNetworkPeer.h) |
+| `spNetworkServer` | `0x7259443E` | Да | — | [1](classes/sp-network-server.md) | [spNetworkServer.h](../../Sparkplug/Code/Sparkplug/spNetworkServer.h) |
 | `spNetworkStateCtrl` | `0x487634AB` | Да | — | [1](classes/sp-network-state-ctrl.md) | [spNetworkStateCtrl.h](../../Sparkplug/Code/Sparkplug/spNetworkStateCtrl.h) |
 | `spNode` | `0x695C0F65` | Да | Да | [1](classes/sp-collision-info.md), [2](classes/sp-node.md) | [spNode.h](../../Sparkplug/Code/Sparkplug/spNode.h) |
 | `spNodeController` | `0x14A9784E` | Да | Да | [1](classes/sp-node-controller.md) | [spNodeController.h](../../Sparkplug/Code/Sparkplug/spNodeController.h) |
@@ -368,7 +368,7 @@
 | `spVertexBuffer` | `0x3C846352` | Да | Да | [1](classes/sp-vertex-buffer.md) | [spVertexBuffer.h](../../Sparkplug/Code/Sparkplug/spVertexBuffer.h) |
 | `spVideoStream` | `0x27DE5AF5` | Да | Да | [1](classes/sp-video-stream.md) | [spVideoStream.h](../../Sparkplug/Code/Sparkplug/spVideoStream.h), [spVideoStream.cpp](../../Sparkplug/Code/Sparkplug/spVideoStream.cpp) |
 | `spVisibilityManager` | `0x3D7F4387` | Да | Да | — | [spVisibilityManager.h](../../Sparkplug/Code/Sparkplug/spVisibilityManager.h), [spVisibilityManager.cpp](../../Sparkplug/Code/Sparkplug/spVisibilityManager.cpp), [spVisibilityPortal.cpp](../../Sparkplug/Code/Sparkplug/spVisibilityPortal.cpp), [spVisibilityOcclusion.cpp](../../Sparkplug/Code/Sparkplug/spVisibilityOcclusion.cpp) |
-| `spWidget` | `0x7CB52800` | Да | Да | — | — |
+| `spWidget` | `0x7CB52800` | Да | Да | [1](classes/sp-widget.md) | [spWidget.h](../../Sparkplug/Code/Sparkplug/spWidget.h), [spWidget.cpp](../../Sparkplug/Code/Sparkplug/spWidget.cpp) |
 | `spWindowsError` | `0x1DE8113F` | Да | — | [1](classes/sp-windows-error.md) | [spWindowsError.h](../../Sparkplug/Code/SparkBasePC/spWindowsError.h) |
 | `spWindowsFont` | `0x559D3113` | Да | — | — | — |
 | `spZone` | `0x61254AB3` | Да | Да | [1](classes/sp-zone.md) | [spZone.h](../../Sparkplug/Code/Sparkplug/spZone.h) |

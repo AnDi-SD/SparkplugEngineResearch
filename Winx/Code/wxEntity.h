@@ -18,7 +18,9 @@ namespace winx::reconstruction
         static constexpr sparkplug::reconstruction::spClassID ClassID = 0x796A1869;
         using OwnBytesForAnalysis = std::array<std::uint8_t, 0x124 - 0x28>;
 
-        explicit wxEntity(wxEntityHost& host);
+        // The registered default uses Entity field20=3. The PC wxHUDPart
+        // constructor passes1 through the same base constructor.
+        explicit wxEntity(wxEntityHost& host,std::uint32_t initialField20=3);
         ~wxEntity() override;
         wxEntity(const wxEntity&) = delete;
         wxEntity& operator=(const wxEntity&) = delete;

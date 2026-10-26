@@ -352,7 +352,7 @@ internal static class Win32Native
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool CloseHandle(IntPtr handle);
 
-    internal static X86Context GetX86Context(uint threadId)
+    internal static X86Context GetX86Context(uint threadId, bool includeFloatingPointState = false)
     {
         IntPtr thread = OpenThread(ThreadGetContext | ThreadSetContext | ThreadQueryInformation, false, threadId);
         if (thread == IntPtr.Zero)
@@ -360,6 +360,11 @@ internal static class Win32Native
         try
         {
             X86Context context = X86Context.Create();
+            // Opt-in legacy x86 FULL/DEBUG/EXTENDED state for a native-call
+            // transaction. Ordinary breakpoint readers keep their prior flags.
+            // This is the x87/FXSAVE context, not arbitrary modern XSTATE.
+            if (includeFloatingPointState)
+                context.ContextFlags = 0x0001003F;
             bool success = Environment.Is64BitProcess
                 ? Wow64GetThreadContext(thread, ref context)
                 : GetThreadContext32(thread, ref context);

@@ -13,7 +13,9 @@ namespace sparkplug::reconstruction
     public:
         static constexpr spClassID ClassID = 0x22875AA1;
 
-        explicit spEntity(spEntityHost& host);
+        // Native constructor takes field20 explicitly; the registered Entity
+        // factory supplies 3, while GUIObject supplies 1 on both platforms.
+        explicit spEntity(spEntityHost& host, std::uint32_t initialField20 = 3);
         ~spEntity() override;
         spEntity(const spEntity&) = delete;
         spEntity& operator=(const spEntity&) = delete;
@@ -30,6 +32,9 @@ namespace sparkplug::reconstruction
         [[nodiscard]] void* GetReferenceForAnalysis() const noexcept { return reference18_; }
         [[nodiscard]] std::uint32_t GetField20ForAnalysis() const noexcept
         { return field20_; }
+
+    protected:
+        [[nodiscard]] spEntityHost& HostForAnalysis() const noexcept { return host_; }
 
     private:
         spEntityHost& host_;

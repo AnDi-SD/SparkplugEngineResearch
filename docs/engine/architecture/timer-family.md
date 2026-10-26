@@ -7,7 +7,7 @@
 | [spTimer](../../reference/classes/sp-timer.md) | Накопитель отсчётов платформенных часов | 36/36 |
 | [spMasterTimer](../../reference/classes/sp-master-timer.md) | spTimer с singleton-интерфейсом | 40/40 |
 | [spTaskTimer](../../reference/classes/sp-task-timer.md) | Время задач, source clock и дочерние таймеры | 60/60 |
-| wxGameTimer | spTaskTimer с отдельным флагом игровой паузы | 136/136 |
+| [wxGameTimer](../../reference/classes/wx-game-timer.md) | spTaskTimer с отдельным флагом игровой паузы и owned queue | 136/136 |
 
 Каждый Clone создаёт отдельный объект с начальными runtime-значениями;
 виртуальный Copy у этих классов — базовый no-op. `spTaskTimer` физически
@@ -48,7 +48,12 @@ Master публикует адрес полного объекта в singleton 
 shift/or, conversion и удвоение. Это разные последовательности операций.
 
 Исходники Timer и Master сохраняют собственные операции и явную границу часов.
+PC-владение встроенной [spMessageQueue](../../reference/classes/sp-message-queue.md)
+по GameTimer+44 восстановлено для конструктора, fresh clone и destructor.
+Очередь использует общий SubscriptionManager; её portable storage отделён
+от оригинального pool ABI и его отказов.
+
 Открыты полная платформа часов, полные PS2 lifetimes, FPU rounding Task/Game,
-глобальная политика singleton ownership, native child ownership и встроенный
-GameTimer+44. Наличие этих компонентов не означает полной интеграции игрового
-цикла или всей платформы.
+глобальная политика singleton ownership и native ownership дочерних TaskTimer.
+Наличие этих компонентов не означает полной интеграции игрового цикла или
+всей платформы.
