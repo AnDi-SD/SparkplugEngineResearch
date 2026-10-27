@@ -1,4 +1,6 @@
 #include "wxMinotaurDefendAIAction.h"
+#include "Analysis/PC/wxPlanarAngleMath.h"
+#include "Code/Sparkplug/spNode.h"
 #include <bit>
 #include <stdexcept>
 
@@ -19,14 +21,16 @@ namespace winx::reconstruction
         const bool registered = spRTTIManager::Instance().RegisterDeferredForAnalysis(record);
     }
     wxMinotaurDefendAIAction::wxMinotaurDefendAIAction(wxMinotaurDefendAIActionHost& host,
-        const wxMinotaurDefendPlatformForAnalysis platform) noexcept : host_(host), platform_(platform) {}
+        const wxMinotaurDefendPlatformForAnalysis platform,
+        const wxMinotaurDefendUpdateProfileForAnalysis updateProfile) noexcept
+        : host_(host), platform_(platform), updateProfile_(updateProfile) {}
     void wxMinotaurDefendAIAction::SetFactoryHostForAnalysis(wxMinotaurDefendAIActionHost* host,
         const wxMinotaurDefendPlatformForAnalysis platform) noexcept { factoryHost = host; factoryPlatform = platform; }
     const spRTTIRecord& wxMinotaurDefendAIAction::StaticRTTI() noexcept { (void)registered; return record; }
     const spRTTIRecord& wxMinotaurDefendAIAction::vfunc_18() const noexcept { return record; }
     std::unique_ptr<spBaseObject> wxMinotaurDefendAIAction::vfunc_10(spCloneManager& manager) const
     {
-        auto clone = std::make_unique<wxMinotaurDefendAIAction>(host_, platform_);
+        auto clone = std::make_unique<wxMinotaurDefendAIAction>(host_, platform_, updateProfile_);
         manager.RegisterCloneForAnalysis(*this, *clone);
         return vfunc_14(*clone, manager) ? std::move(clone) : nullptr;
     }
@@ -103,11 +107,46 @@ namespace winx::reconstruction
         }
         return lastGate_;
     }
+    wxMinotaurDefendGateResultForAnalysis wxMinotaurDefendAIAction::UpdateForAnalysis(
+        const wxMinotaurDefendUpdateProfileForAnalysis profile) noexcept
+    {
+        using Result = wxMinotaurDefendGateResultForAnalysis;
+        const auto result = UpdateGateForAnalysis();
+        if (result != Result::UnqualifiedState0 && result != Result::UnqualifiedState1)
+            return result;
+        if (profile != wxMinotaurDefendUpdateProfileForAnalysis::PcFiniteGeometry ||
+            platform_ != wxMinotaurDefendPlatformForAnalysis::PC)
+            return result;
+
+        const bool moving = result == Result::UnqualifiedState0;
+        host_.WriteCommandByteForAnalysis(command_, 0x1F, 1);
+        if (!moving) host_.WriteCommandWordForAnalysis(command_, 4, 0);
+        const auto origin = host_.ReadNodeForAnalysis(GetOwnerForAnalysis()).GetWorldPositionForAnalysis();
+        const auto destination = host_.ReadNodeForAnalysis(target_).GetWorldPositionForAnalysis();
+        float desiredYaw;
+        if (!analysis::pc::PcPlanarPositionYawForAnalysis(origin, destination, desiredYaw))
+            return lastGate_ = Result::UnqualifiedGeometry;
+        if (moving)
+        {
+            host_.WriteCommandWordForAnalysis(command_, 4, 0x3E19999A); // 0.15f
+            host_.WriteCommandWordForAnalysis(command_, 8, std::bit_cast<std::uint32_t>(desiredYaw));
+        }
+        // PC5B8BB0 reads LOCAL Node orientation row2, even when the cached
+        // world orientation differs because of a parent transform.
+        const auto& orientation = host_.ReadNodeForAnalysis(GetOwnerForAnalysis()).GetOrientationForAnalysis();
+        bool facing;
+        if (!analysis::pc::PcPlanarFacingForAnalysis(
+            {orientation[6], orientation[7], orientation[8]}, desiredYaw, 0.1f, facing))
+            return lastGate_ = Result::UnqualifiedGeometry;
+        if (moving ? facing : !facing) state_ = moving ? 1 : 0;
+        return lastGate_ = Result::PcStateUpdated;
+    }
     bool wxMinotaurDefendAIAction::vfunc_24() noexcept
     {
-        const auto result = UpdateGateForAnalysis();
+        const auto result = UpdateForAnalysis(updateProfile_);
         if (result == wxMinotaurDefendGateResultForAnalysis::UnqualifiedState0 ||
-            result == wxMinotaurDefendGateResultForAnalysis::UnqualifiedState1)
+            result == wxMinotaurDefendGateResultForAnalysis::UnqualifiedState1 ||
+            result == wxMinotaurDefendGateResultForAnalysis::UnqualifiedGeometry)
         {
             host_.ObserveUnqualifiedStateForAnalysis(*this, state_);
             return false; // analytical refusal, never a native false claim

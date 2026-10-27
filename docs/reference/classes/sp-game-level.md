@@ -43,6 +43,11 @@ PS2 `0x00158340` iterates all instances and performs per-instance work with a
 temporary progress/interpolation callback. `0x00158580` wraps the larger level
 deserialize operation. Neither is assigned an original method name yet.
 
+A separate [shared PC initialization operation](../../engine/architecture/game-level-initialization.md)
+borrows the established instance lists, collects their Entity objects and
+performs ordered Notify1C retry passes without retaining receivers. Its C++
+owner remains unknown; it is not assigned to GameLevel solely from its input.
+
 Open: original declaration/TU, list API spellings, exact roles and ownership of
 `+0x20/+0x24/+0x28`, PC add/remove entry points, progress callback contract,
 and the complete `spGameLevelSerializer` transaction/rollback behavior.

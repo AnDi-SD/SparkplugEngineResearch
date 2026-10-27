@@ -5,6 +5,7 @@
 #include "Code/SparkBase/spBaseObject.h"
 #include "Analysis/Host/wxTargetManagerHost.h"
 #include <array>
+#include <vector>
 
 namespace winx::reconstruction
 {
@@ -44,6 +45,18 @@ namespace winx::reconstruction
         // PC59D030/59CF30 restricted to constructor/default ownership: optional
         // 38/40/44/4C objects remain absent. Active target/effect paths are open.
         void ResetDefaultLifetimeForAnalysis() noexcept;
+        // PC59DF70/59DF20: borrowed identity registry, independent of the
+        // unqualified active selection/effect/update operations. A nonzero
+        // argument byte148 replaces current28; zero appends once, in order.
+        void RegisterCandidateForAnalysis(const wxTargetCandidateBindingForAnalysis&);
+        void UnregisterCandidateForAnalysis(const wxTargetCandidateBindingForAnalysis*) noexcept;
+        [[nodiscard]] const std::vector<const wxTargetCandidateBindingForAnalysis*>&
+            RegisteredCandidatesForAnalysis() const noexcept { return candidates_; }
+        // Literal analytical input state for native20/24/28, not an attributed
+        // native setter or a qualification of the operations producing them.
+        void SeedBorrowedSelectionsForAnalysis(const wxTargetCandidateBindingForAnalysis* word20,
+            const wxTargetCandidateBindingForAnalysis* word24,
+            const wxTargetCandidateBindingForAnalysis* word28) noexcept;
         [[nodiscard]] const std::shared_ptr<wxTargetNodeBindingForAnalysis>& ResourceForAnalysis() const noexcept
         { return resource_; }
         [[nodiscard]] wxTargetNotificationResultForAnalysis LastNotificationResultForAnalysis() const noexcept
@@ -59,6 +72,7 @@ namespace winx::reconstruction
         // Original constructor initializes all these represented words/bytes
         // to zero. Padding and allocator state belong only to the ABI record.
         std::array<std::uintptr_t, 3> current_{};
+        std::vector<const wxTargetCandidateBindingForAnalysis*> candidates_;
         std::array<std::uint8_t, 3> flags_{};
         std::array<std::uintptr_t, 6> optional_{}; // native38/3C/40/44/48/4C, absent in this slice
         std::shared_ptr<wxTargetNodeBindingForAnalysis> resource_;

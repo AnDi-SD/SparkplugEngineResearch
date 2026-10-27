@@ -1,8 +1,13 @@
 #include "Code/wxMinotaurDefendAIAction.h"
 #include "Analysis/PC/wxMinotaurDefendAIActionAbi.h"
 #include "Analysis/PS2/wxMinotaurDefendAIActionAbi.h"
+#include "Analysis/PC/wxPlanarAngleMath.h"
+#include "Code/Sparkplug/spNode.h"
 #include <array>
+#include <bit>
+#include <cstring>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <sstream>
 #include <stdexcept>
@@ -16,6 +21,7 @@ namespace
 {
     using Platform = wxMinotaurDefendPlatformForAnalysis;
     using Gate = wxMinotaurDefendGateResultForAnalysis;
+    using UpdateProfile = wxMinotaurDefendUpdateProfileForAnalysis;
     void Check(bool value, const char* text) { if (!value) throw std::runtime_error(text); }
     struct World final : wxMinotaurDefendAIActionHost, wxPerceptionHost
     {
@@ -25,6 +31,8 @@ namespace
         spTaskTimer timer;
         spFunctionEval::RandomStateForAnalysis random;
         wxPerception perception;
+        spNode ownerNode, targetNode;
+        spNode* ownerNodeBinding = nullptr;
         std::map<const void*, std::array<float, 3>> positions;
         std::vector<std::uint32_t> times{1000};
         std::size_t timeReads = 0;
@@ -56,6 +64,29 @@ namespace
             if (offset >= command.size() || (object != command.data() && object != otherCommand.data())) std::terminate();
             static_cast<std::uint8_t*>(object)[offset] = value;
             trace += "write:" + std::to_string(offset) + ";";
+        }
+        spNode& ReadNodeForAnalysis(void* actor) noexcept override
+        {
+            trace += actor == &owner ? "node:owner;" : "node:target;";
+            if (actor == &owner) return ownerNodeBinding ? *ownerNodeBinding : ownerNode;
+            if (actor == &target) return targetNode;
+            std::terminate();
+        }
+        void WriteCommandWordForAnalysis(void* object, std::uint32_t offset, std::uint32_t value) noexcept override
+        {
+            if (offset + 4 > command.size() || (object != command.data() && object != otherCommand.data())) std::terminate();
+            std::memcpy(static_cast<std::uint8_t*>(object) + offset, &value, 4);
+            trace += "word:" + std::to_string(offset) + ";";
+        }
+        std::uint32_t CommandWord(std::uint32_t offset) const
+        { std::uint32_t value; std::memcpy(&value, command.data() + offset, 4); return value; }
+        void Geometry(const spNode::Vector3& origin, const spNode::Vector3& destination,
+            const spNode::Vector3& forward)
+        {
+            ownerNode.SetPositionForAnalysis(origin); targetNode.SetPositionForAnalysis(destination);
+            ownerNode.SetOrientationForAnalysis({1,0,0,0,1,0,forward[0],forward[1],forward[2]});
+            ownerNode.MarkLocalTransformDirtyForAnalysis(); targetNode.MarkLocalTransformDirtyForAnalysis();
+            Check(ownerNode.UpdateWorldForAnalysis() && targetNode.UpdateWorldForAnalysis(), "shared real Node caches");
         }
         void SelectActionForAnalysis(void* object, std::uint32_t key, std::uint32_t parameter) noexcept override
         { trace += "select:" + std::to_string(key) + ";"; selections.emplace_back(object, key, parameter); }
@@ -117,6 +148,22 @@ namespace
                 const auto gate = action.UpdateGateForAnalysis();
                 std::cout << unsigned(gate) << ' ' << action.StateForAnalysis() << ' ' << world.selections.size() << ' '
                     << (world.selections.empty() ? 0 : std::get<1>(world.selections.front())) << '\n';
+            }
+            else if (op == "u")
+            {
+                std::uint32_t now, deadline, state; std::array<std::uint32_t, 9> words;
+                std::cin >> now >> deadline >> state; for (auto& value : words) std::cin >> value;
+                world.times = {now};
+                const auto value = [&](unsigned index) { return std::bit_cast<float>(words[index]); };
+                world.Geometry({value(0),value(1),value(2)}, {value(3),value(4),value(5)},
+                    {value(6),value(7),value(8)});
+                wxMinotaurDefendAIAction action(world, Platform::PC, UpdateProfile::PcFiniteGeometry);
+                action.SetOwnerForAnalysis(&world.owner);
+                action.SetFieldsForAnalysis(&world.target,state,deadline,world.command.data());
+                const auto result = action.UpdateForAnalysis(UpdateProfile::PcFiniteGeometry);
+                std::cout << unsigned(result) << ' ' << action.StateForAnalysis() << ' '
+                    << world.CommandWord(4) << ' ' << world.CommandWord(8) << ' '
+                    << unsigned(world.command[0x1F]) << '\n';
             }
             else if (op == "x")
             {
@@ -218,6 +265,61 @@ namespace
         Check(dynamic_cast<wxMinotaurDefendAIAction*>(factory.get()) && factory->IsKindOf(wxAIAction::ClassID), "factory/RTTI base identity");
         wxMinotaurDefendAIAction::SetFactoryHostForAnalysis(nullptr);
     }
+    void TestPcStates()
+    {
+        World world; world.times = {100};
+        wxMinotaurDefendAIAction action(world, Platform::PC, UpdateProfile::PcFiniteGeometry);
+        action.SetOwnerForAnalysis(&world.owner);
+        world.Geometry({0,0,0},{0,100,1},{0,7,1});
+        action.SetFieldsForAnalysis(&world.target,0,200,world.command.data()); world.trace.clear();
+        Check(action.vfunc_24() && action.LastGateResultForAnalysis() == Gate::PcStateUpdated && action.StateForAnalysis() == 1,
+            "state0 facing target enters state1 through real geometry");
+        Check(world.trace == "time;write:31;node:owner;node:target;word:4;word:8;node:owner;" &&
+            world.command[0x1F] == 1 && world.CommandWord(4) == 0x3E19999A && world.CommandWord(8) == 0,
+            "state0 command/store/geometry order and ignored Y");
+        world.Geometry({0,0,0},{1,0,0},{0,0,1}); world.trace.clear();
+        Check(action.vfunc_24() && action.StateForAnalysis() == 0 && world.CommandWord(4) == 0 &&
+            world.CommandWord(8) == 0 &&
+            world.trace == "time;write:31;word:4;node:owner;node:target;node:owner;",
+            "state1 starts motion0, retains heading, and leaves on failed facing");
+        Check(action.vfunc_24() && action.StateForAnalysis() == 0 && world.CommandWord(8) == 0x3FC90FDB,
+            "state0 stores actual target yaw and keeps rotating when not facing");
+
+        bool facing = true;
+        Check(winx::analysis::pc::PcPlanarFacingForAnalysis({0,0,1},0.1f,0.1f,facing) && !facing,
+            "strict angle tolerance equality does not face");
+        Check(winx::analysis::pc::PcPlanarFacingForAnalysis({0,0,1},std::nextafter(0.1f,0.0f),0.1f,facing) && facing,
+            "one float below angle tolerance faces");
+        Check(winx::analysis::pc::PcPlanarFacingForAnalysis({-0.0f,0,-1},0x1.921fb6p+1f,0.1f,facing) && facing,
+            "negative zero X follows nonnegative yaw branch");
+
+        // A real parent makes cached-world row2 disagree with LOCAL row2.
+        auto parent = std::make_shared<spNode>(); auto child = std::make_shared<spNode>();
+        parent->SetOrientationForAnalysis({-1,0,0,0,1,0,0,0,-1});
+        child->SetOrientationForAnalysis({1,0,0,0,1,0,1,0,0});
+        Check(parent->AttachChildForAnalysis(child), "typed parent attachment");
+        parent->MarkLocalTransformDirtyForAnalysis(); child->MarkLocalTransformDirtyForAnalysis();
+        Check(parent->UpdateWorldForAnalysis() && child->GetWorldOrientationForAnalysis()[6] == -1 &&
+            child->GetOrientationForAnalysis()[6] == 1, "Node local/world distinction preserved");
+        world.Geometry({0,0,0},{1,0,0},{0,0,1}); world.ownerNodeBinding = child.get();
+        action.SetFieldsForAnalysis(&world.target,0,200,world.command.data());
+        Check(action.vfunc_24() && action.StateForAnalysis() == 1,
+            "actual state0 follows LOCAL row2 despite opposite cached-world row2");
+        world.ownerNodeBinding = nullptr;
+
+        world.Geometry({0,0,0},{std::numeric_limits<float>::infinity(),0,1},{0,0,1});
+        action.SetFieldsForAnalysis(&world.target,0,200,world.command.data()); world.command.fill(0xA5);
+        Check(!action.vfunc_24() && action.LastGateResultForAnalysis() == Gate::UnqualifiedGeometry &&
+            world.command[0x1F] == 1 && world.CommandWord(4) == 0xA5A5A5A5,
+            "nonfinite geometry refuses after original leading byte but before motion/heading");
+        world.Geometry({0,0,0},{1025,0,1},{0,0,1});
+        Check(action.UpdateForAnalysis(UpdateProfile::PcFiniteGeometry) == Gate::UnqualifiedGeometry,
+            "finite geometry domain bound is explicit");
+        wxMinotaurDefendAIAction ps2(world,Platform::PS2,UpdateProfile::PcFiniteGeometry);
+        ps2.SetFieldsForAnalysis(&world.target,0,200,world.command.data()); world.command.fill(0xA5);
+        Check(!ps2.vfunc_24() && ps2.LastGateResultForAnalysis() == Gate::UnqualifiedState0 &&
+            world.command[0x1F] == 0xA5, "PC geometry profile cannot enable a PS2 owned state");
+    }
 }
 
 int main(int argc, char** argv)
@@ -225,7 +327,7 @@ int main(int argc, char** argv)
     try
     {
         if (argc == 2 && std::string(argv[1]) == "--replay") Replay();
-        else { TestEntryAndExit(); TestNotificationsAndGate(); TestCopyAndFactory(); std::cout << "wxMinotaurDefendAIAction checks passed\n"; }
+        else { TestEntryAndExit(); TestNotificationsAndGate(); TestCopyAndFactory(); TestPcStates(); std::cout << "wxMinotaurDefendAIAction checks passed\n"; }
         return 0;
     }
     catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

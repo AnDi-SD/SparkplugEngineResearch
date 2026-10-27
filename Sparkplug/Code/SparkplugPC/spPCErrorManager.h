@@ -47,6 +47,20 @@ namespace sparkplug::reconstruction
         void PrintErrorForAnalysis(const spError&,bool detailed,
             const ConsoleForAnalysis& console={}) const;
 
+        // PC profile adapter for the empty branch of COMMON spErrorManager
+        // 413A90, not an original PC-derived method. Native global75AB9C has
+        // no established semantic name.
+        enum class WarmEmptyContextForAnalysis
+        { UnqualifiedMutable,StableBorrowed };
+        enum class WarmEmptyHandleStatusForAnalysis
+        { Completed,UnqualifiedContext,NotCurrentManager,NonEmptyOrFlaggedState };
+        // StableBorrowed admits a live external nonalias raw word and a
+        // synchronous, stable manager/context. The enum does not validate
+        // foreign ownership or concurrency. Refusals precede effects.
+        // Completed is analytical; native empty Handle still returns false.
+        [[nodiscard]] WarmEmptyHandleStatusForAnalysis HandleWarmEmptyPcForAnalysis(
+            std::uint32_t& rawWord75AB9C,WarmEmptyContextForAnalysis context) noexcept;
+
     private:
         static void NonModalHandlerForAnalysis(
             const AnalysisDispatch& dispatch,

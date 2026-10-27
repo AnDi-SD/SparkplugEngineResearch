@@ -3,6 +3,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <typeinfo>
+#include <algorithm>
 
 namespace winx::reconstruction
 {
@@ -110,6 +111,8 @@ namespace winx::reconstruction
     void wxTargetManager::ResetDefaultLifetimeForAnalysis() noexcept
     {
         current_.fill(0);
+        // Native list nodes are freed without releasing the borrowed values.
+        candidates_.clear();
         if (resource_ && resource_->node)
         {
             if (auto* parent = resource_->node->GetParentForAnalysis())
@@ -120,6 +123,30 @@ namespace winx::reconstruction
             }
             ReleaseNodeForAnalysis(resource_);
         }
+    }
+    void wxTargetManager::RegisterCandidateForAnalysis(const wxTargetCandidateBindingForAnalysis& value)
+    {
+        if (value.flag148)
+        {
+            current_[2] = reinterpret_cast<std::uintptr_t>(&value);
+            return;
+        }
+        if (std::find(candidates_.begin(), candidates_.end(), &value) == candidates_.end())
+            candidates_.push_back(&value);
+    }
+    void wxTargetManager::UnregisterCandidateForAnalysis(const wxTargetCandidateBindingForAnalysis* value) noexcept
+    {
+        const auto identity = reinterpret_cast<std::uintptr_t>(value);
+        if (current_[0] == identity) current_[0] = 0;
+        if (current_[1] == identity) current_[1] = 0;
+        // Original removal deliberately leaves current28 unchanged.
+        candidates_.erase(std::remove(candidates_.begin(), candidates_.end(), value), candidates_.end());
+    }
+    void wxTargetManager::SeedBorrowedSelectionsForAnalysis(const wxTargetCandidateBindingForAnalysis* word20,
+        const wxTargetCandidateBindingForAnalysis* word24, const wxTargetCandidateBindingForAnalysis* word28) noexcept
+    {
+        current_ = {reinterpret_cast<std::uintptr_t>(word20), reinterpret_cast<std::uintptr_t>(word24),
+            reinterpret_cast<std::uintptr_t>(word28)};
     }
     void wxTargetManager::vfunc_0C(const void* notification) noexcept
     {

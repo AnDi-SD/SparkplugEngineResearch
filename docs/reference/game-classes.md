@@ -57,7 +57,7 @@
 | `wxChangeCharacterPlacement` | `0x69A72576` | Да | Да | — | — |
 | `wxChangeLevelTrigger` | `0x56235DEA` | Да | Да | — | — |
 | `wxCharacter` | `0x0003CC73` | Да | Да | [1](classes/wx-character.md) | [wxCharacter.cpp](../../Winx/Code/wxCharacter.cpp), [wxCharacter.h](../../Winx/Code/wxCharacter.h) |
-| `wxCharacterMoveCtrl` | `0x680838E4` | Да | Да | — | — |
+| `wxCharacterMoveCtrl` | `0x680838E4` | Да | Да | — | [wxCharacterMoveCtrl.h](../../Winx/Code/wxCharacterMoveCtrl.h), [wxCharacterMoveCtrl.cpp](../../Winx/Code/wxCharacterMoveCtrl.cpp) |
 | `wxCharacterPlacementManager` | `0x6C56254E` | Да | Да | — | — |
 | `wxCharacterRegistry` | `0x6EAA030D` | Да | Да | — | — |
 | `wxCharacterState` | `0x44817BC2` | Да | Да | [1](classes/wx-character-state.md) | [wxCharacterState.cpp](../../Winx/Code/wxCharacterState.cpp), [wxCharacterState.h](../../Winx/Code/wxCharacterState.h) |
@@ -135,7 +135,7 @@
 | `wxFloraGlyph` | `0xC54ED7AA` | Да | Да | — | — |
 | `wxFlyingDodgeState` | `0x0023811A` | Да | Да | — | — |
 | `wxFlyingState` | `0x7323811A` | Да | Да | [1](classes/wx-flying-state.md) | [wxFlyingState.cpp](../../Winx/Code/wxFlyingState.cpp), [wxFlyingState.h](../../Winx/Code/wxFlyingState.h) |
-| `wxFlyingWanderAIAction` | `0x7529750D` | Да | Да | — | — |
+| `wxFlyingWanderAIAction` | `0x7529750D` | Да | Да | [1](classes/wx-flying-wander-ai-action.md) | [wxFlyingWanderAIAction.h](../../Winx/Code/wxFlyingWanderAIAction.h) |
 | `wxFountainGame` | `0x52CDDD12` | Да | Да | — | — |
 | `wxFrogAIBehavior` | `0x1E3B644F` | Да | Да | — | — |
 | `wxFrogAttackAIAction` | `0x4CFF056C` | Да | Да | — | — |
@@ -184,20 +184,20 @@
 | `wxHUDManager` | `0xDD003821` | Да | Да | — | — |
 | `wxHudMeters` | `0x401A393C` | Да | Да | — | — |
 | `wxHUDPart` | `0x7F2E3F1A` | Да | Да | [1](../game/wx-hud-part.md) | [wxHUDPart.h](../../Winx/Code/wxHUDPart.h), [wxHUDPart.cpp](../../Winx/Code/wxHUDPart.cpp) |
-| `wxHurtAIAction` | `0x4D8057F6` | Да | Да | — | — |
+| `wxHurtAIAction` | `0x4D8057F6` | Да | Да | [1](classes/wx-hurt-ai-action.md) | [wxHurtAIAction.h](../../Winx/Code/wxHurtAIAction.h) |
 | `wxHurtState` | `0x37C025BF` | Да | Да | [1](classes/wx-hurt-state.md) | [wxHurtState.cpp](../../Winx/Code/wxHurtState.cpp), [wxHurtState.h](../../Winx/Code/wxHurtState.h) |
 | `wxIceBatFlyingState` | `0xCBADEF33` | Да | Да | [1](classes/wx-ice-bat-flying-state.md) | [wxIceBatFlyingState.cpp](../../Winx/Code/wxIceBatFlyingState.cpp), [wxIceBatFlyingState.h](../../Winx/Code/wxIceBatFlyingState.h) |
 | `wxIceBatIdleState` | `0x338E72B1` | Да | Да | [1](classes/wx-ice-bat-idle-state.md) | [wxIceBatIdleState.cpp](../../Winx/Code/wxIceBatIdleState.cpp), [wxIceBatIdleState.h](../../Winx/Code/wxIceBatIdleState.h) |
 | `wxIceBatStateMachine` | `0x448212BB` | Да | Да | — | — |
 | `wxIceGargoyleAIBehavior` | `0x34EC779B` | Да | Да | — | — |
-| `wxIceGargoyleAttackAIAction` | `0x1B4441B7` | Да | Да | — | — |
+| `wxIceGargoyleAttackAIAction` | `0x1B4441B7` | Да | Да | [1](classes/wx-ice-gargoyle-attack-ai-action.md) | [wxIceGargoyleAttackAIAction.h](../../Winx/Code/wxIceGargoyleAttackAIAction.h), [wxIceGargoyleAttackAIAction.cpp](../../Winx/Code/wxIceGargoyleAttackAIAction.cpp) |
 | `wxIceGargoyleAttackState` | `0x1DE24CB8` | Да | Да | [1](classes/wx-ice-gargoyle-attack-state.md) | [wxIceGargoyleAttackState.cpp](../../Winx/Code/wxIceGargoyleAttackState.cpp), [wxIceGargoyleAttackState.h](../../Winx/Code/wxIceGargoyleAttackState.h) |
-| `wxIceGargoyleClawAIAction` | `0x53F2244B` | Да | Да | — | — |
+| `wxIceGargoyleClawAIAction` | `0x53F2244B` | Да | Да | [1](classes/wx-ice-gargoyle-claw-ai-action.md) | [wxIceGargoyleClawAIAction.h](../../Winx/Code/wxIceGargoyleClawAIAction.h), [wxIceGargoyleClawAIAction.cpp](../../Winx/Code/wxIceGargoyleClawAIAction.cpp) |
 | `wxIceGargoyleMovingState` | `0x53952BB6` | Да | Да | [1](classes/wx-ice-gargoyle-moving-state.md) | [wxIceGargoyleMovingState.cpp](../../Winx/Code/wxIceGargoyleMovingState.cpp), [wxIceGargoyleMovingState.h](../../Winx/Code/wxIceGargoyleMovingState.h) |
 | `wxIceGargoyleProjectileManager` | `0x2DDF6A03` | Да | Да | — | — |
 | `wxIceGargoyleSleepingAIAction` | `0x3C7B1A31` | Да | Да | [1](classes/wx-ice-gargoyle-sleeping-ai-action.md) | [wxIceGargoyleSleepingAIAction.h](../../Winx/Code/wxIceGargoyleSleepingAIAction.h), [wxIceGargoyleSleepingAIAction.cpp](../../Winx/Code/wxIceGargoyleSleepingAIAction.cpp) |
 | `wxIceGargoyleStateMachine` | `0x60BA1531` | Да | Да | — | — |
-| `wxIceGargoyleWithdrawlAIAction` | `0x239516B1` | Да | Да | — | — |
+| `wxIceGargoyleWithdrawlAIAction` | `0x239516B1` | Да | Да | [1](classes/wx-ice-gargoyle-withdrawl-ai-action.md) | [wxIceGargoyleWithdrawlAIAction.h](../../Winx/Code/wxIceGargoyleWithdrawlAIAction.h), [wxIceGargoyleWithdrawlAIAction.cpp](../../Winx/Code/wxIceGargoyleWithdrawlAIAction.cpp) |
 | `wxIceWormAIBehavior` | `0x169B1DA0` | Да | Да | — | — |
 | `wxIceWormAttackAIAction` | `0x76850CC0` | Да | Да | — | — |
 | `wxIceWormAttackState` | `0x709E322B` | Да | Да | [1](classes/wx-ice-worm-attack-state.md) | [wxIceWormAttackState.h](../../Winx/Code/wxIceWormAttackState.h) |
@@ -252,7 +252,7 @@
 | `wxMikaelWandringAIAction` | `0x12487A8E` | Да | Да | — | — |
 | `wxMikaelWandringState` | `0x108B4B98` | Да | Да | [1](classes/wx-npc-states.md) | [wxMikaelWandringState.cpp](../../Winx/Code/wxMikaelWandringState.cpp), [wxMikaelWandringState.h](../../Winx/Code/wxMikaelWandringState.h) |
 | `wxMinotaurAIBehavior` | `0x4E4C79B0` | Да | Да | — | — |
-| `wxMinotaurAttackAIAction` | `0x5B6B6464` | Да | Да | — | — |
+| `wxMinotaurAttackAIAction` | `0x5B6B6464` | Да | Да | — | [wxMinotaurAttackAIAction.h](../../Winx/Code/wxMinotaurAttackAIAction.h), [wxMinotaurAttackAIAction.cpp](../../Winx/Code/wxMinotaurAttackAIAction.cpp) |
 | `wxMinotaurAttackState` | `0x30062CB0` | Да | Да | [1](classes/wx-minotaur-attack-state.md) | [wxMinotaurAttackState.cpp](../../Winx/Code/wxMinotaurAttackState.cpp), [wxMinotaurAttackState.h](../../Winx/Code/wxMinotaurAttackState.h) |
 | `wxMinotaurDefendAIAction` | `0x2F567161` | Да | Да | [1](classes/wx-minotaur-defend-ai-action.md) | [wxMinotaurDefendAIAction.h](../../Winx/Code/wxMinotaurDefendAIAction.h), [wxMinotaurDefendAIAction.cpp](../../Winx/Code/wxMinotaurDefendAIAction.cpp) |
 | `wxMinotaurDefenseState` | `0x5D337CF8` | Да | Да | [1](classes/wx-minotaur-defense-state.md) | [wxMinotaurDefenseState.cpp](../../Winx/Code/wxMinotaurDefenseState.cpp), [wxMinotaurDefenseState.h](../../Winx/Code/wxMinotaurDefenseState.h) |

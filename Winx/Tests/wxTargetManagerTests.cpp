@@ -82,7 +82,8 @@ namespace
         std::cout << "{\"current\":"; Array(target.CurrentWordsForAnalysis());
         std::cout << ",\"bytes\":"; Array(target.DefaultFlagsForAnalysis());
         std::cout << ",\"node\":" << host.ID(target.ResourceForAnalysis()) << ",\"own\":";
-        Array(target.OptionalDefaultWordsForAnalysis()); std::cout << ",\"listCount\":0}";
+        Array(target.OptionalDefaultWordsForAnalysis()); std::cout << ",\"listCount\":"
+            << target.RegisteredCandidatesForAnalysis().size() << '}';
     }
     void Nodes(const Host& host, bool full)
     {
@@ -139,6 +140,70 @@ namespace
         std::cout << ",\"loads\":" << host.paths.size() << ",\"rootChildren\":" << host.root->GetChildCountForAnalysis()
             << ",\"globalCleared\":" << (wxTargetManager::GetInstanceForAnalysis() ? "false" : "true") << '}';
     }
+    void RegistryReplay(std::uint8_t flag, const std::array<unsigned, 3>& initial, bool mutate)
+    {
+        Host host("lifetime");
+        std::array<wxTargetCandidateBindingForAnalysis, 3> members{{{flag},{0},{flag}}};
+        wxTargetManager target(host);
+        auto ptr = [&](unsigned i) -> const wxTargetCandidateBindingForAnalysis*
+        { return i ? &members.at(i - 1) : nullptr; };
+        target.SeedBorrowedSelectionsForAnalysis(ptr(initial[0]), ptr(initial[1]), ptr(initial[2]));
+        auto id = [&](std::uintptr_t value)
+        {
+            if (!value) return 0u;
+            for (unsigned i = 0; i < members.size(); ++i)
+                if (value == reinterpret_cast<std::uintptr_t>(&members[i])) return i + 1;
+            throw std::logic_error("Unknown borrowed registry identity");
+        };
+        auto state = [&]
+        {
+            std::array<unsigned,3> current{};
+            for (unsigned i=0;i<3;++i) current[i]=id(target.CurrentWordsForAnalysis()[i]);
+            std::cout << "{\"current\":"; Array(current);
+            std::cout << ",\"flags\":"; Array(target.DefaultFlagsForAnalysis());
+            std::cout << ",\"members\":[";
+            bool first=true;
+            for (auto* member : target.RegisteredCandidatesForAnalysis())
+            { if (!first) std::cout << ','; first=false; std::cout << id(reinterpret_cast<std::uintptr_t>(member)); }
+            std::cout << "],\"count\":" << target.RegisteredCandidatesForAnalysis().size() << '}';
+        };
+        constexpr std::array<std::array<unsigned,2>,6> sequence{{
+            {{0x59DF70,0}},{{0x59DF70,1}},{{0x59DF70,0}},{{0x59DF20,0}},{{0x59DF20,2}},{{0x59DF70,2}}}};
+        std::cout << "{\"rows\":["; bool first=true;
+        unsigned step=0;
+        for (auto [method,index] : sequence)
+        {
+            if (mutate && step==2) members[0].flag148=static_cast<std::uint8_t>(!flag);
+            ++step;
+            if (!first) std::cout << ','; first=false;
+            std::cout << "{\"method\":" << method << ",\"argument\":" << index+1 << ",\"before\":"; state();
+            if (method==0x59DF70) target.RegisterCandidateForAnalysis(members[index]);
+            else target.UnregisterCandidateForAnalysis(&members[index]);
+            std::cout << ",\"after\":"; state(); std::cout << '}';
+        }
+        target.ResetDefaultLifetimeForAnalysis();
+        std::cout << "],\"afterReset\":"; state(); std::cout << '}';
+    }
+    void RegistryOwnership()
+    {
+        Host host("lifetime"); wxTargetManager target(host);
+        wxTargetCandidateBindingForAnalysis a{},b{0xFF};
+        target.RegisterCandidateForAnalysis(a); target.RegisterCandidateForAnalysis(a);
+        target.RegisterCandidateForAnalysis(b);
+        Check(target.RegisteredCandidatesForAnalysis()==std::vector<const wxTargetCandidateBindingForAnalysis*>{&a},
+            "Zero-byte registry suppresses duplicate identities; nonzero byte bypasses list");
+        target.SeedBorrowedSelectionsForAnalysis(&b,&b,&b);
+        target.UnregisterCandidateForAnalysis(&b);
+        Check(target.CurrentWordsForAnalysis()==std::array<std::uintptr_t,3>{0,0,reinterpret_cast<std::uintptr_t>(&b)},
+            "Removal clears both aliases20/24 but preserves override28");
+        a.flag148=1; target.RegisterCandidateForAnalysis(a);
+        Check(target.RegisteredCandidatesForAnalysis().size()==1 &&
+            target.CurrentWordsForAnalysis()[2]==reinterpret_cast<std::uintptr_t>(&a),
+            "Registration rereads the live borrowed flag without removing an existing entry");
+        target.ResetDefaultLifetimeForAnalysis();
+        Check(target.RegisteredCandidatesForAnalysis().empty() && a.flag148==1 && b.flag148==0xFF,
+            "Reset clears list/aliases without mutating or owning candidate bindings");
+    }
     void Guards()
     {
         Host host("lifetime"); wxTargetManager target(host);
@@ -188,7 +253,14 @@ int main(int argc, char** argv)
     try
     {
         if (argc == 3 && std::string(argv[1]) == "--replay") { Replay(argv[2]); std::cout << '\n'; return 0; }
-        Guards(); OwnershipGuards();
+        if (argc == 6 && (std::string(argv[1]) == "--registry" || std::string(argv[1]) == "--registry-mutation"))
+        {
+            RegistryReplay(static_cast<std::uint8_t>(std::stoul(argv[2])),
+                {static_cast<unsigned>(std::stoul(argv[3])),static_cast<unsigned>(std::stoul(argv[4])),static_cast<unsigned>(std::stoul(argv[5]))},
+                std::string(argv[1]) == "--registry-mutation");
+            std::cout << '\n'; return 0;
+        }
+        Guards(); OwnershipGuards(); RegistryOwnership();
         for (const auto* mode : {"lifetime", "reinit", "reset", "clone", "copy", "notify-ignore", "retained"})
         {
             std::ostringstream captured; auto* output = std::cout.rdbuf(captured.rdbuf());

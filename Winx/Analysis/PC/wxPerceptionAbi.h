@@ -36,4 +36,7 @@ namespace winx::evidence::pc
     inline constexpr std::uint32_t wxPerceptionCopy = 0x4F20D0;
     inline constexpr std::uint32_t wxPerceptionReset = 0x4F18E0;
     inline constexpr std::uint32_t wxPerceptionFindNearest = 0x4F1910;
+    inline constexpr std::uint32_t wxPerceptionRefresh = 0x4F1F30;
+    inline constexpr std::uint32_t wxPerceptionOwnerScan = 0x4F1C70;
+    inline constexpr std::uint32_t wxPerceptionOwnerScanBoundary = 0x4F1C8A;
 }

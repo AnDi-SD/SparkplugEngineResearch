@@ -35,6 +35,10 @@ namespace sparkplug::reconstruction
             RemoveInstanceForAnalysis(spTemplateInstance& instance) noexcept;
         void ClearInstancesForAnalysis() noexcept;
         [[nodiscard]] std::size_t GetInstanceCountForAnalysis() const noexcept;
+        // Borrow the already established runtime graph in native list order.
+        // The view does not transfer ownership or provide a mutation snapshot.
+        [[nodiscard]] const std::list<std::unique_ptr<spTemplateInstance>>&
+            GetInstancesForAnalysis() const noexcept { return instances_; }
 
     private:
         std::list<std::unique_ptr<spTemplateInstance>> instances_;

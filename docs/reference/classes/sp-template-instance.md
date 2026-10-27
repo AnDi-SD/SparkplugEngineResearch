@@ -40,6 +40,13 @@ region build and query template-instance relationships. Their exact contracts,
 key format and ownership transitions cannot yet be named safely. They stay out
 of the portable API rather than being approximated.
 
+The established attached-object list can now be borrowed by the separate
+[PC level initialization operation](../../engine/architecture/game-level-initialization.md).
+Its explicit fixture-list input supplies a pre-existing graph for that
+consumer; it does not reconstruct the larger creation/attachment algorithms.
+The independent PC wrapper also starts the same Entity collection/retry
+directly from one instance, without visiting its enclosing level or peers.
+
 No exact original header or translation-unit path has yet been recovered for
 this class. Its registration is contiguous with `spTemplateManager`, while the
 later related class is independently tied to the exact source string

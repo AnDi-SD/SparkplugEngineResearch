@@ -4,7 +4,7 @@ using SmoNativeValidator.Core;
 
 namespace WinxCoop.RuntimeProbe;
 
-internal enum NativeVisualNodeKind { Node, RenderNode, Light, LightData }
+internal enum NativeVisualNodeKind { Node, RenderNode, Light, LightData, AudioSound, DXLight }
 
 internal sealed record VisualNodeTransform(
     IReadOnlyList<float> Position, IReadOnlyList<float> Scale, IReadOnlyList<float> Orientation);
@@ -20,7 +20,8 @@ internal sealed record VisualSkinRead(
     IReadOnlyList<uint> BoneNodes, string InverseBindSha256);
 internal sealed record VisualMemoryRead(uint Address, int Length, string Purpose, bool Success, int? NativeError);
 internal sealed record VisualGraphSnapshot(
-    bool Complete, uint Root, IReadOnlyList<VisualNodeRead> Nodes, IReadOnlyList<VisualSkinRead> Skins,
+    bool Complete, bool SkinInspectionPerformed, uint Root,
+    IReadOnlyList<VisualNodeRead> Nodes, IReadOnlyList<VisualSkinRead> Skins,
     IReadOnlyList<VisualMemoryRead> Reads, int ReadBytes);
 internal sealed record VisualGraphReadResult(bool Success, string? Error, VisualGraphSnapshot Graph);
 internal sealed record VisualGraphSelection(
@@ -42,6 +43,12 @@ internal sealed class VisualGraphReader
     internal const uint RenderNodeVtable = 0x6DCAA4;
     internal const uint LightVtable = 0x6DCC18;
     internal const uint LightDataVtable = 0x6DE990;
+    // spDXLight physically derives from spLight; inspect only inherited
+    // Node/Light fields through ED, never the device payload at F0..157.
+    internal const uint DXLightVtable = 0x6F0C88;
+    // PC/spAudioSoundAbi.h proves vtable and the inherited B4 Node prefix.
+    // AudioSound is accepted only by inventory mode; its tail is never read.
+    internal const uint AudioSoundVtable = 0x6EEEA4;
     internal const uint SkinVtable = 0x6E8C5C;
     internal const int MaximumNodes = 1024;
     internal const int MaximumChildrenPerNode = 256;
@@ -65,11 +72,15 @@ internal sealed class VisualGraphReader
     /// Root may have an external parent; descendants must have exactly one
     /// parent in this tree. forbiddenNodes is a caller-owned, stopped local
     /// graph inventory, not a claim that this reader enumerated the whole heap.
+    /// inspectSkins=false inventories validated Node ownership and renderable
+    /// pointer vectors without interpreting their items as a particular type.
+    /// Such an inventory cannot qualify a passive visual selection.
     /// Failure returns bounded partial records, never a selectable graph.
     /// </summary>
-    internal VisualGraphReadResult Read(uint root, IReadOnlySet<uint>? forbiddenNodes = null)
+    internal VisualGraphReadResult Read(uint root, IReadOnlySet<uint>? forbiddenNodes = null,
+        bool inspectSkins = true)
     {
-        var state = new ReadState(_processHandle, root, forbiddenNodes);
+        var state = new ReadState(_processHandle, root, forbiddenNodes, inspectSkins);
         try
         {
             state.ReadTree();
@@ -92,6 +103,10 @@ internal sealed class VisualGraphReader
         VisualGraphSelection Fail(string error) => new(false, error, 0, 0, 0, [], [], [], false, []);
         if (!graph.Complete || graph.Nodes.Count == 0 || graph.Nodes.Count > MaximumNodes)
             return Fail("A complete bounded graph is required");
+        if (!graph.SkinInspectionPerformed)
+            return Fail("A completed strict Skin inspection is required for visual selection");
+        if (graph.Nodes.Any(n => n.Kind == NativeVisualNodeKind.AudioSound))
+            return Fail("A passive visual source cannot contain AudioSound nodes");
         var nodes = new Dictionary<uint, VisualNodeRead>();
         foreach (var node in graph.Nodes)
             if (!nodes.TryAdd(node.Address, node)) return Fail("Duplicate node record");
@@ -158,7 +173,7 @@ internal sealed class VisualGraphReader
             uint address = pending.Pop();
             if (!nodes.TryGetValue(address, out var node) || !selected.Add(address))
                 return Fail("Invalid or overlapping visual subtrees");
-            if (node.Kind is NativeVisualNodeKind.Light or NativeVisualNodeKind.LightData || node.Collisions.Items.Count != 0)
+            if (node.Kind is NativeVisualNodeKind.Light or NativeVisualNodeKind.LightData or NativeVisualNodeKind.DXLight || node.Collisions.Items.Count != 0)
                 return Fail("Selected visual subtrees contain light or collision relationships");
             if ((node.Flags & 0x2000) != 0)
                 return Fail("Selected nodes are already bound to an actor");
@@ -190,7 +205,7 @@ internal sealed class VisualGraphReader
 
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T> values) => Array.AsReadOnly(values.ToArray());
 
-    private sealed class ReadState(nint processHandle, uint root, IReadOnlySet<uint>? forbidden)
+    private sealed class ReadState(nint processHandle, uint root, IReadOnlySet<uint>? forbidden, bool inspectSkins)
     {
         private readonly List<VisualNodeRead> _nodes = [];
         private readonly Dictionary<uint, VisualSkinRead> _skins = [];
@@ -199,7 +214,9 @@ internal sealed class VisualGraphReader
         private readonly List<(uint Address, int Size)> _skinStorage = [];
         private int _readBytes, _boneReferences;
 
-        internal VisualGraphSnapshot Snapshot(bool complete) => new(complete, root, Freeze(_nodes),
+        // A partial graph never reports a completed Skin inspection, even if
+        // strict inspection was requested and some Skin records were read.
+        internal VisualGraphSnapshot Snapshot(bool complete) => new(complete, complete && inspectSkins, root, Freeze(_nodes),
             Freeze(_skins.Values), Freeze(_reads), _readBytes);
 
         private static void Require(bool value, string message)
@@ -304,8 +321,11 @@ internal sealed class VisualGraphReader
         {
             if (_skins.ContainsKey(address)) return; // Renderable aliases preserve their vector occurrences.
             Require(_skins.Count < MaximumSkins, "Skin count bound exceeded");
+            uint actualVtable = U(Bytes(address, sizeof(uint), "renderable vtable"), 0);
+            Require(actualVtable == SkinVtable,
+                $"Unsupported renderable vtable 0x{actualVtable:X8} at 0x{address:X8}; expected exact spSkin 0x{SkinVtable:X8}");
             byte[] skin = Bytes(address, 0x70, "Skin prefix");
-            Require(U(skin, 0) == SkinVtable, "Unsupported renderable vtable; expected exact spSkin");
+            Require(U(skin, 0) == SkinVtable, $"Skin identity changed during the stopped read at 0x{address:X8}");
             uint count = U(skin, 0x64), bones = U(skin, 0x68), matrices = U(skin, 0x6C);
             Require(count <= MaximumPaletteSlots && count <= MaximumTotalBoneReferences - _boneReferences,
                 "Skin palette bound exceeded");
@@ -351,6 +371,8 @@ internal sealed class VisualGraphReader
                     RenderNodeVtable => NativeVisualNodeKind.RenderNode,
                     LightVtable => NativeVisualNodeKind.Light,
                     LightDataVtable => NativeVisualNodeKind.LightData,
+                    DXLightVtable => NativeVisualNodeKind.DXLight,
+                    AudioSoundVtable when !inspectSkins => NativeVisualNodeKind.AudioSound,
                     _ => throw new InvalidDataException($"Unsupported node vtable 0x{table:X8} at 0x{address:X8}")
                 };
                 uint parent = U(node, 0x2C), scene = U(node, 0x3C);
@@ -377,9 +399,10 @@ internal sealed class VisualGraphReader
                     byte[] vector = Bytes(Add(address, 0xBC), 12, "RenderNode renderable vector");
                     renderables = Vector(U(vector, 0), U(vector, 4), U(vector, 8),
                         MaximumRenderablesPerNode, "renderable references");
-                    foreach (uint renderable in renderables.Items) Skin(renderable);
+                    if (inspectSkins)
+                        foreach (uint renderable in renderables.Items) Skin(renderable);
                 }
-                else if (kind is NativeVisualNodeKind.Light or NativeVisualNodeKind.LightData)
+                else if (kind is NativeVisualNodeKind.Light or NativeVisualNodeKind.LightData or NativeVisualNodeKind.DXLight)
                 {
                     byte[] light = Bytes(Add(address, 0xC0), 0x2E, "Light parameters");
                     lightType = U(light, 0); lightEnabled = light[0x2D] != 0;

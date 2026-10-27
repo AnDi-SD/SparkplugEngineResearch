@@ -323,6 +323,8 @@ add_library(SparkplugEngine STATIC
     Analysis/PC/spParticleSampling.h
     Code/Sparkplug/spGameLevel.cpp
     Code/Sparkplug/spGameLevel.h
+    Code/Sparkplug/spGameLevelInitialization.cpp
+    Code/Sparkplug/spGameLevelInitialization.h
     Code/Sparkplug/spGameLevelSerializer.cpp
     Code/Sparkplug/spGameLevelSerializer.h
     Code/Sparkplug/spDXMeshData.cpp
@@ -544,6 +546,31 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spCubeRenderTarget.h
     Code/Sparkplug/spRenderTargetManager.cpp
     Code/Sparkplug/spRenderTargetManager.h
+    Code/Sparkplug/spProjectionManager.cpp
+    Code/Sparkplug/spProjectionManager.h
+    Code/Sparkplug/spProjection.cpp
+    Code/Sparkplug/spProjection.h
+    Code/Sparkplug/spBoxProjection.cpp
+    Code/Sparkplug/spBoxProjection.h
+    Code/Sparkplug/spProjectionSerializer.cpp
+    Code/Sparkplug/spProjectionSerializer.h
+    Code/Sparkplug/spBoxProjectionSerializer.cpp
+    Code/Sparkplug/spBoxProjectionSerializer.h
+    Code/Sparkplug/spPyramidProjection.cpp
+    Code/Sparkplug/spPyramidProjection.h
+    Code/Sparkplug/spPyramidProjectionSerializer.cpp
+    Code/Sparkplug/spPyramidProjectionSerializer.h
+    Analysis/PC/spProjectionAbi.h
+    Code/Sparkplug/spProjectionFX.cpp
+    Code/Sparkplug/spProjectionFX.h
+    Code/SparkplugPC/spPCProjectionManager.cpp
+    Code/SparkplugPC/spPCProjectionManager.h
+    Code/SparkplugPC/spPCProjectionFX.cpp
+    Code/SparkplugPC/spPCProjectionFX.h
+    Analysis/Host/spProjectionManagerHost.h
+    Analysis/Host/spProjectionFxHost.h
+    Analysis/PC/spProjectionManagerAbi.h
+    Analysis/PC/spProjectionFxAbi.h
     Code/Sparkplug/spSceneGraphOptimizer.cpp
     Code/Sparkplug/spSceneGraphOptimizer.h
     Code/Sparkplug/spRenderableSerializer.cpp
@@ -682,6 +709,12 @@ target_sources(SparkplugEngine PRIVATE
     Code/Sparkplug/spGUIObject.h
     Code/Sparkplug/spWidget.cpp
     Code/Sparkplug/spWidget.h
+    Code/Sparkplug/spTextWidget.cpp
+    Code/Sparkplug/spTextWidget.h
+    Code/Sparkplug/spEditBox.cpp
+    Code/Sparkplug/spEditBox.h
+    Code/Sparkplug/spGUIManager.cpp
+    Code/Sparkplug/spGUIManager.h
     Code/Sparkplug/spButton.cpp
     Code/Sparkplug/spButton.h
     Analysis/Host/spGUIHost.h
@@ -822,6 +855,62 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugGUIObjectTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugGUIObjectTests COMMAND SparkplugGUIObjectTests)
     set_tests_properties(SparkplugGUIObjectTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugTextWidgetTests Tests/spTextWidgetTests.cpp)
+    target_link_libraries(SparkplugTextWidgetTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugTextWidgetTests COMMAND SparkplugTextWidgetTests)
+    set_tests_properties(SparkplugTextWidgetTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugGUIManagerTests Tests/spGUIManagerTests.cpp)
+    target_link_libraries(SparkplugGUIManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugGUIManagerTests COMMAND SparkplugGUIManagerTests)
+    set_tests_properties(SparkplugGUIManagerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugEditBoxTests Tests/spEditBoxTests.cpp)
+    target_link_libraries(SparkplugEditBoxTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugEditBoxTests COMMAND SparkplugEditBoxTests)
+    set_tests_properties(SparkplugEditBoxTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugGameLevelInitializationTests Tests/spGameLevelInitializationTests.cpp)
+    target_link_libraries(SparkplugGameLevelInitializationTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugGameLevelInitializationTests COMMAND SparkplugGameLevelInitializationTests)
+    set_tests_properties(SparkplugGameLevelInitializationTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugProjectionManagerTests Tests/spProjectionManagerTests.cpp)
+    target_link_libraries(SparkplugProjectionManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugProjectionManagerTests COMMAND SparkplugProjectionManagerTests)
+    set_tests_properties(SparkplugProjectionManagerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugProjectionTests Tests/spProjectionTests.cpp)
+    target_link_libraries(SparkplugProjectionTests PRIVATE SparkplugEngine)
+    target_compile_features(SparkplugProjectionTests PRIVATE cxx_std_20)
+    add_test(NAME SparkplugProjectionTests COMMAND SparkplugProjectionTests)
+    set_tests_properties(SparkplugProjectionTests PROPERTIES TIMEOUT 20)
+    if(WIN32)
+        add_executable(SparkplugPCEmptyErrorHandleTests Tests/spPCEmptyErrorHandleTests.cpp)
+        target_link_libraries(SparkplugPCEmptyErrorHandleTests PRIVATE SparkBase)
+        add_test(NAME SparkplugPCEmptyErrorHandleTests COMMAND SparkplugPCEmptyErrorHandleTests)
+        set_tests_properties(SparkplugPCEmptyErrorHandleTests PROPERTIES TIMEOUT 20)
+    endif()
+    add_executable(SparkplugProjectionWriteTests Tests/spProjectionWriteTests.cpp)
+    target_link_libraries(SparkplugProjectionWriteTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugProjectionWriteTests COMMAND SparkplugProjectionWriteTests)
+    set_tests_properties(SparkplugProjectionWriteTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugProjectionSerializerTests Tests/spProjectionSerializerTests.cpp)
+    target_link_libraries(SparkplugProjectionSerializerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugProjectionSerializerTests COMMAND SparkplugProjectionSerializerTests)
+    set_tests_properties(SparkplugProjectionSerializerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugBoxProjectionSerializerTests Tests/spBoxProjectionSerializerTests.cpp)
+    target_link_libraries(SparkplugBoxProjectionSerializerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugBoxProjectionSerializerTests COMMAND SparkplugBoxProjectionSerializerTests)
+    set_tests_properties(SparkplugBoxProjectionSerializerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPyramidProjectionSerializerTests Tests/spPyramidProjectionSerializerTests.cpp)
+    target_link_libraries(SparkplugPyramidProjectionSerializerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPyramidProjectionSerializerTests COMMAND SparkplugPyramidProjectionSerializerTests)
+    set_tests_properties(SparkplugPyramidProjectionSerializerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPyramidProjectionTests Tests/spPyramidProjectionTests.cpp)
+    target_link_libraries(SparkplugPyramidProjectionTests PRIVATE SparkplugEngine)
+    target_compile_features(SparkplugPyramidProjectionTests PRIVATE cxx_std_20)
+    add_test(NAME SparkplugPyramidProjectionTests COMMAND SparkplugPyramidProjectionTests)
+    set_tests_properties(SparkplugPyramidProjectionTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugProjectionFxTests Tests/spProjectionFxTests.cpp)
+    target_link_libraries(SparkplugProjectionFxTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugProjectionFxTests COMMAND SparkplugProjectionFxTests)
+    set_tests_properties(SparkplugProjectionFxTests PROPERTIES TIMEOUT 20)
     target_link_libraries(SparkEntityTests PRIVATE SparkEntities)
     add_test(NAME SparkEntityTests COMMAND SparkEntityTests)
     set_tests_properties(SparkEntityTests PROPERTIES TIMEOUT 20)

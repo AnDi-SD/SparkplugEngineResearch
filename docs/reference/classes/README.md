@@ -30,11 +30,13 @@
 - [`wxDroidMovingState`](wx-droid-moving-state.md).
 - [`wxFishMovingState`](wx-fish-moving-state.md).
 - [`wxFlyingState`](wx-flying-state.md).
+- [`wxFlyingWanderAIAction`](wx-flying-wander-ai-action.md).
 - [`wxFrogHurtState`](wx-frog-hurt-state.md).
 - [`wxFrogJumpingState`](wx-frog-jumping-state.md).
 - [`wxFrogMovingState`](wx-frog-moving-state.md).
 - [`wxGhoulAttackState`](wx-ghoul-attack-state.md).
 - [`wxGlyphState`](wx-glyph-state.md).
+- [`wxHurtAIAction`](wx-hurt-ai-action.md).
 - [`wxIceBatFlyingState`](wx-ice-bat-flying-state.md).
 - [`wxIceBatIdleState`](wx-ice-bat-idle-state.md).
 - [`wxIceGargoyleAttackState`](wx-ice-gargoyle-attack-state.md).
@@ -67,6 +69,7 @@
 - [`wxWayToGoState`](wx-way-to-go-state.md).
 - [`wxWebSpitProjectile`](wx-web-spit-projectile.md).
 - [`wxYetiAttackState`](wx-yeti-attack-state.md).
+- [ProjectionFX: PC lifecycle and bounded initialization](sp-projection-fx.md).
 - [spActor](sp-actor.md).
 - [spAnimation / spAnimationSerializer](sp-animation.md).
 - [spAnimationManager](sp-animation-manager.md).
@@ -78,6 +81,8 @@
 - [spBaseObject / spNamedObject](sp-base-object.md).
 - [spBoxBV](sp-box-bv.md).
 - [spBoxBVSerializer](sp-box-bv-serializer.md).
+- [spBoxProjection: PC center, size and inherited Copy](sp-box-projection.md).
+- [spBoxProjectionSerializer: PC geometry reader](sp-box-projection-serializer.md).
 - [spBSPNode](sp-bsp-node.md).
 - [spButton](sp-button.md).
 - [spCamera](sp-camera.md).
@@ -108,6 +113,7 @@
 - [spDXTextureDataSerializer](sp-dx-texture-data-serializer.md).
 - [spDXTextureManager](sp-dx-texture-manager.md).
 - [spDXVertexDeclaration / spPCVertexDeclaration](sp-vertex-declaration.md).
+- [spEditBox](sp-edit-box.md).
 - [spEngineCore](sp-engine-core.md).
 - [spEngineCore / wxEngineCore](wx-engine-core.md).
 - [spEntity](sp-entity.md).
@@ -179,6 +185,9 @@
 - [spPCThread](sp-pc-thread.md).
 - [spPCVideoStream](sp-pc-video-stream.md).
 - [spPlatformSpecificMeshData](sp-platform-specific-mesh-data.md).
+- [spProjection: bounded PC construction and geometry interface](sp-projection.md).
+- [spProjectionManager and spPCProjectionManager](sp-projection-manager.md).
+- [spProjectionSerializer](sp-projection-serializer.md).
 - [spPS2App](sp-ps2-app.md).
 - [spPS2AsyncFileStreamManager](sp-ps2-async-file-stream-manager.md).
 - [spPS2CubeTexture](sp-ps2-cube-texture.md).
@@ -198,6 +207,8 @@
 - [spPS2PipelineManager / spPS2MicrocodeManager](sp-ps2-microcode-manager.md).
 - [spPS2TextureDataSerializer](sp-ps2-texture-data-serializer.md).
 - [spPS2VideoStream](sp-ps2-video-stream.md).
+- [spPyramidProjection](sp-pyramid-projection.md).
+- [spPyramidProjectionSerializer: PC parameter reader](sp-pyramid-projection-serializer.md).
 - [spQuad3D](sp-quad-3d.md).
 - [spRenderable](sp-renderable.md).
 - [spRenderableSerializer](sp-renderable-serializer.md).
@@ -238,6 +249,7 @@
 - [spTextureData](sp-texture-data.md).
 - [spTextureDataSerializer](sp-texture-data-serializer.md).
 - [spTextureManager](sp-texture-manager.md).
+- [spTextWidget](sp-text-widget.md).
 - [spThread](sp-thread.md).
 - [spTimer](sp-timer.md).
 - [spTransformConstEval](sp-transform-const-eval.md).
@@ -275,6 +287,7 @@
 - [wxBloomDyingState](wx-bloom-dying-state.md).
 - [wxButterflyMovingState](wx-butterfly-moving-state.md).
 - [wxCharacter](wx-character.md).
+- [wxCharacterMoveCtrl](wx-character-move-ctrl.md).
 - [wxCharacterState](wx-character-state.md).
 - [wxCharacterStateMachine](wx-character-state-machine.md).
 - [wxCreditsMenuGameFlowState](wx-credits-menu-game-flow-state.md).
@@ -291,11 +304,15 @@
 - [wxGhoulJumpingState](wx-ghoul-jumping-state.md).
 - [wxHangingState](wx-hanging-state.md).
 - [wxHurtState](wx-hurt-state.md).
+- [wxIceGargoyleAttackAIAction](wx-ice-gargoyle-attack-ai-action.md).
+- [wxIceGargoyleClawAIAction](wx-ice-gargoyle-claw-ai-action.md).
 - [wxIceGargoyleSleepingAIAction](wx-ice-gargoyle-sleeping-ai-action.md).
+- [wxIceGargoyleWithdrawlAIAction](wx-ice-gargoyle-withdrawl-ai-action.md).
 - [wxIceWormAttackState](wx-ice-worm-attack-state.md).
 - [wxKnutAttackState](wx-knut-attack-state.md).
 - [wxLoadSaveGameFlowState](wx-load-save-game-flow-state.md).
 - [wxMenuGameFlowState](wx-menu-game-flow-state.md).
+- [wxMinotaurAttackAIAction](wx-minotaur-attack-ai-action.md).
 - [wxMinotaurAttackState](wx-minotaur-attack-state.md).
 - [wxMinotaurDefenseState](wx-minotaur-defense-state.md).
 - [wxMosquitoAttackState](wx-mosquito-attack-state.md).

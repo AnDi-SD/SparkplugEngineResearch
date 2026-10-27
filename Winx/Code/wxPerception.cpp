@@ -1,4 +1,5 @@
 #include "wxPerception.h"
+#include "wxGameTimer.h"
 #include "Analysis/PC/wxPerceptionNumeric.h"
 
 #include <bit>
@@ -106,6 +107,30 @@ namespace winx::reconstruction
             }
         }
         return selected;
+    }
+
+    wxPerceptionPcRefreshResultForAnalysis wxPerception::RefreshBoundedPcForAnalysis(wxGameTimer& timer) noexcept
+    {
+        using Result = wxPerceptionPcRefreshResultForAnalysis;
+        if (timer.GetPausedByteForAnalysis() != 0) return Result::PausedReturnFalse;
+        if (state_.opaque68 != 0)
+        {
+            if (state_.opaque6C != 0)
+            {
+                if (state_.opaque6C > std::numeric_limits<std::uint32_t>::max())
+                    return Result::UnqualifiedNativeDeadline;
+                // Equality retains BOTH words. Time is not read when68 or6C
+                // is zero; the original reloads the warm timer only here.
+                if (timer.GetStateForAnalysis().currentMilliseconds > std::uint32_t(state_.opaque6C))
+                {
+                    state_.opaque6C = 0;
+                    state_.opaque68 = 0;
+                }
+            }
+            else state_.opaque68 = 0;
+        }
+        state_.byte40 = 0;
+        return owner_ == nullptr ? Result::OwnerNullReturnTrue : Result::UnqualifiedOwnerScan;
     }
 
     std::unique_ptr<spBaseObject> wxPerception::vfunc_10(spCloneManager& manager) const

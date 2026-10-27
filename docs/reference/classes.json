@@ -380,8 +380,13 @@
         "pc": "0x5CB4145D",
         "ps2": "0x5CB4145D"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-box-projection.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spBoxProjection.h",
+        "Sparkplug/Code/Sparkplug/spBoxProjection.cpp"
+      ]
     },
     {
       "name": "spBoxProjectionSerializer",
@@ -396,7 +401,10 @@
         "ps2": "0x3344790A"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spBoxProjectionSerializer.h",
+        "Sparkplug/Code/Sparkplug/spBoxProjectionSerializer.cpp"
+      ]
     },
     {
       "name": "spBSPNode",
@@ -1820,8 +1828,13 @@
         "pc": "0x7CB52800",
         "ps2": "0x7CB52800"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-edit-box.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spEditBox.h",
+        "Sparkplug/Code/Sparkplug/spEditBox.cpp"
+      ]
     },
     {
       "name": "spEngineCore",
@@ -2205,7 +2218,10 @@
       "documentation": [
         "docs/reference/classes/sp-gui-manager.md"
       ],
-      "sources": []
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spGUIManager.h",
+        "Sparkplug/Code/Sparkplug/spGUIManager.cpp"
+      ]
     },
     {
       "name": "spGUIObject",
@@ -3862,8 +3878,12 @@
       "registrationBaseIds": {
         "pc": "0xF147D2EE"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-projection-fx.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spPCProjectionFX.h"
+      ]
     },
     {
       "name": "spPCProjectionManager",
@@ -3875,8 +3895,12 @@
       "registrationBaseIds": {
         "pc": "0x24A010DA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-projection-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spPCProjectionManager.h"
+      ]
     },
     {
       "name": "spPCRenderer",
@@ -4073,8 +4097,13 @@
         "pc": "0x4FDA4542",
         "ps2": "0x4FDA4542"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-projection.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spProjection.h",
+        "Sparkplug/Code/Sparkplug/spProjection.cpp"
+      ]
     },
     {
       "name": "spProjectionFX",
@@ -4088,8 +4117,12 @@
         "pc": "0x20A72504",
         "ps2": "0x20A72504"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-projection-fx.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spProjectionFX.h"
+      ]
     },
     {
       "name": "spProjectionManager",
@@ -4103,8 +4136,12 @@
         "pc": "0x20A72504",
         "ps2": "0x20A72504"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-projection-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spProjectionManager.h"
+      ]
     },
     {
       "name": "spProjectionSerializer",
@@ -4119,7 +4156,10 @@
         "ps2": "0x4D694D82"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spProjectionSerializer.h",
+        "Sparkplug/Code/Sparkplug/spProjectionSerializer.cpp"
+      ]
     },
     {
       "name": "spPropertySystem",
@@ -4878,8 +4918,13 @@
         "pc": "0x5CB4145D",
         "ps2": "0x5CB4145D"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-pyramid-projection.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spPyramidProjection.h",
+        "Sparkplug/Code/Sparkplug/spPyramidProjection.cpp"
+      ]
     },
     {
       "name": "spPyramidProjectionSerializer",
@@ -4894,7 +4939,10 @@
         "ps2": "0x3344790A"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spPyramidProjectionSerializer.h",
+        "Sparkplug/Code/Sparkplug/spPyramidProjectionSerializer.cpp"
+      ]
     },
     {
       "name": "spQuad",
@@ -5953,8 +6001,12 @@
         "pc": "0x7CB52800",
         "ps2": "0x7CB52800"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-text-widget.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spTextWidget.h"
+      ]
     },
     {
       "name": "spThread",
@@ -7335,7 +7387,10 @@
         "ps2": "0x796A1869"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Winx/Code/wxCharacterMoveCtrl.h",
+        "Winx/Code/wxCharacterMoveCtrl.cpp"
+      ]
     },
     {
       "name": "wxCharacterPlacementManager",
@@ -8601,8 +8656,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-flying-wander-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFlyingWanderAIAction.h"
+      ]
     },
     {
       "name": "wxFountainGame",
@@ -9389,8 +9448,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-hurt-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxHurtAIAction.h"
+      ]
     },
     {
       "name": "wxHurtState",
@@ -9494,8 +9557,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-gargoyle-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceGargoyleAttackAIAction.h",
+        "Winx/Code/wxIceGargoyleAttackAIAction.cpp"
+      ]
     },
     {
       "name": "wxIceGargoyleAttackState",
@@ -9529,8 +9597,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-gargoyle-claw-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceGargoyleClawAIAction.h",
+        "Winx/Code/wxIceGargoyleClawAIAction.cpp"
+      ]
     },
     {
       "name": "wxIceGargoyleMovingState",
@@ -9614,8 +9687,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-gargoyle-withdrawl-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceGargoyleWithdrawlAIAction.h",
+        "Winx/Code/wxIceGargoyleWithdrawlAIAction.cpp"
+      ]
     },
     {
       "name": "wxIceWormAIBehavior",
@@ -10486,7 +10564,10 @@
         "ps2": "0x490A6EB5"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Winx/Code/wxMinotaurAttackAIAction.h",
+        "Winx/Code/wxMinotaurAttackAIAction.cpp"
+      ]
     },
     {
       "name": "wxMinotaurAttackState",

@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <list>
 #include <memory>
+#include <utility>
 
 namespace sparkplug::reconstruction
 {
@@ -33,6 +34,14 @@ namespace sparkplug::reconstruction
         // Portable inspection of constructor-proven state.
         [[nodiscard]] const spNode& GetInstanceRootForAnalysis() const noexcept;
         [[nodiscard]] std::size_t GetAttachedObjectCountForAnalysis() const noexcept;
+        // Borrow the established attached-object list, including repeated
+        // pointers. This does not reconstruct the native graph producer.
+        [[nodiscard]] const std::list<std::shared_ptr<spBaseObject>>&
+            GetAttachedObjectsForAnalysis() const noexcept { return attachedObjects_; }
+        // Explicit input of a pre-existing analytical graph. shared_ptr is the
+        // existing portable ownership substitute, not a native Attach method.
+        void SetAttachedObjectsForFixture(std::list<std::shared_ptr<spBaseObject>> objects)
+        { attachedObjects_ = std::move(objects); }
 
         // HOST state injection for the native +14 pointer consumed by the
         // parent template's cycle check (PC0059EBD0 / PS200153880). This is

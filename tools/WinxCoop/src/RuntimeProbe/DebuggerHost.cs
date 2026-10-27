@@ -9,7 +9,7 @@ namespace WinxCoop.RuntimeProbe;
 internal sealed record DebuggerRunResult(
     uint ProcessPid, uint ExitCode, bool TimedOut, bool CleanupConfirmed,
     uint FatalExceptions, uint EventsHandled, string? Error,
-    bool ExitCodeKnown, bool ForcedTermination);
+    bool ExitCodeKnown, bool ForcedTermination, bool RequestedCompletion);
 
 /// <summary>
 /// Own-child debugger transport only. No attach, MediaPath override, asset
@@ -29,6 +29,8 @@ internal sealed class DebuggerHost
     private bool _used, _initialBreakpointConsumed, _initialNative64BreakpointConsumed, _exitEventContinued;
     private bool _processHandleAutoClosed, _threadHandleAutoClosed;
     private bool _stopRequested, _exitCodeKnown, _forcedTermination;
+    private bool _runActive, _requestedCompletion;
+    private int _runnerThread;
     private uint _exitCode = Win32Native.StillActive, _fatalExceptions, _events;
     private uint _foreignFirstChances;
     private string? _error;
@@ -51,6 +53,24 @@ internal sealed class DebuggerHost
     internal SoftwareBreakpointManager Breakpoints => _breakpoints ??
         throw new InvalidOperationException("Breakpoints are available only inside the owned debug session.");
 
+    /// <summary>
+    /// End an already completed diagnostic from the runner's between-event
+    /// callback. Cleanup still forcibly terminates only this owned debuggee;
+    /// this does not request or prove a graceful game exit or native unload.
+    /// </summary>
+    internal void RequestSuccessfulCompletion()
+    {
+        if (!_runActive || IsAtDebugStop || Environment.CurrentManagedThreadId != _runnerThread ||
+            _heldProcess == IntPtr.Zero || ProcessPid == 0 || _exitEventContinued || _stopRequested ||
+            _error is not null || _fatalExceptions != 0)
+            throw new InvalidOperationException("Successful completion requires the active owned runner between debug events, without a prior stop or error.");
+        _requestedCompletion = true;
+        _stopRequested = true;
+        Emit(new { @event = "diagnostic-completion-requested", processPid = ProcessPid,
+            requestedTerminationExitCode = 0, forcedTerminationPlanned = true,
+            gracefulGameExitClaimed = false });
+    }
+
     internal DebuggerRunResult Run(TimeSpan duration, Action<DebuggerHost> onCreate,
         Action<DebuggerHost>? idle = null)
     {
@@ -58,14 +78,17 @@ internal sealed class DebuggerHost
         if (duration <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(duration));
         if (_used) throw new InvalidOperationException("A debugger host owns exactly one terminal run.");
         _used = true;
+        _runnerThread = Environment.CurrentManagedThreadId;
         bool timedOut = false, cleaned = false;
         var elapsed = Stopwatch.StartNew();
         try
         {
             Launch();
+            _runActive = true;
             while (!_stopRequested && !_exitEventContinued)
             {
                 idle?.Invoke(this); // Bounded call deadlines also advance during a busy debug-event stream.
+                if (_stopRequested || _exitEventContinued) break;
                 if (elapsed.Elapsed >= duration) { timedOut = true; break; }
                 if (!Win32Native.WaitForDebugEvent(out var debugEvent, 100))
                 {
@@ -85,10 +108,11 @@ internal sealed class DebuggerHost
         }
         finally
         {
-            cleaned = Cleanup();
+            try { cleaned = Cleanup(); }
+            finally { _runActive = false; }
         }
         return new DebuggerRunResult(ProcessPid, _exitCode, timedOut, cleaned,
-            _fatalExceptions, _events, _error, _exitCodeKnown, _forcedTermination);
+            _fatalExceptions, _events, _error, _exitCodeKnown, _forcedTermination, _requestedCompletion);
     }
 
     private void Launch()
@@ -160,6 +184,18 @@ internal sealed class DebuggerHost
         {
             SetError(exception.ToString());
             Emit(new { @event = "debug-event-error", code = debugEvent.Code.ToString(), error = exception.Message });
+            // A failed instrumentation callback may have partially prepared a
+            // context. Terminate this owned debuggee while it is still stopped;
+            // never deliver our restored INT3 as an application exception.
+            if (!cleanup && _heldProcess != IntPtr.Zero)
+            {
+                bool terminated = Win32Native.TerminateProcess(_heldProcess, 124);
+                if (terminated) _forcedTermination = true;
+                Emit(new { @event = "debugger-abort-at-stop", processPid = ProcessPid, terminated });
+                if (debugEvent.Code == Win32Native.DebugEventCode.Exception &&
+                    NativeDebugExceptionClassifier.IsSoftwareBreakpoint(debugEvent.Info.Exception.ExceptionRecord.ExceptionCode))
+                    status = Win32Native.DbgContinue;
+            }
         }
         finally
         {
@@ -243,7 +279,7 @@ internal sealed class DebuggerHost
             {
                 if (Win32Native.WaitForSingleObject(process, 0) != Win32Native.WaitObject0)
                 {
-                    if (Win32Native.TerminateProcess(process, 124)) _forcedTermination = true;
+                    if (Win32Native.TerminateProcess(process, _requestedCompletion ? 0u : 124u)) _forcedTermination = true;
                     else
                     {
                         int terminateError = Marshal.GetLastWin32Error();
@@ -279,6 +315,7 @@ internal sealed class DebuggerHost
         }
         Emit(new { @event = "cleanup", processPid = ProcessPid, processSignaled = signaled,
             exitEventContinued = _exitEventContinued, forcedTermination = _forcedTermination,
+            requestedCompletion = _requestedCompletion,
             cleanupMs = elapsed.ElapsedMilliseconds });
         return signaled;
     }

@@ -11,6 +11,7 @@
 - [PC spSceneManager: borrowed list и world caller](scene-manager-world-source.md).
 - [spPS2Mouse](ps2-mouse.md).
 - [Архитектура Sparkplug](overview.md).
+- [Инициализация сущностей уровня](game-level-initialization.md).
 - [Общие классы движка: дополнительный проход](engine-core-remainder.md).
 - [Платформенные классы движка: PC и PS2, 10 сентября 2026](engine-platform-remainder.md).
 - [Порядок обновления PC-кадра](engine-frame.md).

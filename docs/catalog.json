@@ -177,6 +177,11 @@
       "category": "engine/architecture"
     },
     {
+      "path": "docs/engine/architecture/game-level-initialization.md",
+      "title": "Инициализация сущностей уровня",
+      "category": "engine/architecture"
+    },
+    {
       "path": "docs/engine/architecture/input-cached-state.md",
       "title": "Keyboard/Mouse: исходные состояния и различия PC/PS2",
       "category": "engine/architecture"
@@ -1313,7 +1318,7 @@
     },
     {
       "path": "docs/game/wx-target-manager.md",
-      "title": "wxTargetManager: ресурс стрелки и ограниченное владение",
+      "title": "wxTargetManager: ресурс стрелки, реестр и ограниченное владение",
       "category": "game"
     },
     {
@@ -1384,6 +1389,16 @@
     {
       "path": "docs/reference/classes/sp-box-bv.md",
       "title": "spBoxBV",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-box-projection-serializer.md",
+      "title": "spBoxProjectionSerializer: PC geometry reader",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-box-projection.md",
+      "title": "spBoxProjection: PC center, size and inherited Copy",
       "category": "reference/classes"
     },
     {
@@ -1534,6 +1549,11 @@
     {
       "path": "docs/reference/classes/sp-dx-texture-manager.md",
       "title": "spDXTextureManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-edit-box.md",
+      "title": "spEditBox",
       "category": "reference/classes"
     },
     {
@@ -1917,6 +1937,26 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-projection-fx.md",
+      "title": "ProjectionFX: PC lifecycle and bounded initialization",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-projection-manager.md",
+      "title": "spProjectionManager and spPCProjectionManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-projection-serializer.md",
+      "title": "spProjectionSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-projection.md",
+      "title": "spProjection: bounded PC construction and geometry interface",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-ps2-app.md",
       "title": "spPS2App",
       "category": "reference/classes"
@@ -2009,6 +2049,16 @@
     {
       "path": "docs/reference/classes/sp-ps2-video-stream.md",
       "title": "spPS2VideoStream",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pyramid-projection-serializer.md",
+      "title": "spPyramidProjectionSerializer: PC parameter reader",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-pyramid-projection.md",
+      "title": "spPyramidProjection",
       "category": "reference/classes"
     },
     {
@@ -2184,6 +2234,11 @@
     {
       "path": "docs/reference/classes/sp-text-renderable.md",
       "title": "spTextRenderable",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-text-widget.md",
+      "title": "spTextWidget",
       "category": "reference/classes"
     },
     {
@@ -2432,6 +2487,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-character-move-ctrl.md",
+      "title": "wxCharacterMoveCtrl",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state-machine.md",
       "title": "wxCharacterStateMachine",
       "category": "reference/classes"
@@ -2537,6 +2597,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-flying-wander-ai-action.md",
+      "title": "`wxFlyingWanderAIAction`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-frog-attack-state.md",
       "title": "wxFrogAttackState",
       "category": "reference/classes"
@@ -2592,6 +2657,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-hurt-ai-action.md",
+      "title": "`wxHurtAIAction`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-hurt-state.md",
       "title": "wxHurtState",
       "category": "reference/classes"
@@ -2607,8 +2677,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ice-gargoyle-attack-ai-action.md",
+      "title": "wxIceGargoyleAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-ice-gargoyle-attack-state.md",
       "title": "`wxIceGargoyleAttackState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-gargoyle-claw-ai-action.md",
+      "title": "wxIceGargoyleClawAIAction",
       "category": "reference/classes"
     },
     {
@@ -2619,6 +2699,11 @@
     {
       "path": "docs/reference/classes/wx-ice-gargoyle-sleeping-ai-action.md",
       "title": "wxIceGargoyleSleepingAIAction",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ice-gargoyle-withdrawl-ai-action.md",
+      "title": "wxIceGargoyleWithdrawlAIAction",
       "category": "reference/classes"
     },
     {
@@ -2664,6 +2749,11 @@
     {
       "path": "docs/reference/classes/wx-mikael-waiting-state.md",
       "title": "`wxMikaelWaitingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-minotaur-attack-ai-action.md",
+      "title": "wxMinotaurAttackAIAction",
       "category": "reference/classes"
     },
     {

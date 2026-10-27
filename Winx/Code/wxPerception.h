@@ -11,6 +11,14 @@
 
 namespace winx::reconstruction
 {
+    class wxGameTimer;
+    enum class wxPerceptionPcRefreshResultForAnalysis
+    {
+        PausedReturnFalse,
+        OwnerNullReturnTrue,
+        UnqualifiedOwnerScan,
+        UnqualifiedNativeDeadline,
+    };
     enum class wxPerceptionNumericProfileForAnalysis
     {
         ExactSmallInteger,
@@ -70,6 +78,13 @@ namespace winx::reconstruction
         // That PC profile makes no claim about EE floating-point behavior.
         [[nodiscard]] void* FindNearestForAnalysis(wxPerceptionNumericProfileForAnalysis
             profile = wxPerceptionNumericProfileForAnalysis::ExactSmallInteger);
+
+        // PC4F1F30/4F1C70 with an already constructed actual wxGameTimer.
+        // Paused returns native false without mutation. Unpaused handles the
+        // literal68/6C expiry and clears40; null owner then returns native true.
+        // An attached owner stops before the unqualified Scene/Asset scan.
+        [[nodiscard]] wxPerceptionPcRefreshResultForAnalysis RefreshBoundedPcForAnalysis(
+            wxGameTimer&) noexcept;
 
         wxPerceptionObservedStateForAnalysis& StateForAnalysis() noexcept { return state_; }
         const wxPerceptionObservedStateForAnalysis& StateForAnalysis() const noexcept { return state_; }

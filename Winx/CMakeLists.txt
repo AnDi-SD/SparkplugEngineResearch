@@ -690,11 +690,86 @@ add_library(WinxMinotaurDefendAIAction STATIC
     Code/wxMinotaurDefendAIAction.h
     Analysis/Host/wxMinotaurDefendAIActionHost.h
     Analysis/PC/wxMinotaurDefendAIActionAbi.h
+    Analysis/PC/wxPlanarAngleMath.h
     Analysis/PS2/wxMinotaurDefendAIActionAbi.h
 )
 target_include_directories(WinxMinotaurDefendAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxMinotaurDefendAIAction PUBLIC WinxAIActions WinxPerception SparkplugEngine)
 target_compile_features(WinxMinotaurDefendAIAction PUBLIC cxx_std_20)
+add_library(WinxCharacterMoveCtrl STATIC
+    Code/wxCharacterMoveCtrl.cpp
+    Code/wxCharacterMoveCtrl.h
+    Analysis/PC/wxCharacterMoveCtrlAbi.h
+)
+target_include_directories(WinxCharacterMoveCtrl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxCharacterMoveCtrl PUBLIC WinxEntities)
+target_compile_features(WinxCharacterMoveCtrl PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxCharacterMoveCtrl PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxCharacterMoveCtrl PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_library(WinxMinotaurAttackAIAction STATIC
+    Code/wxMinotaurAttackAIAction.cpp
+    Code/wxMinotaurAttackAIAction.h
+    Analysis/Host/wxMinotaurAttackAIActionHost.h
+    Analysis/PC/wxMinotaurAttackAIActionAbi.h
+    Analysis/PC/wxMinotaurAttackMath.h
+    Analysis/PS2/wxMinotaurAttackAIActionAbi.h
+)
+target_include_directories(WinxMinotaurAttackAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxMinotaurAttackAIAction PUBLIC WinxAIActions WinxPerception WinxCharacterMoveCtrl SparkplugEngine)
+target_compile_features(WinxMinotaurAttackAIAction PUBLIC cxx_std_20)
+add_library(WinxHurtAIAction STATIC
+    Code/wxHurtAIAction.cpp
+    Code/wxHurtAIAction.h
+    Analysis/Host/wxHurtAIActionHost.h
+    Analysis/PC/wxHurtAIActionAbi.h
+    Analysis/PC/wxHurtRangeMath.h
+    Analysis/PS2/wxHurtAIActionAbi.h
+)
+target_include_directories(WinxHurtAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxHurtAIAction PUBLIC WinxAIActions WinxPerception SparkplugEngine)
+target_compile_features(WinxHurtAIAction PUBLIC cxx_std_20)
+add_library(WinxFlyingWanderAIAction STATIC
+    Code/wxFlyingWanderAIAction.cpp
+    Code/wxFlyingWanderAIAction.h
+    Analysis/Host/wxFlyingWanderAIActionHost.h
+    Analysis/PC/wxFlyingWanderAIActionAbi.h
+    Analysis/PS2/wxFlyingWanderAIActionAbi.h
+)
+target_include_directories(WinxFlyingWanderAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxFlyingWanderAIAction PUBLIC WinxAIActions WinxPerception SparkplugEngine)
+target_compile_features(WinxFlyingWanderAIAction PUBLIC cxx_std_20)
+add_library(WinxIceGargoyleAIActions STATIC
+    Code/wxIceGargoyleClawAIAction.cpp
+    Code/wxIceGargoyleClawAIAction.h
+    Code/wxIceGargoyleWithdrawlAIAction.cpp
+    Code/wxIceGargoyleWithdrawlAIAction.h
+    Code/wxIceGargoyleAIActionStateForAnalysis.cpp
+    Code/wxIceGargoyleAIActionStateForAnalysis.h
+    Analysis/Host/wxIceGargoyleAIActionHost.h
+    Analysis/PC/wxIceGargoyleMath.h
+    Analysis/PC/wxIceGargoyleClawAIActionAbi.h
+    Analysis/PC/wxIceGargoyleWithdrawlAIActionAbi.h
+    Analysis/PS2/wxIceGargoyleClawAIActionAbi.h
+    Analysis/PS2/wxIceGargoyleWithdrawlAIActionAbi.h
+)
+target_include_directories(WinxIceGargoyleAIActions PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxIceGargoyleAIActions PUBLIC WinxAIActions WinxPerception WinxAIManagers SparkplugEngine)
+target_compile_features(WinxIceGargoyleAIActions PUBLIC cxx_std_20)
+add_library(WinxIceGargoyleAttackAIAction STATIC
+    Code/wxIceGargoyleAttackAIAction.cpp
+    Code/wxIceGargoyleAttackAIAction.h
+    Analysis/Host/wxIceGargoyleAttackAIActionHost.h
+    Analysis/PC/wxIceGargoyleAttackMath.h
+    Analysis/PC/wxIceGargoyleAttackAIActionAbi.h
+    Analysis/PS2/wxIceGargoyleAttackAIActionAbi.h
+)
+target_include_directories(WinxIceGargoyleAttackAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxIceGargoyleAttackAIAction PUBLIC WinxAIActions WinxPerception WinxAIManagers SparkplugEngine)
+target_compile_features(WinxIceGargoyleAttackAIAction PUBLIC cxx_std_20)
 add_library(WinxSleepingAIAction STATIC
     Code/wxIceGargoyleSleepingAIAction.cpp
     Code/wxIceGargoyleSleepingAIAction.h
@@ -730,7 +805,7 @@ target_include_directories(WinxGUI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxGUI PUBLIC SparkplugEngine WinxEntities)
 target_compile_features(WinxGUI PUBLIC cxx_std_17)
 if(MSVC)
-    foreach(module IN ITEMS WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
+    foreach(module IN ITEMS WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxMinotaurAttackAIAction WinxHurtAIAction WinxFlyingWanderAIAction WinxIceGargoyleAIActions WinxIceGargoyleAttackAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
         target_compile_options(${module} PRIVATE /W4 /permissive- /utf-8)
     endforeach()
 endif()
@@ -747,7 +822,7 @@ add_library(WinxGameCore STATIC
 target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxEntities WinxCharacterStates WinxCharacterStateMachines WinxCharacters WinxBacoStateMachines WinxAIActions WinxAIBehaviors WinxAIManagers WinxProjectiles WinxProjectileManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
 target_compile_features(WinxGameCore PUBLIC cxx_std_17)
-target_link_libraries(WinxGameCore PUBLIC WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
+target_link_libraries(WinxGameCore PUBLIC WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxMinotaurAttackAIAction WinxHurtAIAction WinxFlyingWanderAIAction WinxIceGargoyleAIActions WinxIceGargoyleAttackAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
 if(MSVC)
     target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
 endif()
@@ -797,7 +872,7 @@ if(BUILD_TESTING)
     target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
     add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
     set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
-    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
         add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
         target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
         add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)

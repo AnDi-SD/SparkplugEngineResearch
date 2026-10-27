@@ -83,7 +83,7 @@ static int ParseObservationLimit(const char* text)
         if(value>(0xffffffffUL-digit)/10)return Fail("observe-ms-overflow");
         value=value*10+digit;
     }
-    if(value<1000||value>300000)return Fail("observe-ms-range");
+    if(value<1000||value>900000)return Fail("observe-ms-range");
     ObservationLimitMs=value;return 1;
 }
 static int LoadSidecar(void)

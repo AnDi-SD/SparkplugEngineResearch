@@ -14,7 +14,13 @@ namespace winx::evidence::pc
     inline constexpr std::uint32_t wxMenuGameFlowStateConstructor=0x005F1260;
     inline constexpr std::uint32_t wxMenuGameFlowStateVTable=0x007104A8;
     inline constexpr std::uint32_t wxMenuGameFlowStateRTTI=0x00768B10;
+    inline constexpr std::uint32_t wxMenuGameFlowStateEntry=0x005F13C0;
+    inline constexpr std::uint32_t wxMenuGameFlowStateOwned44=0x005F1CD0;
+    // Shared code, qualified as physical Menu table consumers only.
+    inline constexpr std::uint32_t wxMenuGameFlowStateSlot38=0x004F3DF0;
+    inline constexpr std::uint32_t wxMenuGameFlowStateSlot40=0x005D2BF0;
     inline constexpr std::uint32_t wxMenuGameFlowStateExit=0x005F14B0;
     inline constexpr std::uint32_t wxMenuGameFlowStateSlot28=0x005F16D0;
     inline constexpr std::uint32_t wxMenuGameFlowStateSlot2C=0x005F15B0;
+    inline constexpr std::uint32_t wxMenuGameFlowStateSlot30=0x005F1720;
 }

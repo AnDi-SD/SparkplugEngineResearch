@@ -50,7 +50,7 @@ WSAStartup/WSACleanup. Закрытый transport терминален. Для �
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/WinxCoop/Build-NetworkChecks.ps1 -Configuration Release -BuildWorkers 1
-python -X utf8 -B tools/WinxCoop/tests/test_transport_processes.py --exe artifacts/WinxCoop/network-checks/Release/WinxCoopNetworkProbe.exe --output local-data/test-output/winxcoop-t-fresh
+python -X utf8 -B tools/WinxCoop/tests/test_transport_processes.py --exe artifacts/WinxCoop/network-checks/x64/Release/WinxCoopNetworkProbe.exe --output local-data/test-output/winxcoop-t-fresh
 ```
 
 Каталог output должен быть новым. Harness запускает настоящие независимые

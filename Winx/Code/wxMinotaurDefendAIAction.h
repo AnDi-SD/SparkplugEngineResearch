@@ -7,6 +7,7 @@
 namespace winx::reconstruction
 {
     enum class wxMinotaurDefendPlatformForAnalysis { PC, PS2 };
+    enum class wxMinotaurDefendUpdateProfileForAnalysis { GateOnly, PcFiniteGeometry };
     enum class wxMinotaurDefendGateResultForAnalysis
     {
         NotRun,
@@ -14,6 +15,8 @@ namespace winx::reconstruction
         StateReset,
         UnqualifiedState0,
         UnqualifiedState1,
+        PcStateUpdated,
+        UnqualifiedGeometry,
     };
 
     class wxMinotaurDefendAIAction final : public wxAIAction
@@ -21,7 +24,8 @@ namespace winx::reconstruction
     public:
         static constexpr sparkplug::reconstruction::spClassID ClassID = 0x2F567161;
         explicit wxMinotaurDefendAIAction(wxMinotaurDefendAIActionHost&,
-            wxMinotaurDefendPlatformForAnalysis = wxMinotaurDefendPlatformForAnalysis::PC) noexcept;
+            wxMinotaurDefendPlatformForAnalysis = wxMinotaurDefendPlatformForAnalysis::PC,
+            wxMinotaurDefendUpdateProfileForAnalysis = wxMinotaurDefendUpdateProfileForAnalysis::GateOnly) noexcept;
         static void SetFactoryHostForAnalysis(wxMinotaurDefendAIActionHost*,
             wxMinotaurDefendPlatformForAnalysis = wxMinotaurDefendPlatformForAnalysis::PC) noexcept;
         static const sparkplug::reconstruction::spRTTIRecord& StaticRTTI() noexcept;
@@ -32,14 +36,16 @@ namespace winx::reconstruction
             sparkplug::reconstruction::spCloneManager&) const override;
 
         void vfunc_0C(const void*) noexcept override;
-        // Unknown owned state bodies are not invoked through successful host
-        // stubs. False here is OUR adapter refusal, not a recovered native false;
-        // inspect LastGateResult or call the explicit bounded gate instead.
+        // GateOnly is the default. PcFiniteGeometry additionally executes the
+        // own PC state bodies with typed Node data and explicit numeric bounds.
+        // False is OUR refusal, not a recovered native false; inspect the result.
         bool vfunc_24() noexcept override;
         void vfunc_30() noexcept override;
         void vfunc_34_ClearForAnalysis() noexcept override;
         void vfunc_38() noexcept override;
         [[nodiscard]] wxMinotaurDefendGateResultForAnalysis UpdateGateForAnalysis() noexcept;
+        [[nodiscard]] wxMinotaurDefendGateResultForAnalysis UpdateForAnalysis(
+            wxMinotaurDefendUpdateProfileForAnalysis) noexcept;
         wxMinotaurDefendGateResultForAnalysis LastGateResultForAnalysis() const noexcept { return lastGate_; }
 
         void* TargetForAnalysis() const noexcept { return target_; }
@@ -54,6 +60,7 @@ namespace winx::reconstruction
         wxPerceptionNumericProfileForAnalysis PerceptionProfileForAnalysis() const noexcept;
         wxMinotaurDefendAIActionHost& host_;
         wxMinotaurDefendPlatformForAnalysis platform_;
+        wxMinotaurDefendUpdateProfileForAnalysis updateProfile_;
         void* target_ = nullptr; // borrowed raw Copy, no AddRef/Delete
         std::uint32_t state_ = 1;
         std::uint32_t deadline_ = 0;

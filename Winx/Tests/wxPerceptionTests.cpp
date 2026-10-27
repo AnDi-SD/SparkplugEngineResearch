@@ -1,4 +1,5 @@
 #include "Code/wxPerception.h"
+#include "Code/wxGameTimer.h"
 #include "Analysis/PC/wxPerceptionAbi.h"
 #include "Analysis/PS2/wxPerceptionAbi.h"
 #include "Analysis/PC/wxPerceptionNumeric.h"
@@ -142,6 +143,19 @@ namespace
                 }
                 std::cout << '\n';
             }
+            else if (operation == "r")
+            {
+                unsigned paused, hasOwner, opaque, expiry, now, dirty;
+                input >> paused >> hasOwner >> opaque >> expiry >> now >> dirty;
+                Host host;int owner = 0;wxPerception perception;
+                perception.BindForAnalysis(host, hasOwner ? &owner : nullptr, {});
+                auto& state = perception.StateForAnalysis();state.opaque68=opaque;state.opaque6C=expiry;state.byte40=std::uint8_t(dirty);
+                spTimer clock;wxGameTimer timer(clock);timer.SetPausedByteForAnalysis(std::uint8_t(paused));
+                auto time=timer.GetStateForAnalysis();time.currentMilliseconds=now;timer.SetStateForAnalysis(time);
+                const auto result=perception.RefreshBoundedPcForAnalysis(timer);
+                std::cout << unsigned(result) << ' ' << state.opaque68 << ' ' << state.opaque6C << ' ' << unsigned(state.byte40) << '\n';
+                perception.ResetForAnalysis();
+            }
             else throw std::invalid_argument("unknown replay operation");
         }
     }
@@ -233,6 +247,37 @@ namespace
         Check(dynamic_cast<wxPerception*>(factory.get()) != nullptr && factory->IsKindOf(spBaseObject::ClassID), "factory and RTTI");
     }
 
+    void BoundedPcRefresh()
+    {
+        using Result=wxPerceptionPcRefreshResultForAnalysis;
+        Host host;int owner=1;wxPerception perception;
+        perception.BindForAnalysis(host,&owner,{});
+        auto& state=perception.StateForAnalysis();state.opaque68=0x12345678;state.opaque6C=99;state.byte40=0xA5;
+        spTimer clock;wxGameTimer timer(clock);timer.SetPausedByteForAnalysis(7);
+        auto time=timer.GetStateForAnalysis();time.currentMilliseconds=100;timer.SetStateForAnalysis(time);
+        Check(perception.RefreshBoundedPcForAnalysis(timer)==Result::PausedReturnFalse &&
+            state.opaque68==0x12345678 && state.opaque6C==99 && state.byte40==0xA5,
+            "any nonzero actual GameTimer paused byte returns false before Perception effects");
+        timer.SetPausedByteForAnalysis(0);
+        Check(perception.RefreshBoundedPcForAnalysis(timer)==Result::UnqualifiedOwnerScan &&
+            state.opaque68==0 && state.opaque6C==0 && state.byte40==0,
+            "expired6C cleared before68 and owner scan prefix clears40; no fabricated scan");
+        perception.ResetForAnalysis();
+        state.opaque68=0x12345678;state.opaque6C=100;state.byte40=0xA5;
+        Check(perception.RefreshBoundedPcForAnalysis(timer)==Result::OwnerNullReturnTrue &&
+            state.opaque68==0x12345678 && state.opaque6C==100 && state.byte40==0,
+            "deadline equality retains opaque words and null owner finishes scan");
+        state.opaque68=0;state.opaque6C=99;state.byte40=0xA5;
+        Check(perception.RefreshBoundedPcForAnalysis(timer)==Result::OwnerNullReturnTrue && state.opaque6C==99,
+            "zero68 skips reading or clearing6C");
+        if constexpr(sizeof(std::uintptr_t)>4)
+        {
+            state.opaque68=1;state.opaque6C=static_cast<std::uintptr_t>(std::uint64_t{1}<<40);state.byte40=0xA5;
+            Check(perception.RefreshBoundedPcForAnalysis(timer)==Result::UnqualifiedNativeDeadline && state.byte40==0xA5,
+                "analytical deadline outside native32 representation refuses without inventing expiry");
+        }
+    }
+
     void PcNumerics()
     {
         using Profile = wxPerceptionNumericProfileForAnalysis;
@@ -285,7 +330,7 @@ int main(int argc, char** argv)
     try
     {
         if (argc == 2 && std::string(argv[1]) == "--replay") Replay(std::cin);
-        else { Queries(); CopiesAndLifetime(); PcNumerics(); std::cout << "wxPerception checks passed\n"; }
+        else { Queries(); CopiesAndLifetime(); PcNumerics(); BoundedPcRefresh(); std::cout << "wxPerception checks passed\n"; }
         return 0;
     }
     catch (const std::exception& error)

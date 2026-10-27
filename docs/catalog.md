@@ -51,6 +51,7 @@
 - [spPS2Mouse](engine/architecture/ps2-mouse.md).
 - [Архитектура Sparkplug](engine/architecture/overview.md).
 - [Архитектура и жизненный цикл](engine/architecture/README.md).
+- [Инициализация сущностей уровня](engine/architecture/game-level-initialization.md).
 - [Общие классы движка: дополнительный проход](engine/architecture/engine-core-remainder.md).
 - [Платформенные классы движка: PC и PS2, 10 сентября 2026](engine/architecture/engine-platform-remainder.md).
 - [Порядок обновления PC-кадра](engine/architecture/engine-frame.md).
@@ -260,7 +261,7 @@
 
 - [wxButton: состояние и выбор узла](game/wx-button.md).
 - [wxHUDPart: сбор кнопок, поиск и выбор](game/wx-hud-part.md).
-- [wxTargetManager: ресурс стрелки и ограниченное владение](game/wx-target-manager.md).
+- [wxTargetManager: ресурс стрелки, реестр и ограниченное владение](game/wx-target-manager.md).
 - [Игра Winx Club](game/README.md).
 
 ## Игра / Искусственный интеллект
@@ -371,11 +372,13 @@
 - [`wxDroidMovingState`](reference/classes/wx-droid-moving-state.md).
 - [`wxFishMovingState`](reference/classes/wx-fish-moving-state.md).
 - [`wxFlyingState`](reference/classes/wx-flying-state.md).
+- [`wxFlyingWanderAIAction`](reference/classes/wx-flying-wander-ai-action.md).
 - [`wxFrogHurtState`](reference/classes/wx-frog-hurt-state.md).
 - [`wxFrogJumpingState`](reference/classes/wx-frog-jumping-state.md).
 - [`wxFrogMovingState`](reference/classes/wx-frog-moving-state.md).
 - [`wxGhoulAttackState`](reference/classes/wx-ghoul-attack-state.md).
 - [`wxGlyphState`](reference/classes/wx-glyph-state.md).
+- [`wxHurtAIAction`](reference/classes/wx-hurt-ai-action.md).
 - [`wxIceBatFlyingState`](reference/classes/wx-ice-bat-flying-state.md).
 - [`wxIceBatIdleState`](reference/classes/wx-ice-bat-idle-state.md).
 - [`wxIceGargoyleAttackState`](reference/classes/wx-ice-gargoyle-attack-state.md).
@@ -408,6 +411,7 @@
 - [`wxWayToGoState`](reference/classes/wx-way-to-go-state.md).
 - [`wxWebSpitProjectile`](reference/classes/wx-web-spit-projectile.md).
 - [`wxYetiAttackState`](reference/classes/wx-yeti-attack-state.md).
+- [ProjectionFX: PC lifecycle and bounded initialization](reference/classes/sp-projection-fx.md).
 - [spActor](reference/classes/sp-actor.md).
 - [spAnimation / spAnimationSerializer](reference/classes/sp-animation.md).
 - [spAnimationManager](reference/classes/sp-animation-manager.md).
@@ -419,6 +423,8 @@
 - [spBaseObject / spNamedObject](reference/classes/sp-base-object.md).
 - [spBoxBV](reference/classes/sp-box-bv.md).
 - [spBoxBVSerializer](reference/classes/sp-box-bv-serializer.md).
+- [spBoxProjection: PC center, size and inherited Copy](reference/classes/sp-box-projection.md).
+- [spBoxProjectionSerializer: PC geometry reader](reference/classes/sp-box-projection-serializer.md).
 - [spBSPNode](reference/classes/sp-bsp-node.md).
 - [spButton](reference/classes/sp-button.md).
 - [spCamera](reference/classes/sp-camera.md).
@@ -449,6 +455,7 @@
 - [spDXTextureDataSerializer](reference/classes/sp-dx-texture-data-serializer.md).
 - [spDXTextureManager](reference/classes/sp-dx-texture-manager.md).
 - [spDXVertexDeclaration / spPCVertexDeclaration](reference/classes/sp-vertex-declaration.md).
+- [spEditBox](reference/classes/sp-edit-box.md).
 - [spEngineCore](reference/classes/sp-engine-core.md).
 - [spEngineCore / wxEngineCore](reference/classes/wx-engine-core.md).
 - [spEntity](reference/classes/sp-entity.md).
@@ -520,6 +527,9 @@
 - [spPCThread](reference/classes/sp-pc-thread.md).
 - [spPCVideoStream](reference/classes/sp-pc-video-stream.md).
 - [spPlatformSpecificMeshData](reference/classes/sp-platform-specific-mesh-data.md).
+- [spProjection: bounded PC construction and geometry interface](reference/classes/sp-projection.md).
+- [spProjectionManager and spPCProjectionManager](reference/classes/sp-projection-manager.md).
+- [spProjectionSerializer](reference/classes/sp-projection-serializer.md).
 - [spPS2App](reference/classes/sp-ps2-app.md).
 - [spPS2AsyncFileStreamManager](reference/classes/sp-ps2-async-file-stream-manager.md).
 - [spPS2CubeTexture](reference/classes/sp-ps2-cube-texture.md).
@@ -539,6 +549,8 @@
 - [spPS2PipelineManager / spPS2MicrocodeManager](reference/classes/sp-ps2-microcode-manager.md).
 - [spPS2TextureDataSerializer](reference/classes/sp-ps2-texture-data-serializer.md).
 - [spPS2VideoStream](reference/classes/sp-ps2-video-stream.md).
+- [spPyramidProjection](reference/classes/sp-pyramid-projection.md).
+- [spPyramidProjectionSerializer: PC parameter reader](reference/classes/sp-pyramid-projection-serializer.md).
 - [spQuad3D](reference/classes/sp-quad-3d.md).
 - [spRenderable](reference/classes/sp-renderable.md).
 - [spRenderableSerializer](reference/classes/sp-renderable-serializer.md).
@@ -579,6 +591,7 @@
 - [spTextureData](reference/classes/sp-texture-data.md).
 - [spTextureDataSerializer](reference/classes/sp-texture-data-serializer.md).
 - [spTextureManager](reference/classes/sp-texture-manager.md).
+- [spTextWidget](reference/classes/sp-text-widget.md).
 - [spThread](reference/classes/sp-thread.md).
 - [spTimer](reference/classes/sp-timer.md).
 - [spTransformConstEval](reference/classes/sp-transform-const-eval.md).
@@ -616,6 +629,7 @@
 - [wxBloomDyingState](reference/classes/wx-bloom-dying-state.md).
 - [wxButterflyMovingState](reference/classes/wx-butterfly-moving-state.md).
 - [wxCharacter](reference/classes/wx-character.md).
+- [wxCharacterMoveCtrl](reference/classes/wx-character-move-ctrl.md).
 - [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxCharacterStateMachine](reference/classes/wx-character-state-machine.md).
 - [wxCreditsMenuGameFlowState](reference/classes/wx-credits-menu-game-flow-state.md).
@@ -632,11 +646,15 @@
 - [wxGhoulJumpingState](reference/classes/wx-ghoul-jumping-state.md).
 - [wxHangingState](reference/classes/wx-hanging-state.md).
 - [wxHurtState](reference/classes/wx-hurt-state.md).
+- [wxIceGargoyleAttackAIAction](reference/classes/wx-ice-gargoyle-attack-ai-action.md).
+- [wxIceGargoyleClawAIAction](reference/classes/wx-ice-gargoyle-claw-ai-action.md).
 - [wxIceGargoyleSleepingAIAction](reference/classes/wx-ice-gargoyle-sleeping-ai-action.md).
+- [wxIceGargoyleWithdrawlAIAction](reference/classes/wx-ice-gargoyle-withdrawl-ai-action.md).
 - [wxIceWormAttackState](reference/classes/wx-ice-worm-attack-state.md).
 - [wxKnutAttackState](reference/classes/wx-knut-attack-state.md).
 - [wxLoadSaveGameFlowState](reference/classes/wx-load-save-game-flow-state.md).
 - [wxMenuGameFlowState](reference/classes/wx-menu-game-flow-state.md).
+- [wxMinotaurAttackAIAction](reference/classes/wx-minotaur-attack-ai-action.md).
 - [wxMinotaurAttackState](reference/classes/wx-minotaur-attack-state.md).
 - [wxMinotaurDefenseState](reference/classes/wx-minotaur-defense-state.md).
 - [wxMosquitoAttackState](reference/classes/wx-mosquito-attack-state.md).

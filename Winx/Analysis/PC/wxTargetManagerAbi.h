@@ -28,4 +28,6 @@ namespace winx::evidence::pc
     inline constexpr std::uint32_t wxTargetManagerDestructor = 0x0059DC40;
     inline constexpr std::uint32_t wxTargetManagerDeletingDestructor = 0x0059DF50;
     inline constexpr std::uint32_t wxTargetManagerClone = 0x0059E0F0;
+    inline constexpr std::uint32_t wxTargetManagerRegisterCandidate = 0x0059DF70;
+    inline constexpr std::uint32_t wxTargetManagerUnregisterCandidate = 0x0059DF20;
 }

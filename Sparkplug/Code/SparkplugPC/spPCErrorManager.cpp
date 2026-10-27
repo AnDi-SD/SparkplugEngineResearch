@@ -58,6 +58,25 @@ namespace sparkplug::reconstruction
         return {&NonModalHandlerForAnalysis, nullptr};
     }
 
+    spPCErrorManager::WarmEmptyHandleStatusForAnalysis
+    spPCErrorManager::HandleWarmEmptyPcForAnalysis(std::uint32_t& rawWord75AB9C,
+        const WarmEmptyContextForAnalysis context) noexcept
+    {
+        using Status=WarmEmptyHandleStatusForAnalysis;
+        if(context!=WarmEmptyContextForAnalysis::StableBorrowed)
+            return Status::UnqualifiedContext;
+        if(spErrorManager::GetInstance()!=this)
+            return Status::NotCurrentManager;
+        if(GetHeadForAnalysis()!=nullptr || GetDataUsedForAnalysis()!=0 ||
+            HadFatalForAnalysis() || HadDataOverflowForAnalysis())
+            return Status::NonEmptyOrFlaggedState;
+        // Actual413A93 writes BEFORE its empty-head return. The qualified
+        // shared empty branch has no dispatch/reentry effect.
+        rawWord75AB9C=0;
+        (void)spErrorManager::HandleForAnalysis(spErrorSeverity::Error);
+        return Status::Completed;
+    }
+
     spPCErrorManager::Presentation spPCErrorManager::ClassifyForAnalysis(
         const spErrorSeverity severity) noexcept
     {

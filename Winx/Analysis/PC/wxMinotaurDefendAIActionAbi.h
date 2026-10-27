@@ -16,4 +16,7 @@ namespace winx::evidence::pc
     inline constexpr std::uint32_t wxMinotaurDefendAIActionNotify = 0x5B8AD0;
     inline constexpr std::uint32_t wxMinotaurDefendAIActionCopy = 0x5B8B30;
     inline constexpr std::uint32_t wxMinotaurDefendAIActionGate = 0x5B8D80;
+    inline constexpr std::uint32_t wxMinotaurDefendAIActionFacing = 0x5B8BB0;
+    inline constexpr std::uint32_t wxMinotaurDefendAIActionState0 = 0x5B8C30;
+    inline constexpr std::uint32_t wxMinotaurDefendAIActionState1 = 0x5B8CE0;
 }

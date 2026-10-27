@@ -375,6 +375,10 @@ namespace sparkplug::reconstruction
         }
 
         auto& namedDestination = static_cast<spNamedObject&>(destination);
+        // PC413120 releases/clears the destination BEFORE reloading the
+        // source field. Self-Copy therefore drops the name; preserve that
+        // original behavior rather than shared_ptr's self-assignment no-op.
+        namedDestination.name_.reset();
         namedDestination.name_ = name_;
         return true;
     }
@@ -386,6 +390,7 @@ namespace sparkplug::reconstruction
 
     void spNamedObject::CopyNameToForAnalysis(spNamedObject& destination) const noexcept
     {
+        destination.name_.reset();
         destination.name_ = name_;
     }
 

@@ -8,6 +8,14 @@ namespace winx::reconstruction
 {
     class wxAssetManager;
 
+    // Borrowed live input for the single byte read by PC59DF70. This record
+    // is not a native entity layout or a recovered C++ class declaration.
+    // Pointer identity supplies the native argument word; no reference is owned.
+    struct wxTargetCandidateBindingForAnalysis final
+    {
+        std::uint8_t flag148 = 0;
+    };
+
     // Portable resource ownership, separate from the native intrusive word8.
     // All native owners of a binding must be represented in referenceCount8;
     // shared_ptr::use_count is never interpreted as that native count. A zero

@@ -10,43 +10,76 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     private DebuggerHost _host = null!;
     private uint _updates, _samples, _readySamples, _factoryReturns;
     private bool _mediaVerified;
-    private NativeCallDispatcher _calls = new(log);
+    private NativeCallDispatcher _calls = new(log,
+        TimeSpan.FromSeconds(config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" ? 30 : 10));
     private bool _callCheckBegun, _callCheckPassed;
     private uint _localCharacter;
     private NativeVisualActor? _visual;
+    private ControlObserver? _control;
+    private NativeTemplateProbe? _template;
+    private NativeMovementProbe? _movement;
+    private uint _unloadGuardHits, _unloadCleanupsStarted;
     private readonly HashSet<uint> _machines = [];
     private readonly HashSet<uint> _bodyReceivers = [];
-    internal uint ReadySamples => _readySamples;
+    internal uint ReadySamples => config.Mode == "controller-reset" ? _movement?.ReadySamples ?? 0 : _readySamples;
     internal bool RemoteCreated => _visual?.EverCreated == true;
     internal bool ModeSucceeded => config.Mode switch
     {
         "observe" => _readySamples > 0,
+        "control-observe" => _control?.ModeSucceeded == true,
+        "template-create" or "template-init" => _template?.ModeSucceeded == true,
+        "controller-reset" => _movement?.ModeSucceeded == true,
         "native-call-check" => _callCheckPassed,
-        "visual-actor" => _visual?.Cleaned == true,
+        "visual-actor" or "visual-unload" => _visual?.Cleaned == true,
         _ => false
     };
     internal object Summary => new { worldUpdates = _updates, samples = _samples,
-        readySamples = _readySamples, mediaVerified = _mediaVerified, factoryReturns = _factoryReturns,
+        readySamples = ReadySamples, mediaVerified = _mediaVerified, factoryReturns = _factoryReturns,
         observedBloomMachines = _machines.Select(Hex).ToArray(), observedBodyReceivers = _bodyReceivers.Select(Hex).ToArray(),
-        nativeCallCheckPassed = _callCheckPassed, nativeCalls = _calls.Summary, visual = _visual?.Summary };
+        nativeCallCheckPassed = _callCheckPassed, nativeCalls = _calls.Summary, visual = _visual?.Summary,
+        control = _control?.Summary, template = _template?.Summary, movement = _movement?.Summary,
+        unloadGuardHits = _unloadGuardHits, unloadCleanupsStarted = _unloadCleanupsStarted,
+        deferredUnloadRearms = _unloadRearms.Count };
     internal void CheckTimeout() => _calls.CheckTimeout();
 
     internal void Install(DebuggerHost host)
     {
         _host = host;
         if (host.ImageBase != 0x400000) throw new InvalidDataException("Image base mismatch");
+        if (config.Mode is "template-create" or "template-init")
+        {
+            _template = new NativeTemplateProbe(config, image, log);
+            _template.InstallWitnesses(host);
+        }
+        if (config.Mode == "control-observe")
+        {
+            var control = new ControlObserver(host, config.SampleEvery, log);
+            _control = control;
+            Persistent(ControlObserver.InputReturn, 1, "UserInput.return", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
+                control.Observe(tid, at, ref ctx, _updates, _mediaVerified));
+        }
         // Native scene-manager RET after currentScene has been cleared. This
         // establishes an observation boundary, not a mutation permission.
         Persistent(0x45A802, 8, "SceneManager.return", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
             ++_updates;
+            _control?.Observe(tid, at, ref ctx, _updates, _mediaVerified);
             if (_updates % config.SampleEvery == 0 && _samples < 512) Snapshot(tid);
             _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
-            if (config.Mode == "visual-actor" && _readySamples >= 15)
+            foreach (Action rearm in _unloadRearms) rearm();
+            _unloadRearms.Clear();
+            if (config.Mode == "controller-reset")
+            {
+                _movement ??= new NativeMovementProbe(image, log);
+                _movement.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke(), _mediaVerified);
+            }
+            if (config.Mode is "visual-actor" or "visual-unload" && _readySamples >= 15)
             {
                 _visual ??= new NativeVisualActor(config, image, log);
                 _visual.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
             }
+            if (config.Mode is "template-create" or "template-init" && _readySamples >= 15)
+                _template!.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
             if (config.Mode == "native-call-check" && !_callCheckBegun && _readySamples >= 15 && _localCharacter != 0)
             {
                 byte[] expected = image.GetSectionData(0x4F3DF0 - 0x400000).GetContent(0, 3).ToArray();
@@ -92,6 +125,67 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                     if (_bodyReceivers.Count < 32) _bodyReceivers.Add(ctx.Ecx);
                     log(new { @event = "body-load-entry", threadId = tid, receiver = Hex(ctx.Ecx), vtable = Hex(TryU(ctx.Ecx)) });
                 });
+        if (config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "controller-reset")
+        {
+            // The playing-state entry precedes the exit stack's own borrowed
+            // actor releases. Lower entries cover body/profile replacement and
+            // direct cache unloading. These are native function identities;
+            // their receiver type is not inferred from this common callback.
+            InstallUnloadGuard(0x5F86C0, 0x53, "PlayingLevelExiting.entry");
+            InstallUnloadGuard(0x4E8AA0, 0x53, "PlayerBodyRemoval.entry");
+            InstallUnloadGuard(0x4E8C80, 0x56, "PlayerProfileRemoval.entry");
+            InstallUnloadGuard(0x59AE80, 0x51, "AnimationReleaseSet.entry");
+            InstallUnloadGuard(0x59B190, 0x51, "AnimationClear.entry");
+        }
+    }
+
+    private readonly List<Action> _unloadRearms = [];
+    private void InstallUnloadGuard(uint entry, byte firstByte, string name)
+    {
+        byte[] expected = image.GetSectionData(checked((int)(entry - 0x400000))).GetContent(0, 6).ToArray();
+        if (expected[0] != firstByte || !Win32Native.ReadMemory(_host.ProcessHandle, entry, 6).SequenceEqual(expected))
+            throw new InvalidDataException($"Native unload entry signature mismatch at {Hex(entry)}");
+        log(new { @event = "verified-unload-guard", name, address = Hex(entry), signature = Convert.ToHexString(expected) });
+        BreakpointCallback guard = null!;
+        guard = (uint tid, uint at, ref Win32Native.X86Context ctx) =>
+        {
+            if (tid != _host.MainThreadId || at != entry || ctx.Eip != entry ||
+                !Win32Native.ReadMemory(_host.ProcessHandle, entry, expected.Length).SequenceEqual(expected))
+                throw new InvalidDataException($"Native unload stop identity/signature mismatch at {Hex(entry)}");
+            ++_unloadGuardHits;
+            bool hasActor = _visual?.HasActor == true;
+            bool hasTemplate = _template?.HasLiveOwnership == true;
+            if (_movement?.HasBegun == true && !_movement.ModeSucceeded)
+                throw new InvalidOperationException("Native unload interrupted the controller-reset observation; abort the owned diagnostic at this stop.");
+            if (_unloadGuardHits <= 128 || hasActor || hasTemplate)
+                log(new { @event = "native-unload-entry", name, address = Hex(entry), threadId = tid,
+                    receiver = Hex(ctx.Ecx), receiverVtable = Hex(TryU(ctx.Ecx)), hasActor,
+                    expectedReceiverVtable = entry == 0x5F86C0 ? Hex(0x710874) : null,
+                    receiverMatchesExpected = entry == 0x5F86C0 ? TryU(ctx.Ecx) == 0x710874 : (bool?)null,
+                    nativeCallPending = _calls.Pending, hasTemplate });
+            if (hasTemplate)
+                throw new InvalidOperationException("Native unload reached a live template experiment; abort the owned case without guessing cleanup or resuming cache unload");
+            if (hasActor && entry == 0x5F86C0)
+            {
+                uint flow = U(0x755294);
+                int stack = unchecked((int)U(flow + 0x1AC));
+                if (TryU(ctx.Ecx) != 0x710874 || stack is < 0 or > 20 ||
+                    U(flow + 0x15C + (uint)stack * 4) != ctx.Ecx)
+                    throw new InvalidDataException("Playing-level exit receiver is not the qualified active state");
+            }
+            if (_calls.Pending)
+                throw new InvalidOperationException("Native unload entered during an unfinished native call; abort the owned case without nesting cleanup");
+            if (_visual?.TryBeginUnload(_host, tid, ref ctx, at, expected[0], _calls) == true)
+            {
+                ++_unloadCleanupsStarted;
+                // BeginAtEntry resumes this exact restored instruction. Re-arm
+                // only after its original execution has reached a later world
+                // stop and the private completion page has been released.
+                _unloadRearms.Add(() => _host.Breakpoints.AddReturn(at, tid, name, guard));
+            }
+            else _host.Breakpoints.AddReturn(at, tid, name, guard);
+        };
+        _host.Breakpoints.AddReturn(entry, _host.MainThreadId, name, guard);
     }
 
     private Action? _resumeObservation;

@@ -29,14 +29,22 @@ namespace winx::reconstruction
             sparkplug::reconstruction::spCloneManager&) const override;
         // Inherited Copy is literal no-op: no own allocation/timer/input transfer.
         // Notify is also the native literal no-op (PC5B7A00/PS2100810).
-        // Extended native slots34/38/3C/40 have no portable API here. This
+        // Extended native slots34/3C have no portable API here. This
         // bounded class does not claim their bodies or the whole native class.
         void FlowSlot20ForAnalysis() override;
         void FlowSlot24ForAnalysis() override;
         void FlowSlot28ForAnalysis() override;
         void FlowSlot2CForAnalysis() override;
+        // PC own dispatch followed by actual shared navigation. PS2 refuses;
+        // required foreign input/window/flow providers retain their own scope.
         bool FlowSlot30ForAnalysis() override;
-        virtual bool MenuSlot44ForAnalysis(); // owned collection/retry is unrecovered
+        // PC projection initialization, shared GameLevel collect/retry and
+        // fresh SystemRoot world update. Established input graph is required.
+        virtual bool MenuSlot44ForAnalysis();
+        // Typed PC Menu-vtable consumers. Original shared declaration owners
+        // of4F3DF0/5D2BF0 remain unknown; no loader transaction is implied.
+        [[nodiscard]] virtual bool MenuSlot38ForAnalysis();
+        virtual void MenuSlot40ForAnalysis(const char* externallyLivePath);
         const MenuStateForAnalysis& GetMenuStateForAnalysis() const noexcept{return menu_;}
         MenuStateForAnalysis& MenuStateForFixture() noexcept{return menu_;}
     private:

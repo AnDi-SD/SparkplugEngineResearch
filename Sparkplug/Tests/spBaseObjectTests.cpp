@@ -359,10 +359,30 @@ namespace
     };
 }
 
-int main()
+int main(int argc,char** argv)
 {
     using namespace sparkplug::reconstruction;
-
+    if(argc==3 && std::string(argv[1])=="--named-copy")
+    {
+        const std::string mode=argv[2];
+        Require(mode=="self" || mode=="distinct","Known actual Named Copy replay");
+        spNamedObject source("alpha"),other;
+        spCloneManager manager;
+        std::unique_ptr<spBaseObject> alphaOwner,betaOwner;
+        if(mode=="self") Require(source.vfunc_14(other,manager),"Retained name input");
+        else
+        {
+            other.SetName("beta");
+            alphaOwner=source.Clone(); betaOwner=other.Clone();
+        }
+        auto name=[](const spNamedObject& object){return std::string(object.GetName()?object.GetName():"null");};
+        const auto beforeSource=name(source),beforeOther=name(other);
+        const bool returned=source.vfunc_14(mode=="self"?source:other,manager);
+        std::cout << "{\"mode\":\"" << mode << "\",\"before\":{\"source\":\"" << beforeSource
+            << "\",\"other\":\"" << beforeOther << "\"},\"after\":{\"source\":\"" << name(source)
+            << "\",\"other\":\"" << name(other) << "\"},\"returned\":" << unsigned(returned) << "}\n";
+        return 0;
+    }
     auto& rtti = spRTTIManager::Instance();
     // Static lifetime is mandatory for deferred registrations. Simulate a
     // derived TU being initialized before the TU containing its base record.
@@ -568,6 +588,27 @@ int main()
     Require(clone != nullptr, "named object clone keeps its type");
     Require(clone != named, "clone is a distinct object");
     Require(std::strcmp(clone->GetName(), "Alfea02") == 0, "clone copies the shared name");
+
+    {
+        spNamedObject source("alpha");
+        auto retainedBase=source.Clone();
+        auto* retained=dynamic_cast<spNamedObject*>(retainedBase.get());
+        Require(retained && retained->GetName()==source.GetName(),"Named Copy shares the existing name entry");
+        spCloneManager manager;
+        Require(source.vfunc_14(source,manager),"PC Named self-Copy still returns true");
+        Require(source.GetName()==nullptr,"PC Named self-Copy releases destination before rereading source");
+        Require(retained->GetName() && std::strcmp(retained->GetName(),"alpha")==0,
+            "A separate name owner survives self-Copy's release");
+
+        class NameCopyProbe final:public spNamedObject
+        { public:using spNamedObject::CopyNameToForAnalysis; };
+        NameCopyProbe direct;direct.SetName("beta");
+        spNamedObject other;
+        direct.CopyNameToForAnalysis(other);
+        direct.CopyNameToForAnalysis(direct);
+        Require(direct.GetName()==nullptr && other.GetName() && std::strcmp(other.GetName(),"beta")==0,
+            "Physical-name Copy alias preserves the same release/reload order");
+    }
 
     spBaseObject root;
     Require(root.Clone() == nullptr, "root clone slot returns null");
