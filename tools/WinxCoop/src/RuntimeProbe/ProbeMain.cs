@@ -29,13 +29,13 @@ internal static class ProbeMain
                 ?? throw new InvalidDataException("Missing case configuration");
             if (config.DurationSeconds is < 5 or > 600 || config.SampleEvery is < 1 or > 1000)
                 throw new InvalidDataException("Duration must be 5..600 seconds, sample interval 1..1000 updates");
-            if (config.Mode is not ("observe" or "control-observe" or "native-call-check" or "visual-actor" or "visual-unload" or "template-create" or "template-init" or "controller-reset")) throw new InvalidDataException("Unknown probe mode");
+            if (config.Mode is not ("observe" or "control-observe" or "native-call-check" or "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset")) throw new InvalidDataException("Unknown probe mode");
             foreach (string path in new[] { config.Executable, config.WorkingDirectory, config.MediaDirectory, config.OutputDirectory })
                 if (!Path.IsPathFullyQualified(path) || path.Any(c => c > 127))
                     throw new InvalidDataException("Explicit absolute ASCII paths required");
             if (!Directory.Exists(config.MediaDirectory) || !Directory.Exists(config.WorkingDirectory))
                 throw new InvalidDataException("Prepared isolated game corpus required");
-            if (config.Mode is "template-create" or "template-init") _ = NativeTemplateProbe.ReadVerifiedPayload(config);
+            if (config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn") _ = NativeTemplateProbe.ReadVerifiedPayload(config);
             if (Directory.Exists(config.OutputDirectory) || File.Exists(config.OutputDirectory))
                 throw new InvalidDataException("A fresh output directory is required");
             byte[] image = File.ReadAllBytes(config.Executable);
@@ -56,19 +56,19 @@ internal static class ProbeMain
             Emit(new { @event = "case", configuration = config, executableSha256 = hash,
                 adapterMode = config.Mode switch { "control-observe" => "owned-debugger-control-observation",
                     "controller-reset" => "owned-debugger-native-movement-diagnostic", _ => "owned-debugger-stage-a-experiment" },
-                gameWorldWrites = config.Mode.StartsWith("visual-") || config.Mode is "template-create" or "template-init" or "controller-reset",
+                gameWorldWrites = config.Mode.StartsWith("visual-") || config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset",
                 instrumentation = "verified software breakpoints and bounded main-thread native calls in owned process" });
             var host = new DebuggerHost(config.Executable, config.WorkingDirectory, Emit);
             var observer = new ActorObserver(config, profile, pe, Emit);
             DebuggerRunResult result = host.Run(TimeSpan.FromSeconds(config.DurationSeconds), observer.Install, runner =>
             {
                 observer.CheckTimeout();
-                if (config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "controller-reset" && observer.ModeSucceeded)
+                if (observer.ModeCompleted || (config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset" && observer.ModeSucceeded))
                     runner.RequestSuccessfulCompletion();
             });
             var report = new { kind = "WinxCoop-original-game-actor-observer", configuration = config,
                 executableSha256 = hash, result, observer = observer.Summary,
-                stageAComplete = false, gameWorldWrites = config.Mode.StartsWith("visual-") || config.Mode is "template-create" or "template-init" or "controller-reset", remoteActorCreated = observer.RemoteCreated };
+                stageAComplete = false, gameWorldWrites = config.Mode.StartsWith("visual-") || config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset", remoteActorCreated = observer.RemoteCreated };
             File.WriteAllText(Path.Combine(config.OutputDirectory, "report.json"), JsonSerializer.Serialize(report, Json));
             Console.WriteLine(JsonSerializer.Serialize(report));
             bool expectedExit = result.ExitCodeKnown &&

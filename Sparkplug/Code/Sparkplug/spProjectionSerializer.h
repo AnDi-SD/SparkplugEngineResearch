@@ -7,6 +7,10 @@
 namespace sparkplug::reconstruction
 {
     class spProjection;
+    struct spProjectionNullIndexContextForAnalysis;
+    struct spProjectionPreindexedIndexContextForAnalysis;
+    struct spProjectionFogOnlyIndexContextForAnalysis;
+    struct spProjectionEmptyMaterialIndexContextForAnalysis;
     class spProjectionSerializer : public spRenderableSerializer
     {
     public:
@@ -23,9 +27,25 @@ namespace sparkplug::reconstruction
         // Stable raw scalar sections; relationships are null or externally
         // retained DXMaterial/Fog/RenderNode already written in supplied FAT.
         // Material/Fog readback needs explicit shared owners;84 stays borrowed.
-        // Inline relationships, index and other derived writers are unqualified.
+        // Inline relationships and implicit index are unqualified.
         bool IndexRelationshipsForAnalysis(spBaseObject&) const override;
         bool IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const override;
+        // Separate explicit PC profile: supplied warm empty ErrorManager,
+        // empty save FAT and stable null Material/Fog/RenderNode relationships.
+        // Existing index entry points retain their no-context refusal.
+        virtual bool IndexNullRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionNullIndexContextForAnalysis&,spBaseObject&) const;
+        // Separate exact host profile: at least one typed relationship already
+        // indexed at supplied IDs7/9/11. No relation recursion or new indexing.
+        virtual bool IndexPreindexedRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionPreindexedIndexContextForAnalysis&,spBaseObject&) const;
+        // Separate first-insert/repeat profile for one typed Fog, other links null.
+        virtual bool IndexFogOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionFogOnlyIndexContextForAnalysis&,spBaseObject&) const;
+        // Separate empty Material first-insert/repeat profile; own dispatch
+        // uses an explicit stack-local host adapter for the nested error gate.
+        virtual bool IndexEmptyMaterialOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionEmptyMaterialIndexContextForAnalysis&,spBaseObject&) const;
         bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
             const spBaseObject&,std::string*) const override;
@@ -36,5 +56,13 @@ namespace sparkplug::reconstruction
             spStream&,std::uint32_t,spProjection&,bool requireEnd,std::string*) const;
         bool WriteProjectionFieldsForAnalysis(spSerializerManager*,spStream&,
             const spProjection&,std::string*) const;
+        bool IndexProjectionNullFieldsForAnalysis(
+            spProjectionNullIndexContextForAnalysis&,spProjection&) const;
+        bool IndexProjectionPreindexedFieldsForAnalysis(
+            spProjectionPreindexedIndexContextForAnalysis&,spProjection&) const;
+        bool IndexProjectionFogOnlyFieldsForAnalysis(
+            spProjectionFogOnlyIndexContextForAnalysis&,spProjection&) const;
+        bool IndexProjectionEmptyMaterialFieldsForAnalysis(
+            spProjectionEmptyMaterialIndexContextForAnalysis&,spProjection&) const;
     };
 }

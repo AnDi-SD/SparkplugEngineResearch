@@ -21,10 +21,18 @@ namespace sparkplug::reconstruction
         bool ReadPayloadForAnalysis(spSerializerReadContextForAnalysis&,spStream&,
             std::uint32_t,spBaseObject&,std::string*) const override;
         // Stable raw25-byte own section follows the qualified parent writer.
-        // Index and unsupported relationship/derived profiles remain refused.
+        // Implicit index and unsupported relationship/derived profiles refuse.
         bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
             const spBaseObject&,std::string*) const override;
+        bool IndexNullRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionNullIndexContextForAnalysis&,spBaseObject&) const override;
+        bool IndexPreindexedRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionPreindexedIndexContextForAnalysis&,spBaseObject&) const override;
+        bool IndexFogOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionFogOnlyIndexContextForAnalysis&,spBaseObject&) const override;
+        bool IndexEmptyMaterialOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionEmptyMaterialIndexContextForAnalysis&,spBaseObject&) const override;
     private:
         bool WritePyramidFieldsForAnalysis(spSerializerManager*,spStream&,
             const spPyramidProjection&,std::string*) const;

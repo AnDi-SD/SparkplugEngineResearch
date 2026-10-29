@@ -41,10 +41,10 @@ if ($coopPrefixLine) {
         if ($LASTEXITCODE -ne 0) { throw 'MSVC dependency-prefix repair failed.' }
     }
 }
-$coopTargets = @('WinxCoopNetworkProbe','WinxCoopTcpFramerTests','WinxCoopSessionTests','WinxCoopGameplayTests','SparkplugNetworkManagerTests','SparkplugNetworkFlowTests')
-if ($IncludePrototype) { $coopTargets += @('WinxCoopLauncher','WinxCoopNativeAdapter','WinxCoopAdapterProbe') }
+$coopTargets = @('WinxCoopNetworkProbe','WinxCoopTcpFramerTests','WinxCoopSessionTests','WinxCoopGameplayTests','WinxCoopPoseInterpolationTests','SparkplugNetworkManagerTests','SparkplugNetworkFlowTests')
+if ($IncludePrototype) { $coopTargets += @('WinxCoopLauncher','WinxCoopNativeAdapter','WinxCoopAdapterProbe','WinxCoopGameHost','WinxCoopGameHostClientProbe','WinxCoopXpGameProbe') }
 & $coopCmake --build $coopBuild --target $coopTargets --parallel $BuildWorkers
 if ($LASTEXITCODE -ne 0) { throw 'WinxCoop network checks build failed.' }
-& (Join-Path (Split-Path $coopCmake) 'ctest.exe') --test-dir $coopBuild --output-on-failure -j 1 -R '^(WinxCoop(TcpFramer|Session|Gameplay)Tests|SparkplugNetwork(Manager|Flow)Tests)$'
+& (Join-Path (Split-Path $coopCmake) 'ctest.exe') --test-dir $coopBuild --output-on-failure -j 1 -R '^(WinxCoop(TcpFramer|Session|Gameplay|PoseInterpolation)Tests|SparkplugNetwork(Manager|Flow)Tests)$'
 if ($LASTEXITCODE -ne 0) { throw 'WinxCoop network checks failed.' }
 Write-Output "WinxCoop network contracts PASS: $coopBuild"

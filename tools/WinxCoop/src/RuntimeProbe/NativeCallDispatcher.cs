@@ -7,6 +7,7 @@ using SmoNativeValidator.Core;
 namespace WinxCoop.RuntimeProbe;
 
 internal sealed record NativeCallSpec(uint Function, uint ThisPointer, uint[] Arguments, bool Cdecl);
+internal sealed record NativeInstancePositionCall(uint Function, uint XBits, uint YBits, uint ZBits);
 
 /// <summary>
 /// Bounded native calls on the original x86 main thread at a verified stop.
@@ -33,7 +34,7 @@ internal sealed class NativeCallDispatcher
     private byte _entryOriginalByte;
     private bool _entryBatch;
     private bool _dependencyActive;
-    private int _dependencyCheckpoints, _dependencyCodeLength;
+    private int _dependencyCheckpoints, _dependencyCodeLength, _dependencyRequiredCheckpoints;
     private uint _dependentBegun, _dependentCompleted, _dependentReadStops;
     private Win32Native.X86Context _saved;
     private bool _retired, _terminalFailure;
@@ -257,14 +258,20 @@ internal sealed class NativeCallDispatcher
     /// <summary>
     /// A genuine WorldRET interval: first call produces one owned pointer;
     /// second cdecl consumes it as its sole argument; final thiscall destroys
-    /// it with flag1. Two read-only debugger checkpoints guard the pointer and
-    /// initialized state before the following call. Original gameplay never
-    /// resumes between these calls. Only the final trap restores saved context.
+    /// it with flag1 unless retainAfterInitialization explicitly leaves its
+    /// ownership with the caller. Two read-only checkpoints guard construction
+    /// and initialization. Original gameplay never resumes between these calls.
+    /// Only the final trap restores saved context; later updates/deletion of a
+    /// retained result require the caller's separately bounded lifetime witness.
+    /// An opt-in retained instance-position call runs after initialization and
+    /// has its own third read-only checkpoint; its return value is opaque.
     /// Call/ownership semantics and pinned signatures belong to the caller.
     /// </summary>
     internal void BeginDependentLifecycle(DebuggerHost host, uint threadId, ref Win32Native.X86Context ctx,
         NativeCallSpec firstCall, uint scopedCdecl, uint deletingThiscall,
-        Action<uint> createdWitness, Action<uint> initializedWitness, Action<uint[]> completed)
+        Action<uint> createdWitness, Action<uint> initializedWitness, Action<uint[]> completed,
+        bool retainAfterInitialization = false, NativeInstancePositionCall? positionAfterInitialization = null,
+        Action<uint>? positionedWitness = null)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(firstCall);
         ArgumentNullException.ThrowIfNull(createdWitness); ArgumentNullException.ThrowIfNull(initializedWitness);
@@ -274,9 +281,16 @@ internal sealed class NativeCallDispatcher
         if (firstCall.Function < 0x10000 || firstCall.Arguments is null || firstCall.Arguments.Length > 8 ||
             (!firstCall.Cdecl && firstCall.ThisPointer < 0x10000) || scopedCdecl < 0x10000 || deletingThiscall < 0x10000)
             throw new ArgumentException("Invalid bounded dependent native-call specification.");
+        if ((positionAfterInitialization is null) != (positionedWitness is null) ||
+            (positionAfterInitialization is not null && (!retainAfterInitialization || positionAfterInitialization.Function < 0x10000 ||
+             !new[] { positionAfterInitialization.XBits, positionAfterInitialization.YBits, positionAfterInitialization.ZBits }
+                 .All(bits => float.IsFinite(BitConverter.Int32BitsToSingle(unchecked((int)bits)))))))
+            throw new ArgumentException("Optional instance position requires finite by-value words, a retained result and a read-only witness.");
         var ownedFirst = new NativeCallSpec(firstCall.Function, firstCall.ThisPointer, (uint[])firstCall.Arguments.Clone(), firstCall.Cdecl);
         foreach (uint function in new[] { ownedFirst.Function, scopedCdecl, deletingThiscall })
             _ = Win32Native.ReadMemory(host.ProcessHandle, function, 1);
+        if (positionAfterInitialization is not null)
+            _ = Win32Native.ReadMemory(host.ProcessHandle, positionAfterInitialization.Function, 1);
         Win32Native.X86Context full = VerifyWorldStop(host, threadId, ref ctx);
         if ((full.ContextFlags & FullLegacyContext) != FullLegacyContext || (full.EFlags & TrapFlag) != 0 ||
             full.Esp < 0x10000 + 64 || full.Esp > uint.MaxValue - sizeof(uint) || (full.Esp & 3) != 0)
@@ -286,7 +300,9 @@ internal sealed class NativeCallDispatcher
         _ = Win32Native.ReadMemory(host.ProcessHandle, returnAddress, 1);
         ReleaseRetiredAtWorldStop(host, threadId, ref ctx);
         _host = host; _saved = Clone(full); _saved.Eip = WorldReturn;
-        _entryBatch = false; _dependencyActive = true; _dependencyCheckpoints = 0; _resultCount = 3;
+        _entryBatch = false; _dependencyActive = true; _dependencyCheckpoints = 0;
+        _dependencyRequiredCheckpoints = positionAfterInitialization is null ? 2 : 3;
+        _resultCount = positionAfterInitialization is not null ? 3 : retainAfterInitialization ? 2 : 3;
         _originalReturnAddress = returnAddress; _resumeEip = returnAddress;
         _resumeEsp = checked(full.Esp + sizeof(uint)); _threadId = threadId;
         try
@@ -295,9 +311,10 @@ internal sealed class NativeCallDispatcher
                 Win32Native.MemReserve | Win32Native.MemCommit, Win32Native.PageExecuteReadWrite);
             if (_page == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), "Dependent lifecycle page allocation failed.");
             _pageAddress = checked((uint)_page.ToInt64());
-            uint resultOffset = PageSize - 3 * sizeof(uint);
+            uint resultOffset = checked(PageSize - (uint)_resultCount * sizeof(uint));
             _resultAddress = checked(_pageAddress + resultOffset);
-            var plan = BuildDependentStub(ownedFirst, scopedCdecl, deletingThiscall, _resultAddress, full.Esp);
+            var plan = BuildDependentStub(ownedFirst, scopedCdecl, deletingThiscall, _resultAddress, full.Esp,
+                retainAfterInitialization, positionAfterInitialization);
             byte[] stub = plan.Code;
             if (stub.Length >= resultOffset || stub[^1] != 0xCC)
                 throw new InvalidDataException("Dependent native stub exceeds its owned page.");
@@ -316,6 +333,13 @@ internal sealed class NativeCallDispatcher
             host.Breakpoints.AddReturn(initializedAt, threadId, "NativeCall.dependent-initialized-checkpoint",
                 (uint tid, uint at, ref Win32Native.X86Context context) =>
                     DependentCheckpoint(host, tid, at, initializedAt, 2, ref context, initializedWitness));
+            if (plan.PositionedStop is int positionedOffset)
+            {
+                uint positionedAt = checked(_pageAddress + (uint)positionedOffset);
+                host.Breakpoints.AddReturn(positionedAt, threadId, "NativeCall.dependent-positioned-checkpoint",
+                    (uint tid, uint at, ref Win32Native.X86Context context) =>
+                        DependentCheckpoint(host, tid, at, positionedAt, 3, ref context, positionedWitness!));
+            }
             host.Breakpoints.AddReturn(_trapAddress, threadId, "NativeCall.dependent-final-completion",
                 (uint tid, uint at, ref Win32Native.X86Context context) => CompleteEntry(host, tid, at, ref context, completed));
             ++_sequence; ++_dependentBegun; Pending = true; _clock.Restart();
@@ -326,8 +350,16 @@ internal sealed class NativeCallDispatcher
                 guardFailureAndFinalTrap = Hex(_trapAddress), results = Hex(_resultAddress),
                 code = Convert.ToHexString(stub), codeSha256 = _codeHash, originalEsp = Hex(full.Esp),
                 resumeEip = Hex(_resumeEip), resumeEsp = Hex(_resumeEsp),
-                originalWorldResumesOnlyAfterFinalDelete = true, eachCallStackGuardedBeforeNextCall = true,
+                originalWorldResumesOnlyAfterFinalDelete = !retainAfterInitialization,
+                retainedInitializedResult = retainAfterInitialization, eachCallStackGuardedBeforeNextCall = true,
                 checkpointCallbacksReadOnly = true, legacyFloatingPointStateSaved = true, timeoutMs = _timeout.TotalMilliseconds });
+            if (positionAfterInitialization is not null)
+                _log(new { @event = "native-dependent-instance-position-plan", sequence = _sequence,
+                    function = Hex(positionAfterInitialization.Function), instanceFromResultSlot = 0,
+                    xBits = Hex(positionAfterInitialization.XBits), yBits = Hex(positionAfterInitialization.YBits), zBits = Hex(positionAfterInitialization.ZBits),
+                    cdecl = true, stackArgumentBytes = 16, positionResultSlot = 2, positionResultMeaningAssigned = false,
+                    positionedCheckpoint = Hex(checked(_pageAddress + (uint)plan.PositionedStop!.Value)),
+                    requiredReadCheckpoints = _dependencyRequiredCheckpoints, originalGameplayResumed = false });
         }
         catch { _terminalFailure = true; throw; }
     }
@@ -392,7 +424,8 @@ internal sealed class NativeCallDispatcher
             throw new InvalidDataException("Native-call stack imbalance; terminate the owned run without retry.");
         if (_dependencyActive)
         {
-            if (_dependencyCheckpoints != 2) throw new InvalidDataException("Dependent lifecycle reached completion without both guarded witnesses.");
+            if (_dependencyCheckpoints != _dependencyRequiredCheckpoints)
+                throw new InvalidDataException("Dependent lifecycle reached completion without all guarded witnesses.");
             VerifyDependentCode(host);
         }
         var results = new uint[_resultCount];
@@ -508,10 +541,10 @@ internal sealed class NativeCallDispatcher
         return bytes.ToArray();
     }
 
-    private sealed record DependentStub(byte[] Code, int CreatedStop, int InitializedStop);
+    private sealed record DependentStub(byte[] Code, int CreatedStop, int InitializedStop, int? PositionedStop);
 
     private static DependentStub BuildDependentStub(NativeCallSpec first, uint scopedCdecl, uint deletingThiscall,
-        uint results, uint originalEsp)
+        uint results, uint originalEsp, bool retainAfterInitialization, NativeInstancePositionCall? positionAfterInitialization)
     {
         var bytes = new List<byte>(256);
         var failures = new List<int>(4);
@@ -542,11 +575,30 @@ internal sealed class NativeCallDispatcher
         bytes.Add(0x83); bytes.Add(0xC4); bytes.Add(4);
         SaveResult(1); StackGuard();
         int initialized = bytes.Count; bytes.Add(0xCC);
-        // The initialized witness checks reciprocal native state before delete.
-        bytes.Add(0x68); Imm(1);                              // deleting flag
-        bytes.Add(0x8B); bytes.Add(0x0D); Imm(results);        // mov ecx,[first result]
-        Call(deletingThiscall);
-        SaveResult(2); StackGuard();
+        int? positioned = null;
+        if (positionAfterInitialization is not null)
+        {
+            // cdecl(instance, x, y, z): the runtime instance comes from Create,
+            // never a guessed pre-call pointer. EAX is opaque, stored only for
+            // the same register/result and stack guards as the other calls.
+            foreach (uint bits in new[] { positionAfterInitialization.ZBits, positionAfterInitialization.YBits, positionAfterInitialization.XBits })
+            { bytes.Add(0x68); Imm(bits); }
+            bytes.Add(0xFF); bytes.Add(0x35); Imm(results);
+            bytes.Add(0xB9); Imm(0);
+            Call(positionAfterInitialization.Function);
+            bytes.Add(0x83); bytes.Add(0xC4); bytes.Add(16);
+            SaveResult(2); StackGuard();
+            positioned = bytes.Count; bytes.Add(0xCC);
+        }
+        // The initialized witness admits either deletion in this same interval
+        // or retention by the caller for a separately bounded original update.
+        if (!retainAfterInitialization)
+        {
+            bytes.Add(0x68); Imm(1);                          // deleting flag
+            bytes.Add(0x8B); bytes.Add(0x0D); Imm(results);    // mov ecx,[first result]
+            Call(deletingThiscall);
+            SaveResult(2); StackGuard();
+        }
         int completion = bytes.Count; bytes.Add(0xCC);
         void Patch(int offset, int target)
         {
@@ -558,7 +610,7 @@ internal sealed class NativeCallDispatcher
         // Every failure reaches the same one-shot final trap. Wrong ESP or
         // fewer than two witnessed phases rejects before any context restore.
         // No unused failure breakpoint remains registered when this page frees.
-        return new(bytes.ToArray(), created, initialized);
+        return new(bytes.ToArray(), created, initialized, positioned);
     }
 
     private static byte[] BuildEntryStub(IReadOnlyList<NativeCallSpec> calls, uint results, uint originalEsp)

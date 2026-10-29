@@ -1237,6 +1237,11 @@
       "category": "game/flow"
     },
     {
+      "path": "docs/game/flow/cinematic-game-flow-state.md",
+      "title": "CinematicGameFlowState: сообщения и переключение ввода",
+      "category": "game/flow"
+    },
+    {
       "path": "docs/game/flow/display-camera.md",
       "title": "Разрешение экрана, камеры и GUI в Winx Club PC",
       "category": "game/flow"
@@ -1257,8 +1262,18 @@
       "category": "game/flow"
     },
     {
+      "path": "docs/game/flow/game-over-game-flow-state.md",
+      "title": "wxGameOverGameFlowState",
+      "category": "game/flow"
+    },
+    {
       "path": "docs/game/flow/gui-object-family.md",
       "title": "Семейство GUIObject: конструкция, состояния и сообщения",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/press-start-game-flow-state.md",
+      "title": "PressStartGameFlowState: Entry, Exit и ожидание кнопки",
       "category": "game/flow"
     },
     {
@@ -1372,6 +1387,21 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-audio-bank-entry.md",
+      "title": "spAudioBankEntry: физический Name и ограниченный пустой профиль PC",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-audio-bank.md",
+      "title": "spAudioBank",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-audio-manager.md",
+      "title": "spAudioManager: PC bank removal",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-audio-sound.md",
       "title": "spAudioSound",
       "category": "reference/classes"
@@ -1417,6 +1447,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/sp-camera-manager.md",
+      "title": "spCameraManager",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/sp-camera-serializer.md",
       "title": "spCameraSerializer",
       "category": "reference/classes"
@@ -1424,6 +1459,16 @@
     {
       "path": "docs/reference/classes/sp-camera.md",
       "title": "spCamera",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-cinematic-manager.md",
+      "title": "spCinematicManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-cinematic.md",
+      "title": "spCinematic",
       "category": "reference/classes"
     },
     {
@@ -1459,6 +1504,21 @@
     {
       "path": "docs/reference/classes/sp-debug-manager.md",
       "title": "spDebugManager",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-audio-bank-entry.md",
+      "title": "spDXAudioBankEntry: известный конструктор, Name Copy и Clone PC",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-audio-bank.md",
+      "title": "spDXAudioBank",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-dx-audio-manager.md",
+      "title": "spDXAudioManager: captured PC bank registry",
       "category": "reference/classes"
     },
     {
@@ -2572,6 +2632,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-droid-wander-ai-action.md",
+      "title": "`wxDroidWanderAIAction`",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-dying-state.md",
       "title": "wxDyingState",
       "category": "reference/classes"
@@ -2644,6 +2709,11 @@
     {
       "path": "docs/reference/classes/wx-ghoul-jumping-state.md",
       "title": "wxGhoulJumpingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-ghoul-script-ai-action.md",
+      "title": "`wxGhoulScriptAIAction`",
       "category": "reference/classes"
     },
     {
@@ -2724,6 +2794,11 @@
     {
       "path": "docs/reference/classes/wx-idle-ai-action.md",
       "title": "`wxIdleAIAction`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-kiko-hole-ai-action.md",
+      "title": "wxKikoHoleAIAction",
       "category": "reference/classes"
     },
     {
@@ -2914,6 +2989,11 @@
     {
       "path": "docs/reference/classes/wx-struggling-state.md",
       "title": "`wxStrugglingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-text-controller.md",
+      "title": "wxTextController",
       "category": "reference/classes"
     },
     {

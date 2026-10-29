@@ -25,6 +25,25 @@ namespace sparkplug::evidence::pc
         Address32 sharedNameEntry;     // 0x10
     };
 
+    // Independently observed PC field04 storage. Unlike PS2's embedded
+    // sentinel description, PC uses a separate container and sentinel node.
+    struct spBaseReferrerListObservedLayout final
+    {
+        std::uint32_t opaque00; // no original role/default inferred
+        Address32 head;        // 0x04: separately allocated12-byte sentinel
+        std::uint32_t count;   // 0x08: number of referring pointers
+    };
+    struct spBaseReferrerNodeObservedLayout final
+    {
+        Address32 next;
+        Address32 previous;
+        Address32 borrowedReferrer;
+    };
+    static_assert(sizeof(spBaseReferrerListObservedLayout)==0x0C);
+    static_assert(offsetof(spBaseReferrerListObservedLayout,head)==0x04);
+    static_assert(offsetof(spBaseReferrerListObservedLayout,count)==0x08);
+    static_assert(sizeof(spBaseReferrerNodeObservedLayout)==0x0C);
+
     // PC allocation20 and lookup414420/contains4423F0 consumer layout.
     // The whole protected constructor/registration path remains unexecuted.
     struct spRTTIManagerObservedLayout final

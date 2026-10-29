@@ -13,10 +13,10 @@
 | `spAnimTrack` | `0x33B61869` | Да | Да | — | [spAnimTrack.h](../../Sparkplug/Code/Sparkplug/spAnimTrack.h) |
 | `spApp` | `0x391B146A` | Да | Да | [1](classes/sp-app.md) | [spApp.h](../../Sparkplug/Code/SparkBase/spApp.h) |
 | `spAsyncFileStreamManager` | `0x7EA51364` | Да | Да | [1](classes/sp-async-file-stream-manager.md) | [spAsyncFileStreamManager.h](../../Sparkplug/Code/SparkBase/spAsyncFileStreamManager.h) |
-| `spAudioBank` | `0x2C1225F5` | Да | Да | — | — |
-| `spAudioBankEntry` | `0x6A5024D0` | Да | Да | — | — |
+| `spAudioBank` | `0x2C1225F5` | Да | Да | [1](classes/sp-audio-bank.md) | [spAudioBank.h](../../Sparkplug/Code/Sparkplug/spAudioBank.h), [spAudioBank.cpp](../../Sparkplug/Code/Sparkplug/spAudioBank.cpp) |
+| `spAudioBankEntry` | `0x6A5024D0` | Да | Да | [1](classes/sp-audio-bank-entry.md) | [spAudioBankEntry.h](../../Sparkplug/Code/Sparkplug/spAudioBankEntry.h), [spAudioBankEntry.cpp](../../Sparkplug/Code/Sparkplug/spAudioBankEntry.cpp) |
 | `spAudioListener` | `0x06591D9C` | Да | Да | — | — |
-| `spAudioManager` | `0x65B74130` | Да | Да | — | — |
+| `spAudioManager` | `0x65B74130` | Да | Да | [1](classes/sp-audio-manager.md) | [spAudioManager.h](../../Sparkplug/Code/Sparkplug/spAudioManager.h), [spAudioManager.cpp](../../Sparkplug/Code/Sparkplug/spAudioManager.cpp) |
 | `spAudioSound` | `0x33283899` | Да | Да | [1](classes/sp-audio-sound.md) | [spAudioSound.h](../../Sparkplug/Code/Sparkplug/spAudioSound.h), [spAudioSound.cpp](../../Sparkplug/Code/Sparkplug/spAudioSound.cpp) |
 | `spAudioVoice` | `0x71802844` | Да | Да | — | — |
 | `spBallisticPFX` | `0x2FD66B0D` | Да | Да | — | — |
@@ -33,12 +33,12 @@
 | `spCamera` | `0x18DF3845` | Да | Да | [1](classes/sp-camera.md) | [spCamera.h](../../Sparkplug/Code/Sparkplug/spCamera.h) |
 | `spCameraData` | `0x24BB4C41` | Да | Да | — | [spCameraData.h](../../Sparkplug/Code/Sparkplug/spCameraData.h) |
 | `spCameraDataSerializer` | `0x759F1687` | Да | Да | [1](classes/sp-camera-data-serializer.md) | [spCameraDataSerializer.h](../../Sparkplug/Code/Sparkplug/spCameraDataSerializer.h) |
-| `spCameraManager` | `0x33800A37` | Да | Да | — | — |
+| `spCameraManager` | `0x33800A37` | Да | Да | [1](classes/sp-camera-manager.md) | [spCameraManager.h](../../Sparkplug/Code/Sparkplug/spCameraManager.h) |
 | `spCameraSerializer` | `0x440E53FB` | Да | Да | [1](classes/sp-camera-serializer.md) | [spCameraSerializer.h](../../Sparkplug/Code/Sparkplug/spCameraSerializer.h) |
 | `spCameraViewLayer` | `0x194613E1` | Да | Да | [1](classes/sp-material-render-target-texture.md) | — |
 | `spCapsuleBV` | `0x312FABC0` | Да | Да | [1](../engine/physics/capsule-bv.md) | [spCapsuleBV.h](../../Sparkplug/Code/Sparkplug/spCapsuleBV.h), [spCapsuleBV.cpp](../../Sparkplug/Code/Sparkplug/spCapsuleBV.cpp) |
-| `spCinematic` | `0x772A0D41` | Да | Да | — | — |
-| `spCinematicManager` | `0x48E66610` | Да | Да | — | — |
+| `spCinematic` | `0x772A0D41` | Да | Да | [1](classes/sp-cinematic.md) | [spCinematic.h](../../Sparkplug/Code/Sparkplug/spCinematic.h) |
+| `spCinematicManager` | `0x48E66610` | Да | Да | [1](classes/sp-cinematic-manager.md) | [spCinematicManager.h](../../Sparkplug/Code/Sparkplug/spCinematicManager.h) |
 | `spCinematicSerializer` | `0x63E73B9A` | Да | Да | — | — |
 | `spCloneManager` | `0xC4419F78` | Да | Да | — | [spBaseObject.h](../../Sparkplug/Code/SparkBase/spBaseObject.h) |
 | `spCollisionInfo` | `0x47A97C0E` | Да | Да | [1](classes/sp-collision-info.md) | [spCollisionInfo.h](../../Sparkplug/Code/Sparkplug/spCollisionInfo.h) |
@@ -61,9 +61,9 @@
 | `spCustomAppData` | `0x76181F6B` | Да | Да | — | [spExtensionData.h](../../Sparkplug/Code/Sparkplug/spExtensionData.h) |
 | `spDebugManager` | `0x37054B40` | Да | Да | [1](classes/sp-debug-manager.md) | [spDebugManager.h](../../Sparkplug/Code/Sparkplug/spDebugManager.h) |
 | `spDXAsmShaderParser` | `0x0B3E0AA9` | Да | — | — | [spDXAsmShaderParser.h](../../Sparkplug/Code/SparkplugDX/spDXAsmShaderParser.h), [spDXAsmShaderParser.cpp](../../Sparkplug/Code/SparkplugDX/spDXAsmShaderParser.cpp) |
-| `spDXAudioBank` | `0x32A624E0` | Да | — | — | — |
-| `spDXAudioBankEntry` | `0x2CD93375` | Да | — | — | — |
-| `spDXAudioManager` | `0x116F7E16` | Да | — | — | — |
+| `spDXAudioBank` | `0x32A624E0` | Да | — | [1](classes/sp-dx-audio-bank.md) | [spDXAudioBank.h](../../Sparkplug/Code/SparkplugDX/spDXAudioBank.h), [spDXAudioBank.cpp](../../Sparkplug/Code/SparkplugDX/spDXAudioBank.cpp) |
+| `spDXAudioBankEntry` | `0x2CD93375` | Да | — | [1](classes/sp-dx-audio-bank-entry.md) | [spDXAudioBankEntry.h](../../Sparkplug/Code/SparkplugDX/spDXAudioBankEntry.h), [spDXAudioBankEntry.cpp](../../Sparkplug/Code/SparkplugDX/spDXAudioBankEntry.cpp) |
+| `spDXAudioManager` | `0x116F7E16` | Да | — | [1](classes/sp-dx-audio-manager.md) | [spDXAudioManager.h](../../Sparkplug/Code/SparkplugDX/spDXAudioManager.h), [spDXAudioManager.cpp](../../Sparkplug/Code/SparkplugDX/spDXAudioManager.cpp) |
 | `spDXAudioVoice` | `0x35611A2A` | Да | — | — | — |
 | `spDXBallisticPFX` | `0x23A15847` | Да | — | — | — |
 | `spDXBloomFX` | `0x15EABD65` | Да | — | — | — |

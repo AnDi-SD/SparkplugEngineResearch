@@ -28,6 +28,7 @@
 - [`wxDispelState`](wx-dispel-state.md).
 - [`wxDroidInactiveState`](wx-droid-inactive-state.md).
 - [`wxDroidMovingState`](wx-droid-moving-state.md).
+- [`wxDroidWanderAIAction`](wx-droid-wander-ai-action.md).
 - [`wxFishMovingState`](wx-fish-moving-state.md).
 - [`wxFlyingState`](wx-flying-state.md).
 - [`wxFlyingWanderAIAction`](wx-flying-wander-ai-action.md).
@@ -35,6 +36,7 @@
 - [`wxFrogJumpingState`](wx-frog-jumping-state.md).
 - [`wxFrogMovingState`](wx-frog-moving-state.md).
 - [`wxGhoulAttackState`](wx-ghoul-attack-state.md).
+- [`wxGhoulScriptAIAction`](wx-ghoul-script-ai-action.md).
 - [`wxGlyphState`](wx-glyph-state.md).
 - [`wxHurtAIAction`](wx-hurt-ai-action.md).
 - [`wxIceBatFlyingState`](wx-ice-bat-flying-state.md).
@@ -77,6 +79,9 @@
 - [spAnimTexControllerSerializer](sp-anim-tex-controller-serializer.md).
 - [spApp](sp-app.md).
 - [spAsyncFileStreamManager](sp-async-file-stream-manager.md).
+- [spAudioBank](sp-audio-bank.md).
+- [spAudioBankEntry: физический Name и ограниченный пустой профиль PC](sp-audio-bank-entry.md).
+- [spAudioManager: PC bank removal](sp-audio-manager.md).
 - [spAudioSound](sp-audio-sound.md).
 - [spBaseObject / spNamedObject](sp-base-object.md).
 - [spBoxBV](sp-box-bv.md).
@@ -87,7 +92,10 @@
 - [spButton](sp-button.md).
 - [spCamera](sp-camera.md).
 - [spCameraDataSerializer](sp-camera-data-serializer.md).
+- [spCameraManager](sp-camera-manager.md).
 - [spCameraSerializer](sp-camera-serializer.md).
+- [spCinematic](sp-cinematic.md).
+- [spCinematicManager](sp-cinematic-manager.md).
 - [spCollisionInfo](sp-collision-info.md).
 - [spColorFuncEvalSerializer](sp-color-func-eval-serializer.md).
 - [spController / spSubController](sp-controller.md).
@@ -95,6 +103,9 @@
 - [spCubeTexture](sp-cube-texture.md).
 - [spDataBlockSerializer](sp-data-block-serializer.md).
 - [spDebugManager](sp-debug-manager.md).
+- [spDXAudioBank](sp-dx-audio-bank.md).
+- [spDXAudioBankEntry: известный конструктор, Name Copy и Clone PC](sp-dx-audio-bank-entry.md).
+- [spDXAudioManager: captured PC bank registry](sp-dx-audio-manager.md).
 - [spDXCombinedVB](sp-dx-combined-vb.md).
 - [spDXCubeTexture](sp-dx-cube-texture.md).
 - [spDXCubeTextureSerializer](sp-dx-cube-texture-serializer.md).
@@ -309,6 +320,7 @@
 - [wxIceGargoyleSleepingAIAction](wx-ice-gargoyle-sleeping-ai-action.md).
 - [wxIceGargoyleWithdrawlAIAction](wx-ice-gargoyle-withdrawl-ai-action.md).
 - [wxIceWormAttackState](wx-ice-worm-attack-state.md).
+- [wxKikoHoleAIAction](wx-kiko-hole-ai-action.md).
 - [wxKnutAttackState](wx-knut-attack-state.md).
 - [wxLoadSaveGameFlowState](wx-load-save-game-flow-state.md).
 - [wxMenuGameFlowState](wx-menu-game-flow-state.md).
@@ -327,6 +339,7 @@
 - [wxSpiderHurtState](wx-spider-hurt-state.md).
 - [wxStickingLeftState и wxStickingRightState](wx-sticking-states.md).
 - [wxStrafingState](wx-strafing-state.md).
+- [wxTextController](wx-text-controller.md).
 - [wxTrollBeforeFightAIAction](wx-troll-before-fight-ai-action.md).
 - [wxVectorWrapper](wx-vector-wrapper.md).
 - [wxVineClimbingState](wx-vine-climbing-state.md).

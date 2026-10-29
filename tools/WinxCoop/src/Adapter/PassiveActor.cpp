@@ -79,6 +79,7 @@ namespace winxcoop::adapter
         Graph local{}, sourceGraph{}, hairGraph{}, combined{};
         BYTE matrixScratch[MaxBones * 64]{};
         U profile{}, record{}, localRoot{}, parent{}, scene{}, input{}, inputState{}, inputDevice{}, camera{};
+        U capturedFlow{}, capturedSceneManager{}, playingState{};
         U source{}, hair{}, wrapper{}, actor{}, clips[3]{}, activeAnimation{}, playback{};
         bool sourceOwned{}, hairOwned{}, wrapperOwned{}, sourceQualified{}, hairQualified{}, wrapperQualified{}, attached{}, created{}, busy{}, readFailed{};
         Transform initial{};
@@ -420,7 +421,7 @@ namespace winxcoop::adapter
             U p{}, r{}, n{}, flow{}, manager{}, level{}, pending{}, stack{}, active{}, inputAt{}, engine{};
             if (!Get(0x765AD4, p) || !Table(p, 0x6F5A44) || !Get(p + 0x2B4, r) || !Table(r, 0x710F80) ||
                 !Get(r + 0x24, n) || !Table(n, NodeTable) || !Get(0x755294, flow) || !Get(0x75DB90, manager) ||
-                !Get(flow + 0x1B0, level) || level != 28 || !Get(flow + 0x1B8, pending) ||
+                !Get(flow + 0x1B0, level) || (requirePlaying && level != 28) || !Get(flow + 0x1B8, pending) ||
                 !Get(flow + 0x1AC, stack) || stack > 20 || !Get(flow + 0x15C + stack * 4, active) ||
                 (requirePlaying && (pending || Value(active + 0x10) != 28)) ||
                 !Get(0x7552A0, inputAt) || !Table(inputAt, 0x6F5508) ||
@@ -428,6 +429,21 @@ namespace winxcoop::adapter
             U currentScene{}, componentCount{};
             if (!Get(manager + 0x20, currentScene) || currentScene || !Get(r + 0x20, componentCount) || componentCount != 11)
                 return Fail(PassiveActorError::LocalIdentity, "world context or stock component count is unavailable");
+            if (!requirePlaying)
+            {
+                bool foundPlaying = false;
+                if (capture || flow != capturedFlow || manager != capturedSceneManager)
+                    return Fail(PassiveActorError::LocalIdentity, "retained flow or scene-manager identity changed");
+                for (U index = 0; index <= stack; ++index)
+                {
+                    U state{};
+                    if (!Get(flow + 0x15C + index * 4, state)) return false;
+                    if (state == playingState) foundPlaying = true;
+                }
+                U playingId{};
+                if (!foundPlaying || !Table(playingState, 0x710874) || !Get(playingState + 0x10, playingId) || playingId != 28)
+                    return Fail(PassiveActorError::LocalIdentity, "original playing state is no longer retained beneath the overlay");
+            }
             U parentAt{}, sceneAt{}, inputStateAt{}, inputDeviceAt{}, cameraAt{};
             if (!Get(n + 0x2C, parentAt) || !Pointer(parentAt) || !Get(n + 0x3C, sceneAt) || !Table(sceneAt, 0x6E7358) ||
                 !Get(inputAt + 0x18, inputStateAt) || !Pointer(inputStateAt) || !Get(inputAt + 0x1C, inputDeviceAt) || !Pointer(inputDeviceAt) ||
@@ -452,6 +468,7 @@ namespace winxcoop::adapter
             {
                 profile = p; record = r; localRoot = n; parent = parentAt; scene = sceneAt; input = inputAt;
                 inputState = inputStateAt; inputDevice = inputDeviceAt; camera = cameraAt;
+                capturedFlow = flow; capturedSceneManager = manager; playingState = active;
                 if (!Read(n + 0x20, initial.position, 12) || !Read(n + 0x30, initial.scale, 12) || !Read(n + 0x40, initial.orientation, 36) ||
                     !FiniteWords(initial.position, 3) || !FiniteWords(initial.scale, 3) || !Matrix(initial.orientation))
                     return Fail(PassiveActorError::Transform, "local PRS is not qualified");
@@ -587,8 +604,18 @@ namespace winxcoop::adapter
             U flags{};
             if (!Get(wrapper + 0xB0, flags)) return false;
             flags |= 1;
+            // Incoming PRS is the stock character root. MoveCtrl initializes
+            // its model_root_master child with a Y half-turn; our body cut
+            // omits that file-identity ancestor. Restore its visual basis for
+            // body, skeleton and attached hair together. Node composition is
+            // row-vector local * parent, hence H * R (not R transpose).
+            // An exact half-turn is our presentation compensation, rather than
+            // a bit-exact reimplementation of the original float-pi call.
+            float modelOrientation[9];
+            for (U i = 0; i < 9; ++i)
+                modelOrientation[i] = (i < 3 || i >= 6) ? -transform.orientation[i] : transform.orientation[i];
             return Put(wrapper + 0x20, transform.position, 12) && Put(wrapper + 0x30, initial.scale, 12) &&
-                Put(wrapper + 0x40, transform.orientation, 36) && Put(wrapper + 0xB0, &flags, 4);
+                Put(wrapper + 0x40, modelOrientation, 36) && Put(wrapper + 0xB0, &flags, 4);
         }
         bool Build(const char* media) noexcept
         {
@@ -749,7 +776,8 @@ namespace winxcoop::adapter
         if (!state_ || !state_->created || state_->busy)
             return Fail(PassiveActorError::Context, "live ownership requires a completed passive actor", true);
         U parent{}, scene{}; USHORT references{};
-        if (!state_->LocalIdentity(false, false) || !state_->Table(state_->actor, 0x703F80) ||
+        if (!state_->LocalIdentity(false, false)) return false;
+        if (!state_->Table(state_->actor, 0x703F80) ||
             !state_->Table(state_->wrapper, NodeTable) || !state_->Get(state_->wrapper + 0x2C, parent) || parent != state_->parent ||
             !state_->Get(state_->wrapper + 0x3C, scene) || scene != state_->scene ||
             !state_->References(state_->wrapper, references) || references != 2)

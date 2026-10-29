@@ -1,13 +1,19 @@
 #include "spProjectionSerializer.h"
 #include "spProjection.h"
+#include "spBoxProjection.h"
 #include "spRenderNode.h"
 #include "spFog.h"
+#include "spMaterialSerializer.h"
+#include "spFogSerializer.h"
+#include "spRenderNodeSerializer.h"
 #include "Code/SparkplugDX/spDXMaterial.h"
 #include "spResourceFATSerializer.h"
 #include "spSerializerManager.h"
+#include "Analysis/Host/spProjectionIndexHost.h"
 #include "Analysis/PC/spSectionCursor.h"
 #include <limits>
 #include <utility>
+#include <typeinfo>
 
 namespace sparkplug::reconstruction
 {
@@ -17,6 +23,32 @@ namespace sparkplug::reconstruction
         const spRTTIRecord record{spProjectionSerializer::ClassID,spRenderableSerializer::ClassID,
             "spProjectionSerializer",&spRenderableSerializer::StaticRTTI(),&Create,nullptr};
         const bool registered=spRTTIManager::Instance().RegisterDeferredForAnalysis(record);
+        // Host-only dispatch substitution, not a recovered native class or
+        // RTTI/receiver mapping. It is never registered, retained or cloned.
+        // Shared IndexResource inserts first and skips this own callback on
+        // duplicate. Borrowed context/target outlive this synchronous object.
+        class EmptyMaterialOwnIndexDispatchForAnalysis final : public spSerializer
+        {
+        public:
+            EmptyMaterialOwnIndexDispatchForAnalysis(
+                spProjectionEmptyMaterialIndexContextForAnalysis& context,spDXMaterial& material) noexcept
+                :context_(context),material_(material){}
+            bool IndexRelationshipsWithContextForAnalysis(
+                spSerializerManager& manager,spBaseObject& object) const override
+            {
+                if(&manager!=&context_.manager||&object!=&material_)return false;
+                // Exact stable zero-pass/null-controller admission makes the
+                // existing qualified Material tail pure (including its null
+                // reference). Its unchanged generic semantics remain separate
+                // from this explicit post-insertion nested warm-NULL gate.
+                if(!context_.materialSerializer.spMaterialSerializer::IndexRelationshipsWithContextForAnalysis(manager,object))return false;
+                return context_.errors.HandleWarmEmptyPcForAnalysis(context_.rawWord75AB9C,context_.lifetime)
+                    ==spPCErrorManager::WarmEmptyHandleStatusForAnalysis::Completed;
+            }
+        private:
+            spProjectionEmptyMaterialIndexContextForAnalysis& context_;
+            spDXMaterial& material_;
+        };
         bool FailWrite(std::string* error,const char* message)
         {if(error&&error->empty())*error=message;return false;}
         bool AdmitWrite(const spProjection& object,spSerializerManager* manager,std::string* error)
@@ -112,6 +144,201 @@ namespace sparkplug::reconstruction
     }
     bool spProjectionSerializer::IndexRelationshipsForAnalysis(spBaseObject&) const{return false;}
     bool spProjectionSerializer::IndexRelationshipsWithContextForAnalysis(spSerializerManager&,spBaseObject&) const{return false;}
+    bool spProjectionSerializer::IndexProjectionNullFieldsForAnalysis(
+        spProjectionNullIndexContextForAnalysis& context,spProjection& object) const
+    {
+        const auto* fat=context.manager.GetFATForAnalysis();
+        // Analytical admission precedes every effect. Native nonnull reference
+        // recursion, cold globals and other manager/FAT profiles are unqualified.
+        if(spSerializerManager::GetInstance()!=&context.manager
+            ||context.manager.GetPlatformMaskForAnalysis()!=spSerializerManager::PlatformCommon
+            ||context.manager.GetOperationMaskForAnalysis()!=spSerializerManager::OperationSave
+            ||context.manager.GetSerializationPolicyForAnalysis()!=2
+            ||!fat||fat->GetResourceCountForAnalysis()!=0||fat->GetFileCountForAnalysis()!=0
+            ||fat->GetNextResourceIDForAnalysis()!=1
+            ||object.GetMaterialForAnalysis()||object.GetFogForAnalysis()
+            ||object.GetBoundRenderNodeForAnalysis())return false;
+        const auto reference=[&](spBaseObject* value)
+        {
+            // Actual467300 calls the real common error gate BEFORE its null
+            // check. Native empty Handle returns false; the reference succeeds.
+            return context.errors.HandleWarmEmptyPcForAnalysis(context.rawWord75AB9C,context.lifetime)
+                ==spPCErrorManager::WarmEmptyHandleStatusForAnalysis::Completed
+                &&IndexReferenceForAnalysis(context.manager,value);
+        };
+        // Parent Renderable fields precede Projection's borrowed bound84.
+        return reference(object.GetMaterialForAnalysis().get())
+            &&reference(object.GetFogForAnalysis().get())
+            &&reference(object.GetBoundRenderNodeForAnalysis());
+    }
+    bool spProjectionSerializer::IndexNullRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionNullIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        auto* target=dynamic_cast<spProjection*>(&object);
+        return target&&GetTargetClassIDForAnalysis()==TargetClassID
+            &&IndexProjectionNullFieldsForAnalysis(context,*target);
+    }
+    bool spProjectionSerializer::IndexProjectionPreindexedFieldsForAnalysis(
+        spProjectionPreindexedIndexContextForAnalysis& context,spProjection& object) const
+    {
+        auto& manager=context.manager;auto* fat=manager.GetFATForAnalysis();
+        // Exact portable types are host guards before any unqualified virtual
+        // dispatch. Current Common/Save lookup equivalence is admitted; this
+        // does not introspect or claim native registration masks FF/3.
+        if(typeid(context.materialSerializer)!=typeid(spMaterialSerializer)
+            ||typeid(context.fogSerializer)!=typeid(spFogSerializer)
+            ||typeid(context.nodeSerializer)!=typeid(spRenderNodeSerializer)
+            ||spSerializerManager::GetInstance()!=&manager
+            ||manager.GetPlatformMaskForAnalysis()!=spSerializerManager::PlatformCommon
+            ||manager.GetOperationMaskForAnalysis()!=spSerializerManager::OperationSave
+            ||manager.GetSerializationPolicyForAnalysis()!=2
+            ||manager.GetRegistrationCountForAnalysis()!=3||!fat||fat->GetFileCountForAnalysis()!=0)
+            return false;
+        auto* material=object.GetMaterialForAnalysis().get();
+        auto* fog=object.GetFogForAnalysis().get();auto* node=object.GetBoundRenderNodeForAnalysis();
+        // DXMaterial/Fog are final. RenderNode permits arbitrary derivatives
+        // elsewhere, but their callbacks are outside this explicit profile.
+        if((material&&!dynamic_cast<spDXMaterial*>(material))
+            ||(fog&&!dynamic_cast<spFog*>(fog))
+            ||(node&&typeid(*node)!=typeid(spRenderNode))||(!material&&!fog&&!node))return false;
+        const spClassID classes[]={spDXMaterial::ClassID,spFog::ClassID,spRenderNode::ClassID};
+        spSerializer* bindings[]={&context.materialSerializer,&context.fogSerializer,&context.nodeSerializer};
+        spBaseObject* values[]={material,fog,node};const std::uint32_t ids[]={7,9,11};
+        std::size_t count=0;std::uint32_t nextID=1;
+        for(std::size_t i=0;i<3;++i)
+        {
+            if(manager.FindForAnalysis(classes[i])!=bindings[i])return false;
+            if(!values[i])continue;
+            const auto* entry=fat->FindByObjectForAnalysis(*values[i]);
+            if(!entry||entry!=fat->FindByIDForAnalysis(ids[i])||entry->id!=ids[i]
+                ||entry->classID!=classes[i]||entry->object!=values[i]||entry->fileID!=0
+                ||!entry->nameIsNullForAnalysis||!entry->name.empty()
+                ||entry->offset!=0||entry->size!=0||entry->payloadWritten)return false;
+            ++count;nextID=ids[i]+1;
+        }
+        if(fat->GetResourceCountForAnalysis()!=count||fat->GetNextResourceIDForAnalysis()!=nextID)return false;
+        const auto reference=[&](spBaseObject* value)
+        {
+            // Native4672C0 executes actual466FA0, observes duplicate AL0 and
+            // succeeds without own recursion. Shared portable IndexResource
+            // has an existing-entry early return with the same bounded effect.
+            return context.errors.HandleWarmEmptyPcForAnalysis(context.rawWord75AB9C,context.lifetime)
+                ==spPCErrorManager::WarmEmptyHandleStatusForAnalysis::Completed
+                &&IndexReferenceForAnalysis(manager,value);
+        };
+        return reference(material)&&reference(fog)&&reference(node);
+    }
+    bool spProjectionSerializer::IndexPreindexedRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionPreindexedIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        // The parent serializer's native fixture uses a physical Box target.
+        if(typeid(*this)!=typeid(spProjectionSerializer)||typeid(object)!=typeid(spBoxProjection))return false;
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&IndexProjectionPreindexedFieldsForAnalysis(context,*target);
+    }
+    bool spProjectionSerializer::IndexProjectionFogOnlyFieldsForAnalysis(
+        spProjectionFogOnlyIndexContextForAnalysis& context,spProjection& object) const
+    {
+        auto& manager=context.manager;auto* fat=manager.GetFATForAnalysis();
+        if(typeid(context.fogSerializer)!=typeid(spFogSerializer)
+            ||spSerializerManager::GetInstance()!=&manager
+            ||manager.GetPlatformMaskForAnalysis()!=spSerializerManager::PlatformCommon
+            ||manager.GetOperationMaskForAnalysis()!=spSerializerManager::OperationSave
+            ||manager.GetSerializationPolicyForAnalysis()!=2
+            ||manager.GetRegistrationCountForAnalysis()!=1||!fat||fat->GetFileCountForAnalysis()!=0)
+            return false;
+        auto* fog=dynamic_cast<spFog*>(object.GetFogForAnalysis().get());
+        // Fog is final. Its native own Index is an unconditional leaf; scalar
+        // payload is preserved as data, no renderer or payload semantics added.
+        if(object.GetMaterialForAnalysis()||object.GetBoundRenderNodeForAnalysis()
+            ||!fog||fog->GetName()!=nullptr
+            ||manager.FindForAnalysis(spFog::ClassID)!=&context.fogSerializer)return false;
+        const auto count=fat->GetResourceCountForAnalysis();
+        const auto* entry=fat->FindByObjectForAnalysis(*fog);
+        if(count==0)
+        {
+            if(fat->GetNextResourceIDForAnalysis()!=1||entry||fat->FindByIDForAnalysis(1))return false;
+        }
+        else if(count==1)
+        {
+            if(fat->GetNextResourceIDForAnalysis()!=2||!entry||entry!=fat->FindByIDForAnalysis(1)
+                ||entry->id!=1||entry->classID!=spFog::ClassID||entry->object!=fog
+                ||entry->fileID!=0||!entry->nameIsNullForAnalysis||!entry->name.empty()
+                ||entry->offset!=0||entry->size!=0||entry->payloadWritten)return false;
+        }
+        else return false;
+        const auto reference=[&](spBaseObject* value)
+        {
+            return context.errors.HandleWarmEmptyPcForAnalysis(context.rawWord75AB9C,context.lifetime)
+                ==spPCErrorManager::WarmEmptyHandleStatusForAnalysis::Completed
+                &&IndexReferenceForAnalysis(manager,value);
+        };
+        // Shared IndexResource inserts before invoking the actual typed Fog
+        // own adapter. Repeat uses its existing-entry early return. Native
+        // FAT allocation sizes/counts are not portable container requirements.
+        return reference(nullptr)&&reference(fog)&&reference(nullptr);
+    }
+    bool spProjectionSerializer::IndexFogOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionFogOnlyIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        // Host exact types supply admission; no GetTarget virtual is called.
+        if(typeid(*this)!=typeid(spProjectionSerializer)||typeid(object)!=typeid(spBoxProjection))return false;
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&IndexProjectionFogOnlyFieldsForAnalysis(context,*target);
+    }
+    bool spProjectionSerializer::IndexProjectionEmptyMaterialFieldsForAnalysis(
+        spProjectionEmptyMaterialIndexContextForAnalysis& context,spProjection& object) const
+    {
+        auto& manager=context.manager;auto* fat=manager.GetFATForAnalysis();
+        if(typeid(context.materialSerializer)!=typeid(spMaterialSerializer)
+            ||spSerializerManager::GetInstance()!=&manager
+            ||manager.GetPlatformMaskForAnalysis()!=spSerializerManager::PlatformCommon
+            ||manager.GetOperationMaskForAnalysis()!=spSerializerManager::OperationSave
+            ||manager.GetSerializationPolicyForAnalysis()!=2
+            ||manager.GetRegistrationCountForAnalysis()!=1||!fat||fat->GetFileCountForAnalysis()!=0)return false;
+        auto* material=dynamic_cast<spDXMaterial*>(object.GetMaterialForAnalysis().get());
+        // Final physical type and a stable pure empty tail exclude callbacks,
+        // populated passes/controllers and the unknown native power word B8.
+        if(!material||object.GetFogForAnalysis()||object.GetBoundRenderNodeForAnalysis()
+            ||material->GetName()!=nullptr||material->GetPassCountForAnalysis()!=0
+            ||material->GetMaterialColorControllerForAnalysis()!=nullptr
+            ||manager.FindForAnalysis(spDXMaterial::ClassID)!=&context.materialSerializer)return false;
+        const auto count=fat->GetResourceCountForAnalysis();const auto* entry=fat->FindByObjectForAnalysis(*material);
+        if(count==0)
+        {
+            if(fat->GetNextResourceIDForAnalysis()!=1||entry||fat->FindByIDForAnalysis(1))return false;
+        }
+        else if(count==1)
+        {
+            if(fat->GetNextResourceIDForAnalysis()!=2||!entry||entry!=fat->FindByIDForAnalysis(1)
+                ||entry->id!=1||entry->classID!=spDXMaterial::ClassID||entry->object!=material
+                ||entry->fileID!=0||!entry->nameIsNullForAnalysis||!entry->name.empty()
+                ||entry->offset!=0||entry->size!=0||entry->payloadWritten)return false;
+        }
+        else return false;
+        const auto gate=[&]
+        {
+            return context.errors.HandleWarmEmptyPcForAnalysis(context.rawWord75AB9C,context.lifetime)
+                ==spPCErrorManager::WarmEmptyHandleStatusForAnalysis::Completed;
+        };
+        if(!gate())return false;
+        // Binding lookup above is pure analytical admission. Native selects
+        // that actual binding after its gate; this local source adapter is an
+        // explicit receiver substitution, not native callback/RTTI parity.
+        EmptyMaterialOwnIndexDispatchForAnalysis dispatch(context,*material);
+        if(!dispatch.IndexResourceForAnalysis(manager,*material))return false;
+        // Shared insertion has already run the adapter own tail/nested gate
+        // exactly when new. Duplicate returns before that own dispatch.
+        return gate()&&IndexReferenceForAnalysis(manager,nullptr)
+            &&gate()&&IndexReferenceForAnalysis(manager,nullptr);
+    }
+    bool spProjectionSerializer::IndexEmptyMaterialOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionEmptyMaterialIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spProjectionSerializer)||typeid(object)!=typeid(spBoxProjection))return false;
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&IndexProjectionEmptyMaterialFieldsForAnalysis(context,*target);
+    }
     bool spProjectionSerializer::WriteProjectionFieldsForAnalysis(spSerializerManager* manager,
         spStream& stream,const spProjection& object,std::string* error) const
     {

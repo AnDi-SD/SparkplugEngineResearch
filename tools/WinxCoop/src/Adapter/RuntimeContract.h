@@ -9,7 +9,7 @@
 namespace winxcoop::adapter
 {
     constexpr std::uint32_t IpcMagic = 0x50494357; // WCIP
-    constexpr std::uint32_t IpcVersion = 2;
+    constexpr std::uint32_t IpcVersion = 3;
     enum class RuntimeMode : std::uint32_t { Observe, PassiveActor };
     enum class RuntimePhase : std::uint32_t { Empty, Attached, WaitingForLevel, Ready, Stopped, Failed };
     enum class RuntimeError : std::uint32_t { None, Identity, Image, Signature, Memory, Thread, NativeException, Ipc, Media, Command, Actor, Unload, Owner };
@@ -38,6 +38,14 @@ namespace winxcoop::adapter
         std::uint64_t session{};
         std::uint32_t levelEpoch{}, lastCommandSequence{}, remoteEntity{}, actorError{}, nativeCalls{};
         std::uint32_t unloadGuardHits{}, unloadCleanups{}, epochRetired{}, mediaQualified{};
+        RuntimeAnimation localAnimation{};
+        std::uint32_t localAnimationQualified{}, localFsmState{};
+        Transform remoteDisplay{};
+        std::uint32_t remoteDisplaySamples{}, remoteDisplayMaxGapMs{};
+        float remoteDisplayMaxStep{};
+        // Raw stock wxGameTimer observation. World updates alone do not prove
+        // gameplay advances while the original window is out of focus.
+        std::uint32_t gameTimerPaused{}, gameTimerActive{}, gameTimerCurrentRaw{}, gameTimerDeltaRaw{};
     };
     struct RuntimeCommand final
     {
@@ -90,8 +98,8 @@ namespace winxcoop::adapter
     static_assert(sizeof(RuntimeCommand) == 104, "IPC command ABI");
     static_assert(sizeof(RuntimeAck) == 48, "IPC acknowledgement ABI");
     static_assert(sizeof(RuntimeStart) == 560, "IPC start ABI");
-    static_assert(sizeof(RuntimeSnapshot) == 168, "IPC snapshot ABI");
-    static_assert(sizeof(RuntimeShared) == 368, "IPC shared ABI");
+    static_assert(sizeof(RuntimeSnapshot) == 264, "IPC snapshot ABI");
+    static_assert(sizeof(RuntimeShared) == 464, "IPC shared ABI");
     static_assert(offsetof(RuntimeCommand, remote) == 40, "IPC command layout");
     static_assert(std::is_trivially_copyable_v<RuntimeShared>, "IPC has no process-local owners");
 
@@ -100,7 +108,8 @@ namespace winxcoop::adapter
     // ACK before sequence+1. No wrap, skipped sequence, retry with changed bytes,
     // or second outstanding command is allowed. Runtime consumes one command
     // only at its original main-thread world boundary. ACK means that bounded
-    // native operation completed; it does not grant gameplay authority.
+    // native operation completed; Apply admits a visual interpolation target.
+    // It does not grant gameplay authority or acknowledge physical simulation.
     // Input is deliberately unqualified here. Future input delivery needs an
     // ordered native-observation FIFO, never this snapshot/command mailbox.
 

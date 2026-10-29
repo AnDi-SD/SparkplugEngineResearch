@@ -23,7 +23,14 @@ namespace sparkplug::reconstruction
         bool WritePayloadForAnalysis(spStream&,const spBaseObject&,std::string*) const override;
         bool WritePayloadWithContextForAnalysis(spSerializerManager&,spStream&,
             const spBaseObject&,std::string*) const override;
-        // Whole index retains the parent's explicit refusal.
+        bool IndexNullRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionNullIndexContextForAnalysis&,spBaseObject&) const override;
+        bool IndexPreindexedRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionPreindexedIndexContextForAnalysis&,spBaseObject&) const override;
+        bool IndexFogOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionFogOnlyIndexContextForAnalysis&,spBaseObject&) const override;
+        bool IndexEmptyMaterialOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+            spProjectionEmptyMaterialIndexContextForAnalysis&,spBaseObject&) const override;
     private:
         bool WriteBoxFieldsForAnalysis(spSerializerManager*,spStream&,
             const spBoxProjection&,std::string*) const;

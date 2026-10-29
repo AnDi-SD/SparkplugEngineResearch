@@ -3,6 +3,7 @@
 #include "Analysis/PC/spSectionCursor.h"
 #include <cstring>
 #include <utility>
+#include <typeinfo>
 
 namespace sparkplug::reconstruction
 {
@@ -22,6 +23,34 @@ namespace sparkplug::reconstruction
         return spSerializer::vfunc_14(*clone,manager)?std::move(clone):nullptr;
     }
     spClassID spBoxProjectionSerializer::GetTargetClassIDForAnalysis() const noexcept{return TargetClassID;}
+    bool spBoxProjectionSerializer::IndexNullRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionNullIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&GetTargetClassIDForAnalysis()==TargetClassID
+            &&IndexProjectionNullFieldsForAnalysis(context,*target);
+    }
+    bool spBoxProjectionSerializer::IndexPreindexedRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionPreindexedIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spBoxProjectionSerializer)||typeid(object)!=typeid(spBoxProjection))return false;
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&IndexProjectionPreindexedFieldsForAnalysis(context,*target);
+    }
+    bool spBoxProjectionSerializer::IndexFogOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionFogOnlyIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spBoxProjectionSerializer)||typeid(object)!=typeid(spBoxProjection))return false;
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&IndexProjectionFogOnlyFieldsForAnalysis(context,*target);
+    }
+    bool spBoxProjectionSerializer::IndexEmptyMaterialOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionEmptyMaterialIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spBoxProjectionSerializer)||typeid(object)!=typeid(spBoxProjection))return false;
+        auto* target=dynamic_cast<spBoxProjection*>(&object);
+        return target&&IndexProjectionEmptyMaterialFieldsForAnalysis(context,*target);
+    }
     bool spBoxProjectionSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t size,spBaseObject& object,std::string* error) const
     {

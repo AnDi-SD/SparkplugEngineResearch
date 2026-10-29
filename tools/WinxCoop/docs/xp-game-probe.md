@@ -11,7 +11,7 @@ XP/Windows 7 x86 VM. Он запускает выбранный оригинал
 Command Prompt, при существующей папке `artifacts`:
 
 ```bat
-cl /nologo /TC /O1 /GS- /Zl /W4 tools\WinxCoop\tests\XpGameProbe.c /Foartifacts\XpGameProbe.obj /Feartifacts\XpGameProbe.exe /link /NODEFAULTLIB /ENTRY:ProbeEntry /SUBSYSTEM:WINDOWS,5.01 /MACHINE:X86 kernel32.lib advapi32.lib
+cl /nologo /TC /O1 /GS- /Oi- /Zl /W4 tools\WinxCoop\tests\XpGameProbe.c /Foartifacts\XpGameProbe.obj /Feartifacts\XpGameProbe.exe /link /NODEFAULTLIB /ENTRY:ProbeEntry /SUBSYSTEM:WINDOWS,5.01 /MANIFEST:NO /MACHINE:X86 kernel32.lib advapi32.lib
 ```
 
 В таблице импорта ожидаются только `KERNEL32.dll` и `ADVAPI32.dll`. Direct3D
@@ -28,7 +28,9 @@ XpGameProbe.exe --game "Z:\Game\WinxClub.exe" --media "Z:\Game\Media\" --report 
 При запуске без аргументов helper читает соседний `XpGameProbe.exe.args` с теми
 же параметрами. Обязательны `--game`, `--media` и `--report`; опциональный
 `--observe-ms` задаёт время наблюдения в миллисекундах. Значение по умолчанию —
-`40000`, допустимы десятичные целые от `1000` до `900000` включительно.
+`40000`, допустимы десятичные целые от `1000` до `3700000` включительно.
+Лаунчер P передаёт `(seconds+35)*1000` мс; при его default 900 секунд это
+`935000` мс. Старый outer с пределом `900000` для этого не подходит.
 Повтор параметра, знак, дробная запись, пустое значение и переполнение
 отклоняются до загрузки Direct3D, изменения реестра и запуска игры.
 Файл ограничен 1024 байтами и допускает только ASCII

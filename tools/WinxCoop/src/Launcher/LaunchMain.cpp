@@ -1,11 +1,12 @@
-// Native Win32 lobby shell. Game launch/IPC integration is intentionally not
-// claimed by a successful TCP handshake. The Start control stays disabled
-// until a qualified game backend is connected by the application coordinator.
+// Native Win32 Stage P launcher. A carrier handshake does not launch a guest:
+// only a compatible Welcome naming the host's actual ready scene may do so.
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
 #include <shellapi.h>
 #include "LobbyDiscovery.h"
+#include "PrototypeProfile.h"
+#include "ReplicationCoordinator.h"
 #include "Networking/WindowsTcpTransport.h"
 #include <array>
 #include <memory>
@@ -21,8 +22,20 @@ namespace winxcoop::launcher
     {
         constexpr wchar_t WindowClass[]=L"WinxCoop.LobbyShell.v1";
         constexpr UINT_PTR PumpTimer=1;
+        std::string JsonString(const std::string& value)
+        {
+            constexpr char hex[]="0123456789abcdef";
+            std::string result="\"";
+            for(const unsigned char c:value)
+            {
+                if(c=='\"' || c=='\\'){result+='\\';result+=static_cast<char>(c);}
+                else if(c<0x20){result+="\\u00";result+=hex[c>>4];result+=hex[c&15];}
+                else result+=static_cast<char>(c);
+            }
+            result+='\"';return result;
+        }
         enum Control : int { Port=101, Address, Lobbies, Host, Find, Join, Start, Leave, Status };
-        struct Options { std::uint16_t port=27025; std::wstring report; };
+        struct Options { std::uint16_t port=27025; std::wstring report; PrototypePaths paths; };
         std::optional<std::uint32_t> Number(const std::wstring& text,const std::uint32_t maximum)
         {
             if(text.empty()) return std::nullopt;
@@ -58,18 +71,30 @@ namespace winxcoop::launcher
             int count=0; wchar_t** arguments=CommandLineToArgvW(GetCommandLineW(),&count);
             if(!arguments) throw std::runtime_error("Command line unavailable");
             struct FreeArgs { wchar_t** p; ~FreeArgs(){LocalFree(p);} } release{arguments};
-            Options options; bool gotPort=false,gotReport=false;
+            Options options;options.paths=ReadPrototypePaths();bool gotPort=false,gotReport=false,gotRoot=false,gotMedia=false;
+            std::array<bool,6> gotPath{};bool gotSeconds=false;
             for(int i=1;i<count;++i)
             {
                 const std::wstring key=arguments[i];
-                if(i+1==count) throw std::invalid_argument("Expected --port PORT or --report NEW_PATH");
+                if(i+1==count) throw std::invalid_argument("Expected an option followed by its value");
                 const std::wstring value=arguments[++i];
                 if(key==L"--port" && !gotPort)
                 { const auto port=Number(value,65535); if(!port || !*port) throw std::invalid_argument("Invalid port"); options.port=static_cast<std::uint16_t>(*port); gotPort=true; }
                 else if(key==L"--report" && !gotReport && !value.empty() && value.size()<MAX_PATH)
                 { options.report=value; gotReport=true; }
-                else throw std::invalid_argument("Unknown or repeated argument");
+                else if(key==L"--seconds" && !gotSeconds)
+                {const auto seconds=Number(value,3600);if(!seconds || *seconds<5)throw std::invalid_argument("Prototype seconds must be 5..3600");options.paths.seconds=*seconds;gotSeconds=true;}
+                else
+                {
+                    const std::array<const wchar_t*,6> names{{L"--game-root",L"--media",L"--adapter",L"--helper",L"--outer",L"--case-root"}};
+                    const std::array<std::wstring*,6> paths{{&options.paths.gameRoot,&options.paths.media,&options.paths.adapter,&options.paths.helper,&options.paths.outer,&options.paths.caseRoot}};
+                    bool found=false;
+                    for(std::size_t p=0;p<names.size();++p)if(key==names[p])
+                    {if(gotPath[p])throw std::invalid_argument("Repeated path option");*paths[p]=ResolvePrototypePath(value);gotPath[p]=true;found=true;if(p==0)gotRoot=true;if(p==1)gotMedia=true;break;}
+                    if(!found)throw std::invalid_argument("Unknown or repeated argument");
+                }
             }
+            if(gotRoot && !gotMedia)options.paths.media=options.paths.gameRoot+L"\\Media";
             return options;
         }
         std::wstring WideError(const char* text)
@@ -86,6 +111,7 @@ namespace winxcoop::launcher
         public:
             explicit LobbyWindow(Options options):options_(std::move(options))
             {
+                profileCheck_=std::make_unique<PrototypeProfileCheck>(options_.paths);
                 if(!options_.report.empty())
                 {
                     report_=CreateFileW(options_.report.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
@@ -116,7 +142,10 @@ namespace winxcoop::launcher
             HANDLE report_=INVALID_HANDLE_VALUE;
             LobbyDiscovery discovery_;
             std::unique_ptr<WindowsTcpTransport> transport_;
-            bool isHost_=false,closed_=false,fatal_=false,discoveryUnavailable_=false,cleanupConfirmed_=false;
+            std::unique_ptr<PrototypeProfileCheck> profileCheck_;
+            std::unique_ptr<ReplicationCoordinator> coordinator_;
+            std::wstring lastCoordinatorStatus_;
+            bool profileHandled_=false,closing_=false,isHost_=false,closed_=false,fatal_=false,discoveryUnavailable_=false,cleanupConfirmed_=false;
             std::uint64_t started_=GetTickCount64(),discoveryRevision_=0,lastConnection_=0;
             TcpTransportState lastState_=TcpTransportState::Idle;
             SessionPhase lastPhase_=SessionPhase::Idle;
@@ -128,6 +157,17 @@ namespace winxcoop::launcher
             {
                 if(eventCount_==events_.size()) { ++droppedEvents_; return; }
                 events_[eventCount_++]={GetTickCount64()-started_,connection,code,detail};
+            }
+            void OpenDefaultReport()
+            {
+                if(report_!=INVALID_HANDLE_VALUE)return;
+                const auto& root=profileCheck_->Profile().paths.caseRoot;const auto attr=GetFileAttributesW(root.c_str());
+                if(attr==INVALID_FILE_ATTRIBUTES)
+                {if(!CreateDirectoryW(root.c_str(),nullptr))throw std::runtime_error("Cannot create launcher caseRoot for the report");}
+                else if(!(attr&FILE_ATTRIBUTE_DIRECTORY) || (attr&FILE_ATTRIBUTE_REPARSE_POINT))throw std::runtime_error("Launcher caseRoot is not an ordinary directory");
+                const auto path=root+L"\\launcher-"+std::to_wstring(GetCurrentProcessId())+L'-'+std::to_wstring(GetTickCount64())+L".json";
+                report_=CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
+                if(report_==INVALID_HANDLE_VALUE)throw std::runtime_error("Cannot create a fresh launcher metrics report");
             }
             void SetStatus(const std::wstring& text){if(status_) SetWindowTextW(status_,text.c_str());}
             HWND Child(const wchar_t* type,const wchar_t* text,const DWORD style,const int id,const int x,const int y,const int width,const int height)
@@ -151,24 +191,24 @@ namespace winxcoop::launcher
                 list_=Child(L"LISTBOX",L"",LBS_NOTIFY|WS_VSCROLL|WS_BORDER|WS_TABSTOP,Lobbies,16,130,790,230);
                 Child(L"BUTTON",L"Начать игру",WS_TABSTOP,Start,16,379,160,30);
                 Child(L"BUTTON",L"Покинуть лобби",WS_TABSTOP,Leave,190,379,180,30);
-                status_=Child(L"STATIC",L"Создайте лобби или подключитесь к серверу. Игровой адаптер ещё не подключён.",SS_LEFT,Status,16,429,790,70);
+                status_=Child(L"STATIC",L"Проверяем подготовленный профиль Alfea 28 и считаем SHA256 Media…",SS_LEFT,Status,16,429,790,70);
                 UpdateButtons();
                 if(!SetTimer(window_,PumpTimer,20,nullptr)) throw std::runtime_error("Cannot start network pump");
             }
             void UpdateButtons()
             {
                 const auto active=transport_!=nullptr;
-                EnableWindow(GetDlgItem(window_,Host),!active);
-                EnableWindow(GetDlgItem(window_,Join),!active);
-                EnableWindow(port_,!active);
-                EnableWindow(GetDlgItem(window_,Leave),active);
-                EnableWindow(GetDlgItem(window_,Start),FALSE); // No qualified runtime backend yet.
+                EnableWindow(GetDlgItem(window_,Host),!closing_ && !active && coordinator_ && coordinator_->CanAttach(SessionRole::Host));
+                EnableWindow(GetDlgItem(window_,Join),!closing_ && !active && coordinator_ && coordinator_->CanAttach(SessionRole::Guest));
+                EnableWindow(port_,!closing_ && !active);
+                EnableWindow(GetDlgItem(window_,Leave),!closing_ && active);
+                EnableWindow(GetDlgItem(window_,Start),!closing_ && coordinator_ && coordinator_->CanStartHostGame());
             }
             std::wstring Text(HWND control) const
             { std::array<wchar_t,128> value{}; GetWindowTextW(control,value.data(),static_cast<int>(value.size())); return value.data(); }
             void HostLobby()
             {
-                if(transport_) return;
+                if(transport_ || !coordinator_ || !coordinator_->CanAttach(SessionRole::Host)) return;
                 const auto port=Number(Text(port_),65535);
                 if(!port || !*port) { SetStatus(L"Введите TCP-порт от 1 до 65535."); return; }
                 TcpTransportConfig config; config.role=SessionRole::Host; config.localBind={0,static_cast<std::uint16_t>(*port)};
@@ -176,20 +216,22 @@ namespace winxcoop::launcher
                 if(!candidate->Start(now)) { Record(11,candidate->LastSocketError()); SetStatus(L"Не удалось открыть TCP-порт. Код Winsock: "+std::to_wstring(candidate->LastSocketError())); candidate->Close(); Accumulate(candidate->Metrics()); return; }
                 const auto token=static_cast<std::uint16_t>((GetTickCount()^GetCurrentProcessId())|1u);
                 if(!candidate->HostStart(token,now)) { Record(12); SetStatus(L"Не удалось подготовить сетевой канал."); candidate->Close(); Accumulate(candidate->Metrics()); return; }
+                if(!coordinator_->Attach(*candidate,SessionRole::Host)){candidate->Close();Accumulate(candidate->Metrics());return;}
                 transport_=std::move(candidate); isHost_=true; lastState_=TcpTransportState::Idle; lastPhase_=SessionPhase::Idle; lastConnection_=0;
                 const bool advertised=discovery_.StartHosting(transport_->BoundEndpoint().port,L"WinxCoop");
                 discoveryUnavailable_=!advertised;
                 Record(10,advertised?0:discovery_.LastSocketError()); UpdateButtons();
-                SetStatus(advertised?L"Лобби создано. Ожидаем гостя. Запуск игры станет доступен после подключения адаптера.":L"TCP-лобби создано, но LAN-поиск недоступен. Подключитесь вручную по IPv4:порту.");
+                SetStatus(advertised?L"Лобби создано. Сервер может нажать «Начать игру» до подключения гостя.":L"Лобби создано, но LAN-поиск недоступен. Сервер может начать игру; гость подключается вручную по IPv4:порту.");
             }
             void JoinLobby()
             {
-                if(transport_) return;
+                if(transport_ || !coordinator_ || !coordinator_->CanAttach(SessionRole::Guest)) return;
                 const auto server=ParseEndpoint(Text(address_));
                 if(!server) { SetStatus(L"Введите адрес в формате IPv4:порт, например 192.168.1.10:27025."); return; }
                 TcpTransportConfig config; config.role=SessionRole::Guest; config.localBind={0,0}; config.server=*server;
                 auto candidate=std::make_unique<WindowsTcpTransport>(config);
                 if(!candidate->Start(GetTickCount64())) { Record(21,candidate->LastSocketError()); SetStatus(L"Не удалось подключиться. Код Winsock: "+std::to_wstring(candidate->LastSocketError())); candidate->Close(); Accumulate(candidate->Metrics()); return; }
+                if(!coordinator_->Attach(*candidate,SessionRole::Guest)){candidate->Close();Accumulate(candidate->Metrics());return;}
                 transport_=std::move(candidate); isHost_=false; lastState_=TcpTransportState::Idle; lastPhase_=SessionPhase::Idle; lastConnection_=0;
                 Record(20); UpdateButtons(); SetStatus(L"Подключение к серверу…");
             }
@@ -205,8 +247,10 @@ namespace winxcoop::launcher
             void LeaveLobby()
             {
                 discovery_.StopHosting();
+                if(coordinator_)coordinator_->Detach();
                 if(transport_) { transport_->Close(); Accumulate(transport_->Metrics()); transport_.reset(); }
-                lastConnection_=0; isHost_=false; discoveryUnavailable_=false; UpdateButtons(); Record(30); SetStatus(L"Вы вышли из лобби.");
+                lastConnection_=0; isHost_=false; discoveryUnavailable_=false; UpdateButtons(); Record(30);
+                SetStatus(coordinator_ && coordinator_->GameActive()?L"Вы вышли из лобби. Удалённая модель удаляется; игра сервера может продолжаться.":L"Вы вышли из лобби.");
             }
             void FindLobbies()
             {
@@ -235,36 +279,63 @@ namespace winxcoop::launcher
             }
             void Pump()
             {
-                const auto now=GetTickCount64(); const bool wasSearching=discovery_.Searching();
+                const auto now=GetTickCount64();
+                if(profileCheck_ && profileCheck_->Finished() && !profileHandled_)
+                {
+                    profileHandled_=true;
+                    if(!closing_ && profileCheck_->Successful())
+                    {OpenDefaultReport();coordinator_=std::make_unique<ReplicationCoordinator>(profileCheck_->Profile());Record(80);SetStatus(L"Профиль Alfea 28 проверен. Создайте лобби или подключитесь к серверу.");}
+                    else if(!closing_)
+                    {Record(81);SetStatus(L"Профиль не готов: "+WideError(profileCheck_->Failure().c_str())+L". Проверьте WinxCoopLauncher.ini и параметры путей.");}
+                    UpdateButtons();
+                }
+                if(closing_)
+                {
+                    if(coordinator_)coordinator_->Pump(now);
+                    if((!profileCheck_ || profileCheck_->Finished()) && (!coordinator_ || coordinator_->Finished()))DestroyWindow(window_);
+                    return;
+                }
+                const bool wasSearching=discovery_.Searching();
                 discovery_.Pump(now);
                 if(discoveryRevision_!=discovery_.Revision()) RefreshList();
                 if(wasSearching && !discovery_.Searching()) SetStatus(discovery_.Lobbies().empty()?L"Лобби не найдены. Можно подключиться вручную по IPv4:порту.":L"Поиск завершён. Выберите лобби или введите адрес вручную.");
-                if(!transport_) return;
-                transport_->Pump(now); discovery_.SetOccupied(transport_->ActiveConnectionId()!=0);
-                while(const auto event=transport_->TakeSessionEvent()) Record(50+static_cast<unsigned>(event->sessionPhase),static_cast<int>(event->sessionError),event->connectionId);
-                // The shell has no compatibility hashes or game backend yet.
-                // Do not silently consume or apply future gameplay commands.
-                for(std::size_t messages=0;messages<WindowsTcpTransport::MaximumDeliveredMessages;++messages)
+                if(transport_)
                 {
-                    const auto unexpected=transport_->TakeMessage(); if(!unexpected) break;
-                    if(!transport_->ActiveConnectionId() || unexpected->connectionId!=transport_->ActiveConnectionId())
-                    { Record(71,0,unexpected->connectionId); continue; }
-                    Record(70,0,unexpected->connectionId); transport_->ClosePeer();
-                    SetStatus(L"Получены игровые команды, но адаптер ещё не подключён. Сеанс закрыт.");
-                    break;
+                    transport_->Pump(now); discovery_.SetOccupied(transport_->ActiveConnectionId()!=0);
+                    while(const auto event=transport_->TakeSessionEvent())Record(50+static_cast<unsigned>(event->sessionPhase),static_cast<int>(event->sessionError),event->connectionId);
+                    const auto state=transport_->State();const auto* session=transport_->Session();const auto phase=session?session->Phase():SessionPhase::Idle;
+                    const auto connection=transport_->ActiveConnectionId();
+                    if(state!=lastState_ || phase!=lastPhase_ || connection!=lastConnection_)
+                    {
+                        lastState_=state;lastPhase_=phase;lastConnection_=connection;
+                        if(state==TcpTransportState::Connected && phase==SessionPhase::Running)
+                            SetStatus(isHost_?L"Сетевой канал готов. Гость ждёт фактической готовности уровня сервера.":L"Сетевой канал готов. Ждём назначения уровня сервером; игра клиента пока не запускается.");
+                        else if(state==TcpTransportState::Listening)
+                            SetStatus(discoveryUnavailable_?L"Лобби открыто. LAN-поиск недоступен; гость подключается вручную.":L"Лобби открыто. Ожидаем гостя.");
+                        else if(state==TcpTransportState::Closed || state==TcpTransportState::Failed)
+                            SetStatus(L"Соединение завершено. Для нового подключения нажмите «Покинуть лобби». Код Winsock: "+std::to_wstring(transport_->LastSocketError()));
+                    }
                 }
-                const auto state=transport_->State(); const auto* session=transport_->Session(); const auto phase=session?session->Phase():SessionPhase::Idle;
-                const auto connection=transport_->ActiveConnectionId();
-                if(state!=lastState_ || phase!=lastPhase_ || connection!=lastConnection_)
+                if(coordinator_)
                 {
-                    lastState_=state; lastPhase_=phase; lastConnection_=connection;
-                    if(state==TcpTransportState::Connected && phase==SessionPhase::Running)
-                        SetStatus(isHost_?L"Гость подключён к лобби. Игровой адаптер ещё не готов; запуск игры недоступен.":L"Вы в лобби. Ожидаем сервер и подключение игрового адаптера.");
-                    else if(state==TcpTransportState::Listening)
-                        SetStatus(discoveryUnavailable_?L"TCP-лобби открыто. LAN-поиск недоступен; используйте ручной адрес. Игровой адаптер ещё не подключён.":L"Лобби открыто. Ожидаем гостя. Игровой адаптер ещё не подключён.");
-                    else if(state==TcpTransportState::Closed || state==TcpTransportState::Failed)
-                        SetStatus(L"Соединение завершено. Нажмите «Покинуть лобби», чтобы подключиться снова. Код Winsock: "+std::to_wstring(transport_->LastSocketError()));
+                    coordinator_->Pump(now);
+                    if(lastCoordinatorStatus_!=coordinator_->Status())
+                    {lastCoordinatorStatus_=coordinator_->Status();SetStatus(lastCoordinatorStatus_);}
                 }
+                UpdateButtons();
+            }
+            void BeginClose() noexcept
+            {
+                if(closing_ || closed_)return;closing_=true;
+                if(profileCheck_)profileCheck_->Cancel();
+                discovery_.Close();
+                if(coordinator_){coordinator_->Detach();coordinator_->RequestShutdown();}
+                if(transport_){transport_->Close();Accumulate(transport_->Metrics());transport_.reset();}
+                const int controls[]{Host,Find,Join,Start,Leave,Port,Address,Lobbies};
+                for(const auto id:controls)EnableWindow(GetDlgItem(window_,id),FALSE);
+                if(status_)SetWindowTextW(status_,L"Закрываем сеанс. Ждём удаления модели, выхода игры и восстановления MediaPath…");
+                // The timer remains alive until facade reports the outer exit.
+                // No GUI wait and no premature destruction of live IPC owners.
             }
             void WriteReport() noexcept
             {
@@ -272,7 +343,45 @@ namespace winxcoop::launcher
                 try
                 {
                     const auto& d=discovery_.Metrics();
-                    std::string json="{\"kind\":\"WinxCoop-native-lobby-shell\",\"protocol\":1,\"pid\":"+std::to_string(GetCurrentProcessId())+",\"gameplayStarted\":false,\"adapterReady\":false,\"cleanupConfirmed\":"+(cleanupConfirmed_?"true":"false")+",\"fatal\":"+(fatal_?"true":"false")+",\"durationMs\":"+std::to_string(GetTickCount64()-started_);
+                    const ReplicationMetrics empty{};const auto& m=coordinator_?coordinator_->Metrics():empty;
+                    std::string json="{\"kind\":\"WinxCoop-native-launcher\",\"protocol\":3,\"pid\":"+std::to_string(GetCurrentProcessId())+",\"gameplayStarted\":"+(m.cooperativeStarts?"true":"false")+",\"adapterReady\":"+(m.gameReady?"true":"false")+",\"cleanupConfirmed\":"+(cleanupConfirmed_?"true":"false")+",\"fatal\":"+(fatal_?"true":"false")+",\"durationMs\":"+std::to_string(GetTickCount64()-started_);
+                    const auto number=[&](const char* name,const auto value){json+=",\""+std::string(name)+"\":"+std::to_string(value);};
+                    const auto boolean=[&](const char* name,const bool value){json+=",\""+std::string(name)+"\":"+(value?"true":"false");};
+                    json+=",\"failure\":"+JsonString(coordinator_?coordinator_->Failure():std::string{});
+                    json+=",\"replication\":{\"stockLocalPhysics\":true,\"fullHostPhysics\":false";
+                    number("gameStarts",m.gameStarts);number("gameReady",m.gameReady);number("nativeFrames",m.nativeFrames);number("sampledStates",m.sampledStates);
+                    number("deferredSamples",m.deferredSamples);number("invalidSamples",m.invalidSamples);number("messagesSent",m.messagesSent);number("messagesReceived",m.messagesReceived);
+                    number("wrongConnections",m.wrongConnections);number("staleMessages",m.staleMessages);number("protocolFailures",m.protocolFailures);
+                    number("observationsSent",m.observationsSent);number("observationsReceived",m.observationsReceived);number("observationsAccepted",m.observationsAccepted);
+                    number("observationsRejected",m.observationsRejected);number("acknowledgementsReceived",m.acknowledgementsReceived);number("remoteStates",m.remoteStates);
+                    number("visualStatesCoalesced",m.visualStatesCoalesced);number("nativeCommands",m.nativeCommands);number("nativeAcknowledgements",m.nativeAcknowledgements);
+                    number("nativeCreatesAcknowledged",m.nativeCreatesAcknowledged);number("nativeAppliesAcknowledged",m.nativeAppliesAcknowledged);number("nativeRemovesAcknowledged",m.nativeRemovesAcknowledged);
+                    number("nativeAckLatencyTotalMs",m.nativeAckLatencyTotalMs);number("nativeAckLatencyMaxMs",m.nativeAckLatencyMaxMs);
+                    number("observationRttSamples",m.observationRttSamples);number("observationRttTotalMs",m.observationRttTotalMs);number("observationRttMaxMs",m.observationRttMaxMs);
+                    number("nativeAnimationSamples",m.nativeAnimationSamples);number("derivedAnimationSamples",m.derivedAnimationSamples);
+                    number("nativeRemoteCreated",m.nativeRemoteCreated);number("nativeRemoteRemoved",m.nativeRemoteRemoved);
+                    number("remoteDisplaySamples",m.remoteDisplaySamples);number("remoteDisplayMaxGapMs",m.remoteDisplayMaxGapMs);number("remoteDisplayMaxStep",m.remoteDisplayMaxStep);
+                    number("cooperativeStarts",m.cooperativeStarts);number("cooperativeRunningMs",m.cooperativeRunningMs);
+                    number("gameSoftLimitStops",m.gameSoftLimitStops);number("gameSoftLimitFallbackStops",m.gameSoftLimitFallbackStops);
+                    number("lastGameHelperLimitSeconds",m.lastGameHelperLimitSeconds);number("lastGameSoftLimitSeconds",m.lastGameSoftLimitSeconds);
+                    number("gameCompletions",m.gameCompletions);number("gameSuccessfulCompletions",m.gameSuccessfulCompletions);
+                    number("gameNativeCleanupCompletions",m.gameNativeCleanupCompletions);number("gameNoOuterLaunchCompletions",m.gameNoOuterLaunchCompletions);json+='}';
+                    const auto qualified=profileCheck_ && profileCheck_->Successful();
+                    json+=",\"profile\":{\"qualified\":"+std::string(qualified?"true":"false");
+                    if(qualified){number("level",profileCheck_->Profile().level.levelId);number("entry",profileCheck_->Profile().level.entryId);number("mediaFiles",profileCheck_->Profile().mediaFiles);number("mediaBytes",profileCheck_->Profile().mediaBytes);}json+='}';
+                    json+=",\"lastGame\":{\"present\":"+std::string(coordinator_ && coordinator_->HasGameResult()?"true":"false");
+                    if(coordinator_ && coordinator_->HasGameResult())
+                    {
+                        const auto& r=coordinator_->LastGameResult();boolean("completed",r.completed);boolean("successful",r.successful);boolean("outerStarted",r.outerStarted);
+                        boolean("outerExited",r.outerExited);boolean("outerReportValid",r.outerReportValid);boolean("outerExitCodeKnown",r.outerExitCodeKnown);number("outerExitCode",r.outerExitCode);
+                        boolean("mediaRestoreAttempted",r.mediaRestoreAttempted);boolean("mediaRestoreVerified",r.mediaRestoreVerified);boolean("mediaLeaseAcquired",r.mediaLeaseAcquired);
+                        boolean("mediaLeaseInherited",r.mediaLeaseInherited);boolean("mediaLeaseReleased",r.mediaLeaseReleased);boolean("helperReportValid",r.helperReportValid);boolean("helperCompleted",r.helperCompleted);
+                        boolean("gameExitCodeKnown",r.gameExitCodeKnown);number("gameExitCode",r.gameExitCode);boolean("gameExitEventContinued",r.gameExitEventContinued);
+                        boolean("gameCleanupConfirmed",r.gameCleanupConfirmed);boolean("gameForcedTermination",r.gameForcedTermination);boolean("commandUnconfirmed",r.commandUnconfirmed);
+                        number("commandsPublished",r.commandsPublished);number("commandsAcknowledged",r.commandsAcknowledged);number("stopReason",static_cast<std::uint32_t>(r.stopReason));
+                        boolean("helperLimitReached",r.helperLimitReached);json+=",\"error\":"+JsonString(r.error);
+                    }
+                    json+='}';
                     json+=",\"tcp\":{\"socketsOpened\":"+std::to_string(totals_.socketsOpened)+",\"socketsClosed\":"+std::to_string(totals_.socketsClosed)+",\"closeErrors\":"+std::to_string(totals_.socketCloseErrors)+",\"wsaStarts\":"+std::to_string(totals_.wsaStarts)+",\"wsaCleanups\":"+std::to_string(totals_.wsaCleanups)+",\"wsaCleanupErrors\":"+std::to_string(totals_.wsaCleanupErrors)+",\"accepted\":"+std::to_string(totals_.accepted)+",\"refused\":"+std::to_string(totals_.refused)+",\"sentBytes\":"+std::to_string(totals_.sentBytes)+",\"receivedBytes\":"+std::to_string(totals_.receivedBytes)+",\"droppedSessionEvents\":"+std::to_string(totals_.droppedSessionEvents)+'}';
                     json+=",\"discovery\":{\"socketsOpened\":"+std::to_string(d.socketsOpened)+",\"socketsClosed\":"+std::to_string(d.socketsClosed)+",\"closeErrors\":"+std::to_string(d.closeErrors)+",\"wsaStarts\":"+std::to_string(d.wsaStarts)+",\"wsaCleanups\":"+std::to_string(d.wsaCleanups)+",\"wsaCleanupErrors\":"+std::to_string(d.wsaCleanupErrors)+",\"probesSent\":"+std::to_string(d.probesSent)+",\"probesReceived\":"+std::to_string(d.probesReceived)+",\"repliesSent\":"+std::to_string(d.repliesSent)+",\"repliesReceived\":"+std::to_string(d.repliesReceived)+",\"invalidDatagrams\":"+std::to_string(d.invalidDatagrams)+",\"sendErrors\":"+std::to_string(d.sendErrors)+",\"receiveErrors\":"+std::to_string(d.receiveErrors)+'}';
                     json+=",\"droppedEvents\":"+std::to_string(droppedEvents_)+",\"events\":[";
@@ -289,21 +398,18 @@ namespace winxcoop::launcher
                 if(closed_) return; closed_=true;
                 if(window_) KillTimer(window_,PumpTimer);
                 discovery_.Close();
+                if(coordinator_){coordinator_->Detach();coordinator_->RequestShutdown();}
                 if(transport_) { transport_->Close(); Accumulate(transport_->Metrics()); transport_.reset(); }
                 const auto& d=discovery_.Metrics();
                 cleanupConfirmed_=totals_.socketsOpened==totals_.socketsClosed && !totals_.socketCloseErrors && totals_.wsaStarts==totals_.wsaCleanups && !totals_.wsaCleanupErrors &&
-                    d.socketsOpened==d.socketsClosed && !d.closeErrors && d.wsaStarts==d.wsaCleanups && !d.wsaCleanupErrors;
+                    d.socketsOpened==d.socketsClosed && !d.closeErrors && d.wsaStarts==d.wsaCleanups && !d.wsaCleanupErrors &&
+                    (!coordinator_ || (coordinator_->Finished() && coordinator_->CleanupConfirmed())) && (!profileCheck_ || profileCheck_->Finished());
                 if(!cleanupConfirmed_) fatal_=true;
                 WriteReport();
             }
             void FailClosed() noexcept
             {
-                fatal_=true; Record(98); Close();
-                // Keep the error visible, but leave no timer, transport or UI
-                // action capable of starting another session after failure.
-                const int controls[]{Host,Find,Join,Start,Leave,Port,Address,Lobbies};
-                for(const auto id:controls) EnableWindow(GetDlgItem(window_,id),FALSE);
-                if(status_) SetWindowTextW(status_,L"Ошибка лобби. Сеанс закрыт. Закройте окно и запустите программу снова.");
+                fatal_=true;Record(98);BeginClose();
             }
             LRESULT Dispatch(const UINT message,const WPARAM w,const LPARAM l)
             {
@@ -313,20 +419,24 @@ namespace winxcoop::launcher
                 {
                 case WM_CREATE: CreateControls(); return 0;
                 case WM_COMMAND:
+                    if(closing_)return 0;
                     switch(LOWORD(w))
                     {
                     case Host: if(HIWORD(w)==BN_CLICKED) HostLobby(); break;
                     case Find: if(HIWORD(w)==BN_CLICKED) FindLobbies(); break;
                     case Join: if(HIWORD(w)==BN_CLICKED) JoinLobby(); break;
                     case Leave: if(HIWORD(w)==BN_CLICKED) LeaveLobby(); break;
-                    case Start: SetStatus(L"Запуск недоступен: игровой адаптер ещё не подключён."); break;
+                    case Start:
+                        if(HIWORD(w)==BN_CLICKED && coordinator_)
+                        {const auto began=coordinator_->StartHostGame(GetTickCount64());Record(began?82:83);SetStatus(coordinator_->Status());UpdateButtons();}
+                        break;
                     case Lobbies: if(HIWORD(w)==LBN_SELCHANGE || HIWORD(w)==LBN_DBLCLK) SelectLobby(HIWORD(w)==LBN_DBLCLK); break;
                     } return 0;
                 case WM_TIMER: if(w==PumpTimer) Pump(); return 0;
                 case WM_GETMINMAXINFO: reinterpret_cast<MINMAXINFO*>(l)->ptMinTrackSize={680,520}; return 0;
                 case WM_SIZE:
                     if(list_) { const int width=LOWORD(l),height=HIWORD(l); MoveWindow(list_,16,130,width-32,height-280,TRUE); MoveWindow(GetDlgItem(window_,Start),16,height-130,160,30,TRUE); MoveWindow(GetDlgItem(window_,Leave),190,height-130,180,30,TRUE); MoveWindow(status_,16,height-80,width-32,70,TRUE); } return 0;
-                case WM_CLOSE: DestroyWindow(window_); return 0;
+                case WM_CLOSE: BeginClose(); return 0;
                 case WM_DESTROY: Close(); PostQuitMessage(fatal_?1:0); return 0;
                 default: return DefWindowProcW(window_,message,w,l);
                 }

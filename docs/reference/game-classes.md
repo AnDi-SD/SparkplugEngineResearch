@@ -66,7 +66,7 @@
 | `wxChargedAttackState` | `0x06C1726B` | Да | Да | — | — |
 | `wxChestTrigger` | `0x6FAF5309` | Да | Да | — | — |
 | `wxChoiceGameFlowState` | `0x16A0196B` | Да | Да | — | — |
-| `wxCinematicGameFlowState` | `0x137337B1` | Да | Да | — | — |
+| `wxCinematicGameFlowState` | `0x137337B1` | Да | Да | [1](../game/flow/cinematic-game-flow-state.md) | [wxCinematicGameFlowState.h](../../Winx/Code/wxCinematicGameFlowState.h), [wxCinematicGameFlowState.cpp](../../Winx/Code/wxCinematicGameFlowState.cpp) |
 | `wxCinematicManager` | `0x03460105` | Да | Да | — | — |
 | `wxCinematicTrigger` | `0x38D81043` | Да | Да | — | — |
 | `wxCloudTowerDial` | `0x2A003B60` | Да | Да | — | — |
@@ -112,7 +112,7 @@
 | `wxDroidInactiveState` | `0x31FC4D4C` | Да | Да | [1](classes/wx-droid-inactive-state.md) | [wxDroidInactiveState.cpp](../../Winx/Code/wxDroidInactiveState.cpp), [wxDroidInactiveState.h](../../Winx/Code/wxDroidInactiveState.h) |
 | `wxDroidMovingState` | `0x1CC66F37` | Да | Да | [1](classes/wx-droid-moving-state.md) | [wxDroidMovingState.cpp](../../Winx/Code/wxDroidMovingState.cpp), [wxDroidMovingState.h](../../Winx/Code/wxDroidMovingState.h) |
 | `wxDroidStateMachine` | `0x1C380CA8` | Да | Да | — | — |
-| `wxDroidWanderAIAction` | `0x34154F9E` | Да | Да | — | — |
+| `wxDroidWanderAIAction` | `0x34154F9E` | Да | Да | [1](classes/wx-droid-wander-ai-action.md) | [wxDroidWanderAIAction.h](../../Winx/Code/wxDroidWanderAIAction.h) |
 | `wxDyingState` | `0xBCC87DA1` | Да | Да | [1](classes/wx-dying-state.md) | [wxDyingState.h](../../Winx/Code/wxDyingState.h) |
 | `wxEngineCore` | `0x34B85918` | Да | Да | [1](classes/wx-engine-core.md) | [wxEngineCore.h](../../Winx/Code/wxEngineCore.h) |
 | `wxEntity` | `0x796A1869` | Да | Да | [1](classes/wx-entity.md) | [wxEntity.cpp](../../Winx/Code/wxEntity.cpp), [wxEntity.h](../../Winx/Code/wxEntity.h) |
@@ -146,7 +146,7 @@
 | `wxFrogMovingState` | `0x50640A47` | Да | Да | [1](classes/wx-frog-moving-state.md) | [wxFrogMovingState.cpp](../../Winx/Code/wxFrogMovingState.cpp), [wxFrogMovingState.h](../../Winx/Code/wxFrogMovingState.h) |
 | `wxGameFlowController` | `0x078B20E8` | Да | Да | — | — |
 | `wxGameFlowState` | `0x11521AFA` | Да | Да | [1](classes/wx-game-flow-state.md) | [wxGameFlowState.h](../../Winx/Code/wxGameFlowState.h), [wxGameFlowState.cpp](../../Winx/Code/wxGameFlowState.cpp) |
-| `wxGameOverGameFlowState` | `0x331018ED` | Да | Да | — | — |
+| `wxGameOverGameFlowState` | `0x331018ED` | Да | Да | [1](../game/flow/game-over-game-flow-state.md) | [wxGameOverGameFlowState.h](../../Winx/Code/wxGameOverGameFlowState.h) |
 | `wxGameTimer` | `0x78665312` | Да | Да | [1](classes/wx-game-timer.md) | [wxGameTimer.h](../../Winx/Code/wxGameTimer.h), [wxGameTimer.cpp](../../Winx/Code/wxGameTimer.cpp) |
 | `wxGargoyleIceWall` | `0x1BB7563B` | Да | Да | — | — |
 | `wxGeneralCharactersStateMachine` | `0x381F6461` | Да | Да | — | — |
@@ -161,7 +161,7 @@
 | `wxGhoulieAIBehavior` | `0x4BBA28D3` | Да | Да | — | — |
 | `wxGhoulieStateMachine` | `0x3CE04060` | Да | Да | — | — |
 | `wxGhoulJumpingState` | `0x37086498` | Да | Да | — | — |
-| `wxGhoulScriptAIAction` | `0x75E255E9` | Да | Да | — | — |
+| `wxGhoulScriptAIAction` | `0x75E255E9` | Да | Да | [1](classes/wx-ghoul-script-ai-action.md) | [wxGhoulScriptAIAction.h](../../Winx/Code/wxGhoulScriptAIAction.h) |
 | `wxGiantBoulderTrigger` | `0x55E957F4` | Да | Да | — | — |
 | `wxGlyph` | `0xF57D12AA` | Да | Да | — | — |
 | `wxGlyphDroidAIBehavior` | `0x7FAE22A2` | Да | Да | — | — |
@@ -216,7 +216,7 @@
 | `wxKickableIce` | `0x7F284E80` | Да | Да | — | — |
 | `wxKikoAIBehavior` | `0x047C0F9C` | Да | Да | — | — |
 | `wxKikoHole` | `0xCB256D81` | Да | Да | — | — |
-| `wxKikoHoleAIAction` | `0x872B81BB` | Да | Да | — | — |
+| `wxKikoHoleAIAction` | `0x872B81BB` | Да | Да | [1](classes/wx-kiko-hole-ai-action.md) | [wxKikoHoleAIAction.h](../../Winx/Code/wxKikoHoleAIAction.h), [wxKikoHoleAIAction.cpp](../../Winx/Code/wxKikoHoleAIAction.cpp) |
 | `wxKikoMovingAIAction` | `0x99887766` | Да | Да | — | — |
 | `wxKikoStateMachine` | `0x243E116A` | Да | Да | — | — |
 | `wxKnutAttackAIAction` | `0x70D47C10` | Да | Да | — | — |
@@ -300,7 +300,7 @@
 | `wxPlayerProfile` | `0x4ED80210` | Да | Да | — | — |
 | `wxPlayerTraits` | `0x28C56217` | Да | Да | — | — |
 | `wxPlayingLevelGameFlowState` | `0x70EB6440` | Да | Да | — | — |
-| `wxPressStartGameFlowState` | `0xAB39C152` | Да | Да | — | — |
+| `wxPressStartGameFlowState` | `0xAB39C152` | Да | Да | [1](../game/flow/press-start-game-flow-state.md) | [wxPressStartGameFlowState.h](../../Winx/Code/wxPressStartGameFlowState.h), [wxPressStartGameFlowState.cpp](../../Winx/Code/wxPressStartGameFlowState.cpp) |
 | `wxProcessBuffer` | `0x5889552A` | Да | Да | — | — |
 | `wxProcessBufferPC` | `0x76FC3DBB` | Да | — | — | — |
 | `wxProcessBufferPS2` | `0x40CA1DBA` | — | Да | — | — |
@@ -376,7 +376,7 @@
 | `wxTargetRegion` | `0x4307193A` | Да | Да | — | — |
 | `wxTecnaGlyph` | `0xC82D6387` | Да | Да | — | — |
 | `wxTestBehavior` | `0x128A4DBD` | Да | Да | — | — |
-| `wxTextController` | `0x9F1535F7` | Да | Да | — | — |
+| `wxTextController` | `0x9F1535F7` | Да | Да | [1](classes/wx-text-controller.md) | [wxTextController.h](../../Winx/Code/wxTextController.h), [wxTextController.cpp](../../Winx/Code/wxTextController.cpp) |
 | `wxThunderMaker` | `0xE45EE611` | Да | Да | — | — |
 | `wxTidalFlame` | `0x5EC57BC1` | Да | Да | — | — |
 | `wxTRCManagerPS2` | `0x4569241C` | — | Да | — | — |

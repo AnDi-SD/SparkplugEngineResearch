@@ -12,6 +12,9 @@ add_library(SparkBase STATIC
     Code/SparkBase/spAsyncFileStreamManager.h
     Code/SparkBase/spBaseObject.cpp
     Code/SparkBase/spBaseObject.h
+    Code/SparkBase/spBaseObjectReferrers.cpp
+    Code/SparkBase/spBaseObjectReferrers.h
+    Analysis/Host/spBaseReferrerContext.h
     Code/SparkBase/spNotification.h
     Code/SparkBase/spBroadcastNotification.cpp
     Code/SparkBase/spBroadcastNotification.h
@@ -157,6 +160,32 @@ add_library(SparkplugEngine STATIC
     Analysis/PS2/spVideoStreamAbi.h
     Code/Sparkplug/spAudioSound.cpp
     Code/Sparkplug/spAudioSound.h
+    Code/Sparkplug/spAudioBank.cpp
+    Code/Sparkplug/spAudioBank.h
+    Code/SparkplugDX/spDXAudioBank.cpp
+    Code/SparkplugDX/spDXAudioBank.h
+    Analysis/PC/spAudioBankAbi.h
+    Code/Sparkplug/spAudioBankEntry.cpp
+    Code/Sparkplug/spAudioBankEntry.h
+    Code/SparkplugDX/spDXAudioBankEntry.cpp
+    Code/SparkplugDX/spDXAudioBankEntry.h
+    Analysis/PC/spAudioBankEntryAbi.h
+    Code/Sparkplug/spAudioManager.cpp
+    Code/Sparkplug/spAudioManager.h
+    Code/Sparkplug/spCameraManager.cpp
+    Code/Sparkplug/spCameraManager.h
+    Analysis/PC/spCameraManagerAbi.h
+    Code/Sparkplug/spCinematic.cpp
+    Code/Sparkplug/spCinematic.h
+    Code/Sparkplug/spCinematicManager.cpp
+    Code/Sparkplug/spCinematicManager.h
+    Analysis/PC/spCinematicAbi.h
+    Analysis/PC/spCinematicManagerAbi.h
+    Analysis/Host/spCinematicManagerHost.h
+    Code/SparkplugDX/spDXAudioManager.cpp
+    Code/SparkplugDX/spDXAudioManager.h
+    Analysis/Host/spAudioManagerHost.h
+    Analysis/PC/spAudioManagerBankAbi.h
     Analysis/Host/spAudioSoundHost.h
     Analysis/PC/spAudioSoundAbi.h
     Analysis/PS2/spAudioSoundAbi.h
@@ -886,6 +915,42 @@ if(BUILD_TESTING)
         add_test(NAME SparkplugPCEmptyErrorHandleTests COMMAND SparkplugPCEmptyErrorHandleTests)
         set_tests_properties(SparkplugPCEmptyErrorHandleTests PROPERTIES TIMEOUT 20)
     endif()
+    add_executable(SparkplugAudioManagerBankTests Tests/spAudioManagerBankTests.cpp)
+    target_link_libraries(SparkplugAudioManagerBankTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAudioManagerBankTests COMMAND SparkplugAudioManagerBankTests)
+    set_tests_properties(SparkplugAudioManagerBankTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAudioManagerOwnedEntriesTests Tests/spAudioManagerOwnedEntriesTests.cpp)
+    target_link_libraries(SparkplugAudioManagerOwnedEntriesTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAudioManagerOwnedEntriesTests COMMAND SparkplugAudioManagerOwnedEntriesTests)
+    set_tests_properties(SparkplugAudioManagerOwnedEntriesTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugCameraManagerTests Tests/spCameraManagerTests.cpp)
+    target_link_libraries(SparkplugCameraManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCameraManagerTests COMMAND SparkplugCameraManagerTests)
+    set_tests_properties(SparkplugCameraManagerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugCinematicManagerTests Tests/spCinematicManagerTests.cpp)
+    target_link_libraries(SparkplugCinematicManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCinematicManagerTests COMMAND SparkplugCinematicManagerTests)
+    set_tests_properties(SparkplugCinematicManagerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAudioBankTests Tests/spAudioBankTests.cpp)
+    target_link_libraries(SparkplugAudioBankTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAudioBankTests COMMAND SparkplugAudioBankTests)
+    set_tests_properties(SparkplugAudioBankTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAudioBankEntryTests Tests/spAudioBankEntryTests.cpp)
+    target_link_libraries(SparkplugAudioBankEntryTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAudioBankEntryTests COMMAND SparkplugAudioBankEntryTests)
+    set_tests_properties(SparkplugAudioBankEntryTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAudioBankOwnedEntriesTests Tests/spAudioBankOwnedEntriesTests.cpp)
+    target_link_libraries(SparkplugAudioBankOwnedEntriesTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAudioBankOwnedEntriesTests COMMAND SparkplugAudioBankOwnedEntriesTests)
+    set_tests_properties(SparkplugAudioBankOwnedEntriesTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugBaseReferrersTests Tests/spBaseObjectReferrersTests.cpp)
+    target_link_libraries(SparkplugBaseReferrersTests PRIVATE SparkBase)
+    add_test(NAME SparkplugBaseReferrersTests COMMAND SparkplugBaseReferrersTests)
+    set_tests_properties(SparkplugBaseReferrersTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugProjectionIndexTests Tests/spProjectionIndexTests.cpp)
+    target_link_libraries(SparkplugProjectionIndexTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugProjectionIndexTests COMMAND SparkplugProjectionIndexTests)
+    set_tests_properties(SparkplugProjectionIndexTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugProjectionWriteTests Tests/spProjectionWriteTests.cpp)
     target_link_libraries(SparkplugProjectionWriteTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugProjectionWriteTests COMMAND SparkplugProjectionWriteTests)

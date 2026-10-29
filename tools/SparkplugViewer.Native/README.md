@@ -29,6 +29,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/SparkplugViewer.Native
 `MessageQueue`, `Notification`, `SleepingAIAction`, `TrollBeforeFightAIAction`,
 `TargetManager`, `WxButtonNotify`, `MenuGameFlowState`
 и существующий общий `SparkBase`.
+Для отдельных ограниченных PC-контрактов доступны `ProjectionIndex`,
+`KikoHoleAIAction`, `DroidWanderAIAction`, `GhoulScriptAIAction`, `GameOverGameFlowState`, `CinematicGameFlowState`, `TextController`, `AudioBank`,
+`AudioBankEntry`, `AudioBankOwnedEntries`, `AudioManagerBank`,
+`AudioManagerOwnedEntries`,
+`CameraManager`, `CinematicManager`, `BaseReferrers`, `PressStartGameFlowState` и `Timer`.
 Эти suites собирают общие
 исходники и проверяют их portable контракты; они не запускают оригинальную
 игру и не подтверждают поддержку новых компонентов в публичном C ABI.

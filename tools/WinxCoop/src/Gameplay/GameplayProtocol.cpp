@@ -50,23 +50,9 @@ namespace winxcoop::gameplay
             LevelDescriptor l; l.levelId = Get32(p); l.entryId = Get32(p + 4);
             std::copy_n(p + 8, 32, l.resources.begin()); std::copy_n(p + 40, 32, l.scenario.begin()); return l;
         }
-        bool Valid(const InputIntent& i)
+        template<class State> bool ValidPose(const State& s)
         {
-            return i.clientTick != 0 && std::isfinite(i.magnitude) && i.magnitude >= 0 && i.magnitude <= 1 &&
-                std::isfinite(i.relativeRadians) && std::abs(i.relativeRadians) <= InputIntent::MaximumRadians &&
-                std::isfinite(i.referenceHeading) && std::abs(i.referenceHeading) <= InputIntent::MaximumRadians;
-        }
-        bool SameInputState(const InputIntent& a, const InputIntent& b)
-        {
-            // Signed zero carries no transition; every other field change is
-            // preserved. In particular, reference heading is not discarded.
-            return a.magnitude == b.magnitude && a.relativeRadians == b.relativeRadians &&
-                a.referenceHeading == b.referenceHeading && a.jumpHeld == b.jumpHeld;
-        }
-        bool Valid(const AcceptedState& s)
-        {
-            if((s.entity != GameplayProtocol::HostEntity && s.entity != GameplayProtocol::GuestEntity) || s.hostTick == 0 ||
-               static_cast<unsigned>(s.animation) > static_cast<unsigned>(Animation::Jump)) return false;
+            if(static_cast<unsigned>(s.animation) > static_cast<unsigned>(Animation::Jump)) return false;
             for(const float v : s.position) if(!std::isfinite(v)) return false;
             for(const float v : s.velocity) if(!std::isfinite(v)) return false;
             for(const float v : s.rotation) if(!std::isfinite(v)) return false;
@@ -86,6 +72,29 @@ namespace winxcoop::gameplay
                 + double(m[2]) * (double(m[3])*m[7] - double(m[4])*m[6]);
             return std::abs(det - 1.0) <= tolerance;
         }
+        bool Valid(const AcceptedState& s)
+        { return (s.entity == GameplayProtocol::HostEntity || s.entity == GameplayProtocol::GuestEntity) && s.hostTick != 0 && ValidPose(s); }
+        bool Valid(const ObservedState& s)
+        { return s.entity == GameplayProtocol::GuestEntity && s.observationTick != 0 && ValidPose(s); }
+        template<class State> void PutPose(std::uint8_t* p, const State& state)
+        {
+            for(unsigned i = 0; i < 3; ++i) PutFloat(p + i * 4, state.position[i]);
+            for(unsigned i = 0; i < 3; ++i) PutFloat(p + 12 + i * 4, state.velocity[i]);
+            for(unsigned i = 0; i < 9; ++i) PutFloat(p + 24 + i * 4, state.rotation[i]);
+            Put16(p + 60, static_cast<std::uint16_t>(state.animation)); Put16(p + 62, 0);
+        }
+        template<class State> void GetPose(const std::uint8_t* p, State& state)
+        {
+            for(unsigned i = 0; i < 3; ++i) state.position[i] = GetFloat(p + i * 4);
+            for(unsigned i = 0; i < 3; ++i) state.velocity[i] = GetFloat(p + 12 + i * 4);
+            for(unsigned i = 0; i < 9; ++i) state.rotation[i] = GetFloat(p + 24 + i * 4);
+            state.animation = static_cast<Animation>(Get16(p + 60));
+        }
+        bool Same(const ObservationToken& a, const ObservationToken& b) noexcept
+        {
+            return a.connectionId == b.connectionId && a.sessionId == b.sessionId && a.levelEpoch == b.levelEpoch &&
+                a.entity == b.entity && a.sequence == b.sequence && a.observationTick == b.observationTick;
+        }
         std::size_t BodySize(const MessageKind kind)
         {
             switch(kind)
@@ -94,13 +103,15 @@ namespace winxcoop::gameplay
                 case MessageKind::Welcome: return CompatibilitySize + LevelSize + 8;
                 case MessageKind::Ready: case MessageKind::Resume: return LevelSize;
                 case MessageKind::Input: return 20;
-                case MessageKind::State: return 72;
+                case MessageKind::State: return 76;
                 case MessageKind::Remove: return 4;
+                case MessageKind::ObservedState: return 68;
+                case MessageKind::ObservationRejected: return 12;
             }
             return GameplayProtocol::MaximumPayload;
         }
         bool HostSends(const MessageKind kind)
-        { return kind == MessageKind::Welcome || kind == MessageKind::Resume || kind == MessageKind::State || kind == MessageKind::Remove; }
+        { return kind == MessageKind::Welcome || kind == MessageKind::Resume || kind == MessageKind::State || kind == MessageKind::Remove || kind == MessageKind::ObservationRejected; }
     }
 
     bool operator==(const Compatibility& a, const Compatibility& b) noexcept
@@ -137,7 +148,7 @@ namespace winxcoop::gameplay
         const auto remote = config_.role == networking::SessionRole::Host ? GuestEntity : HostEntity;
         const bool remove = EntityAlive(remote);
         phase_ = Phase::Failed; error_ = error; localReady_ = peerReady_ = false;
-        outbound_.clear(); events_.clear(); alive_.fill(false); lastInput_.reset();
+        outbound_.clear(); events_.clear(); alive_.fill(false); pendingObservations_.clear();
         try
         {
             if(remove) events_.push_back(MakeEvent(EventKind::EntityRemoved, remote));
@@ -216,36 +227,66 @@ namespace winxcoop::gameplay
         if(!Emit(MessageKind::Resume, 0, body.data(), body.size())) return false;
         phase_ = Phase::Running; return Push(MakeEvent(EventKind::Started));
     }
-    bool GameplayProtocol::SubmitInput(const InputIntent& input)
+    bool GameplayProtocol::SubmitInput(const InputIntent&) { return false; }
+    ObservationToken GameplayProtocol::MakeObservationToken(const std::uint32_t sequence, const ObservedState& state) const noexcept
+    { return {connection_, session_, epoch_, state.entity, sequence, state.observationTick}; }
+    bool GameplayProtocol::IsFrontObservation(const ObservationToken& token) const noexcept
+    { return !pendingObservations_.empty() && Same(token, pendingObservations_.front().token); }
+    bool GameplayProtocol::SubmitObservedState(const ObservedState& state)
     {
         if(config_.role != networking::SessionRole::Guest || phase_ != Phase::Running || !EntityAlive(GuestEntity) ||
-           !Valid(input) || input.clientTick <= lastInputTick_) return false;
-        if(lastInput_ && input.clientTick - lastInputTick_ != 1)
-        { Fail(Error::InputDiscontinuity); return false; }
-        if(lastInput_ && SameInputState(input, *lastInput_))
-        {
-            // Do not replace the queued transition's first observation tick.
-            lastInputTick_ = input.clientTick; return true;
-        }
-        std::array<std::uint8_t, 20> body{}; Put32(body.data(), input.clientTick);
-        PutFloat(body.data() + 4, input.magnitude); PutFloat(body.data() + 8, input.relativeRadians);
-        PutFloat(body.data() + 12, input.referenceHeading); Put16(body.data() + 16, static_cast<std::uint16_t>(input.jumpHeld ? 1 : 0));
-        if(!Emit(MessageKind::Input, GuestEntity, body.data(), body.size())) return false;
-        lastInput_ = input; lastInputTick_ = input.clientTick;
-        lastGuestInput_ = sent_[static_cast<std::size_t>(MessageKind::Input)][GuestEntity]; return true;
+           !Valid(state) || state.observationTick <= lastObservationTick_) return false;
+        if(pendingObservations_.size() >= MaximumPendingObservations) { Fail(Error::Backpressure); return false; }
+        std::array<std::uint8_t, 68> body{}; Put32(body.data(), state.observationTick); PutPose(body.data() + 4, state);
+        if(!Emit(MessageKind::ObservedState, GuestEntity, body.data(), body.size())) return false;
+        const auto sequence = sent_[static_cast<std::size_t>(MessageKind::ObservedState)][GuestEntity];
+        try { pendingObservations_.push_back({MakeObservationToken(sequence, state), state}); }
+        catch(const std::bad_alloc&) { Fail(Error::ResourceFailure); return false; }
+        lastObservation_ = sequence; lastObservationTick_ = state.observationTick; return true;
+    }
+    bool GameplayProtocol::EmitState(const AcceptedState& state)
+    {
+        std::array<std::uint8_t, 76> body{};
+        Put32(body.data(), state.hostTick); Put32(body.data() + 4, state.acknowledgedObservation); Put32(body.data() + 8, state.observedTick);
+        PutPose(body.data() + 12, state);
+        return Emit(MessageKind::State, state.entity, body.data(), body.size());
     }
     bool GameplayProtocol::PublishAcceptedState(const AcceptedState& state)
     {
-        if(config_.role != networking::SessionRole::Host || phase_ != Phase::Running || !Valid(state) || !EntityAlive(state.entity) ||
-           state.hostTick <= stateTicks_[state.entity] || state.acknowledgedInput < stateAcknowledgements_[state.entity] ||
-           (state.entity == HostEntity ? state.acknowledgedInput != 0 : state.acknowledgedInput > lastGuestInput_)) return false;
-        std::array<std::uint8_t, 72> body{}; Put32(body.data(), state.hostTick); Put32(body.data() + 4, state.acknowledgedInput);
-        for(unsigned i = 0; i < 3; ++i) PutFloat(body.data() + 8 + i * 4, state.position[i]);
-        for(unsigned i = 0; i < 3; ++i) PutFloat(body.data() + 20 + i * 4, state.velocity[i]);
-        for(unsigned i = 0; i < 9; ++i) PutFloat(body.data() + 32 + i * 4, state.rotation[i]);
-        Put16(body.data() + 68, static_cast<std::uint16_t>(state.animation));
-        if(!Emit(MessageKind::State, state.entity, body.data(), body.size())) return false;
-        stateTicks_[state.entity] = state.hostTick; stateAcknowledgements_[state.entity] = state.acknowledgedInput; return true;
+        if(config_.role != networking::SessionRole::Host || phase_ != Phase::Running || !Valid(state) ||
+           state.entity != HostEntity || !EntityAlive(HostEntity) || state.acknowledgedObservation || state.observedTick ||
+           state.hostTick <= stateTicks_[HostEntity]) return false;
+        if(!EmitState(state)) return false;
+        stateTicks_[HostEntity] = state.hostTick; return true;
+    }
+    bool GameplayProtocol::AcceptObservedState(const ObservationToken& token, const std::uint32_t hostPublicationTick)
+    {
+        if(config_.role != networking::SessionRole::Host || phase_ != Phase::Running || !EntityAlive(GuestEntity) ||
+           !IsFrontObservation(token) || token.sequence != lastDecision_ + 1 || hostPublicationTick == 0 ||
+           hostPublicationTick <= stateTicks_[GuestEntity]) return false;
+        const auto& observed = pendingObservations_.front().state;
+        AcceptedState state; state.entity = GuestEntity; state.hostTick = hostPublicationTick;
+        state.acknowledgedObservation = token.sequence; state.observedTick = observed.observationTick;
+        state.position = observed.position; state.velocity = observed.velocity; state.rotation = observed.rotation; state.animation = observed.animation;
+        if(!EmitState(state)) return false;
+        auto event = MakeEvent(EventKind::AcceptedState, GuestEntity, token.sequence); event.state = state;
+        event.observed = observed; event.observationToken = token;
+        if(!Push(std::move(event))) return false;
+        stateTicks_[GuestEntity] = hostPublicationTick;
+        lastDecision_ = token.sequence; pendingObservations_.pop_front(); return true;
+    }
+    bool GameplayProtocol::RejectObservedState(const ObservationToken& token, const std::uint16_t reason)
+    {
+        if(config_.role != networking::SessionRole::Host || phase_ != Phase::Running || !EntityAlive(GuestEntity) ||
+           !IsFrontObservation(token) || token.sequence != lastDecision_ + 1) return false;
+        std::array<std::uint8_t, 12> body{}; Put32(body.data(), token.sequence); Put32(body.data() + 4, token.observationTick);
+        Put16(body.data() + 8, reason);
+        if(!Emit(MessageKind::ObservationRejected, GuestEntity, body.data(), body.size())) return false;
+        auto event = MakeEvent(EventKind::ObservationRejected, GuestEntity, token.sequence);
+        event.observed = pendingObservations_.front().state; event.observationToken = token; event.rejectionReason = reason;
+        if(!Push(std::move(event))) return false;
+        lastDecision_ = token.sequence;
+        pendingObservations_.pop_front(); return true;
     }
     bool GameplayProtocol::RemoveEntity(const std::uint32_t entity, const std::uint16_t reason)
     {
@@ -253,7 +294,8 @@ namespace winxcoop::gameplay
         if(!EntityAlive(entity)) return true;
         std::array<std::uint8_t, 4> body{}; Put16(body.data(), reason);
         if(!Emit(MessageKind::Remove, entity, body.data(), body.size())) return false;
-        alive_[entity] = false; auto event = MakeEvent(EventKind::EntityRemoved, entity); event.removalReason = reason; return Push(std::move(event));
+        alive_[entity] = false; if(entity == GuestEntity) pendingObservations_.clear();
+        auto event = MakeEvent(EventKind::EntityRemoved, entity); event.removalReason = reason; return Push(std::move(event));
     }
     ReceiveResult GameplayProtocol::Receive(const std::uint64_t connectionId, const networking::SessionMessage& message)
     {
@@ -264,7 +306,7 @@ namespace winxcoop::gameplay
         const auto* p = message.payload.data();
         const Header h{static_cast<MessageKind>(p[2]), Get64(p + 4), Get32(p + 12), Get32(p + 16), Get32(p + 20)};
         const auto k = static_cast<std::size_t>(h.kind);
-        if(Get16(p) != Version || p[3] != 0 || k < 1 || k > 7 || message.key != k || h.entity > 2 || h.sequence == 0 ||
+        if(Get16(p) != Version || p[3] != 0 || k < 1 || k > 9 || h.kind == MessageKind::Input || message.key != k || h.entity > 2 || h.sequence == 0 ||
            message.payload.size() != HeaderSize + BodySize(h.kind))
         { Fail(Error::InvalidMessage); return ReceiveResult::Rejected; }
         if(HostSends(h.kind) == (config_.role == networking::SessionRole::Host))
@@ -326,49 +368,71 @@ namespace winxcoop::gameplay
                 if(Push(MakeEvent(EventKind::Started, 0, h.sequence))) return ReceiveResult::Accepted;
                 break;
             case MessageKind::Input:
+                Fail(Error::InvalidMessage); break; // V2 input simulation is not negotiated in V3.
+            case MessageKind::ObservedState:
             {
-                if(phase_ != Phase::Running || h.entity != GuestEntity) { Fail(Error::WrongPhase); break; }
+                if(phase_ != Phase::Running) { Fail(Error::WrongPhase); break; }
+                if(h.entity != GuestEntity) { Fail(Error::WrongRole); break; }
                 if(!EntityAlive(GuestEntity)) return ReceiveResult::IgnoredStale;
-                InputIntent input; input.clientTick = Get32(body);
-                input.magnitude = GetFloat(body + 4); input.relativeRadians = GetFloat(body + 8);
-                input.referenceHeading = GetFloat(body + 12); const auto flags = Get16(body + 16);
-                input.jumpHeld = (flags & 1) != 0;
-                if(!Valid(input) || (flags & ~std::uint16_t(1)) != 0 || Get16(body + 18) != 0)
-                { Fail(Error::InvalidMessage); break; }
-                // Reliable ordered carrier plus contiguous transition sequence
-                // detects a dropped/coalesced press or release. Packet replay
-                // was discarded before Handle; a *fresh* sequence cannot move
-                // the producer's native observation clock backwards.
-                if(h.sequence != lastGuestInput_ + 1 || input.clientTick <= lastInputTick_)
-                { Fail(Error::InputDiscontinuity); break; }
-                if(lastInput_ && SameInputState(input, *lastInput_)) { Fail(Error::InvalidMessage); break; }
-                auto e = MakeEvent(EventKind::GuestInput, GuestEntity, h.sequence); e.input = input;
+                ObservedState state; state.entity = GuestEntity; state.observationTick = Get32(body); GetPose(body + 4, state);
+                if(!Valid(state) || Get16(body + 66) != 0) { Fail(Error::InvalidMessage); break; }
+                if(h.sequence != lastObservation_ + 1 || state.observationTick <= lastObservationTick_)
+                { Fail(Error::ObservationDiscontinuity); break; }
+                if(pendingObservations_.size() >= MaximumPendingObservations) { Fail(Error::Backpressure); break; }
+                const auto token = MakeObservationToken(h.sequence, state);
+                pendingObservations_.push_back({token, state});
+                auto e = MakeEvent(EventKind::ObservedState, GuestEntity, h.sequence); e.observed = state; e.observationToken = token;
                 if(!Push(std::move(e))) break;
-                lastInput_ = input; lastGuestInput_ = h.sequence; lastInputTick_ = input.clientTick; return ReceiveResult::Accepted;
+                lastObservation_ = h.sequence; lastObservationTick_ = state.observationTick; return ReceiveResult::Accepted;
             }
             case MessageKind::State:
             {
                 if(phase_ != Phase::Running || h.entity < 1) { Fail(Error::WrongPhase); break; }
                 if(!EntityAlive(h.entity)) return ReceiveResult::IgnoredStale;
-                AcceptedState state; state.entity = h.entity; state.hostTick = Get32(body); state.acknowledgedInput = Get32(body + 4);
-                for(unsigned i = 0; i < 3; ++i) state.position[i] = GetFloat(body + 8 + i * 4);
-                for(unsigned i = 0; i < 3; ++i) state.velocity[i] = GetFloat(body + 20 + i * 4);
-                for(unsigned i = 0; i < 9; ++i) state.rotation[i] = GetFloat(body + 32 + i * 4);
-                state.animation = static_cast<Animation>(Get16(body + 68));
-                if(!Valid(state) || Get16(body + 70) != 0 ||
-                   (h.entity == HostEntity ? state.acknowledgedInput != 0 : state.acknowledgedInput > lastGuestInput_))
-                { Fail(Error::InvalidMessage); break; }
-                if(state.hostTick <= stateTicks_[h.entity] || state.acknowledgedInput < stateAcknowledgements_[h.entity])
-                    return ReceiveResult::IgnoredStale;
-                auto e = MakeEvent(EventKind::AcceptedState, h.entity, h.sequence); e.state = state;
+                AcceptedState state; state.entity = h.entity; state.hostTick = Get32(body);
+                state.acknowledgedObservation = Get32(body + 4); state.observedTick = Get32(body + 8); GetPose(body + 12, state);
+                if(!Valid(state) || Get16(body + 74) != 0) { Fail(Error::InvalidMessage); break; }
+                if(h.entity == HostEntity)
+                {
+                    if(state.acknowledgedObservation || state.observedTick) { Fail(Error::InvalidMessage); break; }
+                    if(state.hostTick <= stateTicks_[HostEntity]) return ReceiveResult::IgnoredStale;
+                    auto e = MakeEvent(EventKind::AcceptedState, HostEntity, h.sequence); e.state = state;
+                    if(!Push(std::move(e))) break;
+                    stateTicks_[HostEntity] = state.hostTick; return ReceiveResult::Accepted;
+                }
+                if(pendingObservations_.empty() || state.acknowledgedObservation != lastDecision_ + 1 ||
+                   state.acknowledgedObservation != pendingObservations_.front().token.sequence ||
+                   state.observedTick != pendingObservations_.front().state.observationTick || state.hostTick <= stateTicks_[GuestEntity])
+                { Fail(Error::ObservationDiscontinuity); break; }
+                // This is the guest's own server decision receipt, never a
+                // remote-model application event or a local-root correction.
+                auto e = MakeEvent(EventKind::ObservationAccepted, GuestEntity, h.sequence); e.state = state;
+                e.observed = pendingObservations_.front().state; e.observationToken = pendingObservations_.front().token;
                 if(!Push(std::move(e))) break;
-                stateTicks_[h.entity] = state.hostTick; stateAcknowledgements_[h.entity] = state.acknowledgedInput; return ReceiveResult::Accepted;
+                stateTicks_[GuestEntity] = state.hostTick;
+                lastDecision_ = state.acknowledgedObservation; pendingObservations_.pop_front(); return ReceiveResult::Accepted;
+            }
+            case MessageKind::ObservationRejected:
+            {
+                if(phase_ != Phase::Running || h.entity != GuestEntity) { Fail(Error::WrongPhase); break; }
+                if(!EntityAlive(GuestEntity)) return ReceiveResult::IgnoredStale;
+                const auto sequence = Get32(body), tick = Get32(body + 4);
+                if(Get16(body + 10) != 0) { Fail(Error::InvalidMessage); break; }
+                if(pendingObservations_.empty() || sequence != lastDecision_ + 1 || sequence != pendingObservations_.front().token.sequence ||
+                   tick != pendingObservations_.front().state.observationTick)
+                { Fail(Error::ObservationDiscontinuity); break; }
+                auto e = MakeEvent(EventKind::ObservationRejected, GuestEntity, sequence);
+                e.observed = pendingObservations_.front().state; e.observationToken = pendingObservations_.front().token;
+                e.rejectionReason = Get16(body + 8);
+                if(!Push(std::move(e))) break;
+                lastDecision_ = sequence;
+                pendingObservations_.pop_front(); return ReceiveResult::Accepted;
             }
             case MessageKind::Remove:
                 if(phase_ != Phase::Running || h.entity < 1 || Get16(body + 2) != 0)
                 { Fail(Error::InvalidMessage); break; }
                 if(!EntityAlive(h.entity)) return ReceiveResult::IgnoredStale;
-                alive_[h.entity] = false;
+                alive_[h.entity] = false; if(h.entity == GuestEntity) pendingObservations_.clear();
                 { auto e = MakeEvent(EventKind::EntityRemoved, h.entity, h.sequence); e.removalReason = Get16(body);
                   if(Push(std::move(e))) return ReceiveResult::Accepted; }
                 break;
@@ -388,7 +452,7 @@ namespace winxcoop::gameplay
         if(Terminal()) return;
         const auto remote = config_.role == networking::SessionRole::Host ? GuestEntity : HostEntity;
         const bool remove = EntityAlive(remote);
-        phase_ = Phase::Closed; localReady_ = peerReady_ = false; outbound_.clear(); events_.clear(); alive_.fill(false); lastInput_.reset();
+        phase_ = Phase::Closed; localReady_ = peerReady_ = false; outbound_.clear(); events_.clear(); alive_.fill(false); pendingObservations_.clear();
         try
         {
             if(remove) events_.push_back(MakeEvent(EventKind::EntityRemoved, remote));

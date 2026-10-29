@@ -11,7 +11,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     private uint _updates, _samples, _readySamples, _factoryReturns;
     private bool _mediaVerified;
     private NativeCallDispatcher _calls = new(log,
-        TimeSpan.FromSeconds(config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" ? 30 : 10));
+        TimeSpan.FromSeconds(config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" ? 30 : 10));
     private bool _callCheckBegun, _callCheckPassed;
     private uint _localCharacter;
     private NativeVisualActor? _visual;
@@ -23,11 +23,12 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     private readonly HashSet<uint> _bodyReceivers = [];
     internal uint ReadySamples => config.Mode == "controller-reset" ? _movement?.ReadySamples ?? 0 : _readySamples;
     internal bool RemoteCreated => _visual?.EverCreated == true;
+    internal bool ModeCompleted => config.Mode is ("template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn") && _template?.ModeCompleted == true;
     internal bool ModeSucceeded => config.Mode switch
     {
         "observe" => _readySamples > 0,
         "control-observe" => _control?.ModeSucceeded == true,
-        "template-create" or "template-init" => _template?.ModeSucceeded == true,
+        "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" => _template?.ModeSucceeded == true,
         "controller-reset" => _movement?.ModeSucceeded == true,
         "native-call-check" => _callCheckPassed,
         "visual-actor" or "visual-unload" => _visual?.Cleaned == true,
@@ -46,7 +47,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     {
         _host = host;
         if (host.ImageBase != 0x400000) throw new InvalidDataException("Image base mismatch");
-        if (config.Mode is "template-create" or "template-init")
+        if (config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn")
         {
             _template = new NativeTemplateProbe(config, image, log);
             _template.InstallWitnesses(host);
@@ -78,7 +79,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 _visual ??= new NativeVisualActor(config, image, log);
                 _visual.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
             }
-            if (config.Mode is "template-create" or "template-init" && _readySamples >= 15)
+            if (config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" && _readySamples >= 15)
                 _template!.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
             if (config.Mode == "native-call-check" && !_callCheckBegun && _readySamples >= 15 && _localCharacter != 0)
             {
@@ -125,7 +126,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                     if (_bodyReceivers.Count < 32) _bodyReceivers.Add(ctx.Ecx);
                     log(new { @event = "body-load-entry", threadId = tid, receiver = Hex(ctx.Ecx), vtable = Hex(TryU(ctx.Ecx)) });
                 });
-        if (config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "controller-reset")
+        if (config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset")
         {
             // The playing-state entry precedes the exit stack's own borrowed
             // actor releases. Lower entries cover body/profile replacement and

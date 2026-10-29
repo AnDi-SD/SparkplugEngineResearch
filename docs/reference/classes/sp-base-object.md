@@ -108,7 +108,7 @@ sizeof(this) = 0x10
 подтверждается callers замены object-reference: старый target удаляет owner из
 списка и теряет ссылку, новый target увеличивает счётчик и добавляет owner.
 
-Layout списка и его узла:
+PS2-layout списка и его узла:
 
 | Объект | Смещение | Значение |
 | --- | ---: | --- |
@@ -183,6 +183,42 @@ PC даёт независимую полную таблицу по `0x006DAEB8`
 PC non-deleting destructor `0x004102B0` ставит базовую vtable, разрушает и
 освобождает optional list по `+0x04`, затем обнуляет указатель. Это совпадает с
 PS2 lifetime-путём и дополнительно подтверждает назначение поля.
+
+На PC контейнер устроен иначе: отдельные `0x0C` байт содержат opaque word
+по `00`, указатель на отдельно выделенный sentinel по `04` и count по `08`.
+Узел и sentinel занимают ещё по `0x0C`; next/previous находятся по `00/04`,
+заимствованный referring pointer — по `08`. Роль opaque word и payload
+sentinel не установлена. Эти PC-структуры отделены в
+[ABI](../../../Sparkplug/Analysis/PC/SparkBaseAbi.h).
+
+PC `410050` лениво создаёт контейнер и sentinel, затем добавляет узел в хвост.
+Повторяющиеся и self-указатели сохраняются как отдельные элементы. Добавление
+не меняет intrusive count referring object. `4102B0` вызывает `595AF0` для
+освобождения узлов/sentinel, освобождает контейнер и обнуляет поле `04`.
+Payload не становится owned object: очистка списка не вызывает его destructor
+или notification. Собственное уничтожение subject при self-ссылке остаётся
+отдельным действием lifetime.
+
+Общий переносимый [компонент списка](../../../Sparkplug/Code/SparkBase/spBaseObjectReferrers.h)
+принимает явный [контекст одного subject](../../../Sparkplug/Analysis/Host/spBaseReferrerContext.h).
+Он хранит только metadata и заимствованные типизированные указатели, сохраняет
+порядок/дубликаты и предоставляет terminal cleanup. Профиль по умолчанию
+отказывает; допустимы живые стабильные объекты и не более четырёх записей.
+Этот предел и проверка совпадения subject — host admission, не native проверки.
+Контекст нельзя копировать или перемещать; единственность контекста и lifetime
+его объектов обеспечивает caller.
+
+Контекст явно представляет native optional state; существующие layout,
+копирование и destructor `spBaseObject` не изменены и не обнаруживают его
+автоматически. Cleanup контекста сопоставлен с компонентом очистки у actual
+Named subject с null name, затем с отдельным обычным C++ lifetime/storage.
+Автоматическое active-list lifetime всех производных классов и сочетание с
+последним владельцем имени этим не квалифицируются. `std::list` и allocator
+host являются технической заменой metadata, без совпадения Native32 ABI или
+числа/размера allocations. При ошибке allocation контекст становится
+непригодным и подлежит уничтожению; native rollback/retry не моделируются.
+Remove, forwarding notifications, cold startup и интеграция Kiko Entry
+требуют отдельного контракта.
 
 ## `spCloneManager` и контракт клонирования
 

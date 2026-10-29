@@ -30,6 +30,8 @@ namespace winxcoop::adapter
     public:
         bool Configure(const PassiveActorContext& context) noexcept;
         bool Create(const char* mediaDirectory) noexcept;
+        // Raw stock character-root PRS. The display wrapper supplies the
+        // model's omitted Y half-turn; the local root is never modified.
         bool ApplyRemote(const Transform& transform, PassiveAnimation animation) noexcept;
         // Read-only lifetime witness. A paused/menu flow may retain this same
         // scene while no new gameplay command is admissible.

@@ -1,7 +1,6 @@
 #include "../src/Gameplay/GameplayProtocol.h"
 #include <algorithm>
 #include <cctype>
-#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -9,397 +8,175 @@
 #include <string>
 #include <utility>
 #include <vector>
-
 using namespace winxcoop::gameplay;
 using winxcoop::networking::SessionMessage;
 using winxcoop::networking::SessionRole;
 namespace
 {
     unsigned checks = 0;
-    void Check(const bool condition, const char* text)
-    { ++checks; if(!condition) throw std::runtime_error(text); }
-    Config Configuration(const SessionRole role, const std::uint64_t session = 0x1020304050607080ull)
+    void Check(bool b, const char* why) { ++checks; if(!b) throw std::runtime_error(why); }
+    Config Configuration(SessionRole role)
     {
         Config c; c.role = role; c.compatibility.executable.fill(0x11); c.compatibility.adapter.fill(0x22);
         c.qualifiedLevel.levelId = 28; c.qualifiedLevel.entryId = 2;
         c.qualifiedLevel.resources.fill(0x33); c.qualifiedLevel.scenario.fill(0x44);
-        c.hostSession = role == SessionRole::Host ? session : 0; return c;
+        c.hostSession = role == SessionRole::Host ? 0x1020304050607080ull : 0; return c;
     }
-    void Set32(std::vector<std::uint8_t>& p, const std::size_t at, const std::uint32_t v)
-    { for(unsigned n = 0; n < 4; ++n) p.at(at + n) = static_cast<std::uint8_t>(v >> (n * 8)); }
+    void Set32(std::vector<std::uint8_t>& p, std::size_t at, std::uint32_t v)
+    { for(unsigned n = 0; n < 4; ++n) p.at(at + n) = static_cast<std::uint8_t>(v >> (8*n)); }
     std::vector<std::uint8_t> Bytes(const char* text)
     {
-        std::string s; for(const char* p = text; *p; ++p) if(!std::isspace(static_cast<unsigned char>(*p))) s += *p;
-        Check(s.size() % 2 == 0, "complete independent hex literal"); std::vector<std::uint8_t> out;
-        for(std::size_t i = 0; i < s.size(); i += 2) out.push_back(static_cast<std::uint8_t>(std::stoul(s.substr(i,2), nullptr, 16)));
-        return out;
+        std::string s; for(auto p = text; *p; ++p) if(!std::isspace(static_cast<unsigned char>(*p))) s += *p;
+        Check(s.size()%2 == 0,"complete independent literal"); std::vector<std::uint8_t> result;
+        for(std::size_t i = 0; i < s.size(); i += 2) result.push_back(static_cast<std::uint8_t>(std::stoul(s.substr(i,2),nullptr,16)));
+        return result;
     }
     SessionMessage Next(GameplayProtocol& p)
-    { auto m = p.TakeOutbound(); Check(m.has_value(), "one expected owned application message"); return std::move(*m); }
+    { auto m = p.TakeOutbound(); Check(m.has_value(),"expected outbound message"); return std::move(*m); }
+    Event EventOf(GameplayProtocol& p, EventKind kind)
+    { auto e = p.TakeEvent(); Check(e.has_value() && e->kind == kind,"expected typed event"); return *e; }
     void Drain(GameplayProtocol& p) { while(p.TakeEvent()) {} }
-    void Accepted(GameplayProtocol& p, const SessionMessage& m, const std::uint64_t connection = 11)
-    { Check(p.Receive(connection, m) == ReceiveResult::Accepted, "application message accepted for exactly its connection"); }
-    Event NextEvent(GameplayProtocol& p, const EventKind kind)
-    { auto e = p.TakeEvent(); Check(e.has_value() && e->kind == kind, "expected owned gameplay event"); return *e; }
+    void Receive(GameplayProtocol& p, const SessionMessage& m, std::uint64_t conn = 11)
+    { Check(p.Receive(conn,m) == ReceiveResult::Accepted,"message accepted"); }
     struct Pair
     {
         Config h = Configuration(SessionRole::Host), g = Configuration(SessionRole::Guest);
         GameplayProtocol host{h}, guest{g};
-        void Begin()
-        { Check(host.Begin(11) && guest.Begin(11), "both endpoints begin once on an application carrier"); }
-        void Welcome(const std::uint32_t epoch = 7)
-        {
-            Begin(); Accepted(host, Next(guest));
-            Check(host.HostAssignLevel(epoch, h.qualifiedLevel), "actual ready host assigns its qualified scene");
-            Accepted(guest, Next(host));
-        }
-        void Run(const std::uint32_t epoch = 7)
-        {
-            Welcome(epoch); Check(guest.NotifyLocalReady(g.qualifiedLevel), "guest reports exact actual scene readiness");
-            Accepted(host, Next(guest)); Accepted(guest, Next(host));
-            Check(host.CurrentPhase() == Phase::Running && guest.CurrentPhase() == Phase::Running, "only host Resume starts both gameplay endpoints");
-            Drain(host); Drain(guest);
-        }
+        void Begin() { Check(host.Begin(11) && guest.Begin(11),"begin fresh connection"); }
+        void Welcome() { Begin(); Receive(host,Next(guest)); Check(host.HostAssignLevel(7,h.qualifiedLevel),"host ready assigns lease"); Receive(guest,Next(host)); }
+        void Run() { Welcome(); Check(guest.NotifyLocalReady(g.qualifiedLevel),"guest actually ready"); Receive(host,Next(guest)); Receive(guest,Next(host)); Drain(host); Drain(guest); }
     };
-    AcceptedState State(const std::uint32_t entity, const std::uint32_t tick)
-    { AcceptedState s; s.entity = entity; s.hostTick = tick; s.position = {{1,2,3}}; s.velocity = {{4,0,0}}; s.animation = Animation::Walk; return s; }
-    InputIntent Input(const std::uint32_t tick)
+    AcceptedState State(std::uint32_t tick)
+    { AcceptedState s; s.entity=1; s.hostTick=tick; s.position={{1,2,3}}; s.velocity={{4,0,0}}; s.animation=Animation::Walk; return s; }
+    ObservedState Observation(std::uint32_t tick)
+    { ObservedState s; s.entity=2; s.observationTick=tick; s.position={{1,2,3}}; s.velocity={{4,0,0}}; s.animation=Animation::Walk; return s; }
+    Event Observe(Pair& p, std::uint32_t tick)
+    { Check(p.guest.SubmitObservedState(Observation(tick)),"guest observes own stock state"); Receive(p.host,Next(p.guest)); return EventOf(p.host,EventKind::ObservedState); }
+    void BarrierAndCompatibility()
     {
-        InputIntent i; i.clientTick = tick; i.magnitude = 1;
-        i.relativeRadians = 1.57079637050628662109375f; i.referenceHeading = -1;
-        i.jumpHeld = (tick & 1) == 0; return i;
-    }
-
-    void GoldenAndWaiting()
-    {
-        Pair p; p.Begin(); auto hello = Next(p.guest);
-        const auto expected = Bytes(
-            "02000100 0000000000000000 00000000 01000000 00000000 "
+        Pair p; p.Begin(); auto hello=Next(p.guest);
+        auto golden=Bytes("03000100 0000000000000000 00000000 01000000 00000000 "
             "1111111111111111111111111111111111111111111111111111111111111111 "
             "2222222222222222222222222222222222222222222222222222222222222222 "
-            "1c000000 02000000 "
-            "3333333333333333333333333333333333333333333333333333333333333333 "
+            "1c000000 02000000 3333333333333333333333333333333333333333333333333333333333333333 "
             "4444444444444444444444444444444444444444444444444444444444444444");
-        Check(hello.classId == 0x31504357 && hello.key == 1 && hello.payload == expected && expected.size() == 160,
-            "independent golden Hello uses application payload, not the original Packet header");
-        Accepted(p.host, hello);
-        Check(p.host.CurrentPhase() == Phase::WaitingForHostLevel && p.guest.CurrentPhase() == Phase::AwaitingAssignment && !p.host.TakeOutbound(),
-            "compatible client waits while host has not started a ready campaign");
-        Check(!p.guest.HostAssignLevel(7,p.g.qualifiedLevel) && !p.guest.SubmitInput(Input(1)) && !p.guest.NotifyLocalReady(p.g.qualifiedLevel),
-            "guest cannot choose a scene, move, or become ready before host assignment");
-        Check(p.host.HostAssignLevel(7,p.h.qualifiedLevel), "host alone publishes actual qualified level");
-        auto welcome = Next(p.host); auto expectedWelcome = expected;
-        expectedWelcome[2] = 2;
-        const auto session = Bytes("8070605040302010"); std::copy(session.begin(), session.end(), expectedWelcome.begin() + 4);
-        Set32(expectedWelcome, 12, 7); expectedWelcome.insert(expectedWelcome.end(), {1,0,0,0,2,0,0,0});
-        Check(welcome.key == 2 && welcome.payload == expectedWelcome && welcome.payload.size() == 168,
-            "golden Welcome assigns exact session, epoch, two entities, and all fingerprints");
-        Accepted(p.guest, welcome);
-        Check(p.host.CurrentPhase() == Phase::Loading && p.guest.CurrentPhase() == Phase::Loading && !p.guest.SubmitInput(Input(2)),
-            "assignment does not start simulation before guest scene ready");
-        auto wrong = p.g.qualifiedLevel; ++wrong.entryId;
-        Check(!p.guest.NotifyLocalReady(wrong) && !p.guest.TakeOutbound(), "same level but different entry is not scene readiness");
-        Check(p.guest.NotifyLocalReady(p.g.qualifiedLevel) && p.guest.NotifyLocalReady(p.g.qualifiedLevel), "readiness report is idempotent");
-        auto ready = Next(p.guest); Check(ready.payload.size() == 96 && !p.guest.TakeOutbound(), "one exact Ready body despite repeated local report");
-        Accepted(p.host, ready); auto resume = Next(p.host);
-        Check(resume.payload.size() == 96 && p.host.CurrentPhase() == Phase::Running && p.guest.CurrentPhase() == Phase::Loading,
-            "host explicitly emits Resume after both actual ready reports");
-        Accepted(p.guest, resume);
-        Check(p.guest.CurrentPhase() == Phase::Running && p.guest.SessionId() == p.h.hostSession && p.guest.LevelEpoch() == 7,
-            "guest adopts only host generation and permission");
-        Check(p.guest.Receive(11, resume) == ReceiveResult::IgnoredStale && p.host.Receive(11, ready) == ReceiveResult::IgnoredStale,
-            "duplicate control packets do not repeat readiness or start events");
-        Check(NextEvent(p.guest, EventKind::LevelAssigned).level == p.g.qualifiedLevel, "assignment event owns full exact descriptor");
-        (void)NextEvent(p.guest, EventKind::Started); Check(!p.guest.TakeEvent(), "one guest assignment and start only");
-    }
-    void CompatibilityFailures()
-    {
-        for(unsigned field = 0; field < 6; ++field)
-        {
-            auto h = Configuration(SessionRole::Host), g = Configuration(SessionRole::Guest);
-            if(field == 0) ++g.compatibility.executable[0];
-            if(field == 1) ++g.compatibility.adapter[31];
-            if(field == 2) ++g.qualifiedLevel.levelId;
-            if(field == 3) ++g.qualifiedLevel.entryId;
-            if(field == 4) ++g.qualifiedLevel.resources[12];
-            if(field == 5) ++g.qualifiedLevel.scenario[9];
-            GameplayProtocol host(h), guest(g); Check(host.Begin(11) && guest.Begin(11), "mismatch endpoints begin transport only");
-            Check(host.Receive(11, Next(guest)) == ReceiveResult::Rejected && host.LastError() == Error::Incompatible && host.CurrentPhase() == Phase::Failed,
-                "EXE, adapter, level, entry, resource, and scenario mismatches each fail before assignment");
-            Check(!host.TakeOutbound(), "incompatible guest never gets a scene assignment");
+        Check(hello.classId==0x31504357 && hello.key==1 && hello.payload==golden && golden.size()==160,"V3 Hello golden");
+        Receive(p.host,hello); Check(!p.host.TakeOutbound() && p.host.CurrentPhase()==Phase::WaitingForHostLevel,"guest waits for host actual level");
+        Check(!p.guest.HostAssignLevel(7,p.g.qualifiedLevel) && !p.guest.SubmitObservedState(Observation(1)),"guest cannot assign/start");
+        Check(p.host.HostAssignLevel(7,p.h.qualifiedLevel),"host assigns lease"); auto welcome=Next(p.host);
+        golden[2]=2; auto session=Bytes("8070605040302010"); std::copy(session.begin(),session.end(),golden.begin()+4); Set32(golden,12,7); golden.insert(golden.end(),{1,0,0,0,2,0,0,0});
+        Check(welcome.payload==golden && welcome.payload.size()==168,"Welcome golden with qualified descriptor"); Receive(p.guest,welcome);
+        auto wrong=p.g.qualifiedLevel; ++wrong.entryId;
+        Check(!p.guest.NotifyLocalReady(wrong) && !p.guest.SubmitObservedState(Observation(1)),"wrong entry/loading not ready");
+        Check(p.guest.NotifyLocalReady(p.g.qualifiedLevel) && p.guest.NotifyLocalReady(p.g.qualifiedLevel),"ready idempotent"); auto ready=Next(p.guest); Check(!p.guest.TakeOutbound(),"one Ready");
+        Receive(p.host,ready); auto resume=Next(p.host); Check(p.guest.CurrentPhase()==Phase::Loading,"guest waits for Resume"); Receive(p.guest,resume);
+        Check(p.host.LocalEntity()==1 && p.host.RemoteEntity()==2 && p.guest.LocalEntity()==2 && p.guest.RemoteEntity()==1,"remote model ownership explicit");
+        Check(p.guest.Receive(11,resume)==ReceiveResult::IgnoredStale && !p.host.HostAssignLevel(8,p.h.qualifiedLevel),"duplicate barrier/new epoch cannot restart same lease");
+        for(unsigned f=0;f<6;++f) {
+            auto h=Configuration(SessionRole::Host),g=Configuration(SessionRole::Guest);
+            if(f==0)++g.compatibility.executable[0]; if(f==1)++g.compatibility.adapter[0]; if(f==2)++g.qualifiedLevel.levelId;
+            if(f==3)++g.qualifiedLevel.entryId; if(f==4)++g.qualifiedLevel.resources[0]; if(f==5)++g.qualifiedLevel.scenario[0];
+            GameplayProtocol host(h),guest(g); Check(host.Begin(11)&&guest.Begin(11),"begin mismatching peers");
+            Check(host.Receive(11,Next(guest))==ReceiveResult::Rejected && host.LastError()==Error::Incompatible && !host.TakeOutbound(),"all six fingerprints checked");
         }
-        Pair p; p.Welcome(); Check(p.guest.NotifyLocalReady(p.g.qualifiedLevel), "prepare forged Ready test");
-        auto ready = Next(p.guest); ++ready.payload[24 + 40];
-        Check(p.host.Receive(11,ready) == ReceiveResult::Rejected && p.host.LastError() == Error::Incompatible && !p.host.TakeOutbound(),
-            "Ready must still prove the exact scenario; no Resume after a changed fingerprint");
     }
-    void InputAndAuthority()
+    void GoldenObservationAndAuthority()
     {
-        Pair p; p.Run(); Check(p.guest.SubmitInput(Input(42)), "guest sends native polar intent after Resume");
-        auto input = Next(p.guest);
-        Check(input.payload.size() == 44 && std::vector<std::uint8_t>(input.payload.begin() + 24,input.payload.end()) ==
-            Bytes("2a000000 0000803f db0fc93f 000080bf 0100 0000"),
-            "v2 independent golden input contains tick, magnitude, relative/reference radians and jump-held only");
-        Accepted(p.host,input); auto e = NextEvent(p.host,EventKind::GuestInput);
-        Check(e.entity == GameplayProtocol::GuestEntity && e.sequence == 1 && e.input.magnitude == 1 &&
-            e.input.relativeRadians == Input(42).relativeRadians && e.input.referenceHeading == -1 && e.input.jumpHeld && e.input.clientTick == 42,
-            "host receives guest intent with connection generation and sequence");
-        Check(!p.host.TakeOutbound(), "input receipt does not synthesize accepted movement");
-        Check(!p.host.SubmitInput(Input(43)) && !p.guest.PublishAcceptedState(State(1,1)), "local API enforces sender authority");
-        auto own = State(1,90), remote = State(2,90); remote.acknowledgedInput = e.sequence;
-        Check(p.host.PublishAcceptedState(own) && p.host.PublishAcceptedState(remote), "trusted backend supplies separate host and guest accepted states");
-        auto first = Next(p.host), second = Next(p.host);
-        Check(first.payload.size() == 96 && second.payload.size() == 96 && first.payload[16] == 1 && second.payload[16] == 1,
-            "state sequence is independent for both assigned entities");
-        Accepted(p.guest, first); Accepted(p.guest, second);
-        Check(NextEvent(p.guest,EventKind::AcceptedState).state.position == own.position, "host actor accepted pose delivered");
-        auto acceptedGuest = NextEvent(p.guest,EventKind::AcceptedState);
-        Check(acceptedGuest.state.acknowledgedInput == 1 && acceptedGuest.state.rotation == remote.rotation,
-            "guest correction carries input acknowledgement and full 3x3 orientation");
-        Check(p.guest.Receive(11,second) == ReceiveResult::IgnoredStale && p.host.Receive(11,input) == ReceiveResult::IgnoredStale && !p.guest.TakeEvent(),
-            "duplicate input and state cannot apply twice");
-        auto futureAck = State(2,91); futureAck.acknowledgedInput = 2;
-        Check(!p.host.PublishAcceptedState(futureAck), "host cannot acknowledge an input it has not received");
-        auto decreasing = State(1,89); Check(!p.host.PublishAcceptedState(decreasing), "trusted API still rejects old host ticks");
-        Check(p.host.Receive(11, first) == ReceiveResult::Rejected && p.host.LastError() == Error::WrongRole,
-            "guest transport cannot smuggle a state packet into host authority");
-        Check(!p.host.Begin(11) && !p.host.HostAssignLevel(8,p.h.qualifiedLevel), "failed authority connection is terminal");
+        Pair p; p.Run(); Check(p.guest.SubmitObservedState(Observation(42)),"submit observation"); auto raw=Next(p.guest);
+        auto golden=Bytes("03000800 8070605040302010 07000000 01000000 02000000 2a000000 "
+            "0000803f 00000040 00004040 00008040 00000000 00000000 "
+            "0000803f 00000000 00000000 00000000 0000803f 00000000 00000000 00000000 0000803f 0100 0000");
+        Check(raw.key==8 && raw.payload==golden && raw.payload.size()==92,"distinct ObservedState golden"); Receive(p.host,raw); auto observed=EventOf(p.host,EventKind::ObservedState);
+        Check(observed.observationToken.connectionId==11 && observed.observationToken.sessionId==p.h.hostSession && observed.observationToken.levelEpoch==7 && observed.observationToken.sequence==1 && observed.observationToken.observationTick==42,"typed token owns full generation");
+        Check(!p.host.TakeOutbound() && !p.host.TakeEvent() && p.host.PendingObservationCount()==1,"receiving does not accept or display");
+        auto spoof=State(1); spoof.entity=2; Check(!p.host.PublishAcceptedState(spoof) && !p.guest.PublishAcceptedState(State(1)) && !p.guest.AcceptObservedState(observed.observationToken,1),"guest pose only through host decision");
+        Check(p.host.AcceptObservedState(observed.observationToken,90),"host explicitly accepts"); auto accepted=Next(p.host);
+        golden[2]=6; golden.erase(golden.begin()+24,golden.begin()+28); auto meta=Bytes("5a000000 01000000 2a000000"); golden.insert(golden.begin()+24,meta.begin(),meta.end());
+        Check(accepted.key==6 && accepted.payload==golden && accepted.payload.size()==100,"accepted state golden with decision acknowledgement");
+        auto display=EventOf(p.host,EventKind::AcceptedState); Check(display.entity==p.host.RemoteEntity() && display.state.position==observed.observed.position && display.state.acknowledgedObservation==1,"host remote guest model uses accepted pose");
+        Receive(p.guest,accepted); auto receipt=EventOf(p.guest,EventKind::ObservationAccepted);
+        Check(receipt.entity==p.guest.LocalEntity() && receipt.state.observedTick==42 && !p.guest.TakeEvent() && !p.guest.PendingObservationCount(),"own guest decision is ACK-only, no local-root application event");
+        Check(!p.host.AcceptObservedState(observed.observationToken,91),"decision cannot repeat");
+        Check(p.host.PublishAcceptedState(State(1)),"publish host own stock state"); auto host=Next(p.host); Receive(p.guest,host);
+        Check(EventOf(p.guest,EventKind::AcceptedState).entity==p.guest.RemoteEntity(),"guest display event belongs to host only");
+        Check(p.host.Receive(11,host)==ReceiveResult::Rejected && p.host.LastError()==Error::WrongRole,"guest cannot smuggle accepted wire state");
     }
-    void InvalidStates()
+    void FifoAndRejection()
     {
-        for(unsigned defect = 0; defect < 7; ++defect)
-        {
-            Pair p; p.Run(); Check(p.host.PublishAcceptedState(State(1,10)), "prepare independently corrupted accepted state");
-            auto m = Next(p.host);
-            if(defect == 0) Set32(m.payload,32,0x7fc00000); // position NaN
-            if(defect == 1) Set32(m.payload,44,0x7f800000); // velocity +Inf
-            if(defect == 2) Set32(m.payload,56,0x40000000); // matrix row length 2
-            if(defect == 3) Set32(m.payload,56,0xbf800000); // reflection, det -1
-            if(defect == 4) Set32(m.payload,60,0x3f800000); // skew
-            if(defect == 5) m.payload[92] = 3; // unknown animation
-            if(defect == 6) m.payload[94] = 1; // reserved
-            Check(p.guest.Receive(11,m) == ReceiveResult::Rejected && p.guest.LastError() == Error::InvalidMessage,
-                "nonfinite, scaled/reflected/skew orientation, unknown animation and reserved bits are rejected before application");
-            while(auto e = p.guest.TakeEvent()) Check(e->kind != EventKind::AcceptedState, "invalid state never reaches adapter event queue");
-        }
-        Pair p; p.Run(); auto s = State(1,1); s.position[0] = std::numeric_limits<float>::infinity();
-        Check(!p.host.PublishAcceptedState(s) && !p.host.TakeOutbound() && p.host.CurrentPhase() == Phase::Running,
-            "bad local backend state is refused without emitting traffic");
-        auto i = Input(1); i.magnitude = -0.01f; Check(!p.guest.SubmitInput(i), "negative polar magnitude rejected");
-        i = Input(1); i.relativeRadians = 4; Check(!p.guest.SubmitInput(i), "out-of-range native direction rejected without normalization");
+        Pair p; p.Run(); auto a=Observe(p,10),b=Observe(p,50),c=Observe(p,100);
+        Check(!p.host.AcceptObservedState(b.observationToken,1),"decisions must be FIFO");
+        for(unsigned f=0;f<6;++f) { auto t=a.observationToken; if(f==0)++t.connectionId; if(f==1)++t.sessionId; if(f==2)++t.levelEpoch; if(f==3)t.entity=1; if(f==4)++t.sequence; if(f==5)++t.observationTick;
+            Check(!p.host.AcceptObservedState(t,1)&&!p.host.RejectObservedState(t,1),"every trusted token field checked"); }
+        Check(p.host.PendingObservationCount()==3 && !p.host.TakeOutbound(),"bad trusted token does not consume decision");
+        Check(p.host.RejectObservedState(a.observationToken,123) && p.host.AcceptObservedState(b.observationToken,1) && p.host.AcceptObservedState(c.observationToken,2),"mixed reject/accept decisions");
+        auto rejected=Next(p.host),second=Next(p.host),third=Next(p.host);
+        Check(rejected.key==9 && rejected.payload.size()==36 && std::vector<std::uint8_t>(rejected.payload.begin()+24,rejected.payload.end())==Bytes("01000000 0a000000 7b00 0000"),"explicit rejection golden");
+        Receive(p.guest,rejected); Receive(p.guest,second); Receive(p.guest,third);
+        Check(EventOf(p.guest,EventKind::ObservationRejected).rejectionReason==123,"rejection reason exposed");
+        Check(EventOf(p.guest,EventKind::ObservationAccepted).observationToken.sequence==2 && EventOf(p.guest,EventKind::ObservationAccepted).observationToken.sequence==3 && !p.guest.TakeEvent(),"mixed decisions stay FIFO and never apply own root");
+        Check(p.guest.LastDecidedObservationSequence()==3 && !p.guest.PendingObservationCount() && p.guest.Receive(11,rejected)==ReceiveResult::IgnoredStale,"decision receipts consumed once");
     }
-    void GenerationsAndRemoval()
+    void InvalidPosesAndDecisions()
     {
-        Pair old; old.Run(); Check(old.host.PublishAcceptedState(State(1,100)), "old scene produces owned state");
-        const auto message = Next(old.host);
-        Check(old.guest.Receive(12,message) == ReceiveResult::WrongConnection && old.guest.CurrentPhase() == Phase::Running,
-            "another socket's message cannot mutate this instance or consume its sequence");
-        auto alienSession = message; alienSession.payload[4] ^= 1;
-        Check(old.guest.Receive(11,alienSession) == ReceiveResult::IgnoredStale, "old or foreign session discarded before pose decode");
-        Accepted(old.guest,message); Drain(old.guest);
-        Pair newer; newer.Run(8);
-        Check(newer.guest.Receive(11,message) == ReceiveResult::IgnoredStale && !newer.guest.TakeEvent(), "previous epoch ignored even if transport identifier is recycled");
-        auto future = message; Set32(future.payload,12,9);
-        Check(newer.guest.Receive(11,future) == ReceiveResult::Rejected && newer.guest.LastError() == Error::InvalidEpoch,
-            "future level generation cannot be introduced by a state packet");
-        Check(old.host.RemoveEntity(2,7) && old.host.RemoveEntity(2,7), "host removal API idempotent");
-        auto remove = Next(old.host); Check(remove.payload.size() == 28 && !old.host.TakeOutbound(), "only one removal message");
-        Accepted(old.guest, remove); auto removal = NextEvent(old.guest,EventKind::EntityRemoved);
-        Check(removal.entity == 2 && removal.removalReason == 7 && !old.guest.EntityAlive(2), "remove invalidates exact assigned entity");
-        Check(old.guest.Receive(11,remove) == ReceiveResult::IgnoredStale && !old.guest.TakeEvent(), "duplicate removal has no additional event");
-        Set32(remove.payload,16,2);
-        Check(old.guest.Receive(11,remove) == ReceiveResult::IgnoredStale && !old.guest.TakeEvent(), "repeated remove with a fresh sequence still cannot delete twice");
-        Check(!old.guest.SubmitInput(Input(2)) && !old.host.PublishAcceptedState(State(2,101)), "removed entity cannot send input or be resurrected by snapshots");
-        old.guest.Close(); old.guest.Close();
-        Check(NextEvent(old.guest,EventKind::EntityRemoved).entity == 1, "disconnect requests removal of only remaining remote host actor");
-        (void)NextEvent(old.guest,EventKind::Disconnected);
-        Check(!old.guest.TakeEvent() && !old.guest.Begin(11) && old.guest.Receive(11,message) == ReceiveResult::Rejected,
-            "close is terminal and idempotent, with no stale queued poses");
-        auto freshConfig = Configuration(SessionRole::Guest); GameplayProtocol fresh(freshConfig);
-        Check(fresh.Begin(12) && fresh.SessionId() == 0 && fresh.Receive(11,message) == ReceiveResult::WrongConnection,
-            "fresh guest instance starts without inherited world handles or authority");
+        for(unsigned f=0;f<9;++f) { Pair p; p.Run(); Check(p.guest.SubmitObservedState(Observation(1)),"prepare malformed observation"); auto m=Next(p.guest);
+            if(f==0)Set32(m.payload,28,0x7fc00000); if(f==1)Set32(m.payload,40,0x7f800000); if(f==2)Set32(m.payload,52,0x40000000); if(f==3)Set32(m.payload,52,0xbf800000);
+            if(f==4)Set32(m.payload,56,0x3f800000); if(f==5)m.payload[88]=3; if(f==6)m.payload[90]=1; if(f==7)Set32(m.payload,24,0); if(f==8)Set32(m.payload,20,1);
+            Check(p.host.Receive(11,m)==ReceiveResult::Rejected && p.host.CurrentPhase()==Phase::Failed && !p.host.TakeOutbound(),"nonfinite/reflection/skew/enum/reserved/tick/entity rejected before decision"); }
+        for(unsigned f=0;f<8;++f) { Pair p; p.Run(); Check(p.host.PublishAcceptedState(State(1)),"prepare malformed accepted state"); auto m=Next(p.host);
+            if(f==0)Set32(m.payload,36,0x7fc00000); if(f==1)Set32(m.payload,48,0x7f800000); if(f==2)Set32(m.payload,60,0x40000000); if(f==3)Set32(m.payload,60,0xbf800000);
+            if(f==4)m.payload[96]=3; if(f==5)m.payload[98]=1; if(f==6)Set32(m.payload,28,1); if(f==7)Set32(m.payload,32,1);
+            Check(p.guest.Receive(11,m)==ReceiveResult::Rejected && p.guest.LastError()==Error::InvalidMessage,"host wire state still validates pose and own ack fields"); }
+        for(unsigned f=0;f<3;++f) { Pair p; p.Run(); auto e=Observe(p,42); Check(p.host.AcceptObservedState(e.observationToken,1),"prepare forged decision"); auto m=Next(p.host);
+            if(f==0)Set32(m.payload,28,2); if(f==1)Set32(m.payload,32,43); if(f==2)Set32(m.payload,24,0);
+            Check(p.guest.Receive(11,m)==ReceiveResult::Rejected,"unseen/different observation or invalid publication counter rejected"); }
+        Pair policy; policy.Run(); auto finite=Observation(1); finite.position[0]=1e12f;
+        Check(policy.guest.SubmitObservedState(finite),"finite envelope is explicitly not anti-cheat/collision validation"); Receive(policy.host,Next(policy.guest)); auto e=EventOf(policy.host,EventKind::ObservedState);
+        Check(policy.host.RejectObservedState(e.observationToken,7),"host policy may reject structurally finite position");
     }
-    void MalformedAndBarrier()
+    void SequenceAndBackpressure()
     {
-        for(unsigned defect = 0; defect < 8; ++defect)
-        {
-            Pair p; p.Begin(); auto m = Next(p.guest);
-            if(defect == 0) ++m.classId;
-            if(defect == 1) ++m.key;
-            if(defect == 2) ++m.payload[0];
-            if(defect == 3) m.payload[3] = 1;
-            if(defect == 4) m.payload.pop_back();
-            if(defect == 5) m.payload.resize(257);
-            if(defect == 6) Set32(m.payload,16,0);
-            if(defect == 7) Set32(m.payload,20,3);
-            Check(p.host.Receive(11,m) == ReceiveResult::Rejected && p.host.LastError() == Error::InvalidMessage,
-                "malformed class/key/version/flags/size/sequence/entity rejected before loading");
-        }
-        Pair p; p.Welcome(); auto fabricatedResume = NextEvent(p.guest,EventKind::LevelAssigned);
-        (void)fabricatedResume;
-        SessionMessage resume; resume.classId = GameplayProtocol::ClassId; resume.key = 4;
-        resume.payload = Bytes("02000400 8070605040302010 07000000 01000000 00000000");
-        resume.payload.resize(96); // exact framing but no valid readiness
-        Check(p.guest.Receive(11,resume) == ReceiveResult::Rejected && p.guest.LastError() == Error::WrongPhase,
-            "host-shaped Resume before actual local ready cannot unlock input");
+        for(unsigned f=0;f<3;++f) { Pair p; p.Run(); Check(p.guest.SubmitObservedState(Observation(10))&&p.guest.SubmitObservedState(Observation(20)),"two sampled observations"); auto a=Next(p.guest),b=Next(p.guest);
+            if(f==0)Check(p.host.Receive(11,b)==ReceiveResult::Rejected,"missing baseline rejected"); else { Receive(p.host,a); Drain(p.host); if(f==1)Set32(b.payload,16,3); else Set32(b.payload,24,10); Check(p.host.Receive(11,b)==ReceiveResult::Rejected,"gap/backwards source tick rejected"); }
+            Check(p.host.LastError()==Error::ObservationDiscontinuity,"typed observation discontinuity"); }
+        Pair loss; loss.Run(); auto a=Observe(loss,1),b=Observe(loss,5); Check(loss.host.RejectObservedState(a.observationToken,1)&&loss.host.AcceptObservedState(b.observationToken,1),"mixed decision loss setup"); (void)Next(loss.host);
+        Check(loss.guest.Receive(11,Next(loss.host))==ReceiveResult::Rejected && loss.guest.LastError()==Error::ObservationDiscontinuity,"lost rejection cannot skip to later acceptance");
+        Pair p; p.Run(); Check(!p.guest.PeekOutbound()&&!p.guest.CommitOutbound(),"empty outbox"); Check(p.guest.SubmitObservedState(Observation(1)),"queue blocked observation"); auto front=p.guest.PeekOutbound()->payload;
+        Check(p.guest.SubmitObservedState(Observation(5))&&p.guest.PeekOutbound()->payload==front,"later equal-pose sample cannot overwrite blocked front"); Receive(p.host,*p.guest.PeekOutbound()); Check(p.guest.CommitOutbound(),"commit after whole application-message acceptance"); Receive(p.host,*p.guest.PeekOutbound()); Check(p.guest.CommitOutbound()&&!p.guest.PeekOutbound(),"commit next in order");
+        a=EventOf(p.host,EventKind::ObservedState); b=EventOf(p.host,EventKind::ObservedState); Check(a.observed.observationTick==1&&b.observed.observationTick==5&&b.observationToken.sequence==2,"sample gaps allowed without queued observation loss");
+        Check(p.host.AcceptObservedState(a.observationToken,1),"block accepted decision"); front=p.host.PeekOutbound()->payload; Check(p.host.RejectObservedState(b.observationToken,1)&&p.host.PeekOutbound()->payload==front,"later rejection cannot overwrite accepted decision");
+        Pair out; out.Run(); for(std::uint32_t i=1;i<=GameplayProtocol::MaximumOutbound;++i)Check(out.guest.SubmitObservedState(Observation(i)),"fill outbox");
+        Check(!out.guest.SubmitObservedState(Observation(100))&&out.guest.LastError()==Error::Backpressure&&!out.guest.PendingObservationCount()&&!out.guest.OutboundCount(),"outbox overflow terminal and invalidates pending");
+        Pair pending; pending.Run(); SessionMessage last; for(std::uint32_t i=1;i<=GameplayProtocol::MaximumPendingObservations;++i) { Check(pending.guest.SubmitObservedState(Observation(i)),"fill undecided backlog"); last=Next(pending.guest); Receive(pending.host,last); Drain(pending.host); }
+        Set32(last.payload,16,17); Set32(last.payload,24,17); Check(pending.host.Receive(11,last)==ReceiveResult::Rejected&&pending.host.LastError()==Error::Backpressure&&!pending.host.PendingObservationCount(),"host decision queue bounded after event delivery");
+        Check(!pending.guest.SubmitObservedState(Observation(17))&&pending.guest.LastError()==Error::Backpressure,"guest unacknowledged backlog bounded after transport commit");
+        Pair events; events.Run(); for(std::uint32_t i=1;i<=GameplayProtocol::MaximumEvents;++i) { Check(events.host.PublishAcceptedState(State(i)),"fill render events"); Receive(events.guest,Next(events.host)); }
+        Check(events.host.PublishAcceptedState(State(100)),"one additional pose"); Check(events.guest.Receive(11,Next(events.host))==ReceiveResult::Rejected&&events.guest.LastError()==Error::Backpressure,"render event queue bounded");
     }
-    void BoundedQueuesAndFreshness()
+    void GenerationsRemovalAndSourceIds()
     {
-        Pair p; p.Run();
-        for(std::uint32_t tick = 1; tick <= GameplayProtocol::MaximumOutbound; ++tick)
-            Check(p.guest.SubmitInput(Input(tick)), "bounded unsent input accepted until exact queue limit");
-        auto same = Input(8); same.clientTick = 9;
-        Check(p.guest.SubmitInput(same) && p.guest.OutboundCount() == GameplayProtocol::MaximumOutbound && p.guest.LastGuestInputSequence() == 8,
-            "identical observation at a full queue is elided without replacing or consuming a transition sequence");
-        auto changed = Input(9); changed.clientTick = 10;
-        Check(!p.guest.SubmitInput(changed) && p.guest.LastError() == Error::Backpressure && p.guest.OutboundCount() == 0,
-            "outbound overflow terminates and discards unsent intents instead of unbounded allocation");
-        Pair q; q.Run();
-        for(std::uint32_t tick = 1; tick <= GameplayProtocol::MaximumEvents; ++tick)
-        { Check(q.guest.SubmitInput(Input(tick)), "prepare bounded input event"); Accepted(q.host,Next(q.guest)); }
-        Check(q.host.EventCount() == GameplayProtocol::MaximumEvents && q.guest.SubmitInput(Input(17)), "input event queue reaches exact bound");
-        Check(q.host.Receive(11,Next(q.guest)) == ReceiveResult::Rejected && q.host.LastError() == Error::Backpressure && q.host.EventCount() <= 2,
-            "stalled adapter cannot accumulate unlimited intent or keep stale input after failure");
-        Pair r; r.Run(); Check(r.guest.SubmitInput(Input(50)), "first monotonic client tick"); auto input = Next(r.guest); Accepted(r.host,input); Drain(r.host);
-        Check(!r.guest.SubmitInput(Input(50)), "local producer cannot repeat or move its simulation clock backwards");
-        Set32(input.payload,16,2); Set32(input.payload,24,49);
-        Check(r.host.Receive(11,input) == ReceiveResult::Rejected && r.host.LastError() == Error::InputDiscontinuity,
-            "fresh input event with a backwards observation tick fails closed instead of losing a temporal boundary");
-        Pair s; s.Run(); Check(s.host.PublishAcceptedState(State(1,1)), "prepare state sequence exhaustion boundary");
-        auto state = Next(s.host); Set32(state.payload,16,std::numeric_limits<std::uint32_t>::max());
-        Accepted(s.guest,state); Drain(s.guest); Set32(state.payload,16,1); Set32(state.payload,24,2);
-        Check(s.guest.Receive(11,state) == ReceiveResult::IgnoredStale && !s.guest.TakeEvent(), "nonwrapping state sequence never creates a new generation");
+        Pair p; p.Run(); Check(p.guest.SubmitObservedState(Observation(1)),"generation-bound pose"); auto m=Next(p.guest);
+        Check(p.host.Receive(99,m)==ReceiveResult::WrongConnection&&!p.host.PendingObservationCount(),"foreign carrier ignored"); auto stale=m; ++stale.payload[4]; Check(p.host.Receive(11,stale)==ReceiveResult::IgnoredStale,"old session ignored"); stale=m; Set32(stale.payload,12,6); Check(p.host.Receive(11,stale)==ReceiveResult::IgnoredStale,"old epoch ignored"); Receive(p.host,m); auto e=EventOf(p.host,EventKind::ObservedState);
+        Check(p.host.RemoveEntity(2,4)&&!p.host.PendingObservationCount()&&!p.host.AcceptObservedState(e.observationToken,1),"removal invalidates undecided pose"); Receive(p.guest,Next(p.host)); Check(!p.guest.PendingObservationCount()&&!p.guest.SubmitObservedState(Observation(2)),"removed guest no longer submits"); Check(EventOf(p.guest,EventKind::EntityRemoved).removalReason==4,"removal event");
+        Pair close; close.Run(); e=Observe(close,1); close.host.Close(); Check(!close.host.PendingObservationCount()&&!close.host.AcceptObservedState(e.observationToken,1)&&!close.host.Begin(12),"terminal runtime cannot reuse token"); (void)EventOf(close.host,EventKind::EntityRemoved); (void)EventOf(close.host,EventKind::Disconnected); close.host.Close(); Check(!close.host.TakeEvent(),"one terminal event set");
+        auto h=Configuration(SessionRole::Host),g=Configuration(SessionRole::Guest); GameplayProtocol host(h),guest(g); Check(host.Begin(111)&&guest.Begin(222),"endpoint-local carrier IDs"); Receive(host,Next(guest),111); Check(host.HostAssignLevel(7,h.qualifiedLevel),"assign distinct-ID lease"); Receive(guest,Next(host),222); Check(guest.NotifyLocalReady(g.qualifiedLevel),"guest ready"); Receive(host,Next(guest),111); Receive(guest,Next(host),222); Drain(host); Drain(guest);
+        Check(guest.SubmitObservedState(Observation(1)),"distinct-ID pose"); Receive(host,Next(guest),111); auto token=EventOf(host,EventKind::ObservedState).observationToken; Check(token.connectionId==111&&host.AcceptObservedState(token,1),"host decision token uses host-local carrier"); Receive(guest,Next(host),222); Check(EventOf(guest,EventKind::ObservationAccepted).observationToken.connectionId==222,"guest receipt uses guest-local carrier");
     }
-
-    void PolarInputValidation()
+    void MalformedStaleAndRetiredInput()
     {
-        // Structural numeric acceptance is not native analog qualification.
-        Pair p; p.Run(); InputIntent analog; analog.clientTick = 1; analog.magnitude = 0.25f;
-        analog.relativeRadians = -InputIntent::MaximumRadians; analog.referenceHeading = InputIntent::MaximumRadians;
-        Check(p.guest.SubmitInput(analog), "finite polar wire envelope accepts both angle endpoints and bounded magnitude");
-        Accepted(p.host,Next(p.guest)); auto event = NextEvent(p.host,EventKind::GuestInput);
-        Check(event.input.magnitude == 0.25f && event.input.referenceHeading == InputIntent::MaximumRadians,
-            "codec preserves bounded values without simulating, remapping axes or qualifying an analog backend");
-        for(unsigned defect = 0; defect < 11; ++defect)
-        {
-            Pair q; q.Run(); Check(q.guest.SubmitInput(Input(2)), "prepare a polar event for independent corruption");
-            auto message = Next(q.guest);
-            if(defect == 0) Set32(message.payload,28,0xbf800000); // magnitude -1
-            if(defect == 1) Set32(message.payload,28,0x3f800001); // magnitude >1
-            if(defect == 2) Set32(message.payload,28,0x7fc00000); // magnitude NaN
-            if(defect == 3) Set32(message.payload,32,0x7f800000); // direction Inf
-            if(defect == 4) Set32(message.payload,32,0x40490fdc); // direction one float above pi
-            if(defect == 5) Set32(message.payload,36,0xc0490fdc); // reference below -pi
-            if(defect == 6) Set32(message.payload,36,0xffc00000); // reference NaN
-            if(defect == 7) message.payload[40] = 2; // unknown held flags
-            if(defect == 8) message.payload[42] = 1; // reserved
-            if(defect == 9) Set32(message.payload,24,0); // zero observation tick
-            if(defect == 10) message.payload.resize(36); // old axis body
-            Check(q.host.Receive(11,message) == ReceiveResult::Rejected && q.host.LastError() == Error::InvalidMessage,
-                "invalid polar ranges, nonfinite values, held flags, reserved bytes, zero tick and legacy shape fail before events");
-            while(auto e = q.host.TakeEvent()) Check(e->kind != EventKind::GuestInput, "invalid input never reaches native backend");
-        }
-        for(unsigned defect = 0; defect < 5; ++defect)
-        {
-            auto invalid = Input(2);
-            if(defect == 0) invalid.magnitude = std::numeric_limits<float>::infinity();
-            if(defect == 1) invalid.magnitude = 1.01f;
-            if(defect == 2) invalid.relativeRadians = std::numeric_limits<float>::quiet_NaN();
-            if(defect == 3) invalid.referenceHeading = -4;
-            if(defect == 4) invalid.clientTick = 0;
-            Check(!p.guest.SubmitInput(invalid) && p.guest.CurrentPhase() == Phase::Running && !p.guest.TakeOutbound(),
-                "invalid local producer input is refused without emitting or poisoning a valid connection");
-        }
-        Pair old; old.Begin(); auto legacy = Next(old.guest); legacy.payload[0] = 1;
-        Check(old.host.Receive(11,legacy) == ReceiveResult::Rejected && old.host.LastError() == Error::InvalidMessage,
-            "version1 peers are explicitly incompatible with the version2 polar temporal contract");
-    }
-
-    void OrderedTransitionsAndElision()
-    {
-        Pair p; p.Run(); auto baseline = Input(100); baseline.jumpHeld = false;
-        Check(p.guest.SubmitInput(baseline), "first native observation establishes a held-state baseline");
-        auto unchanged = baseline;
-        for(std::uint32_t tick = 101; tick <= 104; ++tick)
-        { unchanged.clientTick = tick; Check(p.guest.SubmitInput(unchanged), "identical native observation can be elided"); }
-        auto press = baseline; press.clientTick = 105; press.jumpHeld = true;
-        Check(p.guest.SubmitInput(press), "press transition queued before the next network send");
-        unchanged = press;
-        for(std::uint32_t tick = 106; tick <= 107; ++tick)
-        { unchanged.clientTick = tick; Check(p.guest.SubmitInput(unchanged), "held sample does not overwrite original press tick"); }
-        auto release = baseline; release.clientTick = 108; Check(p.guest.SubmitInput(release), "short held request release remains a separate event");
-        auto stop = release; stop.clientTick = 109; stop.magnitude = 0; Check(p.guest.SubmitInput(stop), "movement stop remains ordered after request release");
-        auto heading = stop; heading.clientTick = 110; heading.referenceHeading = 0.5f;
-        Check(p.guest.SubmitInput(heading), "reference-heading change is retained even at zero magnitude");
-        Check(p.guest.OutboundCount() == 5 && p.guest.LastGuestInputSequence() == 5, "only identical states were elided; no edge ordinal gaps");
-        while(auto message = p.guest.TakeOutbound()) Accepted(p.host,*message);
-        Check(p.host.EventCount() == 5 && !p.host.TakeOutbound(), "host queues every transition and synthesizes no movement or jump");
-        const std::uint32_t ticks[] = {100,105,108,109,110};
-        const bool held[] = {false,true,false,false,false};
-        for(unsigned n = 0; n < 5; ++n)
-        {
-            auto e = NextEvent(p.host,EventKind::GuestInput);
-            Check(e.sequence == n + 1 && e.input.clientTick == ticks[n] && e.input.jumpHeld == held[n],
-                "press/release, original observation intervals and FIFO order survive one batched network update");
-        }
-        Check(!p.host.TakeEvent(), "host never folds request events back into the latest state");
-        Pair zero; zero.Run(); InputIntent z; z.clientTick = 1;
-        Check(zero.guest.SubmitInput(z), "zero baseline"); z.clientTick = 2; z.magnitude = -0.0f; z.relativeRadians = -0.0f; z.referenceHeading = -0.0f;
-        Check(zero.guest.SubmitInput(z) && zero.guest.OutboundCount() == 1 && zero.guest.LastGuestInputSequence() == 1,
-            "signed-zero representation changes do not create a false native transition");
-        auto first = Next(zero.guest); Check(first.payload[24] == 1, "elision retains first observation tick instead of a latest-only mailbox tick");
-    }
-
-    void TransitionLossAndTransportBackpressure()
-    {
-        Pair upstream; upstream.Run(); Check(upstream.guest.SubmitInput(Input(1)), "first native observation before upstream loss");
-        Check(!upstream.guest.SubmitInput(Input(3)) && upstream.guest.LastError() == Error::InputDiscontinuity &&
-            upstream.guest.CurrentPhase() == Phase::Failed && upstream.guest.OutboundCount() == 0,
-            "lost native observation fails before identical endpoint values can erase an unseen short press");
-        for(unsigned gap = 0; gap < 2; ++gap)
-        {
-            Pair p; p.Run();
-            for(std::uint32_t tick = 1; tick <= 3; ++tick) Check(p.guest.SubmitInput(Input(tick)), "prepare distinct ordered events");
-            auto first = Next(p.guest), second = Next(p.guest), third = Next(p.guest);
-            if(gap == 0)
-                Check(p.host.Receive(11,second) == ReceiveResult::Rejected && p.host.LastError() == Error::InputDiscontinuity,
-                    "dropping the baseline cannot turn the second event into a new first request");
-            else
-            {
-                Accepted(p.host,first); Drain(p.host);
-                Check(p.host.Receive(11,third) == ReceiveResult::Rejected && p.host.LastError() == Error::InputDiscontinuity,
-                    "latest-only coalescing which loses a press is detected before a later release can apply");
-            }
-        }
-        Pair redundant; redundant.Run(); Check(redundant.guest.SubmitInput(Input(1)), "prepare canonical transition baseline");
-        auto event = Next(redundant.guest); Accepted(redundant.host,event); Drain(redundant.host);
-        Set32(event.payload,16,2); Set32(event.payload,24,2);
-        Check(redundant.host.Receive(11,event) == ReceiveResult::Rejected && redundant.host.LastError() == Error::InvalidMessage,
-            "a fresh sequence with identical held state violates the elided transition-stream contract");
-        Pair p; p.Run(); Check(p.guest.PeekOutbound() == nullptr && !p.guest.CommitOutbound(), "empty transport queue has no commit");
-        Check(p.guest.SubmitInput(Input(1)), "baseline waits for transport acceptance");
-        const auto original = p.guest.PeekOutbound()->payload;
-        auto same = Input(1); same.clientTick = 2; Check(p.guest.SubmitInput(same), "identical sample while transport is blocked");
-        Check(p.guest.SubmitInput(Input(3)), "another identical sample still cannot replace the blocked baseline");
-        auto press = Input(4); Check(p.guest.SubmitInput(press), "edge queued behind a blocked baseline");
-        Check(p.guest.OutboundCount() == 2 && p.guest.PeekOutbound()->payload == original,
-            "failed transport send and later observations leave the exact front message unchanged");
-        Accepted(p.host,*p.guest.PeekOutbound()); Check(p.guest.CommitOutbound(), "commit only after transport accepts full application message");
-        auto baseline = NextEvent(p.host,EventKind::GuestInput); Check(baseline.sequence == 1 && baseline.input.clientTick == 1, "blocked baseline retained its original identity");
-        Accepted(p.host,*p.guest.PeekOutbound()); Check(p.guest.CommitOutbound() && p.guest.PeekOutbound() == nullptr, "next edge commits once in order");
-        auto request = NextEvent(p.host,EventKind::GuestInput);
-        Check(request.sequence == 2 && request.input.clientTick == 4 && request.input.jumpHeld,
-            "backpressure preserves the first tick of the queued held-request edge");
+        for(unsigned f=0;f<8;++f) { Pair p; p.Begin(); auto m=Next(p.guest); if(f==0)++m.classId; if(f==1)++m.key; if(f==2)m.payload[3]=1; if(f==3)Set32(m.payload,16,0); if(f==4)m.payload.pop_back(); if(f==5)m.payload.push_back(0); if(f==6)Set32(m.payload,20,3); if(f==7)m.payload[2]=10; Check(p.host.Receive(11,m)==ReceiveResult::Rejected&&p.host.CurrentPhase()==Phase::Failed,"malformed packet rejected"); }
+        for(auto version:{std::uint8_t(1),std::uint8_t(2)}) { Pair p; p.Begin(); auto m=Next(p.guest); m.payload[0]=version; Check(p.host.Receive(11,m)==ReceiveResult::Rejected,"old wire version rejected"); }
+        Pair p; p.Run(); InputIntent old; old.clientTick=1; Check(!p.guest.SubmitInput(old)&&!p.host.SubmitInput(old)&&!p.guest.LastGuestInputSequence()&&!p.guest.TakeOutbound(),"V3 legacy input API explicitly inactive");
+        SessionMessage retired; retired.classId=GameplayProtocol::ClassId; retired.key=5; retired.payload=Bytes("03000500 8070605040302010 07000000 01000000 02000000"); retired.payload.resize(44);
+        Check(p.host.Receive(11,retired)==ReceiveResult::Rejected&&p.host.LastError()==Error::InvalidMessage,"V3 input wire kind retired");
+        Pair future; future.Run(); Check(future.guest.SubmitObservedState(Observation(1)),"future epoch setup"); auto m=Next(future.guest); Set32(m.payload,12,8); Check(future.host.Receive(11,m)==ReceiveResult::Rejected&&future.host.LastError()==Error::InvalidEpoch,"guest cannot advance host epoch");
+        Pair replay; replay.Run(); Check(replay.guest.SubmitObservedState(Observation(1)),"duplicate observation setup"); m=Next(replay.guest); Receive(replay.host,m); Drain(replay.host); Check(replay.host.Receive(11,m)==ReceiveResult::IgnoredStale&&!replay.host.TakeEvent()&&replay.host.PendingObservationCount()==1,"observation replay no second decision event");
+        Pair hostpose; hostpose.Run(); Check(hostpose.host.PublishAcceptedState(State(10)),"host state freshness baseline"); m=Next(hostpose.host); Receive(hostpose.guest,m); Drain(hostpose.guest); Set32(m.payload,16,2); Set32(m.payload,24,9); Check(hostpose.guest.Receive(11,m)==ReceiveResult::IgnoredStale&&!hostpose.guest.TakeEvent(),"stale host pose not displayed");
+        Check(hostpose.guest.SubmitObservedState(Observation(std::numeric_limits<std::uint32_t>::max()))&&!hostpose.guest.SubmitObservedState(Observation(0))&&!hostpose.guest.SubmitObservedState(Observation(1)),"native observation tick nonwrapping");
+        bool invalid=false; try { auto c=Configuration(SessionRole::Guest); c.hostSession=1; GameplayProtocol bad(c); } catch(const std::invalid_argument&) { invalid=true; } Check(invalid,"guest cannot preassign host session");
     }
 }
 int main()
 {
-    try
-    {
-        GoldenAndWaiting(); CompatibilityFailures(); InputAndAuthority(); InvalidStates();
-        GenerationsAndRemoval(); MalformedAndBarrier(); BoundedQueuesAndFreshness();
-        PolarInputValidation(); OrderedTransitionsAndElision(); TransitionLossAndTransportBackpressure();
-        std::cout << "WinxCoop gameplay protocol: PASS " << checks << " checks\n"; return 0;
-    }
-    catch(const std::exception& e) { std::cerr << "WinxCoop gameplay protocol: FAIL " << e.what() << '\n'; return 1; }
+    try { BarrierAndCompatibility(); GoldenObservationAndAuthority(); FifoAndRejection(); InvalidPosesAndDecisions(); SequenceAndBackpressure(); GenerationsRemovalAndSourceIds(); MalformedStaleAndRetiredInput(); std::cout<<"WinxCoop gameplay protocol V3: PASS "<<checks<<" checks\n"; return 0; }
+    catch(const std::exception& e) { std::cerr<<"WinxCoop gameplay protocol V3: FAIL "<<e.what()<<'\n'; return 1; }
 }

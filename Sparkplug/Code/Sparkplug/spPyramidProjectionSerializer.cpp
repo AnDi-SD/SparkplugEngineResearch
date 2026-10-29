@@ -3,6 +3,7 @@
 #include "Analysis/PC/spSectionCursor.h"
 #include <cstring>
 #include <utility>
+#include <typeinfo>
 
 namespace sparkplug::reconstruction
 {
@@ -22,6 +23,34 @@ namespace sparkplug::reconstruction
         return spSerializer::vfunc_14(*clone,manager)?std::move(clone):nullptr;
     }
     spClassID spPyramidProjectionSerializer::GetTargetClassIDForAnalysis() const noexcept{return TargetClassID;}
+    bool spPyramidProjectionSerializer::IndexNullRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionNullIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        auto* target=dynamic_cast<spPyramidProjection*>(&object);
+        return target&&GetTargetClassIDForAnalysis()==TargetClassID
+            &&IndexProjectionNullFieldsForAnalysis(context,*target);
+    }
+    bool spPyramidProjectionSerializer::IndexPreindexedRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionPreindexedIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spPyramidProjectionSerializer)||typeid(object)!=typeid(spPyramidProjection))return false;
+        auto* target=dynamic_cast<spPyramidProjection*>(&object);
+        return target&&IndexProjectionPreindexedFieldsForAnalysis(context,*target);
+    }
+    bool spPyramidProjectionSerializer::IndexFogOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionFogOnlyIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spPyramidProjectionSerializer)||typeid(object)!=typeid(spPyramidProjection))return false;
+        auto* target=dynamic_cast<spPyramidProjection*>(&object);
+        return target&&IndexProjectionFogOnlyFieldsForAnalysis(context,*target);
+    }
+    bool spPyramidProjectionSerializer::IndexEmptyMaterialOnlyRelationshipsWithWarmEmptyPcForAnalysis(
+        spProjectionEmptyMaterialIndexContextForAnalysis& context,spBaseObject& object) const
+    {
+        if(typeid(*this)!=typeid(spPyramidProjectionSerializer)||typeid(object)!=typeid(spPyramidProjection))return false;
+        auto* target=dynamic_cast<spPyramidProjection*>(&object);
+        return target&&IndexProjectionEmptyMaterialFieldsForAnalysis(context,*target);
+    }
     bool spPyramidProjectionSerializer::ReadPayloadForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& source,std::uint32_t size,spBaseObject& object,std::string* error) const
     {

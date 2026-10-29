@@ -3,7 +3,9 @@
 #include "RuntimeContract.h"
 #include "PinnedImage.h"
 #include "PassiveActor.h"
+#include "RemotePoseInterpolator.h"
 #include <bcrypt.h>
+#include <cmath>
 
 using namespace winxcoop::adapter;
 namespace
@@ -17,11 +19,16 @@ namespace
     ULONGLONG lastPublished{};
     PinnedImage pinnedImage;
     PassiveActor actor;
+    RemotePoseInterpolator remoteInterpolation;
+    RuntimeAnimation remoteAnimation{};
+    std::uint64_t lastDisplayTime{};
     RuntimeStart configuration{};
     RuntimeCommand lastCommand{};
     RuntimeAck lastAck{};
     HANDLE owner{}, assets[5]{};
     std::uint32_t actorProfile{}, actorAnimationManager{};
+    std::uint32_t sceneProfile{}, sceneAnimationManager{}, sceneRecord{}, sceneRoot{}, scenePlayingState{};
+    bool qualifiedSceneSeen{};
     std::uint32_t observationReason{}, lastPausedReason{};
     enum class SafePhase { None, World, PreUnload };
     SafePhase safePhase{};
@@ -79,6 +86,20 @@ namespace
     bool ActorPhase() noexcept
     { return safePhase!=SafePhase::None && GetCurrentThreadId()==mainThread && InterlockedCompareExchange(&inHandler,0,0)==1; }
     bool PassiveMode() noexcept { return configuration.mode==RuntimeMode::PassiveActor; }
+    void TraceLifetimeFailure() noexcept
+    {
+        char text[384]{};char* cursor=text;char* const end=text+sizeof(text)-1;
+        const auto append=[&cursor,end](const char* value) noexcept {while(*value && cursor<end)*cursor++=*value++;};
+        const auto word=[&cursor,&append,end](const char* label,std::uint32_t value) noexcept
+        {append(label);for(unsigned i=0;i<8 && cursor<end;++i)*cursor++="0123456789ABCDEF"[(value>>(28-i*4))&15];};
+        const auto flow=Word(0x755294),stack=Word(flow+0x1AC),active=stack<=20?Word(flow+0x15C+stack*4):0;
+        const auto profile=Word(0x765AD4),record=Word(profile+0x2B4),root=Word(record+0x24);
+        append("WinxCoop lifetime-failure");word(" reason=",observationReason);word(" flow=",flow);word(" stack=",stack);
+        word(" pending=",Word(flow+0x1B8));word(" top=",active);word(" topType=",Word(active));
+        word(" topId=",Word(active+0x10));word(" current=",Word(flow+0x1B0));word(" root=",root);
+        word(" scene=",Word(root+0x3C));word(" actorError=",static_cast<std::uint32_t>(actor.Error()));
+        append(" detail=");append(actor.LastError());OutputDebugStringA(text);
+    }
     void Statistics() noexcept
     {
         const auto stats=actor.Statistics();snapshot.remoteCreated=stats.created;snapshot.remoteRemoved=stats.destroyed;
@@ -185,9 +206,39 @@ namespace
         const bool restored=VirtualProtect(reinterpret_cast<void*>(address),1,protection,&ignored)!=FALSE;
         return flushed && restored;
     }
+    void ObserveAnimation(const std::uint32_t record) noexcept
+    {
+        snapshot.localAnimationQualified=0;snapshot.localFsmState=0xFFFFFFFFu;
+        const auto head=Word(record+0x1C);
+        if(head<0x10000)return;
+        std::uint32_t previous=head,link=Word(head),character{},bloom{},move{},seen[11]{};
+        for(unsigned index=0;index<11;++index)
+        {
+            std::uint32_t entry[3]{};
+            if(link<0x10000 || link==head || !Read(link,entry,sizeof(entry)) || entry[1]!=previous || entry[2]<0x10000)return;
+            for(unsigned old=0;old<index;++old)if(seen[old]==link)return;
+            seen[index]=link;
+            const auto table=Word(entry[2]);
+            if(table==0x6F6438){if(character || Word(entry[2]+0x24)!=record)return;character=entry[2];}
+            if(table==0x6FA288){if(bloom || Word(entry[2]+0x24)!=record)return;bloom=entry[2];}
+            if(table==0x6F64F8){if(move || Word(entry[2]+0x24)!=record)return;move=entry[2];}
+            previous=link;link=entry[0];
+        }
+        const auto input=Word(0x7552A0),command=Word(input+0x18);
+        if(link!=head || Word(head+4)!=previous || !character || !bloom || !move || Word(input)!=0x6F5508 || Word(command)!=0x703090 ||
+            Word(character+0x124)!=bloom || Word(character+0x12C)!=move || Word(character+0x130)!=command ||
+            Word(bloom+0x124)!=character || Word(bloom+0x12C)!=command || Word(move+0x160)!=character)return;
+        std::uint32_t state{};float magnitude{};
+        if(!Read(bloom+0x130,&state,4) || !Read(command+4,&magnitude,4) || !Finite(magnitude) || magnitude<0 || magnitude>1)return;
+        snapshot.localFsmState=state;
+        if(state!=0 && state!=18)return;
+        snapshot.localAnimation=state==18?RuntimeAnimation::Jump:magnitude>0.01f?RuntimeAnimation::Walk:RuntimeAnimation::Idle;
+        snapshot.localAnimationQualified=1;
+    }
     bool Observe() noexcept
     {
         observationReason=0;
+        snapshot.localAnimationQualified=0;
         const auto profile = Word(0x765AD4), record = Word(profile + 0x2B4), root = Word(record + 0x24);
         const auto flow = Word(0x755294), sceneManager = Word(0x75DB90);
         std::uint32_t level{}, pending{}, stack{}, currentScene{};
@@ -213,6 +264,7 @@ namespace
         snapshot.local = transform;
         snapshot.levelId = level;
         snapshot.localComponentCount = 11;
+        ObserveAnimation(record);
         return true;
     }
     bool SameCommand(const RuntimeCommand& a, const RuntimeCommand& b) noexcept
@@ -223,7 +275,7 @@ namespace
     }
     bool CommandTransform(const Transform& transform) noexcept
     {
-        for(float x:transform.position)if(!Finite(x))return false;
+        for(float x:transform.position)if(!Finite(x) || x < -1000000 || x > 1000000)return false;
         for(float x:transform.scale)if(!Finite(x) || x<=0)return false;
         for(float x:transform.orientation)if(!Finite(x))return false;
         return true; // PassiveActor independently qualifies matrix and stock scale.
@@ -256,19 +308,31 @@ namespace
             if(actor.Created() || snapshot.remoteEntity || !CommandTransform(command.remote) || !MediaMatchesNative())return false;
             actorProfile=Word(0x765AD4);actorAnimationManager=Word(0x765ADC);
             if(actorProfile<0x10000 || Word(actorAnimationManager)!=0x703470)return false;
-            applied=actor.Create(configuration.mediaDirectory) && actor.ApplyRemote(command.remote,static_cast<PassiveAnimation>(command.animation));
-            if(applied)snapshot.remoteEntity=command.entity;
+            remoteInterpolation.Clear();
+            applied=actor.Create(configuration.mediaDirectory) && actor.ApplyRemote(command.remote,static_cast<PassiveAnimation>(command.animation)) &&
+                remoteInterpolation.Reset(command.remote,GetTickCount64());
+            if(applied)
+            {
+                snapshot.remoteEntity=command.entity;remoteAnimation=command.animation;snapshot.remoteDisplay=command.remote;
+                snapshot.remoteDisplaySamples=0;snapshot.remoteDisplayMaxGapMs=0;snapshot.remoteDisplayMaxStep=0;
+                lastDisplayTime=GetTickCount64();
+            }
         }
         else
         {
             if(!actor.Created() || snapshot.remoteEntity!=command.entity || Word(0x765AD4)!=actorProfile ||
                 Word(0x765ADC)!=actorAnimationManager || !MediaMatchesNative())return false;
             if(command.operation==RuntimeOperation::Apply)
-                applied=CommandTransform(command.remote) && actor.ApplyRemote(command.remote,static_cast<PassiveAnimation>(command.animation));
+            {
+                Transform current{};const auto now=GetTickCount64();
+                applied=CommandTransform(command.remote) && remoteInterpolation.SetTarget(command.remote,now) && remoteInterpolation.Sample(now,current) &&
+                    actor.ApplyRemote(current,static_cast<PassiveAnimation>(command.animation));
+                if(applied)remoteAnimation=command.animation;
+            }
             else
             {
                 applied=actor.DestroyBeforeUnload() && !actor.Created();
-                if(applied){snapshot.remoteEntity=0;actorProfile=actorAnimationManager=0;}
+                if(applied){snapshot.remoteEntity=0;actorProfile=actorAnimationManager=0;remoteInterpolation.Clear();lastDisplayTime=0;}
             }
         }
         Statistics();
@@ -285,6 +349,11 @@ namespace
     {
         ++snapshot.worldUpdates;
         const auto now = GetTickCount64();
+        const auto timer=Word(0x755298);BYTE paused{},timerActive{};
+        snapshot.gameTimerPaused=Read(timer+0x40,&paused,1)?paused:0xFFFFFFFFu;
+        snapshot.gameTimerActive=Read(timer+0x18,&timerActive,1)?timerActive:0xFFFFFFFFu;
+        if(!Read(timer+0x1C,&snapshot.gameTimerCurrentRaw,4))snapshot.gameTimerCurrentRaw=0;
+        if(!Read(timer+0x28,&snapshot.gameTimerDeltaRaw,4))snapshot.gameTimerDeltaRaw=0;
         if(!owner || WaitForSingleObject(owner,0)!=WAIT_TIMEOUT || shared->magic!=IpcMagic || shared->version!=IpcVersion ||
             shared->bytes!=sizeof(*shared) || shared->nonce!=configuration.nonce || shared->launcherPid!=GetProcessId(owner))
             {FailClosed(RuntimeError::Owner);return;}
@@ -293,6 +362,19 @@ namespace
         if(PassiveMode())
         {
             for(const auto& guard:unloadGuards)if(!guard.installed || !GuardSignature(guard)){FailClosed(RuntimeError::Signature);return;}
+            if(ready && !snapshot.epochRetired)
+            {
+                const auto profile=Word(0x765AD4),record=Word(profile+0x2B4),root=Word(record+0x24),manager=Word(0x765ADC);
+                const auto flow=Word(0x755294),stack=Word(flow+0x1AC),playing=stack<=20?Word(flow+0x15C+stack*4):0;
+                if(Word(manager)!=0x703470 || Word(playing)!=0x710874){FailClosed(RuntimeError::Identity);return;}
+                if(!qualifiedSceneSeen)
+                {
+                    sceneProfile=profile;sceneAnimationManager=manager;sceneRecord=record;sceneRoot=root;scenePlayingState=playing;
+                    qualifiedSceneSeen=true;
+                }
+                else if(sceneProfile!=profile || sceneAnimationManager!=manager || sceneRecord!=record || sceneRoot!=root || scenePlayingState!=playing)
+                    {TraceLifetimeFailure();FailClosed(RuntimeError::Unload);return;}
+            }
             const bool mediaMatches=MediaMatchesNative();
             snapshot.mediaQualified=mediaMatches?1:0;
             if(actor.Created())
@@ -301,7 +383,7 @@ namespace
                 // may pause an intact scene before any native unload entry.
                 const bool owned=actor.ValidateLiveOwnership();
                 if(!owned || snapshot.epochRetired || !mediaMatches || Word(0x765AD4)!=actorProfile || Word(0x765ADC)!=actorAnimationManager)
-                    {FailClosed(RuntimeError::Unload);return;}
+                    {TraceLifetimeFailure();FailClosed(RuntimeError::Unload);return;}
                 if(!ready && lastPausedReason!=observationReason)
                 {
                     char text[384]{};char* cursor=text;
@@ -318,6 +400,23 @@ namespace
                 if(ready)lastPausedReason=0;
             }
             if(!Commands(ready && !snapshot.epochRetired)){FailClosed(RuntimeError::Command);return;}
+            if(ready && actor.Created())
+            {
+                const auto renderNow=GetTickCount64();
+                Transform display{};
+                if(!remoteInterpolation.Sample(renderNow,display)){FailClosed(RuntimeError::Actor);return;}
+                if(!Same(&display,&snapshot.remoteDisplay,sizeof(display)) && !actor.ApplyRemote(display,static_cast<PassiveAnimation>(remoteAnimation)))
+                    {FailClosed(RuntimeError::Actor);return;}
+                double distanceSquared{};
+                for(unsigned axis=0;axis<3;++axis)
+                {const double step=static_cast<double>(display.position[axis])-snapshot.remoteDisplay.position[axis];distanceSquared+=step*step;}
+                const auto distance=static_cast<float>(std::sqrt(distanceSquared));
+                if(distance>snapshot.remoteDisplayMaxStep)snapshot.remoteDisplayMaxStep=distance;
+                const auto gap=lastDisplayTime && renderNow>=lastDisplayTime?renderNow-lastDisplayTime:0;
+                if(gap>snapshot.remoteDisplayMaxGapMs)snapshot.remoteDisplayMaxGapMs=gap>0xFFFFFFFFu?0xFFFFFFFFu:static_cast<std::uint32_t>(gap);
+                snapshot.remoteDisplay=display;++snapshot.remoteDisplaySamples;lastDisplayTime=renderNow;
+            }
+            else if(!ready)lastDisplayTime=0;
         }
         else
         {
@@ -344,6 +443,13 @@ namespace
         }
         if(!GuardSignature(guard) || context.Eip!=guard.address || context.Esp<0x10004 || (context.Esp&3) || (context.EFlags&0x100))return false;
         ++snapshot.unloadGuardHits;
+        if(qualifiedSceneSeen && !snapshot.epochRetired)
+        {
+            if(Word(0x765AD4)!=sceneProfile || Word(0x765ADC)!=sceneAnimationManager)return false;
+            if((guard.address==0x4E8AA0 || guard.address==0x4E8C80) && context.Ecx!=sceneProfile)return false;
+            if((guard.address==0x59AE80 || guard.address==0x59B190) && context.Ecx!=sceneAnimationManager)return false;
+            if(guard.address==0x5F86C0 && context.Ecx!=scenePlayingState)return false;
+        }
         if(actor.Created())
         {
             if(Word(0x765AD4)!=actorProfile || Word(0x765ADC)!=actorAnimationManager || !MediaMatchesNative())return false;
@@ -359,11 +465,12 @@ namespace
             safePhase=SafePhase::None;Statistics();
             if(!removed)return false;
             ++snapshot.unloadCleanups;snapshot.remoteEntity=0;actorProfile=actorAnimationManager=0;
+            remoteInterpolation.Clear();lastDisplayTime=0;
             OutputDebugStringA("WinxCoop passive actor removed before native unload entry");
         }
         // Any destructive boundary after actor use retires this cohort. A new
         // level/session needs a fresh owned runtime, never stale borrowed clips.
-        if(snapshot.remoteCreated)
+        if(qualifiedSceneSeen)
         {
             snapshot.epochRetired=1;snapshot.phase=RuntimePhase::Stopped;snapshot.monotonicMilliseconds=GetTickCount64();
             Publish(shared->snapshot,snapshot);

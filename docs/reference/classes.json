@@ -182,8 +182,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-audio-bank.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spAudioBank.h",
+        "Sparkplug/Code/Sparkplug/spAudioBank.cpp"
+      ]
     },
     {
       "name": "spAudioBankEntry",
@@ -197,8 +202,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-audio-bank-entry.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spAudioBankEntry.h",
+        "Sparkplug/Code/Sparkplug/spAudioBankEntry.cpp"
+      ]
     },
     {
       "name": "spAudioListener",
@@ -227,8 +237,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-audio-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spAudioManager.h",
+        "Sparkplug/Code/Sparkplug/spAudioManager.cpp"
+      ]
     },
     {
       "name": "spAudioSound",
@@ -529,8 +544,12 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-camera-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spCameraManager.h"
+      ]
     },
     {
       "name": "spCameraSerializer",
@@ -600,8 +619,12 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-cinematic.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spCinematic.h"
+      ]
     },
     {
       "name": "spCinematicManager",
@@ -615,8 +638,12 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-cinematic-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spCinematicManager.h"
+      ]
     },
     {
       "name": "spCinematicSerializer",
@@ -996,8 +1023,13 @@
       "registrationBaseIds": {
         "pc": "0x2C1225F5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-audio-bank.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXAudioBank.h",
+        "Sparkplug/Code/SparkplugDX/spDXAudioBank.cpp"
+      ]
     },
     {
       "name": "spDXAudioBankEntry",
@@ -1009,8 +1041,13 @@
       "registrationBaseIds": {
         "pc": "0x6A5024D0"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-audio-bank-entry.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXAudioBankEntry.h",
+        "Sparkplug/Code/SparkplugDX/spDXAudioBankEntry.cpp"
+      ]
     },
     {
       "name": "spDXAudioManager",
@@ -1022,8 +1059,13 @@
       "registrationBaseIds": {
         "pc": "0x65B74130"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-audio-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXAudioManager.h",
+        "Sparkplug/Code/SparkplugDX/spDXAudioManager.cpp"
+      ]
     },
     {
       "name": "spDXAudioVoice",
@@ -7534,8 +7576,13 @@
         "pc": "0x11521AFA",
         "ps2": "0x11521AFA"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/flow/cinematic-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCinematicGameFlowState.h",
+        "Winx/Code/wxCinematicGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxCinematicManager",
@@ -8286,8 +8333,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-droid-wander-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDroidWanderAIAction.h"
+      ]
     },
     {
       "name": "wxDyingState",
@@ -8853,8 +8904,12 @@
         "pc": "0x0C73327A",
         "ps2": "0x0C73327A"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/flow/game-over-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGameOverGameFlowState.h"
+      ]
     },
     {
       "name": "wxGameTimer",
@@ -9088,8 +9143,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ghoul-script-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGhoulScriptAIAction.h"
+      ]
     },
     {
       "name": "wxGiantBoulderTrigger",
@@ -9992,8 +10051,13 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-kiko-hole-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxKikoHoleAIAction.h",
+        "Winx/Code/wxKikoHoleAIAction.cpp"
+      ]
     },
     {
       "name": "wxKikoMovingAIAction",
@@ -11341,8 +11405,13 @@
         "pc": "0x0C73327A",
         "ps2": "0x0C73327A"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/flow/press-start-game-flow-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxPressStartGameFlowState.h",
+        "Winx/Code/wxPressStartGameFlowState.cpp"
+      ]
     },
     {
       "name": "wxProcessBuffer",
@@ -12570,8 +12639,13 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-text-controller.md"
+      ],
+      "sources": [
+        "Winx/Code/wxTextController.h",
+        "Winx/Code/wxTextController.cpp"
+      ]
     },
     {
       "name": "wxThunderMaker",
