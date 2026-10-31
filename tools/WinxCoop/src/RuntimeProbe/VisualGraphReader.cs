@@ -18,11 +18,12 @@ internal sealed record VisualNodeRead(
 internal sealed record VisualSkinRead(
     uint Address, uint Vtable, uint InfluenceCount, uint BoneCount, uint BonesArray, uint InverseBindArray,
     IReadOnlyList<uint> BoneNodes, string InverseBindSha256);
+internal sealed record VisualParticleRead(uint Address, uint Vtable, uint RenderNode);
 internal sealed record VisualMemoryRead(uint Address, int Length, string Purpose, bool Success, int? NativeError);
 internal sealed record VisualGraphSnapshot(
     bool Complete, bool SkinInspectionPerformed, uint Root,
     IReadOnlyList<VisualNodeRead> Nodes, IReadOnlyList<VisualSkinRead> Skins,
-    IReadOnlyList<VisualMemoryRead> Reads, int ReadBytes);
+    IReadOnlyList<VisualMemoryRead> Reads, int ReadBytes, IReadOnlyList<VisualParticleRead> Particles);
 internal sealed record VisualGraphReadResult(bool Success, string? Error, VisualGraphSnapshot Graph);
 internal sealed record VisualGraphSelection(
     bool Success, string? Error, uint CommonParent, uint PrimaryRenderRoot, uint SkeletonRoot,
@@ -50,6 +51,7 @@ internal sealed class VisualGraphReader
     // AudioSound is accepted only by inventory mode; its tail is never read.
     internal const uint AudioSoundVtable = 0x6EEEA4;
     internal const uint SkinVtable = 0x6E8C5C;
+    internal const uint ParticleVtable = 0x6EC40C;
     internal const int MaximumNodes = 1024;
     internal const int MaximumChildrenPerNode = 256;
     internal const int MaximumRenderablesPerNode = 64;
@@ -78,9 +80,9 @@ internal sealed class VisualGraphReader
     /// Failure returns bounded partial records, never a selectable graph.
     /// </summary>
     internal VisualGraphReadResult Read(uint root, IReadOnlySet<uint>? forbiddenNodes = null,
-        bool inspectSkins = true)
+        bool inspectSkins = true, IReadOnlySet<uint>? ownedPickupParticles = null)
     {
-        var state = new ReadState(_processHandle, root, forbiddenNodes, inspectSkins);
+        var state = new ReadState(_processHandle, root, forbiddenNodes, inspectSkins, ownedPickupParticles);
         try
         {
             state.ReadTree();
@@ -105,6 +107,8 @@ internal sealed class VisualGraphReader
             return Fail("A complete bounded graph is required");
         if (!graph.SkinInspectionPerformed)
             return Fail("A completed strict Skin inspection is required for visual selection");
+        if (graph.Particles.Count != 0)
+            return Fail("A passive visual selection cannot contain live pickup particles");
         if (graph.Nodes.Any(n => n.Kind == NativeVisualNodeKind.AudioSound))
             return Fail("A passive visual source cannot contain AudioSound nodes");
         var nodes = new Dictionary<uint, VisualNodeRead>();
@@ -205,10 +209,12 @@ internal sealed class VisualGraphReader
 
     private static IReadOnlyList<T> Freeze<T>(IEnumerable<T> values) => Array.AsReadOnly(values.ToArray());
 
-    private sealed class ReadState(nint processHandle, uint root, IReadOnlySet<uint>? forbidden, bool inspectSkins)
+    private sealed class ReadState(nint processHandle, uint root, IReadOnlySet<uint>? forbidden, bool inspectSkins,
+        IReadOnlySet<uint>? ownedPickupParticles)
     {
         private readonly List<VisualNodeRead> _nodes = [];
         private readonly Dictionary<uint, VisualSkinRead> _skins = [];
+        private readonly List<VisualParticleRead> _particles = [];
         private readonly List<VisualMemoryRead> _reads = [];
         private readonly HashSet<uint> _listHeads = [], _listLinks = [];
         private readonly List<(uint Address, int Size)> _skinStorage = [];
@@ -217,7 +223,7 @@ internal sealed class VisualGraphReader
         // A partial graph never reports a completed Skin inspection, even if
         // strict inspection was requested and some Skin records were read.
         internal VisualGraphSnapshot Snapshot(bool complete) => new(complete, complete && inspectSkins, root, Freeze(_nodes),
-            Freeze(_skins.Values), Freeze(_reads), _readBytes);
+            Freeze(_skins.Values), Freeze(_reads), _readBytes, Freeze(_particles));
 
         private static void Require(bool value, string message)
         {
@@ -400,7 +406,16 @@ internal sealed class VisualGraphReader
                     renderables = Vector(U(vector, 0), U(vector, 4), U(vector, 8),
                         MaximumRenderablesPerNode, "renderable references");
                     if (inspectSkins)
-                        foreach (uint renderable in renderables.Items) Skin(renderable);
+                        foreach (uint renderable in renderables.Items)
+                        {
+                            if (ownedPickupParticles?.Contains(renderable) == true)
+                            {
+                                byte[] prefix = Bytes(renderable, 4, "owned pickup particle vtable only");
+                                Require(U(prefix, 0) == ParticleVtable, "Owned pickup renderable is not the pinned particle type");
+                                _particles.Add(new(renderable, ParticleVtable, address));
+                            }
+                            else Skin(renderable);
+                        }
                 }
                 else if (kind is NativeVisualNodeKind.Light or NativeVisualNodeKind.LightData or NativeVisualNodeKind.DXLight)
                 {

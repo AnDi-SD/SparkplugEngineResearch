@@ -5,30 +5,40 @@ using SmoNativeValidator.Core;
 namespace WinxCoop.RuntimeProbe;
 
 /// <summary>Bounded borrowed reads while the owned process is at a debug stop.</summary>
-internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile profile, PEReader image, Action<object> log)
+internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile profile, PEReader image, Action<object> log) : IDisposable
 {
     private DebuggerHost _host = null!;
     private uint _updates, _samples, _readySamples, _factoryReturns;
     private bool _mediaVerified;
     private NativeCallDispatcher _calls = new(log,
-        TimeSpan.FromSeconds(config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" ? 30 : 10));
+        TimeSpan.FromSeconds(config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" ? 30 : 10));
     private bool _callCheckBegun, _callCheckPassed;
     private uint _localCharacter;
     private NativeVisualActor? _visual;
     private ControlObserver? _control;
     private NativeTemplateProbe? _template;
     private NativeMovementProbe? _movement;
+    private ClientDispatchProbe? _clientDispatch;
+    private ClientPresentationSession? _clientPresentation;
+    private SharedStateObservation? _sharedState;
+    private DiagnosticInputClient? _diagnosticGuest;
+    private NativeInputCapture? _nativeInputCapture;
     private uint _unloadGuardHits, _unloadCleanupsStarted;
     private readonly HashSet<uint> _machines = [];
     private readonly HashSet<uint> _bodyReceivers = [];
-    internal uint ReadySamples => config.Mode == "controller-reset" ? _movement?.ReadySamples ?? 0 : _readySamples;
+    internal uint ReadySamples => _sharedState?.ReadySamples ?? (config.Mode == "controller-reset" ? _movement?.ReadySamples ?? 0 : _readySamples);
     internal bool RemoteCreated => _visual?.EverCreated == true;
-    internal bool ModeCompleted => config.Mode is ("template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn") && _template?.ModeCompleted == true;
+    internal bool ModeCompleted => _sharedState?.ModeCompleted == true || _clientPresentation?.ModeCompleted == true || _clientDispatch?.ModeCompleted == true || config.Mode is ("template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn") && _template?.ModeCompleted == true;
     internal bool ModeSucceeded => config.Mode switch
     {
         "observe" => _readySamples > 0,
+        "shared-state-observe" => _sharedState?.ModeSucceeded == true,
+        "shared-state-combat-live" => _sharedState?.ModeSucceeded == true,
         "control-observe" => _control?.ModeSucceeded == true,
-        "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" => _template?.ModeSucceeded == true,
+        "client-dispatch-observe" => _clientDispatch?.ModeSucceeded == true,
+        "client-authority-gate" => _clientDispatch?.ModeSucceeded == true,
+        "client-presentation-probe" or "client-presentation-live" => _clientPresentation?.ModeSucceeded == true,
+        "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" => _template?.ModeSucceeded == true,
         "controller-reset" => _movement?.ModeSucceeded == true,
         "native-call-check" => _callCheckPassed,
         "visual-actor" or "visual-unload" => _visual?.Cleaned == true,
@@ -39,6 +49,10 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         observedBloomMachines = _machines.Select(Hex).ToArray(), observedBodyReceivers = _bodyReceivers.Select(Hex).ToArray(),
         nativeCallCheckPassed = _callCheckPassed, nativeCalls = _calls.Summary, visual = _visual?.Summary,
         control = _control?.Summary, template = _template?.Summary, movement = _movement?.Summary,
+        clientDispatch = _clientDispatch?.Summary,
+        clientPresentation = _clientPresentation?.Summary,
+        sharedState = _sharedState?.Summary,
+        nativeInputCapture = _nativeInputCapture?.Summary,
         unloadGuardHits = _unloadGuardHits, unloadCleanupsStarted = _unloadCleanupsStarted,
         deferredUnloadRearms = _unloadRearms.Count };
     internal void CheckTimeout() => _calls.CheckTimeout();
@@ -47,25 +61,86 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     {
         _host = host;
         if (host.ImageBase != 0x400000) throw new InvalidDataException("Image base mismatch");
-        if (config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn")
+        if (config.DiagnosticGuestInput is DiagnosticInputIdentity guestIdentity)
+        {
+            _diagnosticGuest = new(guestIdentity, log);
+            _nativeInputCapture = new(host, image, _diagnosticGuest, log);
+        }
+        if (config.Mode is "shared-state-observe" or "shared-state-combat-live")
+            _sharedState = new SharedStateObservation(host, image, log, config.Mode == "shared-state-combat-live", config.PrepareFirstMagicStage);
+        if (config.Mode is "client-dispatch-observe" or "client-authority-gate")
+            _clientDispatch = new ClientDispatchProbe(host, image, log, config.Mode == "client-authority-gate");
+        if (config.Mode is "client-presentation-probe" or "client-presentation-live")
+            _clientPresentation = new ClientPresentationSession(config, host, image, log);
+        if (config.Mode is "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn")
         {
             _template = new NativeTemplateProbe(config, image, log);
             _template.InstallWitnesses(host);
         }
-        if (config.Mode == "control-observe")
+        if (config.Mode == "control-observe" || _nativeInputCapture is not null)
         {
-            var control = new ControlObserver(host, config.SampleEvery, log);
-            _control = control;
+            if (config.Mode == "control-observe") _control = new ControlObserver(host, config.SampleEvery, log);
             Persistent(ControlObserver.InputReturn, 1, "UserInput.return", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
-                control.Observe(tid, at, ref ctx, _updates, _mediaVerified));
+            {
+                _control?.Observe(tid, at, ref ctx, _updates, _mediaVerified);
+                // Do not publish Ready while private native construction is
+                // stopped. Its first lease starts with the retained controller.
+                _nativeInputCapture?.ObserveAtInputReturn(tid, at, ref ctx,
+                    _mediaVerified && _template?.NetworkInputCaptureReady == true);
+            });
         }
         // Native scene-manager RET after currentScene has been cleared. This
         // establishes an observation boundary, not a mutation permission.
         Persistent(0x45A802, 8, "SceneManager.return", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
             ++_updates;
+            if (_sharedState is not null)
+            {
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                _sharedState.ObserveWorld(tid, ref ctx, _mediaVerified, _calls, () => _resumeObservation?.Invoke());
+                return;
+            }
+            if (_clientPresentation?.Started == true)
+            {
+                _clientPresentation.ObserveWorld(tid, ref ctx, _updates, _mediaVerified);
+                return;
+            }
+            if (_template?.SharedBattleUnloadStarted == true)
+            {
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                foreach (Action rearm in _unloadRearms) rearm();
+                _unloadRearms.Clear();
+                bool mainMenu = SnapshotBodyLiveMenuOnly(tid);
+                _template.StepSharedBattlePostUnload(host, tid, ref ctx, _calls, mainMenu);
+                return;
+            }
+            if (_template?.HealthBattleFastRoute == true)
+            {
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                foreach (Action rearm in _unloadRearms) rearm();
+                _unloadRearms.Clear();
+                _template.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
+                return;
+            }
+            if (_template?.BodyUnloadStarted == true)
+            {
+                // Stock unload may already have deleted every historical local
+                // and Bloom address. This route reads only current flow state.
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                foreach (Action rearm in _unloadRearms) rearm();
+                _unloadRearms.Clear();
+                bool mainMenu = SnapshotBodyLiveMenuOnly(tid);
+                _template.StepBodyLivePostUnload(host, tid, ref ctx, _calls, mainMenu);
+                return;
+            }
             _control?.Observe(tid, at, ref ctx, _updates, _mediaVerified);
             if (_updates % config.SampleEvery == 0 && _samples < 512) Snapshot(tid);
+            if (_readySamples > 0) _clientDispatch?.ObserveWorld(tid, _updates, _mediaVerified);
+            if (_readySamples > 0 && _clientPresentation is not null)
+            {
+                _clientPresentation.ObserveWorld(tid, ref ctx, _updates, _mediaVerified);
+                if (_clientPresentation.Started) return;
+            }
             _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
             foreach (Action rearm in _unloadRearms) rearm();
             _unloadRearms.Clear();
@@ -79,7 +154,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 _visual ??= new NativeVisualActor(config, image, log);
                 _visual.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
             }
-            if (config.Mode is "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" && _readySamples >= 15)
+            if (config.Mode is "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" && _readySamples >= (config.TemplateSharedPlayerProfile is null ? 15 : 1))
                 _template!.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
             if (config.Mode == "native-call-check" && !_callCheckBegun && _readySamples >= 15 && _localCharacter != 0)
             {
@@ -126,12 +201,14 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                     if (_bodyReceivers.Count < 32) _bodyReceivers.Add(ctx.Ecx);
                     log(new { @event = "body-load-entry", threadId = tid, receiver = Hex(ctx.Ecx), vtable = Hex(TryU(ctx.Ecx)) });
                 });
-        if (config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset")
+        if (config.Mode is "client-presentation-probe" or "client-presentation-live" or "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "controller-reset")
         {
             // The playing-state entry precedes the exit stack's own borrowed
             // actor releases. Lower entries cover body/profile replacement and
             // direct cache unloading. These are native function identities;
             // their receiver type is not inferred from this common callback.
+            if (_template?.RequiresEarlyBattleExitGuard == true)
+                InstallUnloadGuard(0x5F2300, 0x56, "BattleLevelExiting.entry");
             InstallUnloadGuard(0x5F86C0, 0x53, "PlayingLevelExiting.entry");
             InstallUnloadGuard(0x4E8AA0, 0x53, "PlayerBodyRemoval.entry");
             InstallUnloadGuard(0x4E8C80, 0x56, "PlayerProfileRemoval.entry");
@@ -164,8 +241,34 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                     expectedReceiverVtable = entry == 0x5F86C0 ? Hex(0x710874) : null,
                     receiverMatchesExpected = entry == 0x5F86C0 ? TryU(ctx.Ecx) == 0x710874 : (bool?)null,
                     nativeCallPending = _calls.Pending, hasTemplate });
+            if (_clientPresentation?.TryBeginUnload(tid, ref ctx, entry) == true)
+            {
+                ++_unloadCleanupsStarted;
+                _host.Breakpoints.AddReturn(at, tid, name, guard);
+                return;
+            }
             if (hasTemplate)
+            {
+                if (_template!.TryBeginSharedBattleUnload(_host, tid, ref ctx, at, expected[0], _calls))
+                {
+                    RetireDiagnosticInput();
+                    ++_unloadCleanupsStarted;
+                    _unloadRearms.Add(() => _host.Breakpoints.AddReturn(at, tid, name, guard));
+                    return;
+                }
+                if (_template!.TryPreservePrimaryAnimationSetAtOwnDelete(tid, ref ctx, entry, _calls.Pending))
+                {
+                    _host.Breakpoints.AddReturn(at, tid, name, guard);
+                    return;
+                }
+                if (_template!.TryBeginUnloadTemplate(_host, tid, ref ctx, at, expected[0], _calls))
+                {
+                    ++_unloadCleanupsStarted;
+                    _unloadRearms.Add(() => _host.Breakpoints.AddReturn(at, tid, name, guard));
+                    return;
+                }
                 throw new InvalidOperationException("Native unload reached a live template experiment; abort the owned case without guessing cleanup or resuming cache unload");
+            }
             if (hasActor && entry == 0x5F86C0)
             {
                 uint flow = U(0x755294);
@@ -190,6 +293,13 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     }
 
     private Action? _resumeObservation;
+    internal void RetireDiagnosticInput()
+    {
+        _nativeInputCapture?.Retire();
+        _diagnosticGuest?.Dispose();
+        _template?.ReleaseNetworkInputEndpoint();
+    }
+    public void Dispose() => RetireDiagnosticInput();
     private void Persistent(uint address, int length, string name, BreakpointCallback callback)
     {
         byte[] expected = image.GetSectionData(checked((int)(address - 0x400000))).GetContent(0, length).ToArray();
@@ -207,6 +317,37 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             else _host.Breakpoints.AddReturn(at, tid, name, repeat);
         };
         _host.Breakpoints.AddReturn(address, _host.MainThreadId, name, repeat);
+    }
+
+    private uint _bodyMenuOnlyWorlds;
+    private bool SnapshotBodyLiveMenuOnly(uint thread)
+    {
+        if (_template?.BodyUnloadStarted != true && _template?.SharedBattleUnloadStarted != true)
+            throw new InvalidOperationException("Flow-only menu observation requires the explicit completed body unload route.");
+        uint flow = TryU(0x755294);
+        bool validFlow = flow >= 0x10000 && (flow & 3) == 0;
+        uint stack = validFlow ? TryU(flow + 0x1AC) : uint.MaxValue;
+        uint pending = validFlow ? TryU(flow + 0x1B8) : uint.MaxValue;
+        uint top = validFlow && stack <= 20 ? TryU(flow + 0x15C + stack * 4) : 0;
+        uint table = top >= 0x10000 && (top & 3) == 0 ? TryU(top) : 0;
+        bool menu = table == 0x7102A8 && pending == 0;
+        if (table == 0x7102A8)
+        {
+            // Registration/factory/ctor and exact getter establish the native
+            // MainMenu type independently of its runtime state/level ID.
+            byte[] getter = [0xB8, 0x90, 0x89, 0x76, 0x00, 0xC3];
+            byte[] original = image.GetSectionData(checked((int)(0x5EF690 - 0x400000))).GetContent(0, getter.Length).ToArray();
+            if (!original.SequenceEqual(getter) || !Win32Native.ReadMemory(_host.ProcessHandle, 0x5EF690, getter.Length).SequenceEqual(getter) ||
+                U(0x7102A8 + 0x10) != 0x5EF690 || U(0x768990) != 0x284B3AA2)
+                throw new InvalidDataException("Fresh MainMenu vtable/getter/registration pin mismatch.");
+        }
+        if (++_bodyMenuOnlyWorlds <= 2 || _bodyMenuOnlyWorlds % 120 == 0)
+            log(new { @event = "body-live-fresh-menu-only-observation", world = _bodyMenuOnlyWorlds,
+                threadId = thread, flow = Hex(flow), stack, pending, top = Hex(top), topTable = Hex(table),
+                mainMenuTypeQualified = table == 0x7102A8, settledMainMenu = menu,
+                typeGetter = Hex(0x5EF690), typeRecord = Hex(0x768990), classId = Hex(0x284B3AA2),
+                historicalMachineRead = false, localPlayerGraphRead = false, levelIdAssumed = false });
+        return menu;
     }
 
     private void Snapshot(uint thread)

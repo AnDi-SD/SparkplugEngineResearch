@@ -248,6 +248,7 @@
 - [Binary template header](formats/template-binary-header.md).
 - [SAN (`spAnimation` в FFPS)](formats/san.md).
 - [SMO field mutation subsystem](formats/smo-field-mutation.md).
+- [WXS: сохранение PC версии 1](formats/wxs-save.md).
 - [Данные spSubtitleTrack](formats/subtitle-track.md).
 - [Игровые ресурсы помимо SMO](formats/game-resources.md).
 - [Контейнер PCK](formats/pck.md).

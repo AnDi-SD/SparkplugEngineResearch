@@ -49,6 +49,7 @@ internal sealed class DebuggerHost
     internal uint ImageBase { get; private set; }
     internal uint MainThreadId { get; private set; }
     internal uint ProcessPid => _process.ProcessId;
+    internal uint DebugStopSequence => _events;
     internal bool IsAtDebugStop { get; private set; }
     internal SoftwareBreakpointManager Breakpoints => _breakpoints ??
         throw new InvalidOperationException("Breakpoints are available only inside the owned debug session.");

@@ -1022,6 +1022,11 @@
       "category": "formats"
     },
     {
+      "path": "docs/formats/wxs-save.md",
+      "title": "WXS: сохранение PC версии 1",
+      "category": "formats"
+    },
+    {
       "path": "docs/game/README.md",
       "title": "Игра Winx Club",
       "category": "game"

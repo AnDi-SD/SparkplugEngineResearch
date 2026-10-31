@@ -9,7 +9,7 @@ namespace WinxCoop.RuntimeProbe;
 /// movement backend or replacement game serializer. The template-idle mode
 /// admits one bounded original-scheduler observation after scoped native init.
 /// </summary>
-internal sealed class NativeTemplateProbe
+internal sealed partial class NativeTemplateProbe
 {
     internal const string StockSha256 = NativeTemplateLayout.StockSha256;
     private const string SchemaInspectorSha256 = "839EB8269BDB598EAFA960AC2D38BC12DAF9E0537BF0CDAF276E0537D53523D3";
@@ -28,9 +28,12 @@ internal sealed class NativeTemplateProbe
     private readonly bool _bloomControl;
     private const uint IdleObservationWorldStops = 30, IdleNativeCallLimit = 256;
     private bool RetainedBloom => _bloomIdle || _bloomControl;
-    private uint ObservationWorldLimit => _jump ? 136u : IdleObservationWorldStops;
-    private uint ObservationEventLimit => _jump ? 4096u : IdleNativeCallLimit;
+    private uint ObservationWorldLimit => _healthBattleFixture ? 600u : _jump ? 136u : IdleObservationWorldStops;
+    private uint ObservationEventLimit => _healthBattleFixture ? 8192u : _jump ? 4096u : IdleNativeCallLimit;
+    private uint ObservationNativeCallLimit => _healthBattleFixture ? 640u : IdleNativeCallLimit;
     private readonly IReadOnlyList<NativeTemplateDescriptor> _descriptors;
+    private uint DescriptorCount => checked((uint)_descriptors.Count);
+    private ushort ExpectedOwnRootReferences => checked((ushort)(DescriptorCount + 1));
     private DebuggerHost _host = null!;
     private IntPtr _process;
     private uint _pid;
@@ -41,12 +44,18 @@ internal sealed class NativeTemplateProbe
     private uint _inputReceiver, _defaultScene;
     private string _localComponentKeys = "";
     private uint _templateManager, _gameManager, _fileManager, _engine, _flow, _level, _active;
+    private readonly NativeSharedPlayerProfile _sharedPlayerProfile;
+    internal bool RequiresEarlyBattleExitGuard => _sharedBattleLifetimeEnabled && !_sharedPlayerProfile.Story;
     private uint _character, _move, _animator, _machine, _traits, _ownRoot;
     private uint _localAnimator, _localActor, _ownNotify1C, _ownMoveInit, _ownAnimatorInit;
     private ushort _streamRefs, _templateRefs, _instanceRefs;
     private uint _foreignWitnesses, _ownNotify1D, _ownCharacterInit, _buildWitnesses;
     private readonly HashSet<uint> _localNodes = [];
+    // Private candidate only: finite template witnesses retire after live hold begins.
+    private readonly HashSet<uint> _bodyLiveRetiredWitnesses = [];
     private uint[] _ownEntities = [];
+    private bool _bloomBodyGraphVerified;
+    private object? _bloomBodyGraphWitness;
     private object? _constructionWitness;
     private object? _initializedWitness;
     private bool _cleaned, _payloadWritten;
@@ -73,6 +82,7 @@ internal sealed class NativeTemplateProbe
 
     private sealed record Component(uint Address, uint Table, uint ClassId, uint Owner, uint BoundNode);
     private sealed record Relationship(string Operand, string Actual, string Expected, bool Matched);
+    private sealed record BodySkinAppearance(uint Skin, uint Mesh, uint Material, string AmbientHex, string MaterialPrefixSha256);
     private sealed record Membership(uint[] Counts, uint MoveCount, uint MainListCount, uint SecondaryListCount,
         uint[] MainListMatches, uint[] SecondaryListMatches, uint[] ActiveMoveMatches,
         uint[] TableMatches, uint[] Matches, string TablesSha256);
@@ -84,14 +94,36 @@ internal sealed class NativeTemplateProbe
     {
         _image = image; _log = log;
         _layout = NativeTemplateLayout.Select(config);
-        _bloomIdle = config.Mode == "template-bloom-idle";
-        _jump = config.Mode == "template-bloom-jump";
-        _bloomControl = config.Mode is "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn";
-        _turn = config.Mode is "template-near-turn" or "template-bloom-turn";
-        _walk = config.Mode is "template-near-walk" or "template-near-turn" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn";
-        _near = config.Mode is "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn";
-        _idle = config.Mode is "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn";
-        _initialize = config.Mode is "template-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn";
+        _playerTraitsPreparePickupFx = config.TemplatePlayerTraitsPickupFx;
+        _sharedHealthAliasEnabled = config.TemplateSharedHealthAlias;
+        _sharedPlayerProfile = NativeSharedPlayerProfile.Select(config);
+        _healthBattleFixture = _sharedPlayerProfile.LiveResources;
+        _configureTargetRegion = config.TemplateConfigureTargetRegion;
+        _stingerSecondaryRoleEnabled = config.TemplateStingerSecondaryRole;
+        _starSecondaryEligibilityEnabled = config.TemplateStarSecondaryEligibility;
+        _battleCombatFixtureEnabled = config.TemplateBattleCombatFixture;
+        _templatePrepareFirstMagicStage = config.PrepareFirstMagicStage;
+        _starPlacementFixtureEnabled = config.TemplateStarPlacementFixture;
+        _sharedMagicEnergyEnabled = config.TemplateSharedMagicEnergyAlias;
+        _secondAttackDegreeFixtureEnabled = config.TemplateSecondAttackDegreeFixture;
+        _sharedBattleLifetimeEnabled = config.TemplateSharedBattleLifetime || _sharedPlayerProfile.Story;
+        _deathBattleFixture = config.TemplateDeathBattleFixture || config.TemplateStoryDeathFixture;
+        _collisionDetectorSecondaryRoleEnabled = config.TemplateCollisionDetectorSecondaryRole;
+        _sharedBattleDurationSeconds = config.DurationSeconds;
+        ConfigureProjectileManagerFixture(config);
+        ConfigureBodyInputFixture(config);
+        ConfigureOrdinaryAttackFixture(config);
+        ConfigureNetworkInputFixture(config);
+        ConfigureBodyLive(config);
+        ConfigureNativeTemplateHair(config);
+        _bloomIdle = config.Mode is "template-bloom-idle" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live";
+        _jump = config.Mode is "template-bloom-jump" or "template-bloom-body-jump" or "template-bloom-body-hair-jump";
+        _bloomControl = config.Mode is "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn";
+        _turn = config.Mode is "template-near-turn" or "template-bloom-turn" or "template-bloom-body-turn" or "template-bloom-body-hair-turn";
+        _walk = config.Mode is "template-near-walk" or "template-near-turn" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn";
+        _near = config.Mode is "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump";
+        _idle = config.Mode is "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump";
+        _initialize = config.Mode is "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump";
         _payload = ReadVerifiedPayload(config, _layout);
         // Pinned StaticSeresa Animation Group property (DWORD at file2669).
         // Native setter555060/getter555070 access machine+128; it is a kind
@@ -103,15 +135,38 @@ internal sealed class NativeTemplateProbe
     }
 
     internal bool ModeSucceeded => _cleaned && (!_idle || _idleChecksPassed) && (!_walk || _commandMovement?.Passed == true) &&
-        (!_layout.IsDerivedBloom || _bloomIntervalVerified);
-    internal bool ModeCompleted => _cleaned;
-    internal bool HasLiveOwnership => _stream != 0 || _template != 0 || _instance != 0 || _constructing != 0;
+        (!_layout.IsDerivedBloom || _bloomIntervalVerified) && (!_layout.IsBloomBody || _bloomBodyGraphVerified) && HairModeSucceeded &&
+        (!_bodyLive || BodyLifetimeSucceeded && BodyLiveMenuSurvivalSucceeded) &&
+        (!_sharedBattleLifetimeEnabled || SharedBattleLifetimeSucceeded) && ProjectileManagerFixtureSucceeded;
+    internal bool ModeCompleted => _bodyLive ? BodyLifetimeSucceeded && BodyLiveMenuSurvivalSucceeded : _cleaned;
+    internal bool HasLiveOwnership => _stream != 0 || _template != 0 || _instance != 0 || _constructing != 0 || HairHasLiveOwnership;
     internal object Summary => new { stage = _stage, cleaned = _cleaned, hasLiveOwnership = HasLiveOwnership,
         templateSha256 = _layout.Sha256, templateLayout = _layout.Name, schemaInspectorSha256 = SchemaInspectorSha256,
         stream = Hex(_stream), template = Hex(_template), instance = Hex(_instance),
         ownNotify1D = _ownNotify1D, ownCharacterInit = _ownCharacterInit, buildWitnesses = _buildWitnesses,
         foreignWitnesses = _foreignWitnesses, construction = _constructionWitness, initialized = _initializedWitness,
         scopedInitializationMode = _initialize, dependentIntervalActive = _dependentInterval,
+        bloomBodyInitialization = new { enabled = _layout.IsBloomBody, graphVerified = _bloomBodyGraphVerified,
+            graph = _bloomBodyGraphWitness, initOnly = _layout.IsBloomBody && !_idle && !_near && !_walk,
+            hairAdded = _hairAttached, appearanceQualified = false, retainedMovementQualified = false },
+        nativeTemplateHair = NativeTemplateHairSummary,
+        bodyLive = BodyLiveSummary, bodyLifetime = BodyLifetimeSummary,
+        playerTraitsFixture = PlayerTraitsFixtureSummary,
+        targetRegionFixture = TargetRegionSummary,
+        projectileManagerFixture = ProjectileManagerSummary,
+        bodyInputFixture = BodyInputFixtureSummary,
+        ordinaryAttackFixture = OrdinaryAttackFixtureSummary,
+        networkInputFixture = NetworkInputFixtureSummary,
+        starPickupFixture = TemplateStarSummary,
+        sharedMagicEnergy = _sharedMagicEnergy?.Summary,
+        secondAttackDegreeFixture = _secondAttackDegreeFixture?.Summary,
+        sharedDeathCommand = _sharedDeathCommand?.Summary,
+        storyGameOver = _storyGameOver?.Summary,
+        collisionDetectorSecondaryRole = _collisionDetectorSecondaryRole?.Summary,
+        sharedBattleLifetimeRequested = _sharedBattleLifetimeEnabled,
+        sharedBattleDurationSeconds = _sharedBattleDurationSeconds,
+        sharedPlayerProfile = _sharedPlayerProfile,
+        sharedBattleLifetime = SharedBattleLifetimeSummary,
         ownNotify1C = _ownNotify1C, ownMoveInit = _ownMoveInit, ownAnimatorInit = _ownAnimatorInit,
         nativeScopedInitCallsObserved = _ownNotify1C == 0 ? 0 : 1,
         originalSchedulerObservation = new { enabled = _idle, active = _idleActive,
@@ -152,7 +207,7 @@ internal sealed class NativeTemplateProbe
             throw new InvalidDataException("Template extent differs from its pinned diagnostic layout.");
         byte[] bytes = File.ReadAllBytes(path);
         if (bytes.Length != layout.Bytes || Convert.ToHexString(SHA256.HashData(bytes)) != layout.Sha256 ||
-            BitConverter.ToUInt32(bytes, 0) != 0xDAB33F00 || BitConverter.ToUInt32(bytes, 0x44) != 6)
+            BitConverter.ToUInt32(bytes, 0) != 0xDAB33F00 || BitConverter.ToUInt32(bytes, 0x44) != layout.Descriptors.Count)
             throw new InvalidDataException("Pinned template bytes/hash/header mismatch.");
         return bytes;
     }
@@ -176,6 +231,7 @@ internal sealed class NativeTemplateProbe
         });
         Hook(0x4F45A0, "Character.Notify", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
+            if (SkipBodyLiveOwnObservation(ctx.Ecx)) return;
             uint message = Pointer(ctx.Esp + 4), code = U(message);
             if (OwnReceiver(ctx.Ecx))
             {
@@ -183,7 +239,7 @@ internal sealed class NativeTemplateProbe
                 {
                     Require(_idle && _idleActive && !_dependentInterval && _stage == 6,
                         "Owned Character received a tick outside its bounded original-scheduler observation.");
-                    Require(++_ownCharacterTicks <= IdleNativeCallLimit, "Owned Character tick witness cap exceeded.");
+                    Require(++_ownCharacterTicks <= ObservationNativeCallLimit, "Owned Character tick witness cap exceeded.");
                 }
                 if (code == 0x1C)
                 {
@@ -226,6 +282,7 @@ internal sealed class NativeTemplateProbe
         if (_idle)
             Hook(0x4FA860, "MoveCtrl.update", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
             {
+                if (SkipBodyLiveOwnObservation(ctx.Ecx)) return;
                 if (!OwnReceiver(ctx.Ecx)) { Foreign("MoveCtrl.update", tid, ctx.Ecx, null); return; }
                 Require(_idleActive && !_dependentInterval && _stage == 6 && ctx.Ecx == _move && _ownCommand >= 0x10000,
                     "Owned MoveCtrl update occurred outside the retained initialized observation interval.");
@@ -242,9 +299,10 @@ internal sealed class NativeTemplateProbe
                 Require(U(_move) == 0x6F64F8 && U(_move + 0x160) == _character &&
                     U(_character + 0x130) == _ownCommand && U(_machine + 0x12C) == _ownCommand,
                     "Owned MoveCtrl update receiver/Character/private-command identity is not the retained initialized cohort.");
-                Require(++_ownMoveUpdates <= IdleNativeCallLimit, "Owned MoveCtrl update witness cap exceeded.");
+                Require(++_ownMoveUpdates <= ObservationNativeCallLimit, "Owned MoveCtrl update witness cap exceeded.");
             });
         if (_layout.IsDerivedBloom) InstallBloomInitWitnesses();
+        InstallProjectileManagerWitnesses();
     }
 
     internal void Step(DebuggerHost host, uint tid, ref Win32Native.X86Context ctx,
@@ -252,8 +310,13 @@ internal sealed class NativeTemplateProbe
     {
         Require(ReferenceEquals(host, _host) && host.IsAtDebugStop && tid == host.MainThreadId && ctx.Eip == NativeCallDispatcher.WorldReturn && !calls.Pending,
             "Template experiment requires the owned main-thread world stop.");
+        Require(!_bodyUnloadStarted, "Post-unload body worlds must use the fresh flow-only route before old local reads.");
+        Require(!SharedBattleUnloadStarted, "Shared battle post-unload requires the fresh flow-only route.");
         if (_cleaned) return;
+        VerifyStoryGameOverAtWorld(tid, ref ctx);
+        if (_sharedBattleLifetimeEnabled && SharedBattleLifetimeCaptured && !ObserveSharedBattleLifetimeAtWorld(tid, ref ctx)) return;
         if (_stage != 0) VerifyLocal();
+        if (_bodyLiveHolding) { ObserveBodyLiveWorld(); return; }
         switch (_stage)
         {
             case 0:
@@ -301,14 +364,20 @@ internal sealed class NativeTemplateProbe
                 Call(tid, ref ctx, calls, resume, 0x59E930, _template, [_stream], false, value =>
                 { Require((value & 255) != 0, "Native template parse failed; unknown partial state."); InspectTemplate(); }); break;
             case 5:
+                if (TryPrepareTemplateBattleCombat(tid, ref ctx, calls, resume)) break;
+                if (TryPrepareSecondAttackDegree(tid, ref ctx, calls, resume)) break;
+                if (TryPreparePrimaryPlayerTraitsFx(tid, ref ctx, calls, resume)) break;
+                if (TryPrepareNativeTemplateHair(tid, ref ctx, calls, resume)) break;
                 InspectTemplate(); Require(Read(Pointer(0x755278) + 0x21C, 1)[0] == 0, "Native1D setup guard is not admitted.");
                 NativeInstancePositionCall? placement = _near ? CaptureNearDestination() : null;
+                CaptureTargetRegionConstructionBaseline();
                 _stage = 6;
                 if (_initialize)
                 {
                     foreach (uint function in new uint[] { 0x59E7A0, 0x5991E0, 0x5FB350 }) VerifyFunction(function);
                     _dependentInterval = true;
                     if (_layout.IsDerivedBloom) CaptureBloomIsolation();
+                    CaptureProjectileManagerBaseline();
                     calls.BeginDependentLifecycle(host, tid, ref ctx, new(0x59E7A0, _template, [1], false), 0x5991E0, 0x5FB350,
                         value =>
                         {
@@ -330,7 +399,7 @@ internal sealed class NativeTemplateProbe
                         },
                         results =>
                         {
-                            Require(results.Length == (_near ? 3 : _idle ? 2 : 3) && results[0] == _instance && _initializedWitness is not null &&
+                            Require(results.Length == (_near ? 3 : _idle ? 2 : 3) + (_hairEnabled ? 1 : 0) + (_playerTraitsPreparePickupFx ? 1 : 0) + (_configureTargetRegion ? 1 : 0) + (_ordinaryAttackFixture ? 1 : 0) && results[0] == _instance && _initializedWitness is not null &&
                                 (!_near || _nearPositioned),
                                 "Dependent lifecycle completion/results mismatch.");
                             if (_idle)
@@ -361,6 +430,9 @@ internal sealed class NativeTemplateProbe
                             }
                             uint deleted = _instance; _instance = 0; _ownRoot = 0; _dependentInterval = false;
                             VerifyLocal();
+                            VerifyPlayerTraitsAfterScopedDelete();
+                            VerifyTargetRegionDeleted();
+                            VerifyProjectileManagerDeleted();
                             Require(Memberships(_ownEntities).Matches.Length == 0,
                                 "Own entities survived in game-manager lists/tables after native scoped deletion.");
                             _stage = 7;
@@ -368,7 +440,9 @@ internal sealed class NativeTemplateProbe
                                 privateIntervalResults = results, originalSchedulerResumedBetweenCalls = false, freedBytesRead = false });
                             resume();
                         }, retainAfterInitialization: _idle, positionAfterInitialization: placement,
-                        positionedWitness: _near ? ObservePositionedInstance : null);
+                        positionedWitness: _near ? ObservePositionedInstance : null,
+                        preInitAttachment: _hairEnabled ? NativeTemplateHairAttachmentPlan() : null,
+                        postInitCall: TemplatePostInitPlan());
                 }
                 else
                     Call(tid, ref ctx, calls, resume, 0x59E7A0, _template, [1], false, value =>
@@ -379,13 +453,21 @@ internal sealed class NativeTemplateProbe
                     });
                 break;
             case 6:
-                if (_idle)
+                if (_healthBattleHolding)
+                {
+                    if (TryPlaceSecondaryAtObservedStar(tid, ref ctx, calls, resume)) break;
+                    if (!ObserveHealthBattleLiveWorld(tid, ref ctx)) break;
+                }
+                else if (_idle)
                 {
                     Require(_idleActive && !_dependentInterval && _idleWorldStops < ObservationWorldLimit,
                         "Unexpected retained instance observation phase.");
                     if (!_deliveryWitnessInstalled) InstallDeliveryWitness();
+                    if (SkipHealthBattleWorldWithoutTick(tid, ref ctx)) break;
                     ++_idleWorldStops;
                     Membership membership = ObserveIdleState("original-world-return", requirePromotion: !_bloomIdle && _idleWorldStops >= 2);
+                    if (_layout.IsBloomBody && _idleWorldStops == 1) CaptureRetainedBloomBodyGraph("after-first-original-world");
+                    ObserveSharedHealthAtWorld(tid, ref ctx);
                     if (_idleWorldStops >= 2 && !_bloomIdle)
                         Require(_ownCharacterTicks != 0 && _ownMoveUpdates != 0,
                             "Original scheduler did not witness both own Character tick and own typed MoveCtrl update after two world returns.");
@@ -395,8 +477,25 @@ internal sealed class NativeTemplateProbe
                         if (_idleWorldStops >= 2 && (!LiveOwnMembership(membership) || _ownCharacterTicks != _idleWorldStops ||
                             _ownMoveUpdates != _idleWorldStops || _ownBloomNotifyTicks != _idleWorldStops || _ownBloomUpdates != _idleWorldStops))
                             RejectBloomRetention("Original scheduler did not provide one own Character/Bloom/Move callback per observed World.");
-                        if (_bloomRetentionFailure.Length == 0 && _idleWorldStops < IdleObservationWorldStops) break;
-                        _idleChecksPassed = _bloomRetentionFailure.Length == 0 && _idleWorldStops == IdleObservationWorldStops;
+                        if (TryDeleteNativeTemplateHairResidual(tid, ref ctx, calls, resume, afterFirstOriginalWorld: true)) break;
+                        if (_healthBattleFixture && _idleWorldStops == 2)
+                        {
+                            CaptureSharedBattleLifetimeAtWorld(tid, ref ctx, _sharedBattleDurationSeconds);
+                            BeginHealthBattleLiveHold();
+                            BeginBodyInputFixtureAtWorld(tid, ref ctx);
+                            BeginOrdinaryAttackAtWorld(tid, ref ctx);
+                            BeginNetworkInputAtWorld(tid, ref ctx); break;
+                        }
+                        if (_bodyLive && _idleWorldStops == 2)
+                        {
+                            BeginBodyLiveHold();
+                            break;
+                        }
+                        bool healthBattleDone = _healthBattleFixture && _sharedHealthAlias?.CommittedDamageTransactions >= 2;
+                        if (_bloomRetentionFailure.Length == 0 && _idleWorldStops < ObservationWorldLimit && !healthBattleDone) break;
+                        if (_layout.IsBloomBody) CaptureRetainedBloomBodyGraph("after-last-original-world");
+                        _idleChecksPassed = _bloomRetentionFailure.Length == 0 &&
+                            (_healthBattleFixture ? healthBattleDone : _idleWorldStops == IdleObservationWorldStops);
                         _idleActive = false;
                         _log(new { @event = "template-bloom-retention-finished", originalWorldReturns = _idleWorldStops,
                             ownCharacterTicks = _ownCharacterTicks, ownMoveUpdates = _ownMoveUpdates, ownBloomNotifyTicks = _ownBloomNotifyTicks,
@@ -414,7 +513,9 @@ internal sealed class NativeTemplateProbe
                         NativeCommandMovementProbe movement = _commandMovement ??
                             throw new InvalidDataException("Missing private command phase observer.");
                         movement.EndWorld(_idleWorldStops);
+                        if (TryDeleteNativeTemplateHairResidual(tid, ref ctx, calls, resume, afterFirstOriginalWorld: true)) break;
                         if (!movement.Finished && _bloomRetentionFailure.Length == 0) break;
+                        if (_layout.IsBloomBody) CaptureRetainedBloomBodyGraph("after-last-original-world");
                         movement.PrepareCleanup();
                         _idleChecksPassed = movement.Passed && _bloomRetentionFailure.Length == 0; _idleActive = false;
                         _log(new { @event = "template-command-observation-finished", worldStops = _idleWorldStops,
@@ -431,15 +532,27 @@ internal sealed class NativeTemplateProbe
                     }
                 }
                 VerifyOwnedInstance(scheduled: _idle); Require(Refs(_instance) == _instanceRefs, "Own instance refcount changed before deletion.");
+                if (_idle) PreparePlayerTraitsRetainedDelete();
+                if (_idle) CaptureTargetRegionRetainedDeleteBaseline();
+                RetireTemplateStarBeforeOwnDelete(tid, ref ctx);
+                RetireSharedMagicBeforeOwnDelete(tid, ref ctx);
+                if (_stingerSecondaryRole?.Active == true) _stingerSecondaryRole.RetireBeforeOwnDelete(tid, ref ctx);
+                RetireSharedDeathBeforeOwnDelete(tid, ref ctx);
+                RetireCollisionDetectorBeforeOwnDelete(tid, ref ctx);
+                if (_sharedHealthAlias?.Active == true) _sharedHealthAlias.RetireBeforeOwnUnload(tid, ref ctx);
                 _stage = 7;
                 Call(tid, ref ctx, calls, resume, 0x5FB350, _instance, [1], false, _ =>
                 {
                     // Never read deleted instance, components, command or Nodes.
                     uint deleted = _instance; _instance = 0; _ownRoot = 0;
+                    VerifyPlayerTraitsAfterScopedDelete();
+                    VerifyTargetRegionDeleted();
+                    VerifyProjectileManagerDeleted();
                     Require(Memberships(_ownEntities).Matches.Length == 0, "Deleted own components remain in bounded game-manager tables.");
                     _log(new { @event = "template-instance-delete-returned", deletedInstance = Hex(deleted), freedBytesRead = false });
                 }); break;
             case 7:
+                if (TryDeleteNativeTemplateHairResidual(tid, ref ctx, calls, resume, afterFirstOriginalWorld: false)) break;
                 Table(_template, 0x703D24); Require(_templateRefs == 1 && Refs(_template) == _templateRefs && U(_template + 4) == 0,
                     "Template constructor registration baseline/base-list changed before deletion.");
                 _stage = 8;
@@ -480,11 +593,12 @@ internal sealed class NativeTemplateProbe
         _gameManager = Pointer(0x765ACC); Table(_gameManager, 0x70069C);
         _fileManager = Pointer(0x755278); Require(Read(_fileManager + 0x21C, 1)[0] == 0, "File manager suppresses native template setup.");
         _flow = Pointer(0x755294); _level = U(_flow + 0x1B0);
-        Require(!(_idle || _layout.IsDerivedBloom) || (_level == 28 && U(_device + 0x14) == 3),
+        Require(!(_idle || _layout.IsDerivedBloom) || (_level == _sharedPlayerProfile.Level && U(_device + 0x14) == 3),
             "Original-scheduler observation requires the qualified Alfea28 InGame device context3.");
         int stack = unchecked((int)U(_flow + 0x1AC));
         Require(_level is >= 1 and <= 50 && stack is >= 0 and <= 20 && U(_flow + 0x1B8) == 0, "Playing flow is not settled.");
         _active = Pointer(_flow + 0x15C + (uint)stack * 4); Require(U(_active + 0x10) == _level, "Playing flow identity mismatch.");
+        if (_healthBattleFixture) Table(_active, _sharedPlayerProfile.PlayingTable);
         Require(U(_templateManager + 0x20) == 0 && U(Pointer(0x75DB90) + 0x20) == 0, "Native parse/world context is active.");
         var graph = new VisualGraphReader(_host.ProcessHandle).Read(_localRoot, inspectSkins: false);
         Require(graph.Success, "Cannot bound local node identities: " + graph.Error);
@@ -524,12 +638,16 @@ internal sealed class NativeTemplateProbe
             parseContext = Hex(U(_templateManager + 0x20)), manager = Memberships([]), localNodeCount = _localNodes.Count,
             stockTemplateSha256 = _layout.IsDerivedBloom ? null : StockSha256,
             templateSha256 = _layout.Sha256, templateLayout = _layout.Name, schemaInspectorSha256 = SchemaInspectorSha256 });
+        InstallHealthBattleMetadataObservation();
+        CaptureTargetRegionBaseline();
+        CaptureProjectileManagerBaseline();
     }
 
     private void InstallBloomInitWitnesses()
     {
         Hook(0x5261A0, "Bloom.Notify.init-only", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
+            if (SkipBodyLiveOwnObservation(ctx.Ecx)) return;
             if (!OwnReceiver(ctx.Ecx)) return;
             Table(ctx.Ecx, _layout.MachineTable);
             uint message = Pointer(ctx.Esp + 4), code = U(message);
@@ -537,7 +655,7 @@ internal sealed class NativeTemplateProbe
             {
                 Require(RetainedBloom && _idleActive && !_dependentInterval && _stage == 6,
                     "Owned Bloom gameplay notification escaped its retained scheduler interval.");
-                Require(++_ownBloomNotifyTicks <= IdleNativeCallLimit, "Own Bloom notification witness cap exceeded.");
+                Require(++_ownBloomNotifyTicks <= ObservationNativeCallLimit, "Own Bloom notification witness cap exceeded.");
                 LogRetainedBloom("before-own-Bloom-Notify1E", tid);
                 return;
             }
@@ -570,10 +688,11 @@ internal sealed class NativeTemplateProbe
             });
         Hook(0x526F90, "Bloom.update.forbidden-during-init", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
+            if (SkipBodyLiveOwnObservation(ctx.Ecx)) return;
             if (!OwnReceiver(ctx.Ecx)) return;
             Require(RetainedBloom && _idleActive && !_dependentInterval && _stage == 6,
                 "Derived Bloom reached gameplay outside its retained observation.");
-            Require(++_ownBloomUpdates <= IdleNativeCallLimit, "Own Bloom update witness cap exceeded.");
+            Require(++_ownBloomUpdates <= ObservationNativeCallLimit, "Own Bloom update witness cap exceeded.");
             LogRetainedBloom("before-own-Bloom-native-update", tid);
         });
         // Jump's command probe owns this exact hook and its entry/return pair.
@@ -581,6 +700,7 @@ internal sealed class NativeTemplateProbe
         if (_bloomIdle)
             Hook(0x5268B0, "Bloom.command-builder.observation", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
             {
+                if (SkipBodyLiveOwnObservation(ctx.Ecx)) return;
                 if (!OwnReceiver(ctx.Ecx)) return;
                 Require(_idleActive && !_dependentInterval && _stage == 6,
                     "Derived Bloom builder escaped its retained observation.");
@@ -690,7 +810,7 @@ internal sealed class NativeTemplateProbe
             }
             _bloomStateWitness = new { @event = "template-bloom-init-states", machine = Hex(_machine),
                 observedKind128 = Hex(U(_machine + 0x128)), expectedKind128 = (uint?)null,
-                enumValueNotAssumed = true, states, bodyRemainsSeresa = true, jumpOrRetainedGameplayQualified = false };
+                enumValueNotAssumed = true, states, bodyRemainsSeresa = !_layout.IsBloomBody, bodyAsset = _layout.IsBloomBody ? "Characters\\Bloom\\bloom_jeans.smo" : "Characters\\Seresa\\Seresa.smo", jumpOrRetainedGameplayQualified = false };
             _log(_bloomStateWitness);
         }
         VerifyBloomIsolation(initialized ? "after-native-init-before-delete" : "after-native-create-before-init");
@@ -788,16 +908,27 @@ internal sealed class NativeTemplateProbe
             U(_input + 0x14) == _inputReceiver && U(0x755274) == _engine && U(_engine + 0x1C) == _camera &&
             U(_engine + 0x18) == _defaultScene && U(0x75DC64) == _templateManager &&
             U(_templateManager + 0x20) == 0 && U(0x765ACC) == _gameManager && U(0x755278) == _fileManager &&
-            U(0x755294) == _flow && U(_flow + 0x1B0) == _level && U(_flow + 0x1B8) == 0 && U(_active + 0x10) == _level,
+            U(0x755294) == _flow,
             "Local profile/record/input/device/camera/scene/parse identity changed during native template experiment.");
-        int stack = unchecked((int)U(_flow + 0x1AC));
-        Require(stack is >= 0 and <= 20 && U(_flow + 0x15C + (uint)stack * 4) == _active &&
-            U(Pointer(0x75DB90) + 0x20) == 0 && Read(_fileManager + 0x21C, 1)[0] == 0,
-            "Active flow/world/template-setup phase changed during the experiment.");
+        bool liveLifetime = _bodyLive && _stage == 6 && _idleActive && !_dependentInterval;
+        if (liveLifetime)
+        {
+            bool ready = VerifyBodyLifetimeGameplayReady();
+            Require(_bodyLiveHolding || ready, "An overlay interrupted the two-world body-live preparation interval.");
+        }
+        else
+        {
+            int stack = unchecked((int)U(_flow + 0x1AC));
+            Require(U(_flow + 0x1B0) == _level && U(_flow + 0x1B8) == 0 && U(_active + 0x10) == _level &&
+                stack is >= 0 and <= 20 && U(_flow + 0x15C + (uint)stack * 4) == _active,
+                "Active playing flow changed during the bounded experiment.");
+        }
+        Require(U(Pointer(0x75DB90) + 0x20) == 0 && Read(_fileManager + 0x21C, 1)[0] == 0,
+            "World/template-setup phase changed during the experiment.");
         Table(_command, 0x703090); Table(_input, 0x6F5508); Table(_device, 0x7116CC);
         if (_initialize) Require(U(_localAnimator + 0x128) == _localActor && U(_localActor) == 0x703F80,
             "Local Animator/Actor identity changed during scoped NPC initialization.");
-        if (_idle || _layout.IsDerivedBloom) Require(LocalComponentKeys() == _localComponentKeys && U(_device + 0x14) == 3,
+        if (_idle || _layout.IsDerivedBloom) Require(LocalComponentKeys() == _localComponentKeys && (liveLifetime || U(_device + 0x14) == 3),
             "Stock local component/input-context identity changed during the original-scheduler observation.");
     }
 
@@ -831,7 +962,7 @@ internal sealed class NativeTemplateProbe
     private void InspectTemplate()
     {
         VerifyLocal(); Table(_template, 0x703D24);
-        Require(U(_template + 0x1C) == 6 && _templateRefs == 1 && Refs(_template) == _templateRefs && U(_template + 4) == 0,
+        Require(U(_template + 0x1C) == DescriptorCount && _templateRefs == 1 && Refs(_template) == _templateRefs && U(_template + 4) == 0,
             "Parsed template count/constructor registration/base-list mismatch.");
         uint descriptor = Pointer(_template + 0x14);
         var visited = new HashSet<uint>(); var rows = new List<object>();
@@ -881,9 +1012,9 @@ internal sealed class NativeTemplateProbe
             rows.Add(new { descriptor = Hex(descriptor), id = expected.Id, type = expected.Type, classId = Hex(expected.ClassId), propertySha256 = hash });
             descriptor = U(descriptor + 0x18);
         }
-        Require(descriptor == 0, "Parsed descriptor chain exceeds six stock entries.");
+        Require(descriptor == 0, "Parsed descriptor chain exceeds its pinned entries.");
         _log(new { @event = "template-native-parse-witness", template = Hex(_template), referenceCount = _templateRefs,
-            descriptorCount = 6, descriptors = rows, parseContext = Hex(U(_templateManager + 0x20)) });
+            descriptorCount = DescriptorCount, descriptors = rows, parseContext = Hex(U(_templateManager + 0x20)) });
     }
 
     private void CaptureInstance(bool initialized = false, bool allowSecondary = false)
@@ -892,7 +1023,7 @@ internal sealed class NativeTemplateProbe
         _log(new { @event = "template-create-return-prefix", instance = Hex(_instance), template = Hex(_template),
             prefixHex = Convert.ToHexString(Read(_instance, 0x28)), ownBuildWitnesses = _buildWitnesses, initialized,
             ownNotify1D = _ownNotify1D, ownCharacterInit = _ownCharacterInit });
-        Require(_instance != _record && U(_instance + 0x14) == _template && U(_instance + 0x20) == 6,
+        Require(_instance != _record && U(_instance + 0x14) == _template && U(_instance + 0x20) == DescriptorCount,
             "Constructed native instance identity/template/count mismatch.");
         _instanceRefs = Refs(_instance); Require(_instanceRefs == 0, "Fresh instance has unqualified incoming owners.");
         _ownRoot = Pointer(_instance + 0x24); Table(_ownRoot, VisualGraphReader.NodeVtable);
@@ -900,20 +1031,21 @@ internal sealed class NativeTemplateProbe
             "Constructed root scene/parent/identity mismatch.");
         _log(new { @event = "template-create-return-root", root = Hex(_ownRoot), referenceCount = Refs(_ownRoot),
             prefixHex = Convert.ToHexString(Read(_ownRoot, 0xB4)) });
-        List<Component> items = Components(_instance, 6);
+        List<Component> items = Components(_instance, DescriptorCount);
         _log(new { @event = "template-create-return-components", instance = Hex(_instance), components = items.ToArray() });
         uint Unique(uint id) => items.Single(v => v.ClassId == id).Address;
-        _character = Unique(0x0003CC73); _traits = Unique(0x1BC6108E); _machine = Unique(_layout.MachineClassId);
+        _character = Unique(0x0003CC73); _traits = Unique(_layout.TraitsClassId); _machine = Unique(_layout.MachineClassId);
         _animator = Unique(0xCD2B2876); _move = Unique(0x680838E4);
-        _ownEntities = [_character, _traits, _machine, _animator, _move];
+        CaptureProjectileManagerConstructed();
+        _ownEntities = items.Where(item => item.ClassId != 0x695C0F65).Select(item => item.Address).ToArray();
         _log(new { @event = "template-create-return-character", character = Hex(_character),
             ownFieldsHex = Convert.ToHexString(Read(_character + 0x124, 0x3C)),
             move160 = Hex(U(_move + 0x160)), animatorActor128 = Hex(U(_animator + 0x128)) });
         Require(items.Count(v => v.ClassId == 0x695C0F65) == 1 && _ownEntities.All(v => U(v + 0x24) == _instance && U(v + 0x18) == _ownRoot),
             "Constructed components lack the real own instance/Node binding.");
         // Instance owns one root reference, scene parent owns one and each of
-        // the five stock Entity virtual24 bindings retains that same root.
-        Require(Refs(_ownRoot) == 7, "Own root has an unqualified reference-owner count.");
+        // each pinned Entity virtual24 binding retains that same root.
+        Require(Refs(_ownRoot) == ExpectedOwnRootReferences, "Own root has an unqualified reference-owner count.");
         uint ownCommand = Pointer(_character + 0x130); Table(ownCommand, 0x703090);
         byte[] command = Read(ownCommand, 0x74);
         _log(new { @event = "template-create-return-private-command", command = Hex(ownCommand),
@@ -924,8 +1056,9 @@ internal sealed class NativeTemplateProbe
             U(_character + 0x128) == _animator && U(_character + 0x12C) == _move && U(_character + 0x138) == _traits &&
             U(_character + 0x13C) == 0 && _ownNotify1D == 1 && _ownCharacterInit == 1,
             "Owned selector1/private-command/component setup did not match native typed witnesses.");
-        var graph = new VisualGraphReader(_host.ProcessHandle).Read(_ownRoot, _localNodes, inspectSkins: false);
+        var graph = new VisualGraphReader(_host.ProcessHandle).Read(_ownRoot, _localNodes, inspectSkins: _layout.IsBloomBody);
         Require(graph.Success, "Constructed graph is not bounded/disjoint: " + graph.Error);
+        if (_layout.IsBloomBody) CaptureBloomBodyGraph(graph.Graph, initialized);
         Membership membership = Memberships(_ownEntities);
         uint actor = U(_animator + 0x128);
         var witness = new { instance = Hex(_instance), template = Hex(_template), root = Hex(_ownRoot), initialized,
@@ -943,6 +1076,9 @@ internal sealed class NativeTemplateProbe
         _log(new { @event = initialized ? "template-native-initialized-witness" : "template-native-construction-witness", witness });
         if (initialized)
         {
+            CapturePlayerTraitsBeforeScopedDelete();
+            CaptureTargetRegionInitialized();
+            CaptureProjectileManagerInitialized();
             List<Relationship> relationships =
             [
                 Compare("scoped-mode", _initialize ? 1u : 0u, 1),
@@ -979,6 +1115,107 @@ internal sealed class NativeTemplateProbe
         if (_layout.IsDerivedBloom) VerifyBloomInstance(initialized, items);
     }
 
+    private void CaptureBloomBodyGraph(VisualGraphSnapshot graph, bool initialized, bool afterOriginalWorld = false, string boundary = "private-initialization")
+    {
+        bool privateInitialization = !afterOriginalWorld && _dependentInterval && _stage == 6;
+        bool retainedObservation = afterOriginalWorld && RetainedBloom && _idle && _near && _idleActive &&
+            !_dependentInterval && _bloomIntervalVerified && _stage == 6;
+        Require(_layout.IsBloomBody && _initialize && (privateInitialization || retainedObservation) &&
+            graph.Complete && graph.SkinInspectionPerformed && graph.Root == _ownRoot,
+            "Bloom body graph inspection escaped its scoped init or bounded original-world observation.");
+        var nodes = graph.Nodes.ToDictionary(node => node.Address);
+        var names = graph.Nodes.Select(node => new { address = Hex(node.Address),
+            name = node.NamePointer == 0 ? "" : Win32Native.ReadAnsiString(_host.ProcessHandle, checked(node.NamePointer + 9), 128) }).ToArray();
+        uint[] heads = graph.Nodes.Where(node => node.NamePointer != 0 &&
+            Win32Native.ReadAnsiString(_host.ProcessHandle, checked(node.NamePointer + 9), 128) == "Head")
+            .Select(node => node.Address).ToArray();
+        Require(graph.Nodes.Count > 1 && graph.Nodes.All(node => node.Scene == _scene && !_localNodes.Contains(node.Address)) &&
+            graph.Nodes.Any(node => node.Kind == NativeVisualNodeKind.RenderNode) && heads.Length == 1 &&
+            graph.Skins.Count > 0 && graph.Skins.All(skin => skin.BoneCount > 0 &&
+                skin.BoneNodes.All(bone => nodes.ContainsKey(bone) && !_localNodes.Contains(bone))),
+            "Bloom body lacks a bounded own render/skeleton/Head graph.");
+        VisualGraphReadResult localGraph = new VisualGraphReader(_host.ProcessHandle).Read(_localRoot, nodes.Keys.ToHashSet(), inspectSkins: false);
+        Require(localGraph.Success, "Local appearance comparison graph is not bounded/disjoint: " + localGraph.Error);
+        BodySkinAppearance[] ReadSkinAppearance(VisualGraphSnapshot source, bool own)
+        {
+            var result = new Dictionary<uint, BodySkinAppearance>();
+            foreach (VisualNodeRead render in source.Nodes.Where(node => node.Kind == NativeVisualNodeKind.RenderNode))
+                foreach (uint skin in render.Renderables!.Items)
+                {
+                    if (own && _playerTraitsPickupParticles.Contains(skin))
+                    { Table(skin, VisualGraphReader.ParticleVtable); continue; }
+                    if (!own && U(skin) != VisualGraphReader.SkinVtable) continue;
+                    Table(skin, VisualGraphReader.SkinVtable);
+                    Require(result.Count < 128 || result.ContainsKey(skin), "Bloom body appearance Skin read cap exceeded.");
+                    uint material = Pointer(skin + 0x20), mesh = Pointer(skin + 0x58);
+                    Table(material, 0x6EF264);
+                    byte[] prefix = Read(material, 0xBC);
+                    Require(BitConverter.ToUInt32(prefix, 0x14) == 0x6EF238, "Bloom body DXMaterial color interface identity mismatch.");
+                    result[skin] = new(skin, mesh, material, Convert.ToHexString(prefix.AsSpan(0x88, 16)),
+                        Convert.ToHexString(SHA256.HashData(prefix)));
+                }
+            return result.Values.ToArray();
+        }
+        BodySkinAppearance[] ownAppearance = ReadSkinAppearance(graph, true), localAppearance = ReadSkinAppearance(localGraph.Graph, false);
+        var appearanceMatches = ownAppearance.Select(own => new { own,
+            localByMesh = localAppearance.Where(local => local.Mesh == own.Mesh).ToArray(),
+            materialAliasesAnyLocal = localAppearance.Any(local => local.Material == own.Material),
+            skinAliasesAnyLocal = localAppearance.Any(local => local.Skin == own.Skin) }).ToArray();
+        bool liveAppearanceCheck = _bodyLive && afterOriginalWorld && boundary == "before-separate-neutral-live-hold";
+        if (liveAppearanceCheck)
+        {
+            Require(appearanceMatches.Length > 0 && appearanceMatches.All(match =>
+                match.localByMesh.Length == 1 && !match.materialAliasesAnyLocal && !match.skinAliasesAnyLocal &&
+                match.own.AmbientHex == match.localByMesh[0].AmbientHex),
+                "Body-live native body/hair material ambient differs from its unique local mesh counterparts.");
+            _bodyLiveAppearanceVerified = true;
+        }
+        uint profileRgbOffset = _level is >= 1 and <= 49 ? checked(0x6F0u + _level * 12) : 0x6FCu;
+        uint actor = U(_animator + 0x128), controllerBegin = 0, controllerEnd = 0, controllerCapacity = 0;
+        uint[] controllers = [];
+        if (initialized)
+        {
+            Table(actor, 0x703F80);
+            Require(actor != _localActor, "Bloom body Animator reused the local Actor.");
+            controllerBegin = U(actor + 0x40); controllerEnd = U(actor + 0x44); controllerCapacity = U(actor + 0x48);
+            Require(controllerBegin >= 0x10000 && controllerEnd > controllerBegin && controllerCapacity >= controllerEnd &&
+                (controllerEnd - controllerBegin) % 4 == 0 && (controllerCapacity - controllerBegin) % 4 == 0 &&
+                (controllerEnd - controllerBegin) / 4 <= 256 && (controllerCapacity - controllerBegin) / 4 <= 256,
+                "Bloom body Actor lacks the bounded native controller vector.");
+            byte[] controllerBytes = Read(controllerBegin, checked((int)(controllerEnd - controllerBegin)));
+            controllers = Enumerable.Range(0, controllerBytes.Length / 4).Select(index => BitConverter.ToUInt32(controllerBytes, index * 4)).ToArray();
+            Require(controllers.All(controller => controller >= 0x10000), "Bloom body Actor has an invalid controller pointer.");
+        }
+        object? hairBinding = _hairEnabled ? ObserveNativeTemplateHairBinding(graph, initialized, actor) : null;
+        _bloomBodyGraphWitness = new { @event = "template-bloom-body-graph", initialized, boundary, afterOriginalWorld, originalWorldReturns = _idleWorldStops,
+            root = Hex(_ownRoot), head = Hex(heads[0]), graph, names,
+            actor = Hex(actor), localActor = Hex(_localActor),
+            controllerBegin = Hex(controllerBegin), controllerEnd = Hex(controllerEnd), controllerCapacity = Hex(controllerCapacity),
+            controllers = controllers.Select(Hex).ToArray(),
+            ownRenderNodes = graph.Nodes.Where(node => node.Kind == NativeVisualNodeKind.RenderNode)
+                .Select(node => new { address = Hex(node.Address), scene = Hex(node.Scene), cachedAmbient110 = Hex(U(node.Address + 0x110)) }).ToArray(),
+            localRenderNodes = localGraph.Graph.Nodes.Where(node => node.Kind == NativeVisualNodeKind.RenderNode)
+                .Select(node => new { address = Hex(node.Address), scene = Hex(node.Scene), cachedAmbient110 = Hex(U(node.Address + 0x110)) }).ToArray(),
+            appearanceMatches, localAppearance, profileLevel = _level, profileRgbOffset,
+            profileRgbHex = Convert.ToHexString(Read(_profile + profileRgbOffset, 12)),
+            ambientEqualityRequired = liveAppearanceCheck, cachedAmbientPointerDereferenced = false,
+            nativeGraphRetainedInFull = true, omittedAncestors = 0, halfTurnApplied = false,
+            skinBonesBelongToOwnGraph = true, localGraphAliasing = false,
+            hairAdded = _hairAttached, hairBinding, materialMutation = false, visualAppearanceQualified = false };
+        _log(_bloomBodyGraphWitness);
+        if (initialized && privateInitialization) _bloomBodyGraphVerified = true;
+    }
+
+    private void CaptureRetainedBloomBodyGraph(string boundary)
+    {
+        Require(_layout.IsBloomBody && _idleActive && !_dependentInterval && _bloomIntervalVerified,
+            "Retained body appearance observation is outside its bounded original scheduler interval.");
+        VisualGraphReadResult graph = new VisualGraphReader(_host.ProcessHandle).Read(_ownRoot, _localNodes,
+            inspectSkins: true, ownedPickupParticles: _playerTraitsOwnFxReady ? _playerTraitsPickupParticles : null);
+        Require(graph.Success, "Retained Bloom body graph is not bounded/disjoint: " + graph.Error);
+        CaptureBloomBodyGraph(graph.Graph, initialized: true, afterOriginalWorld: true, boundary: boundary);
+    }
+
     private void VerifyOwnedInstance(bool scheduled = false)
     {
         Membership membership = Memberships(_ownEntities);
@@ -986,8 +1223,8 @@ internal sealed class NativeTemplateProbe
             (membership.MainListMatches.Order().SequenceEqual(_ownEntities.Order()) && membership.SecondaryListMatches.Length == 0 ||
              membership.SecondaryListMatches.Order().SequenceEqual(_ownEntities.Order()) && membership.MainListMatches.Length == 0));
         Table(_instance, 0x710F80); Require(U(_instance + 0x14) == _template && U(_instance + 0x24) == _ownRoot &&
-            U(_ownRoot + 0x2C) == _parent && U(_ownRoot + 0x3C) == _scene && U(_instance + 0x20) == 6 &&
-            Refs(_ownRoot) == 7 && (scheduled
+            U(_ownRoot + 0x2C) == _parent && U(_ownRoot + 0x3C) == _scene && U(_instance + 0x20) == DescriptorCount &&
+            Refs(_ownRoot) == ExpectedOwnRootReferences && (scheduled
                 ? cleanupMembership
                 : membership.Matches.Length == 0),
             "Own instance scene/count/scheduling changed before deletion.");
@@ -999,10 +1236,10 @@ internal sealed class NativeTemplateProbe
         Table(_instance, 0x710F80); Table(_character, 0x6F6438); Table(_move, 0x6F64F8);
         Table(_animator, 0x6F670C); Table(_ownCommand, 0x703090); Table(_ownActor, 0x703F80);
         Require(U(_instance + 0x14) == _template && U(_instance + 0x24) == _ownRoot &&
-            U(_instance + 0x20) == 6 && Refs(_instance) == _instanceRefs && Refs(_ownRoot) == 7 &&
+            U(_instance + 0x20) == DescriptorCount && Refs(_instance) == _instanceRefs && Refs(_ownRoot) == ExpectedOwnRootReferences &&
             U(_ownRoot + 0x2C) == _parent && U(_ownRoot + 0x3C) == _scene,
             "Retained original-scheduler instance lost its qualified scene/count/owners.");
-        List<Component> components = Components(_instance, 6);
+        List<Component> components = Components(_instance, DescriptorCount);
         Require(_ownEntities.All(v => components.Count(c => c.Address == v && c.Owner == _instance && c.BoundNode == _ownRoot) == 1),
             "Retained native components changed identity or Node binding.");
         bool kindMatches = _layout.ExpectedKind is uint expectedKind ? U(_machine + 0x128) == expectedKind :
@@ -1050,7 +1287,10 @@ internal sealed class NativeTemplateProbe
     private bool LiveOwnMembership(Membership membership) => membership.SecondaryListMatches.Length == 0 &&
         membership.MainListMatches.Order().SequenceEqual(_ownEntities.Order()) && membership.ActiveMoveMatches.Contains(_move);
 
-    private byte[] ReadGuardedCommand() => _commandMovement?.Active == true ? _commandMovement.ReadQualifiedCommand() : ReadNeutralCommand();
+    private byte[] ReadGuardedCommand() => _bodyInputFixture ? ReadBodyInputFixtureCommand() :
+        _networkInputFixture ? ReadNetworkInputFixtureCommand() :
+        _ordinaryAttackFixture ? ReadOrdinaryAttackFixtureCommand() :
+        _commandMovement?.Active == true ? _commandMovement.ReadQualifiedCommand() : ReadNeutralCommand();
 
     private void VerifyWalkOwnership()
     {
@@ -1062,7 +1302,7 @@ internal sealed class NativeTemplateProbe
         bool machineKindMatches = _bloomControl
             ? _layout.IsDerivedBloom && _layout.MachineTable == 0x6FA288 && _observedBloomKind == 0 && U(_machine + 0x128) == 0
             : !_layout.IsDerivedBloom && _layout.MachineTable == 0x6FB280 && U(_machine + 0x128) == 0x40;
-        Require(U(_instance + 0x14) == _template && U(_instance + 0x24) == _ownRoot && U(_instance + 0x20) == 6 &&
+        Require(U(_instance + 0x14) == _template && U(_instance + 0x24) == _ownRoot && U(_instance + 0x20) == DescriptorCount &&
             U(_ownRoot + 0x2C) == _parent && U(_ownRoot + 0x3C) == _scene &&
             U(_character + 0x24) == _instance && U(_character + 0x18) == _ownRoot && U(_character + 0x148) == 1 && U(_character + 0x14C) == 41 &&
             U(_character + 0x124) == _machine && U(_character + 0x12C) == _move && U(_character + 0x130) == _ownCommand &&
@@ -1107,6 +1347,8 @@ internal sealed class NativeTemplateProbe
 
     private void LogRetainedBloom(string boundary, uint tid)
     {
+        if (_bodyLiveHolding) return;
+        if (_healthBattleFixture && _idleWorldStops > 2 && _idleWorldStops % 120 != 0) return;
         Require(RetainedBloom && _idleActive && !_dependentInterval && _bloomIntervalVerified && _stage == 6,
             "Bloom retained witness is outside the original scheduler interval.");
         VerifyLocal(); Table(_character, 0x6F6438); Table(_machine, 0x6FA288); Table(_move, 0x6F64F8);
@@ -1146,6 +1388,7 @@ internal sealed class NativeTemplateProbe
         // every pre-existing entity during game startup.
         Hook(0x573D50, "GameManager.typed-delivery-filter", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
+            if (_bodyLiveHolding) return;
             if (!_idleActive || _instance == 0) return;
             uint entity = U(ctx.Esp + 8);
             if (!_ownEntities.Contains(entity)) return;
@@ -1244,14 +1487,26 @@ internal sealed class NativeTemplateProbe
         if (++_foreignWitnesses <= 24)
             _log(new { @event = "template-foreign-native-witness", name, threadId = thread, receiver = Hex(receiver), code });
     }
-    private void Hook(uint entry, string name, BreakpointCallback callback)
+    private void Hook(uint entry, string name, BreakpointCallback callback) => Hook(entry, name, callback, false);
+    private void Hook(uint entry, string name, BreakpointCallback callback, bool preserveDuringHealthBattle)
     {
         VerifyFunction(entry);
         BreakpointCallback repeat = null!;
         repeat = (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
             Require(tid == _host.MainThreadId && at == entry && ctx.Eip == entry, "Template witness stop/thread identity mismatch.");
-            callback(tid, at, ref ctx);
+            bool retireHealth = _healthBattleFastRouteStarted && !preserveDuringHealthBattle;
+            if (!retireHealth) callback(tid, at, ref ctx);
+            if ((_bodyLiveHolding && !_bodyUnloadStarted) || retireHealth)
+            {
+                Require(_bodyLiveRetiredWitnesses.Count < 64 && _bodyLiveRetiredWitnesses.Add(entry),
+                    "Body-live witness retirement repeated or exceeded its bounded address inventory.");
+                _log(new { @event = "template-body-live-witness-retired", name, address = Hex(entry),
+                    retiredWitnesses = _bodyLiveRetiredWitnesses.Count, maximumRetiredWitnesses = 64,
+                    originalInstructionRestoredByManager = true, repeatSubscriptionNotRenewed = true,
+                    nativeGameplayInstructionSkipped = false, finiteObservationAlreadyClosed = true });
+                return;
+            }
             _host.Breakpoints.AddReturn(entry, tid, name, repeat);
         };
         _host.Breakpoints.AddReturn(entry, _host.MainThreadId, name, repeat);

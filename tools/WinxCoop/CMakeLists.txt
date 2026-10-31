@@ -35,6 +35,20 @@ if(WIN32)
     target_link_libraries(WinxCoopNetwork PUBLIC ws2_32)
     add_executable(WinxCoopNetworkProbe src/NetworkProbe.cpp)
     target_link_libraries(WinxCoopNetworkProbe PRIVATE WinxCoopNetwork)
+    add_library(WinxCoopDiagnosticInput STATIC
+        src/DiagnosticInput/InputProtocol.cpp
+        src/DiagnosticInput/InputProtocol.h
+        src/DiagnosticInput/InputIpc.h)
+    target_link_libraries(WinxCoopDiagnosticInput PUBLIC WinxCoopNetwork)
+    target_compile_features(WinxCoopDiagnosticInput PUBLIC cxx_std_17)
+    target_compile_definitions(WinxCoopDiagnosticInput PUBLIC WINVER=0x0601 _WIN32_WINNT=0x0601)
+    add_executable(WinxCoopInputBridge src/DiagnosticInput/InputBridge.cpp)
+    target_link_libraries(WinxCoopInputBridge PRIVATE WinxCoopDiagnosticInput winmm)
+    if(MSVC)
+        target_compile_options(WinxCoopDiagnosticInput PRIVATE /W4 /utf-8)
+        target_compile_options(WinxCoopInputBridge PRIVATE /W4 /utf-8)
+        target_link_options(WinxCoopInputBridge PRIVATE /SUBSYSTEM:CONSOLE,6.01)
+    endif()
     add_executable(WinxCoopLauncher WIN32
         src/Launcher/LaunchMain.cpp
         src/Launcher/ReplicationCoordinator.cpp
@@ -126,6 +140,12 @@ if(BUILD_TESTING)
         target_compile_features(WinxCoopPoseInterpolationTests PRIVATE cxx_std_17)
         add_test(NAME WinxCoopPoseInterpolationTests COMMAND WinxCoopPoseInterpolationTests)
         set_tests_properties(WinxCoopPoseInterpolationTests PROPERTIES TIMEOUT 30)
+    endif()
+    if(TARGET WinxCoopDiagnosticInput)
+        add_executable(WinxCoopDiagnosticInputTests tests/DiagnosticInputProtocolTests.cpp)
+        target_link_libraries(WinxCoopDiagnosticInputTests PRIVATE WinxCoopDiagnosticInput)
+        add_test(NAME WinxCoopDiagnosticInputTests COMMAND WinxCoopDiagnosticInputTests)
+        set_tests_properties(WinxCoopDiagnosticInputTests PROPERTIES TIMEOUT 30)
     endif()
     set_tests_properties(WinxCoopTcpFramerTests WinxCoopSessionTests WinxCoopGameplayTests PROPERTIES TIMEOUT 30)
 endif()

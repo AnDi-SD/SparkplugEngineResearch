@@ -8,6 +8,15 @@ namespace WinxCoop.RuntimeProbe;
 
 internal sealed record NativeCallSpec(uint Function, uint ThisPointer, uint[] Arguments, bool Cdecl);
 internal sealed record NativeInstancePositionCall(uint Function, uint XBits, uint YBits, uint ZBits);
+// Callbacks may read the stopped game graph; only the dispatcher writes its own
+// private argument slot. The original native Attach performs the graph mutation.
+internal sealed record NativePreInitAttachmentPlan(uint Function, uint Child,
+    Func<uint, uint> SelectParent, Action<uint, uint> AttachedWitness);
+// Select the owned receiver only after the initialized witness. The native
+// qualified thiscall performs the mutation; its EAX is an opaque result.
+internal sealed record NativePostInitCallPlan(uint Function,
+    Func<uint, uint> SelectReceiver, Action<uint> CompletedWitness, NativePostInitCallPlan? Next = null,
+    IReadOnlyList<uint>? Arguments = null);
 
 /// <summary>
 /// Bounded native calls on the original x86 main thread at a verified stop.
@@ -35,6 +44,13 @@ internal sealed class NativeCallDispatcher
     private bool _entryBatch;
     private bool _dependencyActive;
     private int _dependencyCheckpoints, _dependencyCodeLength, _dependencyRequiredCheckpoints;
+    private uint _dependencyParentAddress, _dependencyParent, _dependencyChild;
+    private uint _dependencyPostInitReceiverAddress, _dependencyPostInitReceiver;
+    private int _dependencyPostInitSelectionCheckpoint;
+    private uint _dependencyNextPostInitReceiverAddress, _dependencyNextPostInitReceiver;
+    private int _dependencyNextPostInitSelectionCheckpoint;
+    private uint _dependencyFinalPostInitReceiverAddress, _dependencyFinalPostInitReceiver;
+    private int _dependencyFinalPostInitSelectionCheckpoint;
     private uint _dependentBegun, _dependentCompleted, _dependentReadStops;
     private Win32Native.X86Context _saved;
     private bool _retired, _terminalFailure;
@@ -49,6 +65,7 @@ internal sealed class NativeCallDispatcher
     }
 
     internal bool Pending { get; private set; }
+    internal bool HasRetiredPage => _retired;
     internal object Summary => new { callsBegun = _sequence, callsCompleted = _completed,
         pagesFreedAtLaterWorldStop = _freed, pending = Pending, retiredPage = _retired,
         terminalFailure = _terminalFailure, timeoutMs = _timeout.TotalMilliseconds, dependentLifecycle = DependentSummary };
@@ -265,13 +282,21 @@ internal sealed class NativeCallDispatcher
     /// retained result require the caller's separately bounded lifetime witness.
     /// An opt-in retained instance-position call runs after initialization and
     /// has its own third read-only checkpoint; its return value is opaque.
+    /// An opt-in attachment selects its parent after the created witness, writes
+    /// only an owned argument DWORD, then calls native Attach before scoped init.
+    /// Its separate checkpoint verifies the attached graph without resuming the
+    /// original scheduler. Existing calls/result indices are unchanged when absent.
+    /// Up to three qualified native post-init thiscalls select their own receivers
+    /// after the initialized witness and precedes optional position or deletion.
+    /// Its separate witness receives that receiver before original gameplay resumes.
     /// Call/ownership semantics and pinned signatures belong to the caller.
     /// </summary>
     internal void BeginDependentLifecycle(DebuggerHost host, uint threadId, ref Win32Native.X86Context ctx,
         NativeCallSpec firstCall, uint scopedCdecl, uint deletingThiscall,
         Action<uint> createdWitness, Action<uint> initializedWitness, Action<uint[]> completed,
         bool retainAfterInitialization = false, NativeInstancePositionCall? positionAfterInitialization = null,
-        Action<uint>? positionedWitness = null)
+        Action<uint>? positionedWitness = null, NativePreInitAttachmentPlan? preInitAttachment = null,
+        NativePostInitCallPlan? postInitCall = null)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(firstCall);
         ArgumentNullException.ThrowIfNull(createdWitness); ArgumentNullException.ThrowIfNull(initializedWitness);
@@ -286,6 +311,20 @@ internal sealed class NativeCallDispatcher
              !new[] { positionAfterInitialization.XBits, positionAfterInitialization.YBits, positionAfterInitialization.ZBits }
                  .All(bits => float.IsFinite(BitConverter.Int32BitsToSingle(unchecked((int)bits)))))))
             throw new ArgumentException("Optional instance position requires finite by-value words, a retained result and a read-only witness.");
+        if (preInitAttachment is not null)
+        {
+            ArgumentNullException.ThrowIfNull(preInitAttachment.SelectParent);
+            ArgumentNullException.ThrowIfNull(preInitAttachment.AttachedWitness);
+            if (preInitAttachment.Function != 0x421A60 || preInitAttachment.Child < 0x10000 ||
+                (preInitAttachment.Child & 3) != 0)
+                throw new ArgumentException("Pre-init attachment requires the qualified native Attach entry and an aligned caller-owned child.");
+            _ = Win32Native.ReadMemory(host.ProcessHandle, preInitAttachment.Function, 1);
+            _ = Win32Native.ReadMemory(host.ProcessHandle, preInitAttachment.Child, sizeof(uint));
+        }
+        postInitCall = OwnPostInitCalls(postInitCall);
+        int postInitCalls = ValidatePostInitCalls(postInitCall);
+        for (NativePostInitCallPlan? call = postInitCall; call is not null; call = call.Next)
+            _ = Win32Native.ReadMemory(host.ProcessHandle, call.Function, 1);
         var ownedFirst = new NativeCallSpec(firstCall.Function, firstCall.ThisPointer, (uint[])firstCall.Arguments.Clone(), firstCall.Cdecl);
         foreach (uint function in new[] { ownedFirst.Function, scopedCdecl, deletingThiscall })
             _ = Win32Native.ReadMemory(host.ProcessHandle, function, 1);
@@ -301,8 +340,17 @@ internal sealed class NativeCallDispatcher
         ReleaseRetiredAtWorldStop(host, threadId, ref ctx);
         _host = host; _saved = Clone(full); _saved.Eip = WorldReturn;
         _entryBatch = false; _dependencyActive = true; _dependencyCheckpoints = 0;
-        _dependencyRequiredCheckpoints = positionAfterInitialization is null ? 2 : 3;
-        _resultCount = positionAfterInitialization is not null ? 3 : retainAfterInitialization ? 2 : 3;
+        int attachmentCalls = preInitAttachment is null ? 0 : 1;
+        _dependencyRequiredCheckpoints = (positionAfterInitialization is null ? 2 : 3) + attachmentCalls + postInitCalls;
+        _resultCount = (positionAfterInitialization is not null ? 3 : retainAfterInitialization ? 2 : 3) + attachmentCalls + postInitCalls;
+        _dependencyParentAddress = 0; _dependencyParent = 0;
+        _dependencyChild = preInitAttachment?.Child ?? 0;
+        _dependencyPostInitReceiverAddress = 0; _dependencyPostInitReceiver = 0;
+        _dependencyPostInitSelectionCheckpoint = postInitCall is null ? 0 : 2 + attachmentCalls;
+        _dependencyNextPostInitReceiverAddress = 0; _dependencyNextPostInitReceiver = 0;
+        _dependencyNextPostInitSelectionCheckpoint = postInitCalls >= 2 ? 3 + attachmentCalls : 0;
+        _dependencyFinalPostInitReceiverAddress = 0; _dependencyFinalPostInitReceiver = 0;
+        _dependencyFinalPostInitSelectionCheckpoint = postInitCalls == 3 ? 4 + attachmentCalls : 0;
         _originalReturnAddress = returnAddress; _resumeEip = returnAddress;
         _resumeEsp = checked(full.Esp + sizeof(uint)); _threadId = threadId;
         try
@@ -313,10 +361,20 @@ internal sealed class NativeCallDispatcher
             _pageAddress = checked((uint)_page.ToInt64());
             uint resultOffset = checked(PageSize - (uint)_resultCount * sizeof(uint));
             _resultAddress = checked(_pageAddress + resultOffset);
+            uint privateDataOffset = checked(resultOffset - (uint)(attachmentCalls + postInitCalls) * sizeof(uint));
+            if (preInitAttachment is not null) _dependencyParentAddress = checked(_resultAddress - sizeof(uint));
+            if (postInitCall is not null)
+                _dependencyPostInitReceiverAddress = checked(_resultAddress - (uint)(attachmentCalls + 1) * sizeof(uint));
+            if (postInitCalls >= 2)
+                _dependencyNextPostInitReceiverAddress = checked(_dependencyPostInitReceiverAddress - sizeof(uint));
+            if (postInitCalls == 3)
+                _dependencyFinalPostInitReceiverAddress = checked(_dependencyNextPostInitReceiverAddress - sizeof(uint));
             var plan = BuildDependentStub(ownedFirst, scopedCdecl, deletingThiscall, _resultAddress, full.Esp,
-                retainAfterInitialization, positionAfterInitialization);
+                retainAfterInitialization, positionAfterInitialization, preInitAttachment, _dependencyParentAddress,
+                postInitCall, _dependencyPostInitReceiverAddress, _dependencyNextPostInitReceiverAddress,
+                _dependencyFinalPostInitReceiverAddress);
             byte[] stub = plan.Code;
-            if (stub.Length >= resultOffset || stub[^1] != 0xCC)
+            if (stub.Length >= privateDataOffset || stub[^1] != 0xCC)
                 throw new InvalidDataException("Dependent native stub exceeds its owned page.");
             _dependencyCodeLength = stub.Length; _trapAddress = checked(_pageAddress + (uint)stub.Length - 1);
             uint createdAt = checked(_pageAddress + (uint)plan.CreatedStop);
@@ -329,16 +387,52 @@ internal sealed class NativeCallDispatcher
                 throw new InvalidDataException("Dependent native code flush/readback failed.");
             host.Breakpoints.AddReturn(createdAt, threadId, "NativeCall.dependent-created-checkpoint",
                 (uint tid, uint at, ref Win32Native.X86Context context) =>
-                    DependentCheckpoint(host, tid, at, createdAt, 1, ref context, createdWitness));
+                    DependentCheckpoint(host, tid, at, createdAt, 1, ref context, createdWitness,
+                        preInitAttachment?.SelectParent));
+            if (plan.AttachedStop is int attachedOffset)
+            {
+                uint attachedAt = checked(_pageAddress + (uint)attachedOffset);
+                host.Breakpoints.AddReturn(attachedAt, threadId, "NativeCall.dependent-attached-checkpoint",
+                    (uint tid, uint at, ref Win32Native.X86Context context) =>
+                        DependentCheckpoint(host, tid, at, attachedAt, 2, ref context,
+                            instance => preInitAttachment!.AttachedWitness(instance, _dependencyParent)));
+            }
             host.Breakpoints.AddReturn(initializedAt, threadId, "NativeCall.dependent-initialized-checkpoint",
                 (uint tid, uint at, ref Win32Native.X86Context context) =>
-                    DependentCheckpoint(host, tid, at, initializedAt, 2, ref context, initializedWitness));
+                    DependentCheckpoint(host, tid, at, initializedAt, 2 + attachmentCalls, ref context, initializedWitness,
+                        selectPostInitReceiver: postInitCall?.SelectReceiver));
+            if (plan.PostInitializedStop is int postInitializedOffset)
+            {
+                uint postInitializedAt = checked(_pageAddress + (uint)postInitializedOffset);
+                host.Breakpoints.AddReturn(postInitializedAt, threadId, "NativeCall.dependent-post-init-checkpoint",
+                    (uint tid, uint at, ref Win32Native.X86Context context) =>
+                        DependentCheckpoint(host, tid, at, postInitializedAt, 3 + attachmentCalls, ref context,
+                            instance => postInitCall!.CompletedWitness(_dependencyPostInitReceiver),
+                            selectPostInitReceiver: postInitCall?.Next?.SelectReceiver, postInitIndex: 1));
+            }
+            if (plan.NextPostInitializedStop is int nextPostInitializedOffset)
+            {
+                uint nextPostInitializedAt = checked(_pageAddress + (uint)nextPostInitializedOffset);
+                host.Breakpoints.AddReturn(nextPostInitializedAt, threadId, "NativeCall.dependent-next-post-init-checkpoint",
+                    (uint tid, uint at, ref Win32Native.X86Context context) =>
+                        DependentCheckpoint(host, tid, at, nextPostInitializedAt, 4 + attachmentCalls, ref context,
+                            instance => postInitCall!.Next!.CompletedWitness(_dependencyNextPostInitReceiver),
+                            selectPostInitReceiver: postInitCall?.Next?.Next?.SelectReceiver, postInitIndex: 2));
+            }
+            if (plan.FinalPostInitializedStop is int finalPostInitializedOffset)
+            {
+                uint finalPostInitializedAt = checked(_pageAddress + (uint)finalPostInitializedOffset);
+                host.Breakpoints.AddReturn(finalPostInitializedAt, threadId, "NativeCall.dependent-final-post-init-checkpoint",
+                    (uint tid, uint at, ref Win32Native.X86Context context) =>
+                        DependentCheckpoint(host, tid, at, finalPostInitializedAt, 5 + attachmentCalls, ref context,
+                            instance => postInitCall!.Next!.Next!.CompletedWitness(_dependencyFinalPostInitReceiver)));
+            }
             if (plan.PositionedStop is int positionedOffset)
             {
                 uint positionedAt = checked(_pageAddress + (uint)positionedOffset);
                 host.Breakpoints.AddReturn(positionedAt, threadId, "NativeCall.dependent-positioned-checkpoint",
                     (uint tid, uint at, ref Win32Native.X86Context context) =>
-                        DependentCheckpoint(host, tid, at, positionedAt, 3, ref context, positionedWitness!));
+                        DependentCheckpoint(host, tid, at, positionedAt, 3 + attachmentCalls + postInitCalls, ref context, positionedWitness!));
             }
             host.Breakpoints.AddReturn(_trapAddress, threadId, "NativeCall.dependent-final-completion",
                 (uint tid, uint at, ref Win32Native.X86Context context) => CompleteEntry(host, tid, at, ref context, completed));
@@ -352,12 +446,49 @@ internal sealed class NativeCallDispatcher
                 resumeEip = Hex(_resumeEip), resumeEsp = Hex(_resumeEsp),
                 originalWorldResumesOnlyAfterFinalDelete = !retainAfterInitialization,
                 retainedInitializedResult = retainAfterInitialization, eachCallStackGuardedBeforeNextCall = true,
-                checkpointCallbacksReadOnly = true, legacyFloatingPointStateSaved = true, timeoutMs = _timeout.TotalMilliseconds });
+                checkpointCallbacksReadOnly = preInitAttachment is null && postInitCall is null, checkpointCallbacksGameMemoryReadOnly = true,
+                ownedArgumentSlotWrites = attachmentCalls + postInitCalls, legacyFloatingPointStateSaved = true, timeoutMs = _timeout.TotalMilliseconds });
+            if (preInitAttachment is not null)
+                _log(new { @event = "native-dependent-pre-init-attachment-plan", sequence = _sequence,
+                    function = Hex(preInitAttachment.Function), child = Hex(preInitAttachment.Child),
+                    parentSelectedAfterCreatedWitness = true, parentArgumentSlot = Hex(_dependencyParentAddress),
+                    attachmentResultSlot = 1, initializedResultSlot = 2,
+                    attachedCheckpoint = Hex(checked(_pageAddress + (uint)plan.AttachedStop!.Value)),
+                    requiredReadCheckpoints = _dependencyRequiredCheckpoints, nativeCodeRemainsImmutable = true,
+                    originalGameplayResumed = false });
+            if (postInitCall is not null)
+                _log(new { @event = "native-dependent-post-init-call-plan", sequence = _sequence,
+                    function = Hex(postInitCall.Function), receiverSelectedAfterInitializedWitness = true,
+                    receiverArgumentSlot = Hex(_dependencyPostInitReceiverAddress), cdecl = false, stackArgumentBytes = 0,
+                    postInitResultSlot = 2 + attachmentCalls, postInitResultMeaningAssigned = false,
+                    completedWitnessReceivesSelectedReceiver = true,
+                    postInitializedCheckpoint = Hex(checked(_pageAddress + (uint)plan.PostInitializedStop!.Value)),
+                    requiredReadCheckpoints = _dependencyRequiredCheckpoints, nativeCodeRemainsImmutable = true,
+                    originalGameplayResumed = false });
+            if (postInitCall?.Next is NativePostInitCallPlan nextPostInitCall)
+                _log(new { @event = "native-dependent-next-post-init-call-plan", sequence = _sequence,
+                    function = Hex(nextPostInitCall.Function), receiverSelectedAfterPreviousCompletedWitness = true,
+                    receiverArgumentSlot = Hex(_dependencyNextPostInitReceiverAddress), cdecl = false, stackArgumentBytes = 0,
+                    postInitResultSlot = 3 + attachmentCalls, postInitResultMeaningAssigned = false,
+                    completedWitnessReceivesSelectedReceiver = true,
+                    postInitializedCheckpoint = Hex(checked(_pageAddress + (uint)plan.NextPostInitializedStop!.Value)),
+                    requiredReadCheckpoints = _dependencyRequiredCheckpoints, nativeCodeRemainsImmutable = true,
+                    originalGameplayResumed = false });
+            if (postInitCall?.Next?.Next is NativePostInitCallPlan finalPostInitCall)
+                _log(new { @event = "native-dependent-final-post-init-call-plan", sequence = _sequence,
+                    function = Hex(finalPostInitCall.Function), receiverSelectedAfterPreviousCompletedWitness = true,
+                    receiverArgumentSlot = Hex(_dependencyFinalPostInitReceiverAddress), cdecl = false,
+                    arguments = finalPostInitCall.Arguments, stackArgumentBytes = sizeof(uint), calleePopsArguments = true,
+                    postInitResultSlot = 4 + attachmentCalls, postInitResultMeaningAssigned = false,
+                    completedWitnessReceivesSelectedReceiver = true,
+                    postInitializedCheckpoint = Hex(checked(_pageAddress + (uint)plan.FinalPostInitializedStop!.Value)),
+                    requiredReadCheckpoints = _dependencyRequiredCheckpoints, nativeCodeRemainsImmutable = true,
+                    originalGameplayResumed = false });
             if (positionAfterInitialization is not null)
                 _log(new { @event = "native-dependent-instance-position-plan", sequence = _sequence,
                     function = Hex(positionAfterInitialization.Function), instanceFromResultSlot = 0,
                     xBits = Hex(positionAfterInitialization.XBits), yBits = Hex(positionAfterInitialization.YBits), zBits = Hex(positionAfterInitialization.ZBits),
-                    cdecl = true, stackArgumentBytes = 16, positionResultSlot = 2, positionResultMeaningAssigned = false,
+                    cdecl = true, stackArgumentBytes = 16, positionResultSlot = 2 + attachmentCalls + postInitCalls, positionResultMeaningAssigned = false,
                     positionedCheckpoint = Hex(checked(_pageAddress + (uint)plan.PositionedStop!.Value)),
                     requiredReadCheckpoints = _dependencyRequiredCheckpoints, originalGameplayResumed = false });
         }
@@ -365,7 +496,8 @@ internal sealed class NativeCallDispatcher
     }
 
     private void DependentCheckpoint(DebuggerHost host, uint tid, uint at, uint expectedAt, int completedCalls,
-        ref Win32Native.X86Context ctx, Action<uint> witness)
+        ref Win32Native.X86Context ctx, Action<uint> witness, Func<uint, uint>? selectAttachmentParent = null,
+        Func<uint, uint>? selectPostInitReceiver = null, int postInitIndex = 0)
     {
         try
         {
@@ -375,17 +507,26 @@ internal sealed class NativeCallDispatcher
                 Win32Native.ReadUInt32(host.ProcessHandle, _saved.Esp) != _originalReturnAddress)
                 throw new InvalidDataException("Dependent checkpoint thread/phase/stack/timeout identity mismatch.");
             VerifyDependentCode(host);
+            VerifyAttachmentParentSlot(host);
+            VerifyPostInitReceiverSlot(host);
             uint instance = Win32Native.ReadUInt32(host.ProcessHandle, _resultAddress);
             uint currentResult = Win32Native.ReadUInt32(host.ProcessHandle, checked(_resultAddress + (uint)(completedCalls - 1) * sizeof(uint)));
+            byte[] resultSlotsBeforeWitness = Win32Native.ReadMemory(host.ProcessHandle, _resultAddress, checked(_resultCount * sizeof(uint)));
             if (instance < 0x10000 || ctx.Eax != currentResult || (ctx.EFlags & TrapFlag) != 0)
                 throw new InvalidDataException("Dependent checkpoint result/register/flag mismatch.");
             witness(instance); // read-only; an exception aborts before the next native call
+            if (selectAttachmentParent is not null)
+                SelectAttachmentParent(host, instance, completedCalls, selectAttachmentParent);
+            if (selectPostInitReceiver is not null)
+                SelectPostInitReceiver(host, instance, completedCalls, selectPostInitReceiver, postInitIndex);
             if (_clock.Elapsed > _timeout) throw new TimeoutException("Dependent checkpoint exceeded the bounded native interval.");
             VerifyDependentCode(host);
+            VerifyAttachmentParentSlot(host);
+            VerifyPostInitReceiverSlot(host);
             if (Win32Native.ReadUInt32(host.ProcessHandle, _saved.Esp) != _originalReturnAddress)
                 throw new InvalidDataException("Original return DWORD changed during dependent witness.");
-            if (Win32Native.ReadUInt32(host.ProcessHandle, _resultAddress) != instance ||
-                Win32Native.ReadUInt32(host.ProcessHandle, checked(_resultAddress + (uint)(completedCalls - 1) * sizeof(uint))) != currentResult)
+            if (!Win32Native.ReadMemory(host.ProcessHandle, _resultAddress, resultSlotsBeforeWitness.Length)
+                    .SequenceEqual(resultSlotsBeforeWitness))
                 throw new InvalidDataException("Owned dependent result slots changed during a read-only witness.");
             ++_dependencyCheckpoints; ++_dependentReadStops;
             ctx.Eip = checked(at + 1); // skip this private INT3, continue only our owned stub
@@ -403,6 +544,151 @@ internal sealed class NativeCallDispatcher
         byte[] code = Win32Native.ReadMemory(host.ProcessHandle, _pageAddress, _dependencyCodeLength);
         if (Convert.ToHexString(SHA256.HashData(code)) != _codeHash)
             throw new InvalidDataException("Owned dependent native code changed during its interval.");
+    }
+
+    private void SelectAttachmentParent(DebuggerHost host, uint instance, int completedCalls, Func<uint, uint> selectParent)
+    {
+        if (completedCalls != 1 || _dependencyCheckpoints != 0 || _dependencyParentAddress == 0 ||
+            _dependencyParent != 0 || _dependencyChild < 0x10000)
+            throw new InvalidDataException("Pre-init parent selection is not the single created checkpoint.");
+        uint parent = selectParent(instance); // game-memory observation only
+        if (parent < 0x10000 || (parent & 3) != 0 || parent == _dependencyChild)
+            throw new InvalidDataException("Pre-init parent selection returned an invalid or aliased pointer.");
+        _ = Win32Native.ReadMemory(host.ProcessHandle, parent, sizeof(uint));
+        VerifyAttachmentParentSlot(host);
+        Win32Native.WriteMemory(host.ProcessHandle, _dependencyParentAddress, BitConverter.GetBytes(parent), executable: false);
+        _dependencyParent = parent;
+        VerifyAttachmentParentSlot(host);
+        _log(new { @event = "native-dependent-pre-init-parent-selected", sequence = _sequence,
+            instance = Hex(instance), parent = Hex(parent), child = Hex(_dependencyChild),
+            ownArgumentSlot = Hex(_dependencyParentAddress), bytesWritten = sizeof(uint),
+            gameMemoryWrittenByCallback = false, executableBytesWritten = false, readbackMatched = true });
+    }
+
+    private void VerifyAttachmentParentSlot(DebuggerHost host)
+    {
+        if (_dependencyParentAddress == 0)
+        {
+            if (_dependencyParent != 0 || _dependencyChild != 0)
+                throw new InvalidDataException("Absent pre-init attachment has unexpected argument state.");
+            return;
+        }
+        uint expectedAddress = checked(_resultAddress - sizeof(uint));
+        if (_dependencyParentAddress != expectedAddress || _dependencyParentAddress < _pageAddress + _dependencyCodeLength ||
+            _dependencyParentAddress > _pageAddress + PageSize - sizeof(uint) ||
+            (_dependencyCheckpoints != 0 && _dependencyParent < 0x10000) ||
+            Win32Native.ReadUInt32(host.ProcessHandle, _dependencyParentAddress) != _dependencyParent)
+            throw new InvalidDataException("Owned pre-init parent argument slot changed or overlaps code/results.");
+    }
+
+    private void SelectPostInitReceiver(DebuggerHost host, uint instance, int completedCalls,
+        Func<uint, uint> selectReceiver, int index)
+    {
+        if (index is < 0 or > 2) throw new InvalidDataException("Post-init receiver index exceeds its three-call bound.");
+        uint slot = index switch { 0 => _dependencyPostInitReceiverAddress, 1 => _dependencyNextPostInitReceiverAddress, _ => _dependencyFinalPostInitReceiverAddress };
+        uint selected = index switch { 0 => _dependencyPostInitReceiver, 1 => _dependencyNextPostInitReceiver, _ => _dependencyFinalPostInitReceiver };
+        int checkpoint = index switch { 0 => _dependencyPostInitSelectionCheckpoint, 1 => _dependencyNextPostInitSelectionCheckpoint, _ => _dependencyFinalPostInitSelectionCheckpoint };
+        if (checkpoint < 2 || completedCalls != checkpoint ||
+            _dependencyCheckpoints != completedCalls - 1 || slot == 0 || selected != 0 ||
+            (index >= 1 && _dependencyPostInitReceiver < 0x10000) ||
+            (index == 2 && _dependencyNextPostInitReceiver < 0x10000))
+            throw new InvalidDataException("Post-init receiver selection is not its exact preceding witness checkpoint.");
+        uint receiver = selectReceiver(instance); // game-memory observation only; initialized witness has completed
+        if (receiver < 0x10000 || (receiver & 3) != 0)
+            throw new InvalidDataException("Post-init receiver selection returned an invalid pointer.");
+        _ = Win32Native.ReadMemory(host.ProcessHandle, receiver, sizeof(uint));
+        VerifyPostInitReceiverSlot(host);
+        Win32Native.WriteMemory(host.ProcessHandle, slot, BitConverter.GetBytes(receiver), executable: false);
+        if (index == 0) _dependencyPostInitReceiver = receiver;
+        else if (index == 1) _dependencyNextPostInitReceiver = receiver;
+        else _dependencyFinalPostInitReceiver = receiver;
+        VerifyPostInitReceiverSlot(host);
+        _log(new { @event = "native-dependent-post-init-receiver-selected", sequence = _sequence,
+            instance = Hex(instance), receiver = Hex(receiver), ownArgumentSlot = Hex(slot), postInitIndex = index,
+            bytesWritten = sizeof(uint), gameMemoryWrittenByCallback = false, executableBytesWritten = false,
+            readbackMatched = true, initializedWitnessCompleted = true, originalGameplayResumed = false });
+    }
+
+    private void VerifyPostInitReceiverSlot(DebuggerHost host)
+    {
+        if (_dependencyPostInitReceiverAddress == 0)
+        {
+            if (_dependencyPostInitReceiver != 0 || _dependencyPostInitSelectionCheckpoint != 0 ||
+                _dependencyNextPostInitReceiverAddress != 0 || _dependencyNextPostInitReceiver != 0 ||
+                _dependencyNextPostInitSelectionCheckpoint != 0 || _dependencyFinalPostInitReceiverAddress != 0 ||
+                _dependencyFinalPostInitReceiver != 0 || _dependencyFinalPostInitSelectionCheckpoint != 0)
+                throw new InvalidDataException("Absent post-init call has unexpected argument state.");
+            return;
+        }
+        uint expectedAddress = checked(_resultAddress - (uint)(_dependencyParentAddress == 0 ? 1 : 2) * sizeof(uint));
+        if (_dependencyPostInitReceiverAddress != expectedAddress ||
+            _dependencyPostInitReceiverAddress < _pageAddress + _dependencyCodeLength ||
+            _dependencyPostInitReceiverAddress > _pageAddress + PageSize - sizeof(uint) ||
+            _dependencyPostInitSelectionCheckpoint != (_dependencyParentAddress == 0 ? 2 : 3) ||
+            (_dependencyCheckpoints >= _dependencyPostInitSelectionCheckpoint && _dependencyPostInitReceiver < 0x10000) ||
+            Win32Native.ReadUInt32(host.ProcessHandle, _dependencyPostInitReceiverAddress) != _dependencyPostInitReceiver)
+            throw new InvalidDataException("Owned post-init receiver argument slot changed or overlaps code/results.");
+        if (_dependencyNextPostInitReceiverAddress == 0)
+        {
+            if (_dependencyNextPostInitReceiver != 0 || _dependencyNextPostInitSelectionCheckpoint != 0 ||
+                _dependencyFinalPostInitReceiverAddress != 0 || _dependencyFinalPostInitReceiver != 0 ||
+                _dependencyFinalPostInitSelectionCheckpoint != 0)
+                throw new InvalidDataException("Absent next post-init call has unexpected argument state.");
+            return;
+        }
+        if (_dependencyNextPostInitReceiverAddress != checked(expectedAddress - sizeof(uint)) ||
+            _dependencyNextPostInitReceiverAddress < _pageAddress + _dependencyCodeLength ||
+            _dependencyNextPostInitReceiverAddress + sizeof(uint) != _dependencyPostInitReceiverAddress ||
+            _dependencyNextPostInitSelectionCheckpoint != _dependencyPostInitSelectionCheckpoint + 1 ||
+            (_dependencyCheckpoints >= _dependencyNextPostInitSelectionCheckpoint && _dependencyNextPostInitReceiver < 0x10000) ||
+            Win32Native.ReadUInt32(host.ProcessHandle, _dependencyNextPostInitReceiverAddress) != _dependencyNextPostInitReceiver)
+            throw new InvalidDataException("Owned next post-init receiver argument slot changed or overlaps code/results.");
+        if (_dependencyFinalPostInitReceiverAddress == 0)
+        {
+            if (_dependencyFinalPostInitReceiver != 0 || _dependencyFinalPostInitSelectionCheckpoint != 0)
+                throw new InvalidDataException("Absent final post-init call has unexpected argument state.");
+            return;
+        }
+        if (_dependencyFinalPostInitReceiverAddress != checked(expectedAddress - 2 * sizeof(uint)) ||
+            _dependencyFinalPostInitReceiverAddress < _pageAddress + _dependencyCodeLength ||
+            _dependencyFinalPostInitReceiverAddress + sizeof(uint) != _dependencyNextPostInitReceiverAddress ||
+            _dependencyFinalPostInitSelectionCheckpoint != _dependencyNextPostInitSelectionCheckpoint + 1 ||
+            (_dependencyCheckpoints >= _dependencyFinalPostInitSelectionCheckpoint && _dependencyFinalPostInitReceiver < 0x10000) ||
+            Win32Native.ReadUInt32(host.ProcessHandle, _dependencyFinalPostInitReceiverAddress) != _dependencyFinalPostInitReceiver)
+            throw new InvalidDataException("Owned final post-init receiver argument slot changed or overlaps code/results.");
+    }
+
+    private static int ValidatePostInitCalls(NativePostInitCallPlan? call)
+    {
+        if (call is null) return 0;
+        ArgumentNullException.ThrowIfNull(call.SelectReceiver);
+        ArgumentNullException.ThrowIfNull(call.CompletedWitness);
+        if (call.Function != 0x4FE440 || call.Arguments is { Count: > 0 })
+            throw new ArgumentException("First post-init call requires the qualified native PlayerTraits pickup-graph entry.");
+        if (call.Next is not NativePostInitCallPlan next) return 1;
+        ArgumentNullException.ThrowIfNull(next.SelectReceiver);
+        ArgumentNullException.ThrowIfNull(next.CompletedWitness);
+        if (next.Function != 0x5113E0 || next.Arguments is { Count: > 0 })
+            throw new ArgumentException("Second post-init call requires the qualified no-argument native TargetRegion configuration entry.");
+        if (next.Next is not NativePostInitCallPlan final) return 2;
+        ArgumentNullException.ThrowIfNull(final.SelectReceiver);
+        ArgumentNullException.ThrowIfNull(final.CompletedWitness);
+        if (final.Function != 0x4E2DC0 || final.Arguments is not { Count: 1 } || final.Arguments[0] != 0 || final.Next is not null)
+            throw new ArgumentException("Only the final qualified native 0x4E2DC0 thiscall with one zero DWORD argument is admitted.");
+        return 3;
+    }
+
+    private static NativePostInitCallPlan? OwnPostInitCalls(NativePostInitCallPlan? call)
+    {
+        // Validate the bound before traversing/copying caller-owned collections.
+        // Validate again after the copies: no mutable argument list is captured
+        // by the pending native interval or its breakpoint callbacks.
+        _ = ValidatePostInitCalls(call);
+        NativePostInitCallPlan? Copy(NativePostInitCallPlan? item) => item is null ? null :
+            new(item.Function, item.SelectReceiver, item.CompletedWitness, Copy(item.Next), item.Arguments?.ToArray());
+        NativePostInitCallPlan? owned = Copy(call);
+        _ = ValidatePostInitCalls(owned);
+        return owned;
     }
 
     private void CompleteEntry(DebuggerHost host, uint threadId, uint address,
@@ -427,6 +713,8 @@ internal sealed class NativeCallDispatcher
             if (_dependencyCheckpoints != _dependencyRequiredCheckpoints)
                 throw new InvalidDataException("Dependent lifecycle reached completion without all guarded witnesses.");
             VerifyDependentCode(host);
+            VerifyAttachmentParentSlot(host);
+            VerifyPostInitReceiverSlot(host);
         }
         var results = new uint[_resultCount];
         for (int i = 0; i < results.Length; ++i)
@@ -541,11 +829,33 @@ internal sealed class NativeCallDispatcher
         return bytes.ToArray();
     }
 
-    private sealed record DependentStub(byte[] Code, int CreatedStop, int InitializedStop, int? PositionedStop);
+    private sealed record DependentStub(byte[] Code, int CreatedStop, int InitializedStop, int? PositionedStop,
+        int? AttachedStop, int? PostInitializedStop, int? NextPostInitializedStop, int? FinalPostInitializedStop);
 
     private static DependentStub BuildDependentStub(NativeCallSpec first, uint scopedCdecl, uint deletingThiscall,
-        uint results, uint originalEsp, bool retainAfterInitialization, NativeInstancePositionCall? positionAfterInitialization)
+        uint results, uint originalEsp, bool retainAfterInitialization, NativeInstancePositionCall? positionAfterInitialization,
+        NativePreInitAttachmentPlan? preInitAttachment = null, uint attachmentParentSlot = 0,
+        NativePostInitCallPlan? postInitCall = null, uint postInitReceiverSlot = 0, uint nextPostInitReceiverSlot = 0,
+        uint finalPostInitReceiverSlot = 0)
     {
+        if (preInitAttachment is null ? attachmentParentSlot != 0 :
+            preInitAttachment.Function != 0x421A60 || preInitAttachment.Child < 0x10000 ||
+            (preInitAttachment.Child & 3) != 0 || attachmentParentSlot < 0x10000 ||
+            (attachmentParentSlot & 3) != 0 || attachmentParentSlot != checked(results - sizeof(uint)))
+            throw new ArgumentException("Pre-init attachment emitter requires its exact separate parent argument slot.");
+        int postInitCalls = ValidatePostInitCalls(postInitCall);
+        if (postInitCall is null ? postInitReceiverSlot != 0 :
+            postInitReceiverSlot < 0x10000 || (postInitReceiverSlot & 3) != 0 ||
+            postInitReceiverSlot != checked(results - (uint)(preInitAttachment is null ? 1 : 2) * sizeof(uint)))
+            throw new ArgumentException("Post-init emitter requires its qualified entry and separate receiver argument slot.");
+        if (postInitCalls < 2 ? nextPostInitReceiverSlot != 0 :
+            nextPostInitReceiverSlot < 0x10000 || (nextPostInitReceiverSlot & 3) != 0 ||
+            nextPostInitReceiverSlot != checked(postInitReceiverSlot - sizeof(uint)))
+            throw new ArgumentException("Next post-init emitter requires its own nonoverlapping receiver argument slot.");
+        if (postInitCalls != 3 ? finalPostInitReceiverSlot != 0 :
+            finalPostInitReceiverSlot < 0x10000 || (finalPostInitReceiverSlot & 3) != 0 ||
+            finalPostInitReceiverSlot != checked(nextPostInitReceiverSlot - sizeof(uint)))
+            throw new ArgumentException("Final post-init emitter requires its own nonoverlapping receiver argument slot.");
         var bytes = new List<byte>(256);
         var failures = new List<int>(4);
         void Imm(uint value) { for (int n = 0; n < 4; ++n) bytes.Add((byte)(value >> (n * 8))); }
@@ -568,13 +878,48 @@ internal sealed class NativeCallDispatcher
         SaveResult(0); StackGuard();
         bytes.Add(0x3D); Imm(0x10000); ConditionalFailure(0x82); // cmp eax,10000; jb failure
         int created = bytes.Count; bytes.Add(0xCC);
+        int attachmentCalls = preInitAttachment is null ? 0 : 1;
+        int? attached = null;
+        if (preInitAttachment is not null)
+        {
+            bytes.Add(0x68); Imm(preInitAttachment.Child); // one thiscall child argument
+            bytes.Add(0x8B); bytes.Add(0x0D); Imm(attachmentParentSlot); // mov ecx,[owned parent DWORD]
+            Call(preInitAttachment.Function);
+            SaveResult(1); StackGuard();
+            attached = bytes.Count; bytes.Add(0xCC);
+        }
         // The first witness checks type/ownership before allowing this call.
         bytes.Add(0xFF); bytes.Add(0x35); Imm(results);          // push [first result]
         bytes.Add(0xB9); Imm(0);                              // cdecl receiver unspecified/unused
         Call(scopedCdecl);
         bytes.Add(0x83); bytes.Add(0xC4); bytes.Add(4);
-        SaveResult(1); StackGuard();
+        SaveResult(1 + attachmentCalls); StackGuard();
         int initialized = bytes.Count; bytes.Add(0xCC);
+        int? postInitialized = null;
+        if (postInitCall is not null)
+        {
+            bytes.Add(0x8B); bytes.Add(0x0D); Imm(postInitReceiverSlot); // mov ecx,[owned receiver DWORD]
+            Call(postInitCall.Function);                            // thiscall, no stack arguments
+            SaveResult(2 + attachmentCalls); StackGuard();
+            postInitialized = bytes.Count; bytes.Add(0xCC);
+        }
+        int? nextPostInitialized = null;
+        if (postInitCall?.Next is NativePostInitCallPlan nextPostInitCall)
+        {
+            bytes.Add(0x8B); bytes.Add(0x0D); Imm(nextPostInitReceiverSlot);
+            Call(nextPostInitCall.Function); // no arguments; raw EAX may be unspecified
+            SaveResult(3 + attachmentCalls); StackGuard();
+            nextPostInitialized = bytes.Count; bytes.Add(0xCC);
+        }
+        int? finalPostInitialized = null;
+        if (postInitCall?.Next?.Next is NativePostInitCallPlan finalPostInitCall)
+        {
+            bytes.Add(0x68); Imm(0); // exact qualified argument; native callee returns RET4
+            bytes.Add(0x8B); bytes.Add(0x0D); Imm(finalPostInitReceiverSlot);
+            Call(finalPostInitCall.Function);
+            SaveResult(4 + attachmentCalls); StackGuard();
+            finalPostInitialized = bytes.Count; bytes.Add(0xCC);
+        }
         int? positioned = null;
         if (positionAfterInitialization is not null)
         {
@@ -587,7 +932,7 @@ internal sealed class NativeCallDispatcher
             bytes.Add(0xB9); Imm(0);
             Call(positionAfterInitialization.Function);
             bytes.Add(0x83); bytes.Add(0xC4); bytes.Add(16);
-            SaveResult(2); StackGuard();
+            SaveResult(2 + attachmentCalls + postInitCalls); StackGuard();
             positioned = bytes.Count; bytes.Add(0xCC);
         }
         // The initialized witness admits either deletion in this same interval
@@ -597,7 +942,7 @@ internal sealed class NativeCallDispatcher
             bytes.Add(0x68); Imm(1);                          // deleting flag
             bytes.Add(0x8B); bytes.Add(0x0D); Imm(results);    // mov ecx,[first result]
             Call(deletingThiscall);
-            SaveResult(2); StackGuard();
+            SaveResult(2 + attachmentCalls + postInitCalls); StackGuard();
         }
         int completion = bytes.Count; bytes.Add(0xCC);
         void Patch(int offset, int target)
@@ -610,7 +955,7 @@ internal sealed class NativeCallDispatcher
         // Every failure reaches the same one-shot final trap. Wrong ESP or
         // fewer than two witnessed phases rejects before any context restore.
         // No unused failure breakpoint remains registered when this page frees.
-        return new(bytes.ToArray(), created, initialized, positioned);
+        return new(bytes.ToArray(), created, initialized, positioned, attached, postInitialized, nextPostInitialized, finalPostInitialized);
     }
 
     private static byte[] BuildEntryStub(IReadOnlyList<NativeCallSpec> calls, uint results, uint originalEsp)
