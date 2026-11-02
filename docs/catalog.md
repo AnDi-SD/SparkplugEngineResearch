@@ -134,6 +134,7 @@
 - [CollisionInfo и OBB: используемая инструментами часть PC](engine/physics/collision-tools-core.md).
 - [MeshBV и данные граней для общих ядер tools](engine/physics/mesh-bv-tools-core.md).
 - [spCapsuleBV](engine/physics/capsule-bv.md).
+- [Sphere contact: bounded PC value helper](engine/physics/sphere-contact.md).
 - [Физика и коллизии](engine/physics/README.md).
 - [Физика и коллизии Sparkplug](engine/physics/overview.md).
 - [Физические объекты и BoundingVolume: PC и PS2](engine/physics/physics-family.md).

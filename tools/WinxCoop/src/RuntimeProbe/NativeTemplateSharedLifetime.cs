@@ -9,6 +9,8 @@ internal sealed partial class NativeTemplateProbe
     // managed gameplay-goal and adapter-retirement integration methods.
     private static uint SharedBattleWorldLimit => NativeObservationBudget.WorldLimit;
     private const uint SharedBattlePostWorldLimit = 3600;
+    private const uint SharedBattleEmptyFlowWorldLimit = 120;
+    private const long SharedBattleEmptyFlowMilliseconds = 10000;
     private bool _sharedBattleCaptured, _sharedBattlePaused, _sharedBattleUnloadStarted;
     private bool _sharedBattleBatchCompleted, _sharedBattleResourcesReleased, _sharedBattleGoalAtUnload;
     private bool _sharedBattleTemplateOwnerHeld, _sharedBattleNativePauseObserved;
@@ -16,6 +18,9 @@ internal sealed partial class NativeTemplateProbe
     private uint _sharedBattleMenuWorlds, _sharedBattleUnloadEntry, _sharedBattleReferenceWrites;
     private uint _sharedBattleTemplateMembership, _sharedBattlePauseTransitions, _sharedBattleResumeTransitions;
     private uint _sharedBattleNativePauseTransitions;
+    private uint _sharedBattleEmptyFlowWorlds;
+    private uint _sharedBattleSceneManager, _sharedBattleSceneManagerTable;
+    private long _sharedBattleEmptyFlowStarted;
     private ushort _sharedBattleLastTemplateRefs;
     private byte _sharedBattleLastNativePaused;
     private byte _sharedBattleLastInputEnabled = byte.MaxValue;
@@ -53,6 +58,7 @@ internal sealed partial class NativeTemplateProbe
         lastTemplateReferences = _sharedBattleLastTemplateRefs, lastTemplateManagerMembership = _sharedBattleTemplateMembership,
         unloadStarted = _sharedBattleUnloadStarted, unloadEntry = Hex(_sharedBattleUnloadEntry),
         nativeBatchCompleted = _sharedBattleBatchCompleted, resourcesReleasedAtLaterWorld = _sharedBattleResourcesReleased,
+        emptyPostUnloadFlowWorlds = _sharedBattleEmptyFlowWorlds,
         gameplayGoalObservedBeforeUnload = _sharedBattleGoalAtUnload, completed = SharedBattleLifetimeCompleted, succeeded = SharedBattleLifetimeSucceeded,
         storyOutcomeObservedAfterUnload = SharedStoryOutcomePassed,
         witness = _sharedBattleUnloadWitness, oldPlayerOrOwnObjectReadsAfterUnload = false,
@@ -73,6 +79,7 @@ internal sealed partial class NativeTemplateProbe
             "Shared Battle lifetime must activate at its two qualified own worlds before live hold.");
         _sharedBattleAnimationManager = Pointer(0x765ADC); Table(_sharedBattleAnimationManager, 0x703470);
         _sharedBattleTimer = Pointer(0x755298); Table(_sharedBattleTimer, 0x702F94);
+        _sharedBattleSceneManager = Pointer(0x75DB90); _sharedBattleSceneManagerTable = U(_sharedBattleSceneManager);
         Require(ClassId(_sharedBattleTimer) == 0x78665312 && Read(_sharedBattleTimer + 0x40, 1)[0] == 0,
             "Shared Battle must first capture its typed native GameTimer unpaused.");
         if (_sharedPlayerProfile.Story)
@@ -328,6 +335,41 @@ internal sealed partial class NativeTemplateProbe
         // Only fresh Flow/type data is read here; no captured Profile, Instance,
         // old scene, animation resources, or body graph is dereferenced.
         uint flow = Pointer(0x755294), stack = U(flow + 0x1AC), pending = U(flow + 0x1B8);
+        if (stack == uint.MaxValue)
+        {
+            // The original constructor and pop-until path define-1 as EMPTY.
+            // Observe it only after native unload with all borrows released;
+            // queued state/operation words remain diagnostics, not a promise
+            // of a particular transition or permission to call the engine.
+            Require(_sharedBattleResourcesReleased && !HasLiveOwnership && !calls.HasRetiredPage &&
+                !_sharedBattleTemplateOwnerHeld && _sharedBattleReferenceWrites == 2 && !freshMainMenuObserved &&
+                flow == _flow && U(flow) == 0x702D2C && U(flow + 0x10) == 0x702D28 &&
+                U(0x702D3C) == 0x595DB0 && U(0x766088) == 0x078B20E8 &&
+                U(0x755274) == _engine && U(0x765ACC) == _gameManager && U(_gameManager) == 0x70069C &&
+                U(0x75DB90) == _sharedBattleSceneManager && U(_sharedBattleSceneManager) == _sharedBattleSceneManagerTable &&
+                U(_sharedBattleSceneManager + 0x20) == 0 && U(flow + 0x1B0) == 0 &&
+                Read(flow + 0x15C, 0x50).All(value => value == 0),
+                "Empty post-unload Flow lacks its surviving owners, cleared stack or released native scene.");
+            PinSharedBattle(0x595BC8, "C786AC010000FFFFFFFF");
+            PinSharedBattle(0x5966B7, "8B8EAC010000C7848E5C010000000000008B86AC010000488986AC0100007810");
+            PinSharedBattle(0x596746, "C786B001000000000000");
+            PinSharedBattle(0x595DB0, "B888607600C3");
+            long now = Environment.TickCount64;
+            if (_sharedBattleEmptyFlowStarted == 0) _sharedBattleEmptyFlowStarted = now;
+            Require(++_sharedBattleEmptyFlowWorlds <= SharedBattleEmptyFlowWorldLimit &&
+                now - _sharedBattleEmptyFlowStarted <= SharedBattleEmptyFlowMilliseconds,
+                "Original empty Flow did not progress within its bounded post-unload interval.");
+            _sharedBattleMenuWorlds = 0;
+            if (_sharedBattleEmptyFlowWorlds <= 2)
+                _log(new { @event = "template-shared-battle-post-unload-empty-flow", world = _sharedBattlePostWorlds,
+                    flow = Hex(flow), stack, current = 0, pending, operation = U(flow + 0x1BC), delay = U(flow + 0x1C0),
+                    queuedWordsAreDiagnosticOnly = true, emptyStackSlots = 20,
+                    emptyWorlds = _sharedBattleEmptyFlowWorlds, maximumWorlds = SharedBattleEmptyFlowWorldLimit,
+                    maximumMilliseconds = SharedBattleEmptyFlowMilliseconds, originalEmptyStackEncodingVerified = true,
+                    resourcesAlreadyReleased = true, settledMainMenu = false, topIndexedOrDereferenced = false,
+                    oldPlayerOrOwnObjectRead = false, nativeFlowOrTimerWrites = 0 });
+            return;
+        }
         Require(stack <= 20, "Fresh post-unload flow stack is not bounded.");
         uint top = Pointer(flow + 0x15C + stack * 4), table = U(top);
         bool menu = table == 0x7102A8 && pending == 0;
