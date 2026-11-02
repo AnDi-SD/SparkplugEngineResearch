@@ -1,5 +1,5 @@
 #pragma once
-// Our isolated diagnostic IPC4. This does not alter RuntimeContract IPC3.
+// Our isolated diagnostic IPC5. This does not alter RuntimeContract IPC3.
 // Windows little-endian x86/x64; no pointers, handles or C++ owners cross IPC.
 #include <cstddef>
 #include <cstdint>
@@ -13,7 +13,7 @@
 
 namespace winxcoop::diagnostic_input
 {
-    constexpr std::uint32_t IpcMagic = 0x34494357, IpcVersion = 4, RingCapacity = 64;
+    constexpr std::uint32_t IpcMagic = 0x35494357, IpcVersion = 5, RingCapacity = 64;
     constexpr std::uint32_t MaximumCredits = 8, LeaseMilliseconds = 500, KeepaliveMilliseconds = 100;
     constexpr std::uint32_t MinimumGrantRenewalMilliseconds = 20, MaximumGrantHistory = 32;
     enum class Role : std::uint32_t { Host = 1, Guest = 2 };
@@ -71,7 +71,7 @@ namespace winxcoop::diagnostic_input
         std::uint64_t captureOrdinal{}, captureMilliseconds{}; //08,10 (source clock diagnostic only)
         std::uint64_t hostIngressMilliseconds{};              //18 (Guest MUST publish0)
         float magnitude{}, relativeDirection{}, referenceHeading{}; //20,24,28
-        std::uint32_t buttons{};                             //2C bit0=jump-held, all other bits0
+        std::uint32_t buttons{};                             //2C bit0=jump-held, bit1=ordinary-attack-held; other bits0
         std::uint32_t grant{}, reserved{};                    //30,34
         std::uint64_t leaseDeadlineMilliseconds{};            //38 echoed HOST deadline; never translate
     };

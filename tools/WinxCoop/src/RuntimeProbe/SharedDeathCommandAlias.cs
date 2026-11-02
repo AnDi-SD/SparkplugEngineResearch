@@ -101,7 +101,7 @@ internal sealed class SharedDeathCommandAlias
         Ensure(tid); Require(context.Eip == NativeCallDispatcher.WorldReturn, "Shared death command verification requires WorldRET.");
         if (_retired) return;
         Require(Active && _health?.Active == true && _pending is null, "Shared death command reached WorldRET with an unmatched frame.");
-        VerifyOwners(); EqualHealth(); Require(++_worlds <= 36000, "Shared death command world budget exceeded.");
+        VerifyOwners(); EqualHealth(); Require(++_worlds <= NativeObservationBudget.WorldLimit, "Shared death command world budget exceeded.");
     }
 
     internal void RetireBeforeOwnDelete(uint tid, ref Win32Native.X86Context context)

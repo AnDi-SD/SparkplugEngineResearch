@@ -23,9 +23,9 @@ internal sealed partial class NativeTemplateProbe
     private OrdinaryNativeFrame? _ordinaryActivationFrame;
     private sealed record OrdinaryNativeFrame(uint Esp, uint Caller, uint Ebx, uint Ebp, uint Esi, uint Edi);
 
-    internal bool OrdinaryAttackFixtureRetired => !_ordinaryAttackFixture || _ordinaryRetired;
+    internal bool OrdinaryAttackFixtureRetired => !(_ordinaryAttackFixture || _ordinaryNetwork) || _ordinaryRetired;
     internal bool OrdinaryAttackFixtureGoalPassed => _ordinaryAttackFixture && _ordinaryGoal && _ordinaryFailure.Length == 0;
-    private object OrdinaryAttackFixtureSummary => new
+    private object OrdinaryAttackFixtureSummary => _ordinaryNetwork ? NetworkOrdinarySummary : new
     {
         enabled = _ordinaryAttackFixture, started = _ordinaryStarted, retired = _ordinaryRetired,
         passed = OrdinaryAttackFixtureGoalPassed, failure = _ordinaryFailure, aimReady = _ordinaryAimReady,
@@ -48,7 +48,9 @@ internal sealed partial class NativeTemplateProbe
 
     private void ConfigureOrdinaryAttackFixture(ProbeConfiguration config)
     {
+        _ordinaryNetwork = config.TemplateNetworkOrdinaryAttackFixture;
         _ordinaryAttackFixture = config.TemplateOrdinaryAttackFixture;
+        if (_ordinaryNetwork) { ConfigureNetworkOrdinary(config); return; }
         if (!_ordinaryAttackFixture) return;
         Require(config.TemplateSharedPlayerProfile == "battle-01-ordinary-attack" && config.Mode == "template-bloom-body-hair-idle" &&
             config.TemplateProjectileManagerFixture && config.TemplatePlayerTraitsFixture && config.TemplatePlayerTraitsPickupFx &&
@@ -63,6 +65,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void BindOrdinaryRoleBeforeInit(uint tid, ref Win32Native.X86Context context)
     {
+        if (_ordinaryNetwork) { BindNetworkOrdinaryRoleBeforeInit(tid, ref context); return; }
         if (!_ordinaryAttackFixture) return;
         Require(!_ordinaryRoleBound && _dependentInterval && _stage == 6 && context.Eip == 0x5096E0 &&
             context.Ecx == _projectileManager && _instance != 0 && DescriptorCount == 8,
@@ -82,7 +85,7 @@ internal sealed partial class NativeTemplateProbe
     private NativePostInitCallPlan OrdinaryAimExclusionPlan() => new(0x4E2DC0,
         instance =>
         {
-            Require(_ordinaryAttackFixture && _ordinaryRoleBound && _ordinaryRole is not null && _dependentInterval &&
+            Require((_ordinaryAttackFixture || _ordinaryNetwork) && _ordinaryRoleBound && _ordinaryRole is not null && _dependentInterval &&
                 _stage == 6 && instance == _instance && _targetRegionConfigured && _ordinaryRegion == _targetRegion && !_ordinaryAimReady,
                 "Ordinary IsTarget(false) requires completed native metadata configuration before first resume.");
             OrdinaryPin(0x4E2DC0, "8A442404888145010000C20400");
@@ -97,6 +100,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void BeginOrdinaryAttackAtWorld(uint tid, ref Win32Native.X86Context context)
     {
+        if (_ordinaryNetwork) { BeginNetworkOrdinaryAtWorld(tid, ref context); return; }
         if (!_ordinaryAttackFixture) return;
         OrdinaryWorld(tid, context);
         Require(!_ordinaryStarted && _ordinaryAimReady && _ordinaryRole is not null && _sharedBattleCaptured &&
@@ -116,6 +120,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void StepOrdinaryAttackAtWorld(uint tid, ref Win32Native.X86Context context, bool ready)
     {
+        if (_ordinaryNetwork) { StepNetworkOrdinaryAtWorld(tid, ref context, ready); return; }
         if (!_ordinaryAttackFixture || !_ordinaryStarted || _ordinaryRetired) return;
         OrdinaryWorld(tid, context); VerifyOrdinaryOwners();
         if (!ready)
@@ -170,6 +175,7 @@ internal sealed partial class NativeTemplateProbe
     private void RetireOrdinaryAttackBeforeUnload(uint tid, ref Win32Native.X86Context context, uint entry,
         Action<uint, Win32Native.X86Context> verifyPreUnloadBoundary)
     {
+        if (_ordinaryNetwork) { RetireNetworkOrdinaryBeforeUnload(tid, ref context, entry, verifyPreUnloadBoundary); return; }
         if (!_ordinaryAttackFixture || _ordinaryRetired) return;
         ArgumentNullException.ThrowIfNull(verifyPreUnloadBoundary);
         Require(_ordinaryRoleBound && _ordinaryRole is not null && _host.IsAtDebugStop &&

@@ -40,7 +40,7 @@ namespace winxcoop::diagnostic_input
     bool ValidInput(const InputRecord& r, const bool fromGuest) noexcept
     {
         return r.inputEpoch != 0 && r.sourceSequence != 0 && r.captureOrdinal != 0 && r.grant != 0 &&
-            r.leaseDeadlineMilliseconds != 0 && r.reserved == 0 && (r.buttons & ~1u) == 0 &&
+            r.leaseDeadlineMilliseconds != 0 && r.reserved == 0 && (r.buttons & ~3u) == 0 &&
             std::isfinite(r.magnitude) && r.magnitude >= 0 && r.magnitude <= 1 &&
             Angle(r.relativeDirection) && Angle(r.referenceHeading) &&
             (!fromGuest || r.hostIngressMilliseconds == 0);

@@ -19,7 +19,15 @@ add_library(WinxCoopGameplay STATIC
     src/Gameplay/GameplayProtocol.h)
 target_link_libraries(WinxCoopGameplay PUBLIC WinxCoopNetwork)
 target_compile_features(WinxCoopGameplay PUBLIC cxx_std_17)
+add_library(WinxCoopWorldState STATIC
+    src/WorldState/WorldStateProtocol.cpp
+    src/WorldState/WorldStateSession.cpp)
+target_link_libraries(WinxCoopWorldState PUBLIC WinxCoopNetwork)
+target_compile_features(WinxCoopWorldState PUBLIC cxx_std_17)
 if(WIN32)
+    add_executable(WinxCoopWorldBridge src/WorldState/WorldStateBridge.cpp)
+    target_link_libraries(WinxCoopWorldBridge PRIVATE WinxCoopWorldState winmm)
+    target_compile_definitions(WinxCoopWorldBridge PRIVATE WINVER=0x0601 _WIN32_WINNT=0x0601)
     add_library(WinxCoopPoseInterpolation STATIC
         src/Adapter/RemotePoseInterpolator.cpp
         src/Adapter/RemotePoseInterpolator.h)
@@ -125,6 +133,10 @@ if(MSVC)
 endif()
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(WinxCoopWorldStateTests tests/WorldStateTests.cpp)
+    target_link_libraries(WinxCoopWorldStateTests PRIVATE WinxCoopWorldState)
+    add_test(NAME WinxCoopWorldStateTests COMMAND WinxCoopWorldStateTests)
+    set_tests_properties(WinxCoopWorldStateTests PROPERTIES TIMEOUT 30)
     add_executable(WinxCoopTcpFramerTests tests/TcpPacketFramerTests.cpp)
     target_link_libraries(WinxCoopTcpFramerTests PRIVATE WinxCoopNetwork)
     add_test(NAME WinxCoopTcpFramerTests COMMAND WinxCoopTcpFramerTests)

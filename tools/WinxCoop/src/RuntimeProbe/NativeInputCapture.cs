@@ -12,7 +12,17 @@ namespace WinxCoop.RuntimeProbe;
 internal sealed class NativeInputCapture
 {
     internal const uint InputReturn = 0x4E2D3E;
-    private const int CommandBytes = 0x74, LogLimit = 256, HeartbeatTargetMilliseconds = 50, MaximumReadyReturnGapMilliseconds = 2000;
+    private const int CommandBytes = 0x74, LogLimit = 256, MaximumReadyReturnGapMilliseconds = 2000;
+    private readonly int _heartbeatMilliseconds;
+    private readonly bool _ordinaryAttack;
+    private readonly bool _traceEdges;
+    private readonly bool _limitContinuousChanges;
+    private uint _lastSampleButtons;
+    private bool _lastSampleMoving;
+    private ulong _continuousChangesDeferred;
+    private const uint EdgeLogLimit = 4096;
+    private uint _extraEdgeLogs, _extraTransitionLogs, _transitionWindowRemaining;
+    private readonly uint _level, _playingTable;
     private const int RawCapacity = 64, MaximumRawAgeMilliseconds = 500, MaximumFlushPerReturn = 8;
     private readonly DebuggerHost _host;
     private readonly IntPtr _process;
@@ -32,17 +42,24 @@ internal sealed class NativeInputCapture
     private int _maximumRawPending, _maximumFlushedPerReturn;
     private long _oldestRawAgeMilliseconds, _maximumRawAgeMilliseconds, _maximumEligibleReadyGapMilliseconds;
     private readonly record struct RawCapture(uint InputEpoch, ulong ConnectionToken, ulong CaptureOrdinal,
-        ulong CaptureMilliseconds, float Magnitude, float RelativeDirection, float ReferenceHeading, byte Jump, bool Edge);
+        ulong CaptureMilliseconds, float Magnitude, float RelativeDirection, float ReferenceHeading, uint Buttons, bool Edge);
     private byte[]? _lastFingerprint;
     private string _failure = "";
 
     private sealed record StockTuple(uint Input, uint Command, uint Device, uint Profile, uint Instance, uint Root, uint Scene,
         uint Flow, uint Timer, uint Head, uint FirstLink, uint LastLink, uint Character, uint Move, uint Bloom, uint Animator);
 
-    internal NativeInputCapture(DebuggerHost host, PEReader image, DiagnosticInputClient client, Action<object> log)
+    internal NativeInputCapture(DebuggerHost host, PEReader image, DiagnosticInputClient client, Action<object> log,
+        bool ordinaryAttack = false, int heartbeatMilliseconds = 50, bool traceEdges = false,
+        bool limitContinuousChanges = false)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(client); ArgumentNullException.ThrowIfNull(log);
+        Require(heartbeatMilliseconds is >= 16 and <= 100, "Native capture heartbeat must be16..100ms.");
+        _heartbeatMilliseconds = heartbeatMilliseconds; _ordinaryAttack = ordinaryAttack;
+        _traceEdges = traceEdges;
+        _limitContinuousChanges = limitContinuousChanges;
+        _level = ordinaryAttack ? 47u : 28u; _playingTable = ordinaryAttack ? 0x7105C8u : 0x710874u;
         if (!host.IsAtDebugStop || host.ProcessHandle == IntPtr.Zero || host.ProcessPid == 0 || host.ImageBase != 0x400000 ||
             host.MainThreadId == 0 || client.Identity.Role != DiagnosticInputRole.Guest || client.TerminalOrRetired)
             throw new InvalidOperationException("Native capture requires its owned pinned game stop and live Guest IPC endpoint.");
@@ -58,14 +75,21 @@ internal sealed class NativeInputCapture
     internal bool Failed => _failed;
     internal object Summary => new
     {
-        source = "actual-stock-UserInput-RET", nativeReturn = $"0x{InputReturn:X8}", qualifiedLevel = 28, qualifiedDeviceContext = 3,
+        source = "actual-stock-UserInput-RET", nativeReturn = $"0x{InputReturn:X8}", qualifiedLevel = _level, qualifiedDeviceContext = 3,
         retired = _retired, failed = _failed, failure = _failure, nativeReturns = _nativeReturns,
         captureOrdinal = _captureOrdinal, published = _published, edgeRecords = _edges, heartbeatRecords = _heartbeats,
         noGrantObservations = _noGrant, neutralJumpRearmWaits = _unarmed, armed = _armed,
         inputEpoch = _epoch, lastSourceSequence = _sourceSequence, logSamples = _logs, logSampleLimit = LogLimit,
         fingerprintFloatOffsets = new[] { 4, 8, 0x14 }, fingerprintJumpOffset = 0x1A,
-        heartbeatTargetMilliseconds = HeartbeatTargetMilliseconds, maximumReadyReturnGapMilliseconds = MaximumReadyReturnGapMilliseconds,
+        ordinaryAttackCaptureEnabled = _ordinaryAttack, fingerprintOrdinaryAttackOffset = _ordinaryAttack ? 0x20 : (int?)null,
+        heartbeatTargetMilliseconds = _heartbeatMilliseconds, maximumReadyReturnGapMilliseconds = MaximumReadyReturnGapMilliseconds,
         unchangedSamplesContinueAfterLogLimit = true,
+        extraEdgeTraceEnabled = _traceEdges, extraEdgeTraceSamples = _extraEdgeLogs,
+        extraTransitionTraceSamples = _extraTransitionLogs, transitionWindowRecords = 16,
+        extraEdgeTraceLimit = EdgeLogLimit,
+        continuousChangeCadenceLimited = _limitContinuousChanges,
+        continuousChangesDeferredBeforeSampling = _continuousChangesDeferred,
+        buttonAndMovementStartStopChangesRemainImmediate = true,
         rawQueued = _rawQueued, rawPending = _raw.Count, maximumRawPending = _maximumRawPending,
         rawDiscarded = _rawDiscarded, rawDiscardReasons = _rawDiscardReasons.ToDictionary(x => x.Key, x => x.Value),
         creditWaitObservations = _creditWaits, oldestRawAgeMilliseconds = _oldestRawAgeMilliseconds,
@@ -133,7 +157,9 @@ internal sealed class NativeInputCapture
             byte[] command = Read(tuple!.Command, CommandBytes);
             float magnitude = BitConverter.ToSingle(command, 4), relative = BitConverter.ToSingle(command, 8), reference = BitConverter.ToSingle(command, 0x14);
             byte jump = command[0x1A];
-            Require(float.IsFinite(magnitude) && magnitude is >= 0 and <= 1 && Angle(relative) && Angle(reference) && jump <= 1,
+            byte ordinary = _ordinaryAttack ? command[0x20] : (byte)0;
+            uint buttons = jump | ((uint)ordinary << 1);
+            Require(float.IsFinite(magnitude) && magnitude is >= 0 and <= 1 && Angle(relative) && Angle(reference) && jump <= 1 && ordinary <= 1,
                 "Native movement/jump command lies outside the explicitly admitted scalar domain.");
             Require(_captureOrdinal != ulong.MaxValue, "Native capture ordinal would wrap."); ++_captureOrdinal;
             long now = DiagnosticInputClient.LocalNowMilliseconds();
@@ -151,7 +177,7 @@ internal sealed class NativeInputCapture
             _lastEligibleReadyMilliseconds = now;
             if (!_armed)
             {
-                if (jump != 0) { ++_unarmed; return; }
+                if (buttons != 0) { ++_unarmed; return; }
                 // Queue this genuine neutral observation before any later jump.
                 _armed = true; _lastFingerprint = null;
             }
@@ -160,15 +186,24 @@ internal sealed class NativeInputCapture
             if (!FlushRaw(previousGrant, current, ref flushBudget, out bool creditBlocked)) return;
             byte[] fingerprint = Fingerprint(command);
             bool edge = _lastFingerprint is null || !_lastFingerprint.SequenceEqual(fingerprint);
-            bool heartbeat = !edge && _lastRawCaptureMilliseconds >= 0 && now - _lastRawCaptureMilliseconds >= HeartbeatTargetMilliseconds;
-            if (edge || heartbeat)
+            bool due = _lastRawCaptureMilliseconds < 0 || now - _lastRawCaptureMilliseconds >= _heartbeatMilliseconds;
+            bool immediate = _lastFingerprint is null || buttons != _lastSampleButtons || (magnitude > 0) != _lastSampleMoving;
+            bool captureChange = edge && (!_limitContinuousChanges || immediate || due);
+            bool heartbeat = !edge && due;
+            // Optional network sampling policy: observe every real InputRET,
+            // select buttons/start/stop immediately and continuous direction
+            // at the configured cadence. Selected raw records are never
+            // overwritten/coalesced and retain the same500ms freshness limit.
+            if (edge && !captureChange) ++_continuousChangesDeferred;
+            if (captureChange || heartbeat)
             {
                 ObserveRawAge(now);
                 if (_raw.Count == RawCapacity)
                 { Fail("Bounded raw native capture FIFO reached64 records; no observation was overwritten.", DiagnosticInputTerminal.Overflow); return; }
-                _raw.Enqueue(new(_epoch, current.ConnectionToken, _captureOrdinal, checked((ulong)now), magnitude, relative, reference, jump, edge));
+                _raw.Enqueue(new(_epoch, current.ConnectionToken, _captureOrdinal, checked((ulong)now), magnitude, relative, reference, buttons, edge));
                 ++_rawQueued; _maximumRawPending = Math.Max(_maximumRawPending, _raw.Count);
                 _lastRawCaptureMilliseconds = now; _lastFingerprint = fingerprint;
+                _lastSampleButtons = buttons; _lastSampleMoving = magnitude > 0;
             }
             if (!creditBlocked && flushBudget > 0) _ = FlushRaw(previousGrant, current, ref flushBudget, out _);
             _maximumFlushedPerReturn = Math.Max(_maximumFlushedPerReturn, MaximumFlushPerReturn - flushBudget);
@@ -207,7 +242,7 @@ internal sealed class NativeInputCapture
             {
                 InputEpoch = raw.InputEpoch, SourceSequence = _sourceSequence + 1, CaptureOrdinal = raw.CaptureOrdinal,
                 CaptureMilliseconds = raw.CaptureMilliseconds, HostIngressMilliseconds = 0, Magnitude = raw.Magnitude,
-                RelativeDirection = raw.RelativeDirection, ReferenceHeading = raw.ReferenceHeading, Buttons = raw.Jump,
+                RelativeDirection = raw.RelativeDirection, ReferenceHeading = raw.ReferenceHeading, Buttons = raw.Buttons,
                 Grant = admissionGrant.Grant, LeaseDeadlineMilliseconds = admissionGrant.LeaseDeadlineMilliseconds
             };
             DiagnosticPublishResult result = _client.TryPublishCapture(record);
@@ -225,11 +260,18 @@ internal sealed class NativeInputCapture
             _lastPublicationMilliseconds = now; ++_published;
             if (raw.Edge) ++_edges; else ++_heartbeats;
             ObserveRawAge(now);
+            // Keep a bounded prefix after each actual command edge. A native
+            // jump may enter state18 on a later heartbeat, after the source's
+            // exact press record has already completed its first interval.
+            if (raw.Edge) _transitionWindowRemaining = 16;
+            bool transitionTrace = !raw.Edge && _transitionWindowRemaining > 0;
+            if (transitionTrace) --_transitionWindowRemaining;
             Sample("published", new { inputEpoch = raw.InputEpoch, sourceSequence = _sourceSequence, captureOrdinal = raw.CaptureOrdinal,
                 captureMilliseconds = raw.CaptureMilliseconds, record.Magnitude, record.RelativeDirection, record.ReferenceHeading,
-                jumpHeld = raw.Jump != 0, grant = record.Grant, leaseDeadlineHostClock = record.LeaseDeadlineMilliseconds,
+                jumpHeld = (raw.Buttons & 1) != 0, ordinaryAttackHeld = (raw.Buttons & 2) != 0,
+                grant = record.Grant, leaseDeadlineHostClock = record.LeaseDeadlineMilliseconds,
                 rawCaptureWasPreserved = true, boundAtActualInputReturn = _nativeReturns, rawPending = _raw.Count,
-                realInputReturn = true, edge = raw.Edge, hostIngressMilliseconds = 0 });
+                realInputReturn = true, edge = raw.Edge, hostIngressMilliseconds = 0 }, raw.Edge, transitionTrace);
         }
         return true;
     }
@@ -280,7 +322,8 @@ internal sealed class NativeInputCapture
                 admissionGrant.AcknowledgedSourceSequence, admissionGrant.LeaseDeadlineMilliseconds },
             attemptedRecord = new { inputEpoch = raw.InputEpoch, sourceSequence = (ulong)_sourceSequence + 1,
                 captureOrdinal = raw.CaptureOrdinal, captureMilliseconds = raw.CaptureMilliseconds, magnitude = raw.Magnitude,
-                relativeDirection = raw.RelativeDirection, referenceHeading = raw.ReferenceHeading, jumpHeld = raw.Jump != 0,
+                relativeDirection = raw.RelativeDirection, referenceHeading = raw.ReferenceHeading,
+                jumpHeld = (raw.Buttons & 1) != 0, ordinaryAttackHeld = (raw.Buttons & 2) != 0,
                 grant = admissionGrant.Grant, leaseDeadlineHostClock = admissionGrant.LeaseDeadlineMilliseconds, hostIngressMilliseconds = 0 },
             edge = raw.Edge, nativeCommandWrites = 0, capturedNativeFieldsWereNotCoalesced = true
         });
@@ -295,17 +338,23 @@ internal sealed class NativeInputCapture
                 rawQueued = _rawQueued, published = _published, rawDiscarded = _rawDiscarded,
                 nativeCommandWrites = 0, nextHostWorldMustNeutralize = true } });
     }
-    private void Sample(string name, object data)
-    { if (_logs >= LogLimit) return; ++_logs; _log(new { @event = "native-input-capture", name, data }); }
+    private void Sample(string name, object data, bool edge = false, bool transitionTrace = false)
+    {
+        if (_logs < LogLimit) ++_logs;
+        else if (_traceEdges && (edge || transitionTrace) && _extraEdgeLogs + _extraTransitionLogs < EdgeLogLimit)
+        { if (edge) ++_extraEdgeLogs; else ++_extraTransitionLogs; }
+        else return;
+        _log(new { @event = "native-input-capture", name, data });
+    }
 
     private bool TryReadyTuple(out StockTuple? result, out DiagnosticInputAvailability unavailable)
     {
         result = null; unavailable = DiagnosticInputAvailability.Paused;
         uint flow = Pointer(0x755294), level = U(flow + 0x1B0), pending = U(flow + 0x1B8), stack = U(flow + 0x1AC);
-        if (level != 28) { unavailable = DiagnosticInputAvailability.Waiting; return false; }
+        if (level != _level) { unavailable = DiagnosticInputAvailability.Waiting; return false; }
         Require(stack <= 20, "Native source flow stack exceeds its admitted bound.");
         uint top = Pointer(flow + 0x15C + stack * 4);
-        if (pending != 0 || U(top) != 0x710874 || U(top + 0x10) != 28) return false;
+        if (pending != 0 || U(top) != _playingTable || U(top + 0x10) != _level) return false;
         uint timer = Pointer(0x755298); Table(timer, 0x702F94); byte paused = Read(timer + 0x40, 1)[0];
         Require(paused <= 1, "Native GameTimer pause byte is outside0/1."); if (paused != 0) return false;
         uint input = Pointer(0x7552A0); Table(input, 0x6F5508);
@@ -350,10 +399,13 @@ internal sealed class NativeInputCapture
             "Native source command/Character/Move/BloomFSM/Animator ownership changed.");
     }
     private static bool SameIdentity(StockTuple a, StockTuple b) => a == b;
-    private static byte[] Fingerprint(byte[] command)
+    private byte[] Fingerprint(byte[] command) => BuildFingerprint(command, _ordinaryAttack);
+    private static byte[] BuildFingerprint(byte[] command, bool ordinaryAttack)
     {
-        byte[] fingerprint = new byte[13]; Array.Copy(command, 4, fingerprint, 0, 8);
-        Array.Copy(command, 0x14, fingerprint, 8, 4); fingerprint[12] = command[0x1A]; return fingerprint;
+        byte[] fingerprint = new byte[ordinaryAttack ? 14 : 13]; Array.Copy(command, 4, fingerprint, 0, 8);
+        Array.Copy(command, 0x14, fingerprint, 8, 4); fingerprint[12] = command[0x1A];
+        if (ordinaryAttack) fingerprint[13] = command[0x20];
+        return fingerprint;
     }
     private static bool Angle(float value) => float.IsFinite(value) && value is >= -3.1415927410125732421875f and <= 3.1415927410125732421875f;
     private void Table(uint address, uint table) => Require(U(address) == table, "Native input source vtable differs from its qualified tuple.");

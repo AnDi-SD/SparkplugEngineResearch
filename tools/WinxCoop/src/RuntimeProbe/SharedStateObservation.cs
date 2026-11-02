@@ -44,7 +44,7 @@ internal sealed class SharedStateObservation
     {
         Ensure(tid); Require(context.Eip == NativeCallDispatcher.WorldReturn, "Shared-state observation requires WorldRET.");
         if (_completed) return;
-        Require(++_worlds <= 36000, "Shared-state observation world budget exceeded.");
+        Require(++_worlds <= NativeObservationBudget.WorldLimit, "Shared-state observation world budget exceeded.");
         uint flow = TryU(0x755294), stack = TryU(flow + 0x1AC);
         uint top = stack <= 20 ? TryU(flow + 0x15C + stack * 4) : 0;
         uint level = TryU(flow + 0x1B0), pending = TryU(flow + 0x1B8);

@@ -11,7 +11,8 @@ namespace WinxCoop.RuntimeProbe;
 /// </summary>
 internal sealed class ClientPresentationSession
 {
-    private const uint ProbeWorldLimit = 300, LiveWorldLimit = 36000;
+    private const uint ProbeWorldLimit = 300;
+    private static uint LiveWorldLimit => NativeObservationBudget.WorldLimit;
     private readonly ProbeConfiguration _config;
     private readonly DebuggerHost _host;
     private readonly PEReader _image;
@@ -23,6 +24,7 @@ internal sealed class ClientPresentationSession
     private readonly long _deadline;
     private ClientScenePolicy? _policy;
     private ClientNativeGate? _gate;
+    private ClientWorldFlowGate? _worldFlow;
     private readonly Dictionary<uint, uint> _componentTables = [];
     private readonly Dictionary<string, uint> _lastCounters = [];
     private uint _flow, _playing, _profile, _record, _root, _rootParent, _core, _scene, _camera, _cameraTable;
@@ -31,10 +33,14 @@ internal sealed class ClientPresentationSession
     private uint _inputMovementSamples, _inputJumpSamples, _inputPauseSamples, _cameraChangesAfterInput;
     private bool _started, _afterUnload, _completed, _probeRestored, _unloadQualified;
     private bool _movementObserved, _jumpObserved, _nativePauseObserved, _lastMenuPaused;
+    private bool _guestCaptureRetiredBeforeUnload;
     private byte _lastNativePaused;
     private long _pauseStarted, _longestPause, _resumedPause, _pendingReadyPauseDuration, _menuStarted, _menuHeld;
     private byte[] _rootPosition = [], _previousCameraPose = [];
     private string? _initialCameraPoseHash, _lastCameraPoseHash;
+    private readonly uint _level, _playingTable, _exitEntry;
+    private byte[]? _authoritativeLocalPose;
+    private uint _authoritativeApplications;
 
     internal ClientPresentationSession(ProbeConfiguration config, DebuggerHost host, PEReader image, Action<object> log)
     {
@@ -45,13 +51,30 @@ internal sealed class ClientPresentationSession
         _config = config; _host = host; _image = image; _log = log;
         _process = host.ProcessHandle; _pid = host.ProcessPid; _ownerThread = Environment.CurrentManagedThreadId;
         _live = config.Mode == "client-presentation-live";
+        _level = config.WorldBattlePresentation ? 47u : 28u;
+        _playingTable = config.WorldBattlePresentation ? 0x7105C8u : 0x710874u;
+        _exitEntry = config.WorldBattlePresentation ? 0x5F2300u : 0x5F86C0u;
         _deadline = checked(Environment.TickCount64 + (long)config.DurationSeconds * 1000);
     }
 
     internal bool Started => _started;
     internal bool AfterUnload => _afterUnload;
+    internal bool WorldQuarantineActive => InputCaptureReady;
+    internal void AcceptAuthoritativeRootAtWorld(uint tid, ref Win32Native.X86Context context)
+    {
+        EnsureStop(tid);
+        Require(_config.DiagnosticWorldState?.Role == WorldStateRole.Guest && WorldQuarantineActive &&
+            context.Eip == NativeCallDispatcher.WorldReturn, "Authoritative pose requires the explicit WorldState Guest quarantine.");
+        _authoritativeLocalPose = Read(_root + 0x20, 12).Concat(Read(_root + 0x30, 12)).Concat(Read(_root + 0x40, 36)).ToArray();
+        ++_authoritativeApplications;
+    }
     internal bool ModeCompleted => _completed;
+    // This is only a cached lifetime allowance. NativeInputCapture still
+    // validates its actual ready tuple on every original UserInput return.
+    internal bool InputCaptureReady => _started && !_afterUnload && !_completed && !_probeRestored &&
+        _gate is { Enabled: true, Restored: false, Released: false };
     internal bool ModeSucceeded => _completed && _gate is { Restored: true, Released: true } && CountersQualified() &&
+        (!_config.DiagnosticGuestCaptureFixture || _guestCaptureRetiredBeforeUnload) &&
         (_live ? _unloadQualified && _nativePauseObserved && _resumedPause >= 5000 && _resumeTransitions > 0 &&
             _movementObserved && _jumpObserved && _cameraChangesAfterInput > 0 && _menuHeld >= 30000 :
             _probeRestored && !_afterUnload && _worlds == ProbeWorldLimit);
@@ -72,10 +95,15 @@ internal sealed class ClientPresentationSession
         cameraPoseChangesAfterBothInputKinds = _cameraChangesAfterInput,
         initialCameraPoseSha256 = _initialCameraPoseHash, lastCameraPoseSha256 = _lastCameraPoseHash,
         continuousQualifiedMainMenuMilliseconds = _menuHeld, requiredMainMenuMilliseconds = 30000,
-        clientRootRemainsAtCapturedPosition = true, networkStateApplied = false,
+        clientRootRemainsAtCapturedPosition = _config.DiagnosticWorldState is null,
+        networkStateApplied = _authoritativeApplications > 0, authoritativeApplications = _authoritativeApplications,
         visualAcceptanceRequiredSeparately = true, rootOrCommandWrites = 0,
         localEntityReadAfterUnload = false,
-        counters = new Dictionary<string, uint>(_lastCounters), policy = _policy?.Summary, gate = _gate?.Summary
+        diagnosticGuestCaptureFixture = _config.DiagnosticGuestCaptureFixture,
+        inputCaptureLifetimeAllowed = InputCaptureReady,
+        guestCaptureRetiredBeforeUnload = _guestCaptureRetiredBeforeUnload,
+        counters = new Dictionary<string, uint>(_lastCounters), policy = _policy?.Summary, gate = _gate?.Summary,
+        worldFlow = _worldFlow?.Summary
     };
 
     internal void ObserveWorld(uint thread, ref Win32Native.X86Context context, uint world, bool mediaVerified)
@@ -102,8 +130,14 @@ internal sealed class ClientPresentationSession
             CaptureOwners();
             _policy = new ClientScenePolicy(_host, _image, _log);
             _policy.Capture();
-            _gate = new ClientNativeGate(_host, _image, _log);
-            _policy.Configure(_gate); _gate.Install(thread, ref context);
+            _gate = new ClientNativeGate(_host, _image, _log, _config.WorldBattlePresentation);
+            _policy.Configure(_gate, _config.DiagnosticGuestCaptureFixture, _config.WorldBattlePresentation);
+            if (_config.WorldBattlePresentation && _config.DiagnosticWorldState?.Role == WorldStateRole.Guest)
+            {
+                _worldFlow = new(_host, _image, _log);
+                _worldFlow.Configure(_gate);
+            }
+            _gate.Install(thread, ref context);
             _started = true;
             CaptureCounters();
             _log(new { @event = "client-presentation-session-begin", world, live = _live,
@@ -113,12 +147,15 @@ internal sealed class ClientPresentationSession
                 playingPauseInhibited = Read(_playing + 0x17D, 1)[0],
                 pauseViewInhibited = Read(Pointer(Pointer(0x755284) + 0x10C) + 0x144, 1)[0],
                 initialCameraPoseSha256 = _initialCameraPoseHash, clientMovementIsNotLocallySimulated = true,
+                diagnosticGuestCaptureFixture = _config.DiagnosticGuestCaptureFixture,
+                inputCaptureLifetimeAllowed = InputCaptureReady,
                 nativePolicyOwnsCodePatches = true, managedPerEntityCensusInstalled = false });
             return;
         }
 
         Require(++_worlds <= (_live ? LiveWorldLimit : ProbeWorldLimit), "Client presentation exceeded its native world budget.");
         bool ready = VerifyOwnersAndPause();
+        _worldFlow?.ObserveAtWorld(thread, ref context, _playing, _scene, WorldQuarantineActive);
         ClientScenePolicy policy = _policy ?? throw new InvalidDataException("Client session lost its scene policy.");
         policy.VerifyStableFrame();
         if (_worlds % 60 == 0) policy.VerifyCallbackGraphs();
@@ -140,18 +177,31 @@ internal sealed class ClientPresentationSession
         }
     }
 
-    internal bool TryBeginUnload(uint thread, ref Win32Native.X86Context context, uint entry)
+    internal bool TryBeginUnload(uint thread, ref Win32Native.X86Context context, uint entry,
+        Action? retireCaptureBeforeRestore = null)
     {
         EnsureStop(thread);
         if (!_started || _afterUnload || _completed) return false;
-        Require(entry == 0x5F86C0 && context.Eip == entry && context.Ecx == _playing &&
-            U(0x755294) == _flow && U(_playing) == 0x710874 && U(_playing + 0x10) == 28 &&
+        if (entry != _exitEntry) return false;
+        Require(context.Eip == entry && context.Ecx == _playing &&
+            U(0x755294) == _flow && U(_playing) == _playingTable && U(_playing + 0x10) == _level &&
             U(0x765AD4) == _profile && U(_profile) == 0x6F5A44 && U(_profile + 0x2B4) == _record &&
             U(_record) == 0x710F80 && U(_record + 0x24) == _root && U(_root) == 0x6DC4F4,
             "Client presentation unload receiver or captured local owners changed before restoration.");
         (_policy ?? throw new InvalidDataException("Client unload lost its policy.")).VerifyCallbackGraphs();
         CaptureCounters();
         ClientNativeGate gate = _gate ?? throw new InvalidDataException("Client unload lost its gate.");
+        if (_config.DiagnosticGuestCaptureFixture)
+        {
+            Require(retireCaptureBeforeRestore is not null,
+                "Guest unload requires capture retirement before restoring native patches.");
+            retireCaptureBeforeRestore!();
+            _guestCaptureRetiredBeforeUnload = true;
+            _log(new { @event = "client-presentation-capture-retired-before-unload", entry = Hex(entry),
+                receiver = Hex(context.Ecx), captureRetirementCallbackCompleted = true,
+                beforeNativePatchRestoration = !gate.Restored, beforeOriginalUnloadInstruction = true });
+        }
+        _worldFlow?.RetireAtStop(thread, ref context, entry);
         if (gate.Enabled) gate.RestoreAtUnload(thread, ref context, entry);
         Require(gate.Restored, "Client presentation reached unload without restoring its patches.");
         _afterUnload = true;
@@ -159,6 +209,8 @@ internal sealed class ClientPresentationSession
         _log(new { @event = "client-presentation-unload-begin", entry = Hex(entry), receiver = Hex(context.Ecx),
             actualNativeUnload = true, liveAcceptanceMode = _live,
             gateRestoredBeforeOriginalInstruction = true,
+            diagnosticGuestCaptureFixture = _config.DiagnosticGuestCaptureFixture,
+            guestCaptureRetiredBeforeUnload = _guestCaptureRetiredBeforeUnload,
             oldPlayerAndSceneObservationsNowForbidden = true, ownBodyObjectsCreated = 0 });
         return true;
     }
@@ -166,12 +218,12 @@ internal sealed class ClientPresentationSession
     private bool ReadyAlfea()
     {
         uint flow = TryU(0x755294), profile = TryU(0x765AD4), record = TryU(profile + 0x2B4);
-        if (flow < 0x10000 || TryU(flow + 0x1B0) != 28 || TryU(flow + 0x1B8) != 0 ||
+        if (flow < 0x10000 || TryU(flow + 0x1B0) != _level || TryU(flow + 0x1B8) != 0 ||
             TryU(profile) != 0x6F5A44 || TryU(record) != 0x710F80 || TryU(record + 0x20) != 11) return false;
         uint stack = TryU(flow + 0x1AC); if (stack > 20) return false;
         uint playing = TryU(flow + 0x15C + stack * 4), root = TryU(record + 0x24), input = TryU(0x7552A0);
         uint device = TryU(input + 0x1C), timer = TryU(0x755298);
-        return TryU(playing) == 0x710874 && TryU(playing + 0x10) == 28 && TryU(root) == 0x6DC4F4 &&
+        return TryU(playing) == _playingTable && TryU(playing + 0x10) == _level && TryU(root) == 0x6DC4F4 &&
             TryU(TryU(root + 0x3C)) == 0x6E7358 && TryU(input) == 0x6F5508 &&
             TryU(TryU(input + 0x18)) == 0x703090 && TryU(device) == 0x7116CC &&
             TryU(device + 0x14) == 3 && TryU(timer) == 0x702F94 && Read(timer + 0x40, 1)[0] == 0;
@@ -224,7 +276,9 @@ internal sealed class ClientPresentationSession
             U(_character + 0x12C) == _move && U(_character + 0x130) == _command &&
             U(_move + 0x160) == _character && U(_machine + 0x124) == _character && U(_machine + 0x12C) == _command,
             "Client presentation command/controller relationships changed.");
-        Require(Read(_root + 0x74, 12).SequenceEqual(_rootPosition),
+        Require(_authoritativeLocalPose is { } pose ?
+            Read(_root + 0x20, 12).Concat(Read(_root + 0x30, 12)).Concat(Read(_root + 0x40, 36)).SequenceEqual(pose) :
+            Read(_root + 0x74, 12).SequenceEqual(_rootPosition),
             "Client policy allowed local player translation without a server state application.");
         uint stack = U(_flow + 0x1AC); Require(stack <= 20, "Client presentation flow stack exceeded its bound.");
         bool retained = false; uint top = 0;
@@ -233,10 +287,10 @@ internal sealed class ClientPresentationSession
             uint state = U(_flow + 0x15C + index * 4); retained |= state == _playing;
             if (index == stack) top = state;
         }
-        Require(retained && top >= 0x10000 && U(_playing) == 0x710874 && U(_playing + 0x10) == 28,
+        Require(retained && top >= 0x10000 && U(_playing) == _playingTable && U(_playing + 0x10) == _level,
             "Client presentation captured PlayingLevel was not retained under its overlay.");
         byte nativePaused = Read(_timer + 0x40, 1)[0]; Require(nativePaused is 0 or 1, "Native client timer left its pause0/1 domain.");
-        bool ready = top == _playing && U(_flow + 0x1B0) == 28 && U(_flow + 0x1B8) == 0 &&
+        bool ready = top == _playing && U(_flow + 0x1B0) == _level && U(_flow + 0x1B8) == 0 &&
             U(_device + 0x14) == 3 && nativePaused == 0;
         // The same timer also pauses when the application loses focus. Only
         // an actual, settled level61 DiaryMenu above this PlayingLevel qualifies.
@@ -400,7 +454,11 @@ internal sealed class ClientPresentationSession
         return Value("typed-withheld") > 0 && Value("typed-presentation-preserved") > 0 &&
             Value("ai-calls-withheld") > 0 && Value("foreign-thread-calls") == 0 &&
             (Value("animation-state-tags-withheld") > 0 || _lastCounters.Any(pair =>
-                pair.Key.StartsWith("region:actor-loop-callback-", StringComparison.Ordinal) && pair.Value > 0));
+                pair.Key.StartsWith("region:actor-loop-callback-", StringComparison.Ordinal) && pair.Value > 0)) &&
+            (!_config.DiagnosticGuestCaptureFixture ||
+                Value(_config.WorldBattlePresentation ? "region:world-battle-pad-after-ordinary" : "region:diagnostic-pad-after-jump") > 0 &&
+                Value("region:diagnostic-pad-after-confirm") > 0 &&
+                Value("region:diagnostic-pad-after-pause") > 0);
     }
     private uint ClassId(uint table)
     {

@@ -26,6 +26,10 @@ namespace winx::reconstruction
         std::unique_ptr<sparkplug::reconstruction::spBaseObject> vfunc_10(sparkplug::reconstruction::spCloneManager&) const override;
         bool vfunc_14(sparkplug::reconstruction::spBaseObject&,sparkplug::reconstruction::spCloneManager&) const override;
         void ResetFieldsForAnalysis() noexcept;
+        // Analytical raw field storage used by the measured Mosquito Exit
+        // consumer. This is not a newly attributed native controller method.
+        // Other captured bytes and the existing15-word Reset stay unchanged.
+        void ClearWord1E0ForAnalysis() noexcept;
         const OwnBytesForAnalysis& GetControllerBytesForAnalysis() const noexcept { return own_; }
     private:
         OwnBytesForAnalysis own_;

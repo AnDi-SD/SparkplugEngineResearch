@@ -60,3 +60,18 @@ Copy, исходная конструкция, lifecycle, прочие конт�
 фабричным контроллером проверены отдельно. Это не устанавливает concrete
 actor/entity factory, общий игровой цикл, другие фазы Minotaur или полный
 граф construction/ownership.
+
+## Raw word1E0 consumer
+
+The captured PC [Mosquito Exit](wx-mosquito-attack-ai-action.md) follows its
+borrowed owner144/character12C binding to a typed controller and writes zero
+to raw word1E0. `ClearWord1E0ForAnalysis` exposes only that field-storage
+operation on the existing captured controller bytes. It does not name a
+standalone native controller method or recover a general movement protocol.
+The fifteen Reset destinations exclude1E0 and retain their existing behavior.
+All other represented controller and entity bytes remain unchanged.
+
+The Mosquito consumer has its own stable borrowed-record profile. It does not
+qualify native construction, ownership, teardown, mutable bindings or aliasing.
+Native full7192-byte state guards remain distinct from the portable captured
+field20/entity28..123/own124..1C17 projection.

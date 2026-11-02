@@ -22,6 +22,10 @@ internal sealed class OrdinaryPlayerProjectileRole
     private readonly Dictionary<string, uint> _counts = [];
     private readonly List<object> _samples = [];
     private Func<bool> _ownsGeneration = () => false, _privateLifecycle = () => false, _ownActionAuthorized = () => false;
+    private Func<uint>? _ownEnemyNodeProvider;
+    private uint _ownDirectedLaunches, _ownForwardLaunches, _ownAimQueries;
+    private bool _primaryLaunchForbidden;
+    private uint _primaryLaunchEscapes;
     private uint _ownInstance, _ownCharacter, _ownManager, _ownMetadata, _ownRegion, _ownRoot, _ownMachine;
     private uint _primaryInstance, _primaryCharacter, _primaryManager, _primaryMetadata, _primaryRoot;
     private uint _profile, _targetManager, _selection20, _selection24, _player28, _scene, _epoch;
@@ -69,7 +73,13 @@ internal sealed class OrdinaryPlayerProjectileRole
         maximumOwnLaunches = _maxOwnLaunches, verifiedWorlds = _worlds, retireEntry = Hex(_retireEntry),
         pendingNativeFrames = _frames.Count, maximumNativeFrames = 8, maximumTeamIgnores = 64,
         counts = new Dictionary<string, uint>(_counts), samples = _samples.ToArray(),
-        onlyContextChanges = "own factory507DC1:EAX=0; role1 teammate4FF664:EIP=4FF628; own launch508289:EIP=508320",
+        onlyContextChanges = _ownEnemyNodeProvider is null ?
+            "own factory507DC1:EAX=0; role1 teammate4FF664:EIP=4FF628; own launch508289:EIP=508320" :
+            "own factory507DC1:EAX=0; teammate4FF664:EIP=4FF628; own508289:EAX=freshEnemyNode,EIP=508230 or EIP=508320",
+        directedAimProviderConfigured = _ownEnemyNodeProvider is not null,
+        directedLaunches = _ownDirectedLaunches, forwardLaunches = _ownForwardLaunches, aimQueries = _ownAimQueries,
+        selectedNodePointerPersisted = false, targetOrPM34CWritesByProvider = 0,
+        primaryLaunchForbidden = _primaryLaunchForbidden, primaryLaunchEscapes = _primaryLaunchEscapes,
         gameFieldWrites = 0, nativeCallsAdded = 0, rawMetadataOrRoleWrites = 0,
         targetOrCharacterSingletonSwaps = 0, floatingPointInstructionsEmitted = false,
         ordinaryPoolTable = Hex(ProjectileTable), otherProjectileFamiliesAdmitted = false,
@@ -81,7 +91,7 @@ internal sealed class OrdinaryPlayerProjectileRole
         uint ownInstance, uint ownCharacter, uint ownManager, uint ownMetadata, uint ownTargetRegion,
         uint primaryInstance, uint primaryCharacter, uint primaryManager, uint primaryMetadata,
         Func<bool> ownsCurrentGeneration, Func<bool> privateLifecycleActive, Func<bool> ownActionAuthorized,
-        uint maximumOwnLaunches = 1)
+        uint maximumOwnLaunches = 1, Func<uint>? ownEnemyNodeProvider = null, bool primaryLaunchForbidden = false)
     {
         Ensure(tid);
         Require(!_bound && !_retired && !_failed && _host.ImageBase == 0x400000 &&
@@ -90,6 +100,8 @@ internal sealed class OrdinaryPlayerProjectileRole
         _ownsGeneration = ownsCurrentGeneration ?? throw new ArgumentNullException(nameof(ownsCurrentGeneration));
         _privateLifecycle = privateLifecycleActive ?? throw new ArgumentNullException(nameof(privateLifecycleActive));
         _ownActionAuthorized = ownActionAuthorized ?? throw new ArgumentNullException(nameof(ownActionAuthorized));
+        _ownEnemyNodeProvider = ownEnemyNodeProvider;
+        _primaryLaunchForbidden = primaryLaunchForbidden;
         Require(_ownsGeneration() && _privateLifecycle() && !_ownActionAuthorized(),
             "Ordinary role must bind in the owned stopped lifecycle before any own action.");
         _ownInstance = ownInstance; _ownCharacter = ownCharacter; _ownManager = ownManager;
@@ -125,6 +137,11 @@ internal sealed class OrdinaryPlayerProjectileRole
         Pin(0x4FFFE2, "E879F4FFFF"); Pin(0x4FF6DD, "0FB745048BC883E108");
         Pin(0x508289, "8B814801000085C08B8E44030000751B");
         Pin(0x508320, "8B46248B4024058C000000508D4C2428E8AB6EF0FF");
+        if (_ownEnemyNodeProvider is not null)
+        {
+            Pin(0x508230, "D9407CD8642420D94078D864241CD94074D8642418D95C240CD95C2410D95C2414E9F7000000");
+            Require(!_host.Breakpoints.Contains(0x508230), "Directed native branch entry already has a breakpoint owner.");
+        }
         Pin(0x50A210, "8B81340300008B5424045052E8CFDEFFFFC20400");
         _bound = true;
         Hook(0x5078C0, "6AFFE94FF8F4FF", "factory-entry", Factory);
@@ -167,7 +184,7 @@ internal sealed class OrdinaryPlayerProjectileRole
         Require(Active && context.Eip == NativeCallDispatcher.WorldReturn && _frames.Count == 0 && _aimVerified && NativeRolePoolsReady,
             "Ordinary role WorldRET has an unmatched frame or incomplete preparation.");
         VerifyBaseGraph(initialized: true); VerifyAim();
-        Require(++_worlds <= 36000, "Ordinary role World budget exceeded.");
+        Require(++_worlds <= NativeObservationBudget.WorldLimit, "Ordinary role World budget exceeded.");
     }
 
     internal void RetireBeforeOwnDelete(uint tid, ref Win32Native.X86Context context)
@@ -177,6 +194,25 @@ internal sealed class OrdinaryPlayerProjectileRole
         VerifyBaseGraph(initialized: _factoryReturns != 0); _retireEntry = context.Eip; _retired = true;
         Sample("retired-before-own-delete", new { epoch = _epoch, entry = Hex(context.Eip),
             callbacksDormantBeforeDelete = true, historicalObjectReadsNowForbidden = true });
+    }
+
+    // Read-only proof for the separate network-action observer. The existing
+    // collision policy owns the frame and all context substitutions.
+    internal bool TryOwnEnemySend(uint tid, in Win32Native.X86Context context,
+        out uint projectile, out uint target, out uint metadata)
+    {
+        Ensure(tid); projectile = target = metadata = 0;
+        if (!Active || _frames.Count == 0 || _frames[^1].Kind != "collision" ||
+            _frames[^1].Receiver != context.Esi || U(context.Esi + 0x18) != _ownManager) return false;
+        Frame frame = _frames[^1]; VerifyBaseGraph(initialized: true); VerifyKnownProjectile(context.Esi, _ownManager);
+        Require(context.Eip == 0x4FF750 && context.Ecx == context.Esi &&
+            context.Esp == checked(frame.Esp - 0x70) && U(context.Esp) == context.Edi &&
+            U(context.Esp + 4) == 0x2717 && U(context.Esp + 8) == U(context.Esi + 0x3C) &&
+            context.Edi != _ownInstance && context.Edi != _primaryInstance &&
+            U(context.Ebp + 8) == context.Edi && (Word(context.Ebp + 4) & 8) != 0 &&
+            Byte(context.Esi + 0x30) == 1 && frame.TeamIgnores == 0,
+            "Own enemy send lost its paired native collision/target/metadata/active-pool proof.");
+        projectile = context.Esi; target = context.Edi; metadata = context.Ebp; return true;
     }
 
     private void Factory(uint tid, ref Win32Native.X86Context c)
@@ -295,6 +331,11 @@ internal sealed class OrdinaryPlayerProjectileRole
 
     private void Launch(uint tid, ref Win32Native.X86Context c)
     {
+        if (_primaryLaunchForbidden && c.Ecx == _primaryManager)
+        {
+            VerifyBaseGraph(initialized: true); VerifyAim(); ++_primaryLaunchEscapes;
+            throw new InvalidDataException("Primary launch bypassed its explicit one-game capture-only wrapper policy.");
+        }
         if (c.Ecx != _ownManager) return;
         Require(_aimVerified && NativeRolePoolsReady && !_privateLifecycle() && _ownActionAuthorized() &&
             U(c.Esp) == 0x50A221 && U(c.Esp + 4) <= 2 && _ownLaunches < _maxOwnLaunches,
@@ -319,6 +360,29 @@ internal sealed class OrdinaryPlayerProjectileRole
             c.Esp == checked(frame.Esp - 0x48) && c.Edi == _ownInstance && mode is not 1 and not 2,
             "Own forward branch changed its Character/Instance/ESP or entered an aimed mode.");
         VerifyBaseGraph(initialized: true); VerifyAim(); frame.ForwardChosen = true;
+        if (_ownEnemyNodeProvider is not null)
+        {
+            uint selection20 = U(_targetManager + 0x20), selection24 = U(_targetManager + 0x24), player28 = U(_targetManager + 0x28),
+                manager34C = U(_ownManager + 0x34C);
+            Require(++_ownAimQueries <= _maxOwnLaunches, "Own aim provider exceeded its finite launch budget.");
+            uint node = _ownEnemyNodeProvider();
+            VerifyBaseGraph(initialized: true); VerifyAim();
+            Require(U(_targetManager + 0x20) == selection20 && U(_targetManager + 0x24) == selection24 &&
+                U(_targetManager + 0x28) == player28 && U(_ownManager + 0x34C) == manager34C,
+                "Own point provider changed a target cache or the borrowed PM point field.");
+            if (node != 0)
+            {
+                Require(node != _ownRoot && node != _primaryRoot && U(node) == 0x6DC4F4 && U(node + 0x3C) == _scene,
+                    "Own point provider returned a teammate or a foreign/untyped Node.");
+                Require(!_host.Breakpoints.Contains(0x508230), "Directed native branch cannot jump into another breakpoint owner.");
+                Add("own-native-directed-point", _maxOwnLaunches); ++_ownDirectedLaunches;
+                c.Eax = node; c.Eip = 0x508230;
+                Sample("own-native-directed-point", new { node = Hex(node), continuation = Hex(c.Eip),
+                    nativeEmitterAndVectorMathRetained = true, targetAndPM34CUnchanged = true });
+                return;
+            }
+        }
+        ++_ownForwardLaunches;
         Add("own-native-forward-fallback", _maxOwnLaunches); c.Eip = 0x508320;
     }
 

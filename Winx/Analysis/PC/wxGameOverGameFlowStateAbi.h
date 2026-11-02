@@ -19,6 +19,15 @@ namespace winx::evidence::pc
     inline constexpr std::uint32_t wxGameOverGameFlowStateRTTI=0x00768630;
     inline constexpr std::uint32_t wxGameOverGameFlowStateInheritedExit=0x005F14B0;
     inline constexpr std::uint32_t wxGameOverGameFlowStateExitCell=0x0070F79C;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateInheritedSlot28=0x005F16D0;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSlot28Cell=0x0070F7A0;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateInheritedSlot2C=0x005F15B0;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSlot2CCell=0x0070F7A4;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSlot38Cell=0x0070F7B0;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSlot38Wrapper=0x005EFD40;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSlot38CommonCallee=0x004F3DF0;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSlot40Cell=0x0070F7B8;
+    inline constexpr std::uint32_t wxGameOverGameFlowStateSharedSlot40=0x005D2BF0;
     inline constexpr std::uint32_t wxGameOverGameFlowStateEntry=0x005E04F0;
     inline constexpr std::uint32_t wxGameOverGameFlowStateEntryMenu44Cell=0x0070F7BC;
     inline constexpr std::uint32_t wxGameOverGameFlowStateEntryMenu44Target=0x005F1CD0;

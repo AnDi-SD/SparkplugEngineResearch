@@ -5,7 +5,7 @@ namespace WinxCoop.RuntimeProbe;
 /// <summary>Our input envelope, not a native command layout or network packet.</summary>
 internal readonly record struct NativeBodyInputIntent(
     uint Generation, uint Sequence, float Magnitude, float RelativeDirection,
-    float ReferenceHeading, bool JumpHeld, long ObservedAtMilliseconds);
+    float ReferenceHeading, bool JumpHeld, long ObservedAtMilliseconds, bool OrdinaryAttackHeld = false);
 
 internal enum NativeBodyInputAvailability { Ready, Paused, Dead, Disconnected }
 internal enum NativeBodyInputEnqueueResult
@@ -25,6 +25,8 @@ internal sealed class NativeBodyInputController
     private const uint CommandTable = 0x703090;
     private const int CommandBytes = 0x74;
     private const float MaximumRadians = 3.1415927410125732421875f;
+    private readonly bool _allowOrdinaryAttack;
+    private ulong _ordinaryAttackWrites;
     private readonly DebuggerHost _host;
     private readonly uint _command, _generation;
     private readonly int _ownerThread, _capacity, _timeoutMilliseconds;
@@ -53,11 +55,12 @@ internal sealed class NativeBodyInputController
     internal NativeBodyInputController(DebuggerHost host, uint command, uint generation,
         int capacity, int timeoutMilliseconds, Action verifyOwnership,
         Func<uint, int, byte[]> read, Action<uint, byte[]> write, Func<long> clock,
-        Action<object>? log = null)
+        Action<object>? log = null, bool allowOrdinaryAttack = false)
     {
         if (command < 0x10000 || command > uint.MaxValue - CommandBytes || generation == 0 ||
             capacity is < 1 or > 256 || timeoutMilliseconds is < 1 or > 10000)
             throw new ArgumentOutOfRangeException(nameof(generation), "Invalid bounded body-input configuration.");
+        _allowOrdinaryAttack = allowOrdinaryAttack;
         _host = host; _command = command; _generation = generation; _capacity = capacity;
         _timeoutMilliseconds = timeoutMilliseconds; _verifyOwnership = verifyOwnership;
         _read = read; _write = write; _clock = clock; _log = log;
@@ -77,7 +80,9 @@ internal sealed class NativeBodyInputController
         accepted = _accepted, suppressedBeforeReady = _suppressed, backpressure = _full,
         rejected = _rejected, applied = _applied, held = _held, timeouts = _timeouts,
         neutralizations = _neutralizations, sparseWriteCalls = _writeCalls, lastStep = _lastStep.ToString(),
-        attackFieldsWritten = false, nativePointersDeliveredByIntent = false, guestGameplayQualified = false
+        ordinaryAttackAllowed = _allowOrdinaryAttack, ordinaryAttackWrites = _ordinaryAttackWrites,
+        attackFieldsWritten = _ordinaryAttackWrites != 0, chargedAttackFieldWritten = false,
+        nativePointersDeliveredByIntent = false, guestGameplayQualified = false
     };
 
     /// <summary>
@@ -94,7 +99,8 @@ internal sealed class NativeBodyInputController
         if (intent.Generation != _generation) { ++_rejected; return NativeBodyInputEnqueueResult.WrongGeneration; }
         if (_lastEnqueued == uint.MaxValue) return Fence(NativeBodyInputEnqueueResult.SequenceExhausted);
         if (intent.Sequence != _lastEnqueued + 1) return Fence(NativeBodyInputEnqueueResult.SequenceMismatch);
-        if (!float.IsFinite(intent.Magnitude) || intent.Magnitude is < 0 or > 1 ||
+        if (intent.OrdinaryAttackHeld && !_allowOrdinaryAttack ||
+            !float.IsFinite(intent.Magnitude) || intent.Magnitude is < 0 or > 1 ||
             !Angle(intent.RelativeDirection) || !Angle(intent.ReferenceHeading))
             return Fence(NativeBodyInputEnqueueResult.InvalidValue);
         long now = Now();
@@ -223,21 +229,29 @@ internal sealed class NativeBodyInputController
             throw new InvalidDataException("Body input private command identity changed.");
         return bytes;
     }
-    private void Apply(byte[] before, in NativeBodyInputIntent intent) => WriteFields(before,
-        new (int Offset, byte[] Bytes)[]
+    private void Apply(byte[] before, in NativeBodyInputIntent intent)
+    {
+        var fields = new List<(int Offset, byte[] Bytes)>
         {
             (4, BitConverter.GetBytes(intent.Magnitude)), (8, BitConverter.GetBytes(intent.RelativeDirection)),
             (0x14, BitConverter.GetBytes(intent.ReferenceHeading)), (0x1A, [(byte)(intent.JumpHeld ? 1 : 0)])
-        });
+        };
+        if (_allowOrdinaryAttack) fields.Add((0x20, [(byte)(intent.OrdinaryAttackHeld ? 1 : 0)]));
+        WriteFields(before, fields.ToArray());
+    }
     // Native heading/direction can change during hurt/turn feedback. Releasing
     // locomotion must preserve those current angles, not restore an old intent.
-    private void Neutralize(byte[] before) => WriteFields(before,
-        new (int Offset, byte[] Bytes)[] { (4, BitConverter.GetBytes(0f)), (0x1A, [0]) });
+    private void Neutralize(byte[] before)
+    {
+        var fields = new List<(int Offset, byte[] Bytes)> { (4, BitConverter.GetBytes(0f)), (0x1A, [0]) };
+        if (_allowOrdinaryAttack) fields.Add((0x20, [0]));
+        WriteFields(before, fields.ToArray());
+    }
     private void WriteFields(byte[] before, (int Offset, byte[] Bytes)[] fields)
     {
         foreach (var field in fields)
             if (!before.AsSpan(field.Offset, field.Bytes.Length).SequenceEqual(field.Bytes))
-            { _write(checked(_command + (uint)field.Offset), field.Bytes); ++_writeCalls; }
+            { _write(checked(_command + (uint)field.Offset), field.Bytes); ++_writeCalls; if (field.Offset == 0x20) ++_ordinaryAttackWrites; }
         byte[] after = ReadCommand();
         foreach (var field in fields)
             if (!after.AsSpan(field.Offset, field.Bytes.Length).SequenceEqual(field.Bytes))

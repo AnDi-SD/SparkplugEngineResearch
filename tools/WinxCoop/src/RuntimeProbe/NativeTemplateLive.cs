@@ -8,7 +8,7 @@ namespace WinxCoop.RuntimeProbe;
 /// </summary>
 internal sealed partial class NativeTemplateProbe
 {
-    private const uint BodyLiveWorldLimit = 36000;
+    private static uint BodyLiveWorldLimit => NativeObservationBudget.WorldLimit;
     private bool _bodyLiveHolding, _bodyLiveAppearanceVerified;
     private uint _bodyLiveWorlds, _bodyLivePostUnloadWorlds;
     private long _bodyLiveDeadline, _bodyLiveStarted, _bodyMenuHeldSince, _bodyMenuHeldMilliseconds;

@@ -123,9 +123,12 @@ internal sealed class ClientScenePolicy
         CaptureClock(Pointer(0x755298), visited, 0);
     }
 
-    internal void Configure(ClientNativeGate gate)
+    internal void Configure(ClientNativeGate gate, bool diagnosticGuestPadInput = false,
+        bool worldBattlePresentation = false)
     {
         Require(_captured, "Client scene policy has not been captured.");
+        Require(!worldBattlePresentation || diagnosticGuestPadInput,
+            "Battle presentation raw ordinary input requires the separate diagnostic Guest pad policy.");
         foreach (NativeType type in _quarantine.Values.OrderBy(t => t.Table))
             gate.AddRecipientQuarantine(type.Name, type.Table, type.ClassId, type.Notify, [0x1C, 0x1D]);
         AddRegion(gate, "actor-loop-callback-a", 0x5A2632, "5653FFD083C408", 0x5A2639);
@@ -140,7 +143,26 @@ internal sealed class ClientScenePolicy
         AddVirtualRegion(gate, "side-quest-manager", 0x5764B1, 0x1C);
         AddCall(gate, "fairy-stars", 0x5764C9, 0x4F1220);
         AddCall(gate, "profile-update", 0x5764E3, 0x4E6680);
-        AddRegion(gate, "input-direct-interaction", 0x604EB7, "578BCEE841FCFFFF", 0x604EBF);
+        if (diagnosticGuestPadInput)
+        {
+            // Native logical9/1E queries only write command20 (logical9 also
+            // writes companion2A). The E5 Battle opt-in keeps those original
+            // raw producers; it still skips charged21/shield27 below. No wx
+            // action is executed here, and E2's recipient/AI/physics/Actor-tag
+            // quarantine remains responsible for suppressing consequences.
+            if (worldBattlePresentation)
+                gate.AddForwardRedirect("world-battle-pad-after-ordinary", 0x604B9F, Convert.FromHexString("8B4E3C6A1D"),
+                    0x604BC1, Convert.FromHexString("8B4E3C6A07"));
+            else
+                gate.AddForwardRedirect("diagnostic-pad-after-jump", 0x604B7A, Convert.FromHexString("8B4E3C6A09"),
+                    0x604BC1, Convert.FromHexString("8B4E3C6A07"));
+            gate.AddForwardRedirect("diagnostic-pad-after-confirm", 0x604BD2, Convert.FromHexString("8B4E3C6A10"),
+                0x604D75, Convert.FromHexString("8B4E3C6A26"));
+            gate.AddForwardRedirect("diagnostic-pad-after-pause", 0x604DA8, Convert.FromHexString("8B4E3C6A15"),
+                0x604E0C, Convert.FromHexString("5F5E5BC20400"));
+        }
+        else
+            AddRegion(gate, "input-direct-interaction", 0x604EB7, "578BCEE841FCFFFF", 0x604EBF);
         // Keep the helper's native logical6 pause-command tail. Its preceding
         // cheat paths are skipped while the native prologue, argument load and
         // four-register epilogue retain their original stack relationship.

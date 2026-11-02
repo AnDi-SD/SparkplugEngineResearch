@@ -47,13 +47,14 @@ namespace
         auto m = Input(); auto wire = Carrier(m);
         Check(wire.payload.size() == WireBytes && WireBytes == 140, "exact scalar payload size independent of host padding");
         // Independent little-endian scalar fixture, not another packet codec.
-        const unsigned char prefix[] = {4,0,0,0,3,0,0,0,8,7,6,5,4,3,2,1};
+        const unsigned char prefix[] = {5,0,0,0,3,0,0,0,8,7,6,5,4,3,2,1};
         Check(std::memcmp(wire.payload.data(), prefix, sizeof(prefix)) == 0, "version/kind/session golden scalar bytes");
         const auto restored = Decode(wire);
         Check(restored && restored->input.sourceSequence == 1 && restored->input.captureOrdinal == 20 &&
             restored->input.magnitude == 1 && restored->input.relativeDirection == -1.5f && restored->input.referenceHeading == 2.5f &&
             restored->input.buttons == 1 && restored->input.hostIngressMilliseconds == 0, "native intent preserves exact admitted values");
-        auto bad = wire; bad.payload[0] = 3; Check(!Decode(bad), "V3 cannot be interpreted as diagnostic4");
+        auto bad = wire; bad.payload[0] = 4; Check(!Decode(bad), "diagnostic4 cannot be interpreted as diagnostic5");
+        bad = wire; bad.payload[0] = 3; Check(!Decode(bad), "V3 cannot be interpreted as diagnostic5");
         bad = wire; bad.classId ^= 1; Check(!Decode(bad), "foreign application class rejected");
         bad = wire; bad.key = static_cast<unsigned>(Kind::Grant); Check(!Decode(bad), "carrier kind must match envelope");
         bad = wire; bad.payload.pop_back(); Check(!Decode(bad), "truncated scalar envelope rejected");
@@ -62,7 +63,11 @@ namespace
     void IntentRejectsAndCredits()
     {
         auto m = Input(); m.input.hostIngressMilliseconds = 1001; Check(!Encode(m), "guest cannot spoof host ingress time");
-        m = Input(); m.input.buttons = 2; Check(!Encode(m), "attack/other button fields are not admitted");
+        m = Input(); m.input.buttons = 2; auto ordinary = Decode(Carrier(m));
+        Check(ordinary && ordinary->input.buttons == 2, "ordinary attack-held round-trips independently");
+        m = Input(); m.input.buttons = 3; auto combined = Decode(Carrier(m));
+        Check(combined && combined->input.buttons == 3, "jump and ordinary attack-held remain independent bits");
+        m = Input(); m.input.buttons = 4; Check(!Encode(m), "charged/shield/snow/unknown button fields are not admitted");
         m = Input(); m.input.magnitude = std::numeric_limits<float>::quiet_NaN(); Check(!Encode(m), "NaN magnitude rejected");
         m = Input(); m.input.relativeDirection = 4; Check(!Encode(m), "unqualified direction range rejected");
         m = Input(); m.input.sourceSequence = 0; Check(!Encode(m), "sequence zero rejected");
@@ -201,7 +206,7 @@ namespace
         using namespace winxcoop::networking;
         const std::string caseName = extendedActorLease ? "actor-lease-2000-gap" : odd ? "odd-publication" : "zero-pid";
         const std::wstring suffix = (extendedActorLease ? L"Lease2000." : odd ? L"Odd." : L"Pid0.") + std::to_wstring(GetCurrentProcessId()) + L"." + std::to_wstring(GetTickCount64());
-        const std::wstring mappingName = L"Local\\WinxCoop.DiagnosticInput4.Regression." + suffix;
+        const std::wstring mappingName = L"Local\\WinxCoop.DiagnosticInput5.Regression." + suffix;
         const std::uint64_t nonce = (GetTickCount64() << 16) ^ GetCurrentProcessId() ^ (odd ? 1ull : 2ull);
         const auto readyFile = directory / (caseName + ".ready.json"), reportFile = directory / (caseName + ".bridge.json");
         const std::wstring arguments = L"--role host --bind 127.0.0.1:0 --mapping " + QuoteArgument(mappingName) +
@@ -333,8 +338,8 @@ namespace
     void ContinuousCreditProcessCase(const std::filesystem::path& executable, const std::filesystem::path& directory)
     {
         const auto suffix = std::to_wstring(GetCurrentProcessId()) + L"." + std::to_wstring(GetTickCount64());
-        const auto hostName = L"Local\\WinxCoop.DiagnosticInput4.CreditHost." + suffix;
-        const auto guestName = L"Local\\WinxCoop.DiagnosticInput4.CreditGuest." + suffix;
+        const auto hostName = L"Local\\WinxCoop.DiagnosticInput5.CreditHost." + suffix;
+        const auto guestName = L"Local\\WinxCoop.DiagnosticInput5.CreditGuest." + suffix;
         const std::uint64_t hostNonce = (GetTickCount64() << 16) ^ GetCurrentProcessId(), guestNonce = hostNonce + 1;
         const auto hostReady = directory / "credit-host.ready.json", guestReady = directory / "credit-guest.ready.json";
         const auto hostReport = directory / "credit-host.bridge.json", guestReport = directory / "credit-guest.bridge.json";
@@ -438,7 +443,8 @@ namespace
                     Check(rawPending.size() < RingCapacity, "bounded raw capture FIFO must never overwrite or coalesce");
                     const auto ordinal = captured + 1;
                     RawSample sample{epoch, ordinal, GetTickCount64(), 1.0f, (ordinal & 1) ? 0.25f : -0.25f,
-                        (ordinal & 1) ? -0.5f : 0.5f, ordinal != 1 && ordinal % 30 == 0 ? 1u : 0u};
+                        (ordinal & 1) ? -0.5f : 0.5f, (ordinal != 1 && ordinal % 30 == 0 ? 1u : 0u) |
+                            ((ordinal >= 12 && ordinal <= 14) || (ordinal >= 28 && ordinal <= 32) ? 2u : 0u)};
                     if(!captured) initialGrant = *observedGrant; // Initial neutral arm retains the prior Ready tick grant.
                     original[captured++] = sample; rawPending.push_back(sample);
                     maximumRaw = (std::max)(maximumRaw, static_cast<std::uint32_t>(rawPending.size()));

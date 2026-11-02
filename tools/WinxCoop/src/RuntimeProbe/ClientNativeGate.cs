@@ -41,19 +41,23 @@ internal sealed class ClientNativeGate
     private string? _codeHash;
     private bool _installed, _restored, _released, _publicationStarted, _restoredFromUnload;
     private uint _restoreEntry, _releaseWorldStops, _restoreStopSequence;
+    private readonly uint _level, _playingTable, _exitEntry;
 
     private sealed record Region(string Name, uint Site, byte[] Original, uint Next, uint EspDelta, uint? Target,
         byte[]? DestinationSignature = null);
     private sealed record Recipient(string Name, uint Table, uint Class, uint OriginalNotify, uint[] AllowedCodes);
     private sealed record Patch(string Name, uint Address, byte[] Original, byte[] Replacement, bool Vtable);
 
-    internal ClientNativeGate(DebuggerHost host, PEReader image, Action<object> log)
+    internal ClientNativeGate(DebuggerHost host, PEReader image, Action<object> log, bool battlePresentation = false)
     {
         Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 &&
             host.ImageBase == 0x400000 && host.MainThreadId != 0,
             "Native client gate requires its pinned owned debug stop.");
         _host = host; _image = image; _log = log; _process = host.ProcessHandle;
         _pid = host.ProcessPid; _ownerThread = Environment.CurrentManagedThreadId;
+        _level = battlePresentation ? 47u : 28u;
+        _playingTable = battlePresentation ? 0x7105C8u : 0x710874u;
+        _exitEntry = battlePresentation ? 0x5F2300u : 0x5F86C0u;
     }
 
     internal bool Enabled => _installed && !_restored;
@@ -82,7 +86,7 @@ internal sealed class ClientNativeGate
         maximumLiveStackBytesPerThread = MaximumLiveStackBytes, wholeHeapCodePointerAbsenceClaimed = false,
         integerRegistersAndFlagsSaved = true, floatingPointInstructionsEmitted = false,
         originalNotifyReturnAddressPreserved = true, managedPerEntityCallbacks = false,
-        vtablePolicyWrites = _recipients.Count, gameWorldFieldWrites = 0,
+        vtablePolicyWrites = _patches.Count(patch => patch.Vtable), gameWorldFieldWrites = 0,
         nativeRoleOrTimerWrites = 0, fullClientAuthorityClaimed = false
     };
 
@@ -238,6 +242,36 @@ internal sealed class ClientNativeGate
         }
     }
 
+    internal void AddOriginalVtableForwardAtWorld(uint thread, ref Win32Native.X86Context context,
+        string name, uint table, uint slot, uint expectedFunction, uint targetFunction, byte[] expectedTargetPrefix)
+    {
+        EnsureStop(thread);
+        Require(context.Eip == NativeCallDispatcher.WorldReturn && Enabled && !_released &&
+            _level == 47 && _playingTable == 0x7105C8 && table == _playingTable && slot == 0x30 &&
+            U(_playing) == table && U(_playing + 0x10) == _level &&
+            U(_playing + 0x1BC) == 2 && U(_playing + 0x188) == 1 &&
+            expectedFunction == 0x5F3230 && targetFunction == 0x5F76D0 &&
+            expectedTargetPrefix.Length is >= 6 and <= 32 && !string.IsNullOrWhiteSpace(name),
+            "Original playing-update forward is outside its owned ready Battle WorldRET.");
+        uint address = checked(table + slot);
+        byte[] original = BitConverter.GetBytes(expectedFunction), replacement = BitConverter.GetBytes(targetFunction);
+        Require(ImageWord(address) == expectedFunction && Read(address, 4).SequenceEqual(original) &&
+            !_patches.Any(patch => patch.Name == name || Overlaps(patch.Address, patch.Original.Length, address, 4)) &&
+            _patches.Count < 99, "Original playing-update vtable slot is changed, repeated or outside bounds.");
+        ValidateOriginal(targetFunction, expectedTargetPrefix);
+        ValidateOriginal(expectedFunction, Image(expectedFunction, 12));
+        // Track before publication: a failed/partial write must never leave an
+        // untracked policy, and restoration uses the same owner as all gates.
+        _patches.Add(new(name, address, original, replacement, true));
+        WritePatch(address, replacement, true);
+        _log(new { @event = "client-native-original-playing-update-forward", name,
+            table = Hex(table), slot, original = Hex(expectedFunction), target = Hex(targetFunction),
+            receiver = Hex(_playing), thread, debugStop = _host.DebugStopSequence,
+            nativeArgumentsAndReturnAddressUnchanged = true, newCodeEmitted = false,
+            countdownPhase = U(_playing + 0x1BC), originalBattleInitialized = U(_playing + 0x188),
+            restoredBySameNativeGateOwner = true });
+    }
+
     internal IReadOnlyDictionary<string, uint> ReadCounters()
     {
         EnsureStop(_host.MainThreadId);
@@ -260,8 +294,8 @@ internal sealed class ClientNativeGate
     internal void RestoreAtUnload(uint thread, ref Win32Native.X86Context context, uint entry = 0x5F86C0)
     {
         EnsureStop(thread);
-        Require(Enabled && entry == 0x5F86C0 && context.Eip == entry && context.Ecx == _playing &&
-            U(0x755294) == _flow && U(_playing) == 0x710874 && U(_playing + 0x10) == 28,
+        Require(Enabled && entry == _exitEntry && context.Eip == entry && context.Ecx == _playing &&
+            U(0x755294) == _flow && U(_playing) == _playingTable && U(_playing + 0x10) == _level,
             "Native client restoration requires the exact captured PlayingLevel unload entry.");
         byte[] entryBytes = Image(entry, 6);
         Require(Read(entry, entryBytes.Length).SequenceEqual(entryBytes), "Native unload entry has not been restored by its breakpoint owner.");
@@ -272,7 +306,7 @@ internal sealed class ClientNativeGate
     {
         EnsureStop(thread);
         Require(Enabled && context.Eip == NativeCallDispatcher.WorldReturn && U(0x755294) == _flow &&
-            U(_flow + 0x1B0) == 28 && U(_flow + 0x1B8) == 0 && U(_playing) == 0x710874,
+            U(_flow + 0x1B0) == _level && U(_flow + 0x1B8) == 0 && U(_playing) == _playingTable,
             "Finite native client restoration requires its captured ready WorldRET.");
         uint stack = U(_flow + 0x1AC);
         Require(stack <= 20 && U(_flow + 0x15C + stack * 4) == _playing,
@@ -327,11 +361,11 @@ internal sealed class ClientNativeGate
     private void CaptureEpoch()
     {
         _flow = U(0x755294); _manager = U(0x765ACC);
-        Require(_flow >= 0x10000 && U(_manager) == 0x70069C && U(_flow + 0x1B0) == 28 && U(_flow + 0x1B8) == 0,
+        Require(_flow >= 0x10000 && U(_manager) == 0x70069C && U(_flow + 0x1B0) == _level && U(_flow + 0x1B8) == 0,
             "Native client gate did not capture the exact ready Alfea manager/flow.");
         uint stack = U(_flow + 0x1AC); Require(stack <= 20, "Native client flow stack exceeds its bound.");
         _playing = U(_flow + 0x15C + stack * 4);
-        Require(U(_playing) == 0x710874 && U(_playing + 0x10) == 28, "Native client gate captured a non-playing flow state.");
+        Require(U(_playing) == _playingTable && U(_playing + 0x10) == _level, "Native client gate captured a non-playing flow state.");
     }
 
     private uint BuildTyped(Emitter e)

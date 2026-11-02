@@ -140,7 +140,7 @@ internal sealed class SharedMagicEnergyAlias
         Ensure(tid); Require(context.Eip == NativeCallDispatcher.WorldReturn, "Shared magic verification requires WorldRET.");
         if (_retired) return;
         Require(Active && _pending.Count == 0, "Shared magic has an inactive or unmatched native transaction at WorldRET.");
-        VerifyOwners(); EqualViews(); Require(++_worlds <= 36000, "Shared magic world budget exceeded.");
+        VerifyOwners(); EqualViews(); Require(++_worlds <= NativeObservationBudget.WorldLimit, "Shared magic world budget exceeded.");
     }
 
     internal void RetireBeforeOwnDelete(uint tid, ref Win32Native.X86Context context)

@@ -17,9 +17,12 @@ internal sealed partial class NativeTemplateProbe
     private object? _playerTraitsPickupWitness;
     private readonly HashSet<uint> _playerTraitsPickupParticles = [];
     private readonly bool _sharedHealthAliasEnabled;
+    private readonly bool _sharedHealthInitializeFromCanonical;
     private readonly bool _healthBattleFixture;
     private readonly bool _stingerSecondaryRoleEnabled;
     private StingerSecondaryRole? _stingerSecondaryRole;
+    private readonly bool _mosquitoPlayerTargetsEnabled;
+    private NativeMosquitoPlayerTargets? _mosquitoPlayerTargets;
     private uint _healthBattleWarmupWorlds, _healthBattleIdleWorlds, _healthBattleMetadataSamples;
     private bool _healthBattleHolding, _healthBattleFastRouteStarted;
     private uint _healthBattleLiveWorlds;
@@ -37,11 +40,13 @@ internal sealed partial class NativeTemplateProbe
         ownPickupGraphCreated = _playerTraitsOwnFxReady,
         primaryPickupPrepared = _playerTraitsPrimaryFxReady, pickupSetup = _playerTraitsPickupWitness,
         sharedHealth = _sharedHealthAlias?.Summary, battleHealthFixture = _healthBattleFixture,
+        initializeSharedHealthFromCanonical = _sharedHealthInitializeFromCanonical,
         battleWarmupWorldsWithoutOwnTicks = _healthBattleWarmupWorlds,
         battleLaterWorldsWithoutOwnTicks = _healthBattleIdleWorlds,
         liveWorldsAfterTwoCountedTicks = _healthBattleLiveWorlds,
         countedNativeCallbacksRetired = _healthBattleFastRouteStarted,
-        stingerSecondaryRole = _stingerSecondaryRole?.Summary
+        stingerSecondaryRole = _stingerSecondaryRole?.Summary,
+        mosquitoPlayerTargets = _mosquitoPlayerTargets?.Summary
     };
 
     private void BeginHealthBattleLiveHold()
@@ -60,10 +65,11 @@ internal sealed partial class NativeTemplateProbe
     private bool ObserveHealthBattleLiveWorld(uint tid, ref Win32Native.X86Context context)
     {
         Require(_healthBattleHolding && _idleActive && _stage == 6 && !_dependentInterval &&
-            _sharedHealthAlias?.Active == true && ++_healthBattleLiveWorlds <= 36000,
+            _sharedHealthAlias?.Active == true && ++_healthBattleLiveWorlds <= NativeObservationBudget.WorldLimit,
             "Battle live HP observation escaped its bounded ownership interval.");
         _sharedHealthAlias!.VerifyAtWorld(tid, ref context);
         if (_stingerSecondaryRole?.Active == true) _stingerSecondaryRole.VerifyAtWorld(tid, ref context);
+        if (_mosquitoPlayerTargets?.Active == true) _mosquitoPlayerTargets.VerifyAtWorld(tid, ref context);
         VerifyTemplateStarAtWorld(tid, ref context);
         VerifySharedMagicAtWorld(tid, ref context);
         VerifySharedDeathAtWorld(tid, ref context);
@@ -105,12 +111,13 @@ internal sealed partial class NativeTemplateProbe
     {
         if (!_healthBattleFixture || _ownCharacterTicks != _idleWorldStops) return false;
         Require(_ownMoveUpdates == _idleWorldStops && _ownBloomNotifyTicks == _idleWorldStops &&
-            _ownBloomUpdates == _idleWorldStops && ++_healthBattleIdleWorlds <= 36000,
+            _ownBloomUpdates == _idleWorldStops && ++_healthBattleIdleWorlds <= NativeObservationBudget.WorldLimit,
             "Battle scheduler warmup is partial or exceeds its explicit native-world budget.");
         if (_idleWorldStops == 0) ++_healthBattleWarmupWorlds;
         _ = ObserveIdleState("battle-await-first-native-tick", requirePromotion: false);
         if (_sharedHealthAlias?.Active == true) _sharedHealthAlias.VerifyAtWorld(tid, ref context);
         if (_stingerSecondaryRole?.Active == true) _stingerSecondaryRole.VerifyAtWorld(tid, ref context);
+        if (_mosquitoPlayerTargets?.Active == true) _mosquitoPlayerTargets.VerifyAtWorld(tid, ref context);
         VerifyTemplateStarAtWorld(tid, ref context);
         VerifySharedMagicAtWorld(tid, ref context);
         if (_healthBattleIdleWorlds <= 2 || _healthBattleIdleWorlds % 120 == 0)
@@ -154,7 +161,8 @@ internal sealed partial class NativeTemplateProbe
         {
             _sharedHealthAlias = new(_host, _image, _log);
             _sharedHealthAlias.BindAtWorld(tid, ref context, _record, Pointer(_localCharacter + 0x138),
-                _localCharacter, _instance, _traits, _character, _machine);
+                _localCharacter, _instance, _traits, _character, _machine,
+                initializeFromCanonical: _sharedHealthInitializeFromCanonical);
         }
         _sharedHealthAlias.VerifyAtWorld(tid, ref context);
         ObserveTemplateStarAtWorld(tid, ref context);
@@ -167,10 +175,21 @@ internal sealed partial class NativeTemplateProbe
             Require(TargetRegionFixture && _targetRegionConfigured, "Own Stinger eligibility lacks its native TargetRegion.");
             if (_stingerSecondaryRole is null)
             {
-                _stingerSecondaryRole = new(_host, _image, _log);
+                _stingerSecondaryRole = new(_host, _image, _log, traceTrajectory: _mosquitoPlayerTargetsEnabled);
                 _stingerSecondaryRole.BindAtWorld(tid, ref context, _instance, _ownRoot, _move, _scene);
             }
             _stingerSecondaryRole.VerifyAtWorld(tid, ref context);
+        }
+        if (_mosquitoPlayerTargetsEnabled)
+        {
+            Require(_stingerSecondaryRole?.Active == true && _sharedBattleLifetimeEnabled && _networkInputFixture,
+                "Two-player Mosquito targets require live network Battle ownership and inbound-hit eligibility.");
+            if (_mosquitoPlayerTargets is null)
+            {
+                _mosquitoPlayerTargets = new(_host, _image, _log);
+                _mosquitoPlayerTargets.BindAtWorld(tid, ref context, _instance, _ownRoot, _character, _scene);
+            }
+            _mosquitoPlayerTargets.VerifyAtWorld(tid, ref context);
         }
     }
 

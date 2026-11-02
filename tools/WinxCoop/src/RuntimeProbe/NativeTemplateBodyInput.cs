@@ -269,7 +269,8 @@ internal sealed partial class NativeTemplateProbe
     {
         Require((_bodyInputFixture || _networkInputFixture) && _host.IsAtDebugStop &&
             _stage == 6 && _idleActive && !_dependentInterval && _sharedBattleCaptured && !_sharedBattleUnloadStarted &&
-            _healthBattleHolding && _healthBattleFastRouteStarted && _level == 28 && DescriptorCount == 8 &&
+            _healthBattleHolding && _healthBattleFastRouteStarted &&
+            _level == (_ordinaryNetwork ? 47u : 28u) && DescriptorCount == 8 &&
             _sharedHealthAlias?.Active == true && _ownCommand != _command && _ownRoot != _localRoot,
             "Body input escaped its stopped retained live ownership interval.");
         byte[] instance = Read(_instance, 0x28), root = Read(_ownRoot, 0x40), character = Read(_character, 0x150),

@@ -82,6 +82,7 @@ internal struct DiagnosticInputRecord
     [FieldOffset(52)] internal uint Reserved;
     [FieldOffset(56)] internal ulong LeaseDeadlineMilliseconds;
     internal readonly bool JumpHeld => (Buttons & 1) != 0;
+    internal readonly bool OrdinaryAttackHeld => (Buttons & 2) != 0;
 }
 [StructLayout(LayoutKind.Explicit, Size = 64, Pack = 8)]
 internal struct DiagnosticInputRingHeader
@@ -99,12 +100,12 @@ internal struct DiagnosticInputRingHeader
 }
 internal readonly record struct DiagnosticInputDelivery(uint ReadCursor, DiagnosticInputRecord Record);
 
-/// <summary>IPC4 scalar/FIFO mirror only. No TCP, application Packet codec or game pointer crosses this boundary.</summary>
+/// <summary>IPC5 scalar/FIFO mirror only. No TCP, application Packet codec or game pointer crosses this boundary.</summary>
 internal sealed unsafe class DiagnosticInputClient : IDisposable
 {
-    internal const uint Magic = 0x34494357, Version = 4, Capacity = 64;
+    internal const uint Magic = 0x35494357, Version = 5, Capacity = 64;
     internal const int SharedBytes = 4352, BridgeOffset = 64, ActorOffset = 128, RingOffset = 192, RecordsOffset = 256;
-    private const int GrantHistoryCapacity = 32;
+    private const int GrantHistoryCapacity = 32, BridgeStatusRetryMilliseconds = 500;
     private readonly DiagnosticInputIdentity _identity;
     private readonly int _ownerThread = Environment.CurrentManagedThreadId;
     private readonly Action<object>? _log;
@@ -120,6 +121,8 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
     private uint _publishedEpoch, _publishedSequence, _lastWrite, _lastRead, _committedEpoch, _committedSequence;
     private ulong _publishedOrdinal, _publishedCaptureTime, _publications, _commits, _discarded, _acks;
     private long _lastOwnerCheckMilliseconds;
+    private ulong _bridgeStatusContendedReads, _bridgeStatusRetries, _bridgeStatusRetryExpiries;
+    private long _bridgeStatusMaximumRetryMilliseconds;
 
     internal DiagnosticInputClient(DiagnosticInputIdentity identity, Action<object>? log = null)
     {
@@ -168,26 +171,56 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
         inputEpoch = _bridge.InputEpoch, connectionToken = _bridge.ConnectionToken, grant = _bridge.Grant,
         published = _publications, committed = _commits, staleDiscarded = _discarded, appliedAcknowledgments = _acks,
         pendingExactDelivery = _pending.HasValue, readinessRevision = _actor.ReadinessRevision,
+        bridgeStatusContendedReads = _bridgeStatusContendedReads, bridgeStatusRetries = _bridgeStatusRetries,
+        bridgeStatusMaximumRetryMilliseconds = _bridgeStatusMaximumRetryMilliseconds,
+        bridgeStatusRetryExpiries = _bridgeStatusRetryExpiries, bridgeStatusRetryLimitMilliseconds = BridgeStatusRetryMilliseconds,
         hostIngressRestamped = false, nativePointersOrWireCodec = false
     };
 
     internal bool TryReadBridgeStatus(out DiagnosticBridgeStatus status)
     {
         EnsureThread(); status = default; if (TerminalOrRetired) return false;
-        ValidateHeader();
-        long now = LocalNowMilliseconds();
-        if (now - _lastOwnerCheckMilliseconds >= 250)
+        long started = LocalNowMilliseconds();
+        bool contended = false;
+        uint attempts = 0;
+        for (;;)
         {
-            try
+            ValidateHeader();
+            long now = LocalNowMilliseconds();
+            if (!ValidateBridgeOwner(now, force: false)) return false;
+            DiagnosticInputTerminal pendingTerminal = (DiagnosticInputTerminal)Acquire(RingOffset + 8);
+            if (!KnownTerminal(pendingTerminal)) { Fence(DiagnosticInputTerminal.Identity); return false; }
+            if (pendingTerminal != DiagnosticInputTerminal.None) { Fence(pendingTerminal); return false; }
+            bool copied = TryReadStatus(BridgeOffset, out status);
+            long waited = Math.Max(0, LocalNowMilliseconds() - started);
+            if (contended) _bridgeStatusMaximumRetryMilliseconds = Math.Max(_bridgeStatusMaximumRetryMilliseconds, waited);
+            if (contended && waited >= BridgeStatusRetryMilliseconds)
             {
-                if (CreationFileTime(_identity.OwnerPid) != _identity.OwnerCreationFileTime)
-                { Fence(DiagnosticInputTerminal.Identity); return false; }
+                ++_bridgeStatusRetryExpiries;
+                _log?.Invoke(new { @event = "diagnostic-input-bridge-status-retry-expired", role = _identity.Role.ToString(),
+                    waitedMilliseconds = waited, attempts, limitMilliseconds = BridgeStatusRetryMilliseconds,
+                    cachedStatusAccepted = false, inputAppliedOrAcknowledged = false });
+                Fence(DiagnosticInputTerminal.LeaseExpired); status = default; return false;
             }
-            catch (Exception error) when (error is Win32Exception or InvalidDataException)
-            { Fence(DiagnosticInputTerminal.PeerClosed); return false; }
-            _lastOwnerCheckMilliseconds = now;
+            if (copied)
+            {
+                // A contended read never reuses _bridge. Revalidate the actual
+                // final copy's header/owner before its ordinary field, terminal
+                // and500ms heartbeat checks below can admit any input.
+                ValidateHeader();
+                if (contended && !ValidateBridgeOwner(LocalNowMilliseconds(), force: true)) return false;
+                if (contended && _bridgeStatusContendedReads <= 8)
+                    _log?.Invoke(new { @event = "diagnostic-input-bridge-status-retry-recovered", role = _identity.Role.ToString(),
+                        waitedMilliseconds = waited, attempts, status.Publication, cachedStatusAccepted = false });
+                break;
+            }
+            if (!contended) { contended = true; ++_bridgeStatusContendedReads; }
+            ++_bridgeStatusRetries; ++attempts;
+            // Let the independent sole writer finish its odd/even publication;
+            // three immediate low-level reads can all observe the same odd word.
+            // No cursor, command, Ready lease or ACK is advanced while waiting.
+            if (attempts <= 8) Thread.Yield(); else Thread.Sleep(1);
         }
-        if (!TryReadStatus(BridgeOffset, out status)) return false;
         if ((uint)status.State is < 1 or > 5 || status.Reserved != 0 ||
             status.NeutralRequired > 1 || !KnownTerminal(status.TerminalReason))
         { Fence(DiagnosticInputTerminal.Identity); return false; }
@@ -215,6 +248,19 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
             { _grants.Enqueue((status.InputEpoch, status.Grant, status.LeaseDeadlineMilliseconds, status.MaximumSourceSequence)); if (_grants.Count > GrantHistoryCapacity) _grants.Dequeue(); }
         }
         return true;
+    }
+
+    private bool ValidateBridgeOwner(long now, bool force)
+    {
+        if (!force && now - _lastOwnerCheckMilliseconds < 250) return true;
+        try
+        {
+            if (CreationFileTime(_identity.OwnerPid) != _identity.OwnerCreationFileTime)
+            { Fence(DiagnosticInputTerminal.Identity); return false; }
+        }
+        catch (Exception error) when (error is Win32Exception or InvalidDataException)
+        { Fence(DiagnosticInputTerminal.PeerClosed); return false; }
+        _lastOwnerCheckMilliseconds = now; return true;
     }
 
     // Call at actual local owner observations (including unchanged availability)
@@ -306,7 +352,7 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
         EnsureThread(); Require(!TerminalOrRetired && _identity.Role == DiagnosticInputRole.Host && destinationSequence != 0 &&
             ValidRecord(record, hostDelivery: true), "Destination intent requires a live Host delivery with preserved ingress time.");
         return new(_identity.BodyGeneration, destinationSequence, record.Magnitude, record.RelativeDirection, record.ReferenceHeading,
-            record.JumpHeld, checked((long)record.HostIngressMilliseconds));
+            record.JumpHeld, checked((long)record.HostIngressMilliseconds), record.OrdinaryAttackHeld);
     }
 
     // Caller supplies the actual WorldRET applied/suppressed verifier. This is
@@ -358,7 +404,7 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
         return true;
     }
     private bool ValidRecord(in DiagnosticInputRecord r, bool hostDelivery) => r.InputEpoch != 0 && r.SourceSequence != 0 && r.CaptureOrdinal != 0 &&
-        r.Grant != 0 && r.LeaseDeadlineMilliseconds != 0 && r.Reserved == 0 && (r.Buttons & ~1u) == 0 &&
+        r.Grant != 0 && r.LeaseDeadlineMilliseconds != 0 && r.Reserved == 0 && (r.Buttons & ~3u) == 0 &&
         float.IsFinite(r.Magnitude) && r.Magnitude is >= 0 and <= 1 && Angle(r.RelativeDirection) && Angle(r.ReferenceHeading) &&
         (hostDelivery ? r.HostIngressMilliseconds != 0 && r.HostIngressMilliseconds <= (ulong)LocalNowMilliseconds() : r.HostIngressMilliseconds == 0);
     private static bool Angle(float value) => float.IsFinite(value) && value is >= -3.1415927410125732421875f and <= 3.1415927410125732421875f;

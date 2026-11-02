@@ -325,10 +325,34 @@ endif()
 # Recovered AI-action base and verified Attack/Baco subsets. Complex movement
 # slots and active state bodies remain documented boundaries.
 add_library(WinxAIActions STATIC
+    Code/wxHelpAIAction.cpp
+    Code/wxHelpAIAction.h
+    Analysis/Host/wxHelpAIActionHost.h
+    Analysis/PC/wxHelpAIActionAbi.h
     Code/wxDroidWanderAIAction.cpp
     Code/wxDroidWanderAIAction.h
     Analysis/Host/wxDroidWanderAIActionHost.h
     Analysis/PC/wxDroidWanderAIActionAbi.h
+    Code/wxFrogAttackAIAction.cpp
+    Code/wxFrogAttackAIAction.h
+    Analysis/PC/wxFrogAttackAIActionAbi.h
+    Code/wxIceWormAttackAIAction.cpp
+    Code/wxIceWormAttackAIAction.h
+    Analysis/PC/wxIceWormAttackAIActionAbi.h
+    Code/wxTrollAttackAIAction.cpp
+    Code/wxTrollAttackAIAction.h
+    Analysis/PC/wxTrollAttackAIActionAbi.h
+    Code/wxKnutAttackAIAction.cpp
+    Code/wxKnutAttackAIAction.h
+    Analysis/PC/wxKnutAttackAIActionAbi.h
+    Code/wxYetiAttackAIAction.cpp
+    Code/wxYetiAttackAIAction.h
+    Analysis/Host/wxAIActionCommandExitHost.h
+    Analysis/PC/wxYetiAttackAIActionAbi.h
+    Analysis/Host/wxYetiAttackAIActionPhaseBindings.h
+    Code/wxAICommandRecordForAnalysis.cpp
+    Code/wxAICommandRecordForAnalysis.h
+    Analysis/PC/wxAICommandRecordAbi.h
     Code/wxAIAction.cpp
     Code/wxAIAction.h
     Code/wxAttackAIAction.cpp
@@ -372,6 +396,9 @@ else()
 endif()
 
 add_library(WinxAIManagers STATIC
+    Code/wxCharacterRegistry.cpp
+    Code/wxCharacterRegistry.h
+    Analysis/PC/wxCharacterRegistryAbi.h
     Code/wxTargetManager.cpp
     Code/wxTargetManager.h
     Analysis/Host/wxTargetManagerHost.h
@@ -726,17 +753,24 @@ else()
     target_compile_options(WinxCharacterMoveCtrl PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-add_library(WinxMinotaurAttackAIAction STATIC
+# Actions that consume the same typed captured movement controller.
+add_library(WinxControllerAIActions STATIC
     Code/wxMinotaurAttackAIAction.cpp
     Code/wxMinotaurAttackAIAction.h
     Analysis/Host/wxMinotaurAttackAIActionHost.h
     Analysis/PC/wxMinotaurAttackAIActionAbi.h
     Analysis/PC/wxMinotaurAttackMath.h
     Analysis/PS2/wxMinotaurAttackAIActionAbi.h
+    Code/wxMosquitoAttackAIAction.cpp
+    Code/wxMosquitoAttackAIAction.h
+    Analysis/Host/wxMosquitoAttackAIActionHost.h
+    Analysis/PC/wxMosquitoAttackAIActionAbi.h
 )
-target_include_directories(WinxMinotaurAttackAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(WinxMinotaurAttackAIAction PUBLIC WinxAIActions WinxPerception WinxCharacterMoveCtrl SparkplugEngine)
-target_compile_features(WinxMinotaurAttackAIAction PUBLIC cxx_std_20)
+target_include_directories(WinxControllerAIActions PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxControllerAIActions PUBLIC WinxAIActions WinxPerception WinxCharacterMoveCtrl SparkplugEngine)
+target_compile_features(WinxControllerAIActions PUBLIC cxx_std_20)
+# Preserve the existing build consumer name while sharing controller dependencies.
+add_library(WinxMinotaurAttackAIAction ALIAS WinxControllerAIActions)
 add_library(WinxHurtAIAction STATIC
     Code/wxHurtAIAction.cpp
     Code/wxHurtAIAction.h
@@ -824,7 +858,7 @@ target_include_directories(WinxGUI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxGUI PUBLIC SparkplugEngine WinxEntities)
 target_compile_features(WinxGUI PUBLIC cxx_std_17)
 if(MSVC)
-    foreach(module IN ITEMS WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxMinotaurAttackAIAction WinxHurtAIAction WinxFlyingWanderAIAction WinxIceGargoyleAIActions WinxIceGargoyleAttackAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
+    foreach(module IN ITEMS WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxControllerAIActions WinxHurtAIAction WinxFlyingWanderAIAction WinxIceGargoyleAIActions WinxIceGargoyleAttackAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
         target_compile_options(${module} PRIVATE /W4 /permissive- /utf-8)
     endforeach()
 endif()
@@ -844,6 +878,74 @@ if(MSVC)
     target_compile_options(WinxGhoulScriptAIAction PRIVATE /W4 /permissive- /utf-8)
 else()
     target_compile_options(WinxGhoulScriptAIAction PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Captured Wander Entry borrows exact plain Node position; retain the
+# engine dependency outside the Base-only AI-action module.
+add_library(WinxWanderAIAction STATIC
+    Code/wxWanderAIAction.cpp
+    Code/wxWanderAIAction.h
+    Analysis/Host/wxWanderAIActionHost.h
+    Analysis/PC/wxWanderAIActionAbi.h
+)
+target_include_directories(WinxWanderAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxWanderAIAction PUBLIC WinxAIActions SparkplugEngine)
+target_compile_features(WinxWanderAIAction PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxWanderAIAction PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxWanderAIAction PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Captured Mikael Entry owns its direct cached-Node angle computation.
+# Keep this engine dependency outside the Base-only AI-action module.
+add_library(WinxMikaelWandringAIAction STATIC
+    Code/wxMikaelWandringAIAction.cpp
+    Code/wxMikaelWandringAIAction.h
+    Analysis/Host/wxMikaelWandringAIActionHost.h
+    Analysis/PC/wxMikaelWandringAIActionAbi.h
+)
+target_include_directories(WinxMikaelWandringAIAction PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxMikaelWandringAIAction PUBLIC WinxAIActions SparkplugEngine)
+target_compile_features(WinxMikaelWandringAIAction PUBLIC cxx_std_20)
+if(MSVC)
+    target_compile_options(WinxMikaelWandringAIAction PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxMikaelWandringAIAction PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Captured action Entries consume one common Registry selector. Keep this
+# manager dependency outside the Base-only AI-action module.
+add_library(WinxRegistryAIActions STATIC
+    Code/wxGolemAttackAIAction.cpp
+    Code/wxGolemAttackAIAction.h
+    Analysis/PC/wxGolemAttackAIActionAbi.h
+    Analysis/Host/wxGolemAttackAIActionEntryBindings.h
+    Code/wxWinxFlyAIAction.cpp
+    Code/wxWinxFlyAIAction.h
+    Analysis/Host/wxWinxFlyAIActionHost.h
+    Analysis/PC/wxWinxFlyAIActionAbi.h
+    Code/wxDarcyAttackAIAction.cpp
+    Code/wxDarcyAttackAIAction.h
+    Analysis/PC/wxDarcyAttackAIActionAbi.h
+    Analysis/Host/wxDarcyAttackAIActionExitHost.h
+    Code/wxStormyAttackAIAction.cpp
+    Code/wxStormyAttackAIAction.h
+    Analysis/PC/wxStormyAttackAIActionAbi.h
+    Analysis/Host/wxStormyAttackAIActionExitHost.h
+    Code/wxIcyAttackAIAction.cpp
+    Code/wxIcyAttackAIAction.h
+    Analysis/PC/wxIcyAttackAIActionAbi.h
+    Analysis/Host/wxIcyAttackAIActionExitHost.h
+    Analysis/Host/wxCharacterRegistryBinding.h
+)
+target_include_directories(WinxRegistryAIActions PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(WinxRegistryAIActions PUBLIC WinxAIActions WinxAIManagers)
+target_compile_features(WinxRegistryAIActions PUBLIC cxx_std_17)
+if(MSVC)
+    target_compile_options(WinxRegistryAIActions PRIVATE /W4 /permissive- /utf-8)
+else()
+    target_compile_options(WinxRegistryAIActions PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
 add_library(WinxKikoHoleAIAction STATIC
@@ -873,7 +975,7 @@ add_library(WinxGameCore STATIC
 target_include_directories(WinxGameCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxGameCore PUBLIC SparkplugEngine WinxEntities WinxCharacterStates WinxCharacterStateMachines WinxCharacters WinxBacoStateMachines WinxAIActions WinxAIBehaviors WinxAIManagers WinxProjectiles WinxProjectileManagers WinxDoorTriggers WinxAlphaManagers WinxAnimationControllers WinxAudioEmitters WinxAudioListeners WinxAnimationLoaders WinxAnimationManagers WinxAppHelpers WinxAssetManagers WinxArrowTraps)
 target_compile_features(WinxGameCore PUBLIC cxx_std_17)
-target_link_libraries(WinxGameCore PUBLIC WinxKikoHoleAIAction WinxGhoulScriptAIAction)
+target_link_libraries(WinxGameCore PUBLIC WinxKikoHoleAIAction WinxGhoulScriptAIAction WinxWanderAIAction WinxRegistryAIActions WinxMikaelWandringAIAction)
 target_link_libraries(WinxGameCore PUBLIC WinxValueObjects WinxPerception WinxGameFlowStates WinxIdleAIAction WinxMinotaurDefendAIAction WinxMinotaurAttackAIAction WinxHurtAIAction WinxFlyingWanderAIAction WinxIceGargoyleAIActions WinxIceGargoyleAttackAIAction WinxSleepingAIAction WinxTrollBeforeFightAIAction WinxGUI)
 if(MSVC)
     target_compile_options(WinxGameCore PRIVATE /W4 /permissive- /utf-8)
@@ -924,7 +1026,7 @@ if(BUILD_TESTING)
     target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
     add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
     set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
-    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
         add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
         target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
         add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)

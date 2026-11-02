@@ -645,34 +645,44 @@
 - [wxButterflyMovingState](reference/classes/wx-butterfly-moving-state.md).
 - [wxCharacter](reference/classes/wx-character.md).
 - [wxCharacterMoveCtrl](reference/classes/wx-character-move-ctrl.md).
+- [wxCharacterRegistry](reference/classes/wx-character-registry.md).
 - [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxCharacterStateMachine](reference/classes/wx-character-state-machine.md).
 - [wxCreditsMenuGameFlowState](reference/classes/wx-credits-menu-game-flow-state.md).
+- [wxDarcyAttackAIAction](reference/classes/wx-darcy-attack-ai-action.md).
 - [wxDebugMenuGameFlowState](reference/classes/wx-debug-menu-game-flow-state.md).
 - [wxDefendingState](reference/classes/wx-defending-state.md).
 - [wxDialogWindowGameFlowState](reference/classes/wx-dialog-window-game-flow-state.md).
 - [wxDroidHurtState](reference/classes/wx-droid-hurt-state.md).
 - [wxDyingState](reference/classes/wx-dying-state.md).
 - [wxEntity](reference/classes/wx-entity.md).
+- [wxFrogAttackAIAction](reference/classes/wx-frog-attack-ai-action.md).
 - [wxFrogAttackState](reference/classes/wx-frog-attack-state.md).
 - [wxFrogBackFlipState](reference/classes/wx-frog-back-flip-state.md).
 - [wxGameFlowState](reference/classes/wx-game-flow-state.md).
 - [wxGameTimer](reference/classes/wx-game-timer.md).
 - [wxGhoulJumpingState](reference/classes/wx-ghoul-jumping-state.md).
+- [wxGolemAttackAIAction](reference/classes/wx-golem-attack-ai-action.md).
 - [wxHangingState](reference/classes/wx-hanging-state.md).
+- [wxHelpAIAction](reference/classes/wx-help-ai-action.md).
 - [wxHurtState](reference/classes/wx-hurt-state.md).
 - [wxIceGargoyleAttackAIAction](reference/classes/wx-ice-gargoyle-attack-ai-action.md).
 - [wxIceGargoyleClawAIAction](reference/classes/wx-ice-gargoyle-claw-ai-action.md).
 - [wxIceGargoyleSleepingAIAction](reference/classes/wx-ice-gargoyle-sleeping-ai-action.md).
 - [wxIceGargoyleWithdrawlAIAction](reference/classes/wx-ice-gargoyle-withdrawl-ai-action.md).
+- [wxIceWormAttackAIAction](reference/classes/wx-ice-worm-attack-ai-action.md).
 - [wxIceWormAttackState](reference/classes/wx-ice-worm-attack-state.md).
+- [wxIcyAttackAIAction](reference/classes/wx-icy-attack-ai-action.md).
 - [wxKikoHoleAIAction](reference/classes/wx-kiko-hole-ai-action.md).
+- [wxKnutAttackAIAction](reference/classes/wx-knut-attack-ai-action.md).
 - [wxKnutAttackState](reference/classes/wx-knut-attack-state.md).
 - [wxLoadSaveGameFlowState](reference/classes/wx-load-save-game-flow-state.md).
 - [wxMenuGameFlowState](reference/classes/wx-menu-game-flow-state.md).
+- [wxMikaelWandringAIAction](reference/classes/wx-mikael-wandring-ai-action.md).
 - [wxMinotaurAttackAIAction](reference/classes/wx-minotaur-attack-ai-action.md).
 - [wxMinotaurAttackState](reference/classes/wx-minotaur-attack-state.md).
 - [wxMinotaurDefenseState](reference/classes/wx-minotaur-defense-state.md).
+- [wxMosquitoAttackAIAction](reference/classes/wx-mosquito-attack-ai-action.md).
 - [wxMosquitoAttackState](reference/classes/wx-mosquito-attack-state.md).
 - [wxOpenSecretPassageState](reference/classes/wx-open-secret-passage-state.md).
 - [wxPCApp](reference/classes/wx-pc-app.md).
@@ -684,12 +694,17 @@
 - [wxSpiderAttackState](reference/classes/wx-spider-attack-state.md).
 - [wxSpiderHurtState](reference/classes/wx-spider-hurt-state.md).
 - [wxStickingLeftState и wxStickingRightState](reference/classes/wx-sticking-states.md).
+- [wxStormyAttackAIAction](reference/classes/wx-stormy-attack-ai-action.md).
 - [wxStrafingState](reference/classes/wx-strafing-state.md).
 - [wxTextController](reference/classes/wx-text-controller.md).
+- [wxTrollAttackAIAction](reference/classes/wx-troll-attack-ai-action.md).
 - [wxTrollBeforeFightAIAction](reference/classes/wx-troll-before-fight-ai-action.md).
 - [wxVectorWrapper](reference/classes/wx-vector-wrapper.md).
 - [wxVineClimbingState](reference/classes/wx-vine-climbing-state.md).
 - [wxVulnerableState](reference/classes/wx-vulnerable-state.md).
+- [wxWanderAIAction](reference/classes/wx-wander-ai-action.md).
+- [wxWinxFlyAIAction](reference/classes/wx-winx-fly-ai-action.md).
+- [wxYetiAttackAIAction](reference/classes/wx-yeti-attack-ai-action.md).
 - [Карточки классов](reference/classes/README.md).
 
 ## Справочник / Карточки шейдеров

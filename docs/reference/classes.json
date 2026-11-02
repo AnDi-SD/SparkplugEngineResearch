@@ -1496,8 +1496,12 @@
       "registrationBaseIds": {
         "pc": "0x468A0AC1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/engine/materials/pixel-shader.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXPixelShader.h"
+      ]
     },
     {
       "name": "spDXRenderer",
@@ -1790,8 +1794,12 @@
       "registrationBaseIds": {
         "pc": "0x2F434D04"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-dx-texture-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugDX/spDXTextureManager.h"
+      ]
     },
     {
       "name": "spDXTextureSerializer",
@@ -3907,8 +3915,12 @@
       "registrationBaseIds": {
         "pc": "0x2B5D52DF"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/engine/materials/pixel-shader.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPC/spPCPixelShader.h"
+      ]
     },
     {
       "name": "spPCProjectionFX",
@@ -4721,8 +4733,12 @@
       "registrationBaseIds": {
         "ps2": "0x48B004B2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/engine/architecture/ps2-mouse.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/SparkplugPS2/spPS2Mouse.h"
+      ]
     },
     {
       "name": "spPS2MultistreamManager",
@@ -5998,8 +6014,12 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-texture-manager.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spTextureManager.h"
+      ]
     },
     {
       "name": "spTextureProjection",
@@ -7461,8 +7481,12 @@
         "pc": "0x415352A1",
         "ps2": "0x415352A1"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-character-registry.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCharacterRegistry.h"
+      ]
     },
     {
       "name": "wxCharacterState",
@@ -7831,8 +7855,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-darcy-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDarcyAttackAIAction.h"
+      ]
     },
     {
       "name": "wxDateIdleState",
@@ -8756,8 +8784,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-frog-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFrogAttackAIAction.h"
+      ]
     },
     {
       "name": "wxFrogAttackState",
@@ -9128,8 +9160,12 @@
         "pc": "0x44817BC2",
         "ps2": "0x44817BC2"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ghoul-jumping-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGhoulJumpingState.h"
+      ]
     },
     {
       "name": "wxGhoulScriptAIAction",
@@ -9242,8 +9278,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-golem-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGolemAttackAIAction.h"
+      ]
     },
     {
       "name": "wxGolemAttackState",
@@ -9427,8 +9467,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-help-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxHelpAIAction.h"
+      ]
     },
     {
       "name": "wxHertzChoiceMenuGameFlowState",
@@ -9781,8 +9825,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-worm-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceWormAttackAIAction.h"
+      ]
     },
     {
       "name": "wxIceWormAttackState",
@@ -9885,8 +9933,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-icy-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIcyAttackAIAction.h"
+      ]
     },
     {
       "name": "wxIdleAIAction",
@@ -10101,8 +10153,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-knut-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxKnutAttackAIAction.h"
+      ]
     },
     {
       "name": "wxKnutAttackState",
@@ -10227,7 +10283,9 @@
         "ps2": "0x44817BC2"
       },
       "documentation": [],
-      "sources": []
+      "sources": [
+        "Winx/Code/wxLadderSlideState.h"
+      ]
     },
     {
       "name": "wxLadderState",
@@ -10577,8 +10635,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-mikael-wandring-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMikaelWandringAIAction.h"
+      ]
     },
     {
       "name": "wxMikaelWandringState",
@@ -10805,8 +10867,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-mosquito-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMosquitoAttackAIAction.h"
+      ]
     },
     {
       "name": "wxMosquitoAttackState",
@@ -12459,8 +12525,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-stormy-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxStormyAttackAIAction.h"
+      ]
     },
     {
       "name": "wxStrafingState",
@@ -12782,8 +12852,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-troll-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxTrollAttackAIAction.h"
+      ]
     },
     {
       "name": "wxTrollAttackState",
@@ -13001,8 +13075,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-wander-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxWanderAIAction.h"
+      ]
     },
     {
       "name": "wxWandringNPCAIBehavior",
@@ -13106,8 +13184,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-winx-fly-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxWinxFlyAIAction.h"
+      ]
     },
     {
       "name": "wxWinxHelpAIBehavior",
@@ -13196,8 +13278,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-yeti-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxYetiAttackAIAction.h"
+      ]
     },
     {
       "name": "wxYetiAttackState",

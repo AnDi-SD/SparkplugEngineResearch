@@ -118,13 +118,55 @@ namespace winx::reconstruction
         wxMenuGameFlowState::FlowSlot24ForAnalysis();
     }
     void wxGameOverGameFlowState::FlowSlot28ForAnalysis()
-    {throw std::logic_error("GameOver active slot28 is outside the recovered subset");}
+    {
+        if(gameOverHost_.GameOverSlot28ProfileForAnalysis()!=wxGameOverGameFlowStateHost::Slot28ProfileForAnalysis::PCStableGUIBindings
+            ||gameOverHost_.MenuHookProfileForAnalysis()!=wxMenuGameFlowStateHost::HookProfileForAnalysis::PC)
+            throw std::logic_error("GameOver slot28 requires its admitted PC borrowed-GUI profile");
+        const auto& menu=GetMenuStateForAnalysis();
+        if(menu.allocation3C||menu.object4C)
+            throw std::logic_error("GameOver slot28 ownership profile requires null buffer and level");
+        // Native primary28 directly selects this shared Menu body. It does
+        // not clear25; foreign callback changes survive its final HUD tail.
+        wxMenuGameFlowState::FlowSlot28ForAnalysis();
+    }
     void wxGameOverGameFlowState::FlowSlot2CForAnalysis()
-    {throw std::logic_error("GameOver active slot2C is outside the recovered subset");}
+    {
+        if(gameOverHost_.GameOverSlot2CProfileForAnalysis()!=wxGameOverGameFlowStateHost::Slot2CProfileForAnalysis::PCStableInputGUIBindings
+            ||gameOverHost_.MenuHookProfileForAnalysis()!=wxMenuGameFlowStateHost::HookProfileForAnalysis::PC)
+            throw std::logic_error("GameOver slot2C requires its admitted PC borrowed-input/GUI profile");
+        const auto& menu=GetMenuStateForAnalysis();
+        if(menu.allocation3C||menu.object4C)
+            throw std::logic_error("GameOver slot2C ownership profile requires null buffer and level");
+        // The actual primary2C target is this shared Menu body. It captures
+        // raw44 before Reset, reloads the captured owner's member and keeps
+        // the measured signed branch and final25 clear in the common source.
+        wxMenuGameFlowState::FlowSlot2CForAnalysis();
+    }
     bool wxGameOverGameFlowState::MenuSlot38ForAnalysis()
-    {throw std::logic_error("GameOver extended native slot38 is unqualified");}
-    void wxGameOverGameFlowState::MenuSlot40ForAnalysis(const char*)
-    {throw std::logic_error("GameOver extended native slot40 is unqualified");}
+    {
+        if(gameOverHost_.GameOverSlot38ProfileForAnalysis()!=wxGameOverGameFlowStateHost::Slot38ProfileForAnalysis::PCStableOwnedLifetime
+            ||gameOverHost_.MenuHookProfileForAnalysis()!=wxMenuGameFlowStateHost::HookProfileForAnalysis::PC)
+            throw std::logic_error("GameOver slot38 requires its admitted PC owned-lifetime profile");
+        const auto& menu=GetMenuStateForAnalysis();
+        if(menu.allocation3C||menu.object4C)
+            throw std::logic_error("GameOver slot38 ownership profile requires null buffer and level");
+        // GameOver's actual table selects an8-byte wrapper, not the literal
+        // parent entry. Preserve its common-body call followed by true.
+        (void)wxMenuGameFlowState::MenuSlot38ForAnalysis();
+        return true;
+    }
+    void wxGameOverGameFlowState::MenuSlot40ForAnalysis(const char* path)
+    {
+        if(gameOverHost_.GameOverSlot40ProfileForAnalysis()!=wxGameOverGameFlowStateHost::Slot40ProfileForAnalysis::PCStableDisjointOwnedPath
+            ||gameOverHost_.MenuHookProfileForAnalysis()!=wxMenuGameFlowStateHost::HookProfileForAnalysis::PC)
+            throw std::logic_error("GameOver slot40 requires its admitted PC owned-path profile");
+        if(GetMenuStateForAnalysis().object4C)
+            throw std::logic_error("GameOver slot40 ownership profile requires null level");
+        // The actual typed table selects the shared81-byte body directly.
+        // Keep release/clear, length, storage publication and byte copy in
+        // that common implementation; host callbacks provide storage only.
+        wxMenuGameFlowState::MenuSlot40ForAnalysis(path);
+    }
     bool wxGameOverGameFlowState::MenuSlot44ForAnalysis()
     {
         RequireEntryProfileForAnalysis();

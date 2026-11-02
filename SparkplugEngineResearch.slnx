@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/Tools/" />
+  <Folder Name="/Tools/WinxCoop/">
+    <Project Path="tools/WinxCoop/WinxCoop.ActorProbe.csproj" />
+  </Folder>
   <Folder Name="/Tools/WinxHairPatcher/">
     <Project Path="tools/WinxHairPatcher/WinxHairPatcher.Core/WinxHairPatcher.Core.csproj" />
     <Project Path="tools/WinxHairPatcher/WinxHairPatcher.Gui/WinxHairPatcher.Gui.csproj" />

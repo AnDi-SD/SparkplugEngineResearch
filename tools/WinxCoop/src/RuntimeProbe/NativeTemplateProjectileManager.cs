@@ -8,7 +8,8 @@ internal sealed partial class NativeTemplateProbe
     private const uint ProjectileManagerTable = 0x6F73D8;
     private bool _projectileManagerFixture, _projectileBattleInit, _projectileRetainedAlfea, _projectileRetainedBattle;
     private bool ProjectileManagerRetained => _projectileRetainedAlfea || _projectileRetainedBattle;
-    private bool ProjectileManagerInputRetired => _projectileRetainedBattle ? OrdinaryAttackFixtureRetired :
+    private bool ProjectileManagerInputRetired => _projectileRetainedBattle ?
+        OrdinaryAttackFixtureRetired && (!_networkInputFixture || NetworkInputFixtureRetired) :
         _networkInputFixture ? NetworkInputFixtureRetired : BodyInputFixtureRetired;
     private uint ProjectileExpectedRole => _projectileRetainedBattle ? 1u : 0u;
     private uint ProjectileFixtureLevel => _projectileBattleInit ? 47u : 28u;
@@ -102,11 +103,12 @@ internal sealed partial class NativeTemplateProbe
             (!(config.TemplateBodyInputFixture || config.TemplateOrdinaryAttackFixture || config.TemplateNetworkInputFixture) || _projectileManagerFixture),
             "Retained body input and ordinary Battle attacks require distinct projectile-manager fixtures.");
         if (!_projectileManagerFixture) return;
-        _projectileRetainedAlfea = config.TemplateBodyInputFixture || config.TemplateNetworkInputFixture;
-        _projectileRetainedBattle = config.TemplateOrdinaryAttackFixture;
+        _projectileRetainedAlfea = config.TemplateBodyInputFixture || config.TemplateNetworkInputFixture && !config.TemplateNetworkOrdinaryAttackFixture;
+        _projectileRetainedBattle = config.TemplateOrdinaryAttackFixture || config.TemplateNetworkOrdinaryAttackFixture;
         _projectileBattleInit = config.TemplateSharedPlayerProfile == "battle-01-projectile-init" || _projectileRetainedBattle;
         bool admittedCohort = _projectileRetainedBattle
-            ? config.Mode == "template-bloom-body-hair-idle" && config.TemplateSharedPlayerProfile == "battle-01-ordinary-attack" &&
+            ? config.Mode == "template-bloom-body-hair-idle" &&
+                config.TemplateSharedPlayerProfile == (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "battle-01-ordinary-attack") &&
                 config.TemplatePlayerTraitsPickupFx && config.TemplateConfigureTargetRegion && config.TemplateSharedHealthAlias &&
                 config.TemplateHealthBattleFixture && config.TemplateSharedBattleLifetime && config.TemplateBattleCombatFixture &&
                 config.PrepareFirstMagicStage
@@ -123,7 +125,8 @@ internal sealed partial class NativeTemplateProbe
             (!config.TemplateBattleCombatFixture || _projectileRetainedBattle) && (!config.PrepareFirstMagicStage || _projectileRetainedBattle) &&
             !config.TemplateSecondAttackDegreeFixture && (!config.TemplateSharedBattleLifetime || _projectileRetainedBattle) &&
             !config.TemplateDeathBattleFixture && !config.TemplateStoryDeathFixture &&
-            !config.TemplateCollisionDetectorSecondaryRole && !config.TemplateStingerSecondaryRole &&
+            !config.TemplateCollisionDetectorSecondaryRole &&
+            (!config.TemplateStingerSecondaryRole || config.TemplateNetworkInputFixture && config.TemplateNetworkOrdinaryAttackFixture) &&
             !config.TemplateStarSecondaryEligibility && !config.TemplateStarPlacementFixture &&
             !config.TemplateSharedMagicEnergyAlias,
             "Projectile manager admission requires its separate scoped, retained Alfea-input or ordinary Battle-attack fixture.");
@@ -192,7 +195,8 @@ internal sealed partial class NativeTemplateProbe
         if (!_projectileManagerFixture || !ProjectileManagerRetained) return;
         Require(_host.IsAtDebugStop && _idle && _idleActive && !_dependentInterval && _stage == 6 &&
             _sharedBattleLifetimeEnabled && _sharedBattleCaptured && !_sharedBattleUnloadStarted &&
-            _sharedPlayerProfile.Name == (_projectileRetainedBattle ? "battle-01-ordinary-attack" :
+            _sharedPlayerProfile.Name == (_projectileRetainedBattle ?
+                (_ordinaryNetwork ? "battle-01-network-input" : "battle-01-ordinary-attack") :
                 _networkInputFixture ? "alfea-28-network-input" : "alfea-28-input") &&
             _level == ProjectileFixtureLevel && _projectileBattleInit == _projectileRetainedBattle &&
             ProjectileManagerInputRetired && _projectileRetainedDeleteBaselineCaptures == 0 &&

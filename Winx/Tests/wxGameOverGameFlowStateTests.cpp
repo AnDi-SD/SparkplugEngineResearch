@@ -456,6 +456,377 @@ namespace
     }
     void ReplayExit(){ExitConfig c;while(std::cin>>c.index){Check(bool(std::cin>>c.ownedEmpty>>c.targetPresent>>c.mutations>>c.rawMode44>>c.cachedInputID),"Complete Exit row");ExitOne(c,true);}Check(std::cin.eof(),"Complete Exit input");}
 
+    struct Slot28Config
+    {
+        unsigned index=0;std::uint32_t view=0x20,mode=1;
+        unsigned cachedInputID=1,mutations=0,field25=0xA5,returnedWindowID=1;
+    };
+    struct Slot28Host final:Host
+    {
+        struct Event{std::string kind;unsigned receiver;std::vector<unsigned> arguments;std::string before,after;unsigned returnedWindowID=0;};
+        Slot28Config slot;
+        std::array<std::array<std::byte,8>,2> guis{},windows{};
+        unsigned gui=1,guiResolutions=0,missingGUIOnResolution=0;
+        bool admitted=true;std::vector<Event> events;
+        explicit Slot28Host(const Slot28Config& config):slot(config){events.reserve(3);}
+        Slot28ProfileForAnalysis GameOverSlot28ProfileForAnalysis() const noexcept override
+        {return admitted?Slot28ProfileForAnalysis::PCStableGUIBindings:Slot28ProfileForAnalysis::Unqualified;}
+        std::string Snapshot() const
+        {
+            const auto& menu=active->GetMenuStateForAnalysis();std::ostringstream out;
+            out<<"{\"view\":"<<menu.view40<<",\"mode\":"<<menu.mode44<<",\"field25\":"<<unsigned(active->GetStateForAnalysis().field25)
+               <<",\"cachedInputID\":"<<InputID(active->GetGameOverStateForAnalysis().borrowedInput5C)<<",\"globalGUI\":"<<gui<<'}';return out.str();
+        }
+        Event Begin(const char* kind,unsigned receiver,std::vector<unsigned> arguments)
+        {return {kind,receiver,std::move(arguments),Snapshot(),{}};}
+        void End(Event event){event.after=Snapshot();events.push_back(std::move(event));}
+        void* ResolveMenuGUIManagerForAnalysis() override
+        {return ++guiResolutions==missingGUIOnResolution?nullptr:guis[gui-1].data();}
+        void* FindMenuWindowPCForAnalysis(void* value,std::uint32_t view) override
+        {
+            const auto id=EntryHost::Identity(value,guis);Check(id==1&&view==slot.view,"Slot28 captured GUI/view before lookup");
+            auto event=Begin("GUILookup",id,{view});event.returnedWindowID=slot.returnedWindowID;
+            if(slot.mutations&1)
+            {
+                active->MenuStateForFixture().view40=9;active->MenuStateForFixture().mode44=0xDEADBEEF;
+                active->MutableStateForAnalysis().field25=0xEE;active->GameOverStateForFixture().borrowedInput5C=inputs[1].data();gui=2;
+            }
+            End(std::move(event));return windows[slot.returnedWindowID-1].data();
+        }
+        void ApplyMenuWindowPCForAnalysis(void* value,std::uint32_t flag) override
+        {
+            const auto id=EntryHost::Identity(value,windows);Check(id==slot.returnedWindowID&&flag==0,"Slot28 uses returned window with literal0");
+            auto event=Begin("GUIApply",id,{flag});
+            if(slot.mutations&2){active->MenuStateForFixture().view40=11;active->MutableStateForAnalysis().field25=0xBB;gui=3-gui;}
+            End(std::move(event));
+        }
+        void SetMenuHUDForAnalysis(void* value,std::uint32_t flag) override
+        {
+            const auto id=EntryHost::Identity(value,guis);Check(id==gui&&flag==0,"Slot28 fresh GUI for HUD0");
+            auto event=Begin("GUIHUD",id,{flag});if(slot.mutations&4)active->MutableStateForAnalysis().field25=0xDD;End(std::move(event));
+        }
+    };
+    void Slot28One(const Slot28Config& config,bool emit)
+    {
+        Check(config.cachedInputID<=1&&config.mutations<8&&config.field25<=255&&config.returnedWindowID>=1&&config.returnedWindowID<=2,"Bounded slot28 replay row");
+        Slot28Host host(config);auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();
+        object->MenuStateForFixture().view40=config.view;object->MenuStateForFixture().mode44=config.mode;object->MutableStateForAnalysis().field25=static_cast<std::uint8_t>(config.field25);
+        object->GameOverStateForFixture().borrowedInput5C=config.cachedInputID?host.inputs[0].data():nullptr;
+        const auto base=object->GetStateForAnalysis();const auto menu=object->GetMenuStateForAnalysis();
+        const auto timer=TimerState(object->TimerForAnalysis()),extra=TimerState(*menu.timer50);const auto clocks=host.clockCalls;const auto borrowed=host.inputs;
+        wxMenuGameFlowState& menuView=*object;menuView.FlowSlot28ForAnalysis();
+        Check(host.events.size()==3&&host.guiResolutions==2&&SameExcept25(base,object->GetStateForAnalysis()),"Whole inherited slot28 and fresh GUI observations");
+        Check(TimerState(object->TimerForAnalysis())==timer&&TimerState(*menu.timer50)==extra&&host.clockCalls==clocks,"Slot28 preserves actual parent timers/no clock");
+        Check(host.inputs==borrowed&&host.reads.empty()&&host.effects.empty(),"Slot28 does not consume borrowed inputs or flow");
+        const auto& after=object->GetMenuStateForAnalysis();
+        Check(after.object4C==nullptr&&after.allocation3C==nullptr&&after.timer50==menu.timer50&&after.word48==menu.word48&&after.borrowedInput54==menu.borrowedInput54&&after.field58==menu.field58,"Slot28 preserves other Menu state");
+        const unsigned finalFlag=(config.mutations&4)?0xDD:(config.mutations&2)?0xBB:(config.mutations&1)?0xEE:config.field25;
+        Check(object->GetStateForAnalysis().field25==finalFlag,"Slot28 has no trailing own25 clear");
+        if(emit)
+        {
+            std::cout<<"{\"afterSlot28\":"<<host.Snapshot()<<",\"events\":[";
+            for(std::size_t i=0;i<host.events.size();++i)
+            {
+                if(i)std::cout<<',';const auto& e=host.events[i];std::cout<<"{\"kind\":\""<<e.kind<<"\",\"receiverID\":"<<e.receiver<<",\"arguments\":";
+                EntryHost::Numbers(std::cout,e.arguments);std::cout<<",\"before\":"<<e.before<<",\"after\":"<<e.after;
+                if(e.returnedWindowID)std::cout<<",\"returnedWindowID\":"<<e.returnedWindowID;std::cout<<'}';
+            }
+            std::cout<<"],\"parentTaskTimerBytesUnchanged\":true,\"borrowedInputBytesUnchanged\":true}\n";
+        }
+        Arm(*object);host.active=nullptr;object.reset();Closed(host);
+    }
+    void Slot28Contracts()
+    {
+        Slot28One({0,0x20,1,1,0,0xA5,1},false);Slot28One({5,0x20,0x7FFFFFFF,0,7,0xA5,1},false);Slot28One({7,0x20,0,1,3,0x80,2},false);
+        Slot28Host host(Slot28Config{});auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();object->MutableStateForAnalysis().field25=0x80;
+        const auto before=host.Snapshot();const auto reject=[&]{Refuses([&]{object->FlowSlot28ForAnalysis();});Check(host.Snapshot()==before&&host.events.empty()&&host.guiResolutions==0,"Slot28 analytical admission before effects");};
+        host.admitted=false;reject();host.admitted=true;host.platform=Host::HookProfileForAnalysis::PS2;reject();host.platform=Host::HookProfileForAnalysis::PC;
+        spBaseObject foreign;object->MenuStateForFixture().object4C=&foreign;reject();object->MenuStateForFixture().object4C=nullptr;
+        std::array<std::byte,8> buffer{};object->MenuStateForFixture().allocation3C=buffer.data();reject();object->MenuStateForFixture().allocation3C=nullptr;
+        host.missingGUIOnResolution=2;Refuses([&]{object->FlowSlot28ForAnalysis();});Check(host.events.size()==2&&host.guiResolutions==2&&object->GetStateForAnalysis().field25==0x80,"Missing HUD binding preserves completed lookup/apply prefix; no rollback claim");
+        Arm(*object);host.active=nullptr;object.reset();Closed(host);
+    }
+    void ReplaySlot28()
+    {
+        Slot28Config c;while(std::cin>>c.index)
+        {Check(bool(std::cin>>c.view>>c.mode>>c.cachedInputID>>c.mutations>>c.field25>>c.returnedWindowID),"Complete slot28 replay row");Slot28One(c,true);}Check(std::cin.eof(),"Complete slot28 replay input");
+    }
+
+    struct Slot2CConfig
+    {
+        unsigned index=0;std::uint32_t mode=1;unsigned flag0=0,flag1=255,mutations=0,returnedWindowID=1;
+        std::uint32_t view=0x20;unsigned cachedInputID=1;
+    };
+    struct Slot2CHost final:Host
+    {
+        struct Event{std::string kind;unsigned receiver;std::vector<unsigned> arguments;std::string before,after;unsigned returnedWindowID=0;};
+        struct InputRead{unsigned inputID,offset,value;std::string before,after;};
+        struct Capture{unsigned ownerID,resetHookID;std::uint32_t capturedRawMode;};
+        Slot2CConfig slot;
+        std::array<std::array<std::byte,8>,2> guis{},windows{},dxs{},devices{},owners{};
+        std::array<std::array<std::byte,8>,4> hooks{};
+        std::array<unsigned,2> members{1,3};std::array<std::uint8_t,2> sharedFlags{0x5A,0xA5};
+        unsigned gui=1,dx=1,shared=1,memberReads=0,capturedFlag=0;
+        bool admitted=true,missingDX=false;std::vector<Event> events;std::vector<InputRead> inputReads;std::vector<Capture> captures;
+        explicit Slot2CHost(const Slot2CConfig& config):slot(config)
+        {inputs[0][0x18]=static_cast<std::uint8_t>(slot.flag0);inputs[1][0x18]=static_cast<std::uint8_t>(slot.flag1);events.reserve(7);inputReads.reserve(1);captures.reserve(1);}
+        Slot2CProfileForAnalysis GameOverSlot2CProfileForAnalysis() const noexcept override
+        {return admitted?Slot2CProfileForAnalysis::PCStableInputGUIBindings:Slot2CProfileForAnalysis::Unqualified;}
+        std::string Snapshot() const
+        {
+            const auto& menu=active->GetMenuStateForAnalysis();std::ostringstream out;
+            out<<"{\"view\":"<<menu.view40<<",\"mode\":"<<menu.mode44<<",\"field25\":"<<unsigned(active->GetStateForAnalysis().field25)
+               <<",\"cachedInputID\":"<<InputID(active->GetGameOverStateForAnalysis().borrowedInput5C)<<",\"globalGUI\":"<<gui<<",\"globalDX\":"<<dx
+               <<",\"globalOwner\":"<<owner<<",\"globalShared\":"<<shared<<",\"ownerMembers1C\":";EntryHost::Numbers(out,members);
+            out<<",\"inputFlags18\":["<<unsigned(inputs[0][0x18])<<','<<unsigned(inputs[1][0x18])<<"],\"shared45\":";EntryHost::Numbers(out,sharedFlags);out<<'}';return out.str();
+        }
+        Event Begin(const char* kind,unsigned receiver,std::vector<unsigned> arguments={}){return {kind,receiver,std::move(arguments),Snapshot(),{}};}
+        void End(Event event){event.after=Snapshot();events.push_back(std::move(event));}
+        void* ResolveMenuInputOwnerForAnalysis() override{return owners[owner-1].data();}
+        void* ReadMenuInput1CForAnalysis(void* value) override
+        {
+            const auto id=EntryHost::Identity(value,owners);Check(id==1,"Slot2C SetMode reloads same captured owner");auto* captured=hooks[members[id-1]-1].data();
+            if(++memberReads==1&&(slot.mutations&256))active->MenuStateForFixture().mode44=0xFFFFFFFF;
+            return captured;
+        }
+        void ResetMenuInputForAnalysis(void* value) override
+        {
+            const auto id=EntryHost::Identity(value,hooks);Check(id==1&&memberReads==1,"Slot2C initial owner/member Reset once");
+            captures.push_back({1,id,active->GetMenuStateForAnalysis().mode44});auto event=Begin("UserInputReset20",id);
+            if(slot.mutations&1){members[0]=2;owner=2;active->MenuStateForFixture().mode44=0xDEADBEEF;active->MenuStateForFixture().view40=7;active->MutableStateForAnalysis().field25=0xA1;}
+            End(std::move(event));
+        }
+        void SetMenuInputModeForAnalysis(void* value,std::uint32_t mode) override
+        {
+            const auto id=EntryHost::Identity(value,hooks);Check(memberReads==2&&id==((slot.mutations&1)?2u:1u)&&mode==captures[0].capturedRawMode,"Slot2C fresh same-owner member and captured raw mode");
+            Check(mode<10||mode>=0x80000000,"Slot2C signed raw mode below10");auto event=Begin("UserInputSetMode1C",id,{mode});
+            if(slot.mutations&128){active->MenuStateForFixture().view40=13;gui=2;active->MutableStateForAnalysis().field25=0xA7;}End(std::move(event));
+        }
+        void* ResolveMenuGUIManagerForAnalysis() override{return guis[gui-1].data();}
+        void* FindMenuWindowPCForAnalysis(void* value,std::uint32_t view) override
+        {
+            const auto id=EntryHost::Identity(value,guis);Check(id==gui&&view==active->GetMenuStateForAnalysis().view40,"Slot2C fresh GUI/captured view");auto event=Begin("GUILookup",id,{view});event.returnedWindowID=slot.returnedWindowID;
+            if(slot.mutations&2){owner=gui=2;active->MenuStateForFixture().view40=9;active->MutableStateForAnalysis().field25=0xB2;}
+            End(std::move(event));return windows[slot.returnedWindowID-1].data();
+        }
+        void ApplyMenuWindowPCForAnalysis(void* value,std::uint32_t flag) override
+        {
+            const auto id=EntryHost::Identity(value,windows);Check(id==slot.returnedWindowID&&flag==1,"Slot2C captured returned window/literal1");auto event=Begin("GUIApply",id,{flag});
+            if(slot.mutations&4){owner=3-owner;gui=3-gui;active->MutableStateForAnalysis().field25=0xC3;}End(std::move(event));
+        }
+        void* ReadMenuInput18ForAnalysis(void* value) override{return inputs[EntryHost::Identity(value,owners)-1].data();}
+        std::uint8_t ReadMenuInputByte18ForAnalysis(void* value) override
+        {
+            const auto id=InputID(value);Check(id==owner,"Slot2C fresh owner/member18");capturedFlag=inputs[id-1][0x18];InputRead read{id,0x18,capturedFlag,Snapshot(),{}};
+            if(slot.mutations&8){inputs[id-1][0x18]=capturedFlag?0:255;shared=2;}read.after=Snapshot();inputReads.push_back(std::move(read));return static_cast<std::uint8_t>(capturedFlag);
+        }
+        std::uint8_t& BorrowMenuSharedFlag45ForAnalysis() override{return sharedFlags[shared-1];}
+        void* ResolveMenuAudioInterfaceForAnalysis() override{return missingDX?nullptr:dxs[dx-1].data();}
+        void* GetMenuAudioControllerForAnalysis(void* value) override
+        {
+            const auto id=EntryHost::Identity(value,dxs);auto event=Begin("DXView18Getter0C",id);if(slot.mutations&16)dx=2;End(std::move(event));return devices[id-1].data();
+        }
+        void SetMenuAudioEnabledForAnalysis(void* value,std::uint32_t flag) override
+        {
+            Check(flag==unsigned(capturedFlag==0),"Slot2C captured byte18 selects device argument");auto event=Begin("DXDevice20",EntryHost::Identity(value,devices),{flag});
+            if(slot.mutations&32){gui=2;active->MutableStateForAnalysis().field25=0xA5;}End(std::move(event));
+        }
+        void SetMenuHUDForAnalysis(void* value,std::uint32_t flag) override
+        {
+            const auto id=EntryHost::Identity(value,guis);Check(id==gui&&flag==unsigned(capturedFlag==0),"Slot2C fresh GUI/captured byte18 HUD argument");auto event=Begin("GUIHUD",id,{flag});
+            if(slot.mutations&64){dx=2;active->MutableStateForAnalysis().field25=0xA6;}End(std::move(event));
+        }
+    };
+    void Slot2COne(const Slot2CConfig& config,bool emit)
+    {
+        Check(config.cachedInputID<=1&&config.mutations<512&&config.flag0<=255&&config.flag1<=255&&config.returnedWindowID>=1&&config.returnedWindowID<=2,"Bounded slot2C replay row");
+        Slot2CHost host(config);auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();object->MenuStateForFixture().view40=config.view;object->MenuStateForFixture().mode44=config.mode;
+        object->MutableStateForAnalysis().field25=0xA5;object->GameOverStateForFixture().borrowedInput5C=config.cachedInputID?host.inputs[0].data():nullptr;
+        const auto base=object->GetStateForAnalysis();const auto menu=object->GetMenuStateForAnalysis();const auto timer=TimerState(object->TimerForAnalysis()),extra=TimerState(*menu.timer50);const auto clocks=host.clockCalls;
+        wxMenuGameFlowState& menuView=*object;menuView.FlowSlot2CForAnalysis();
+        const auto mode=host.captures[0].capturedRawMode;const unsigned hasMode=mode<10||mode>=0x80000000;
+        Check(host.events.size()==6+hasMode&&host.inputReads.size()==1&&host.captures.size()==1&&host.memberReads==1+hasMode,"Whole inherited slot2C event/input count");
+        Check(SameExcept25(base,object->GetStateForAnalysis())&&object->GetStateForAnalysis().field25==0,"Slot2C final plain25 clear overwrites callback state");
+        Check(TimerState(object->TimerForAnalysis())==timer&&TimerState(*menu.timer50)==extra&&host.clockCalls==clocks,"Slot2C preserves actual parent timers/no clock");
+        Check(host.reads.empty()&&host.effects.empty()&&object->GetGameOverStateForAnalysis().borrowedInput5C==(config.cachedInputID?host.inputs[0].data():nullptr),"Slot2C does not read/change cached5C or invoke Tick flow");
+        const auto& after=object->GetMenuStateForAnalysis();Check(after.object4C==nullptr&&after.allocation3C==nullptr&&after.timer50==menu.timer50&&after.word48==menu.word48&&after.borrowedInput54==menu.borrowedInput54&&after.field58==menu.field58,"Slot2C preserves other Menu state");
+        Check(host.sharedFlags[host.shared-1]==unsigned(host.capturedFlag==0),"Slot2C writes fresh shared45 binding from captured flag");
+        if(emit)
+        {
+            std::cout<<"{\"afterSlot2C\":"<<host.Snapshot()<<",\"events\":[";
+            for(std::size_t i=0;i<host.events.size();++i){if(i)std::cout<<',';const auto& e=host.events[i];std::cout<<"{\"kind\":\""<<e.kind<<"\",\"receiverID\":"<<e.receiver<<",\"arguments\":";EntryHost::Numbers(std::cout,e.arguments);std::cout<<",\"before\":"<<e.before<<",\"after\":"<<e.after;if(e.returnedWindowID)std::cout<<",\"returnedWindowID\":"<<e.returnedWindowID;std::cout<<'}';}
+            std::cout<<"],\"inputReads\":[";for(std::size_t i=0;i<host.inputReads.size();++i){if(i)std::cout<<',';const auto& r=host.inputReads[i];std::cout<<"{\"inputID\":"<<r.inputID<<",\"offset\":"<<r.offset<<",\"value\":"<<r.value<<",\"before\":"<<r.before<<",\"after\":"<<r.after<<'}';}
+            std::cout<<"],\"inputCaptures\":[";for(std::size_t i=0;i<host.captures.size();++i){if(i)std::cout<<',';const auto& c=host.captures[i];std::cout<<"{\"ownerID\":"<<c.ownerID<<",\"resetHookID\":"<<c.resetHookID<<",\"capturedRawMode\":"<<c.capturedRawMode<<'}';}
+            std::cout<<"],\"parentTaskTimerBytesUnchanged\":true}\n";
+        }
+        Arm(*object);host.active=nullptr;object.reset();Closed(host);
+    }
+    void Slot2CContracts()
+    {
+        Slot2COne({0,0,0,255,0,1,0x20,1},false);Slot2COne({13,10,255,0,1,1,0x20,1},false);Slot2COne({22,10,0,255,511,2,0xFFFFFFFF,0},false);
+        Slot2CHost host(Slot2CConfig{12,9,0,255,1,1,0x20,1});auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();object->MenuStateForFixture().mode44=9;
+        const auto before=host.Snapshot();const auto reject=[&]{Refuses([&]{object->FlowSlot2CForAnalysis();});Check(host.Snapshot()==before&&host.events.empty()&&host.inputReads.empty()&&host.memberReads==0,"Slot2C analytical admission before effects");};
+        host.admitted=false;reject();host.admitted=true;host.platform=Host::HookProfileForAnalysis::PS2;reject();host.platform=Host::HookProfileForAnalysis::PC;
+        spBaseObject foreign;object->MenuStateForFixture().object4C=&foreign;reject();object->MenuStateForFixture().object4C=nullptr;std::array<std::byte,8> buffer{};object->MenuStateForFixture().allocation3C=buffer.data();reject();object->MenuStateForFixture().allocation3C=nullptr;
+        host.missingDX=true;Refuses([&]{object->FlowSlot2CForAnalysis();});Check(host.events.size()==5&&host.inputReads.size()==1&&host.sharedFlags[0]==0&&object->GetStateForAnalysis().field25==0xA1,"Missing DX binding preserves Reset/mode/window/shared/HUD prefix before finalclear; no rollback claim");
+        Arm(*object);host.active=nullptr;object.reset();Closed(host);
+    }
+    void ReplaySlot2C()
+    {
+        Slot2CConfig c;while(std::cin>>c.index){Check(bool(std::cin>>c.mode>>c.flag0>>c.flag1>>c.mutations>>c.returnedWindowID>>c.view>>c.cachedInputID),"Complete slot2C replay row");Slot2COne(c,true);}Check(std::cin.eof(),"Complete slot2C replay input");
+    }
+
+    struct Slot38Config{unsigned index=0,field25=0;std::uint32_t view=0x20,mode=1;unsigned cachedInputID=1;};
+    struct Slot38Host final:Host
+    {
+        bool admitted=true;
+        Slot38ProfileForAnalysis GameOverSlot38ProfileForAnalysis() const noexcept override
+        {return admitted?Slot38ProfileForAnalysis::PCStableOwnedLifetime:Slot38ProfileForAnalysis::Unqualified;}
+        std::string Snapshot() const
+        {
+            const auto& menu=active->GetMenuStateForAnalysis();std::ostringstream out;
+            out<<"{\"view\":"<<menu.view40<<",\"mode\":"<<menu.mode44<<",\"field25\":"<<unsigned(active->GetStateForAnalysis().field25)
+               <<",\"cachedInputID\":"<<InputID(active->GetGameOverStateForAnalysis().borrowedInput5C)<<",\"parentBorrow30ID\":"<<InputID(active->GetBorrowedInputForAnalysis())
+               <<",\"menuBorrow54ID\":"<<InputID(menu.borrowedInput54)<<",\"ownedBuffer3CPresent\":"<<(menu.allocation3C?"true":"false")<<",\"ownedLevel4CPresent\":"<<(menu.object4C?"true":"false")<<'}';return out.str();
+        }
+    };
+    void Slot38One(const Slot38Config& config,bool emit)
+    {
+        Check(config.field25<=255&&config.cachedInputID<=2,"Bounded slot38 replay row");Slot38Host host;auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();
+        object->MenuStateForFixture().view40=config.view;object->MenuStateForFixture().mode44=config.mode;object->MutableStateForAnalysis().field25=static_cast<std::uint8_t>(config.field25);
+        object->GameOverStateForFixture().borrowedInput5C=config.cachedInputID?host.inputs[config.cachedInputID-1].data():nullptr;
+        const auto before=host.Snapshot();const auto base=object->GetStateForAnalysis();const auto menu=object->GetMenuStateForAnalysis();const auto inputs=host.inputs;
+        const auto timer=TimerState(object->TimerForAnalysis()),extra=TimerState(*menu.timer50);const auto clocks=host.clockCalls;
+        wxMenuGameFlowState& menuView=*object;const bool returned=menuView.MenuSlot38ForAnalysis();
+        Check(returned&&host.Snapshot()==before&&SameExcept25(base,object->GetStateForAnalysis())&&object->GetStateForAnalysis().field25==base.field25,"Slot38 wrapper/common-body true and unchanged typed receiver");
+        Check(TimerState(object->TimerForAnalysis())==timer&&TimerState(*menu.timer50)==extra&&host.clockCalls==clocks&&host.inputs==inputs&&host.reads.empty()&&host.effects.empty(),"Slot38 preserves actual timers/borrows without foreign input or clock calls");
+        const auto& after=object->GetMenuStateForAnalysis();Check(after.timer50==menu.timer50&&after.word48==menu.word48&&after.field58==menu.field58,"Slot38 preserves remaining typed Menu state");
+        if(emit)std::cout<<"{\"beforeSlot38\":"<<before<<",\"afterSlot38\":"<<host.Snapshot()<<",\"returned\":true,\"parentTaskTimerBytesUnchanged\":true,\"borrowedInputBytesUnchanged\":true}\n";
+        Arm(*object);host.active=nullptr;object.reset();Closed(host);
+    }
+    void Slot38Contracts()
+    {
+        Slot38One({0,0,0x20,1,1},false);Slot38One({2,0x80,0xFFFFFFFF,0xFFFFFFFF,2},false);Slot38One({3,0xFF,0x80000000,0x80000000,0},false);
+        Slot38Host host;auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();
+        const auto reject=[&]{const auto before=host.Snapshot();const auto clocks=host.clockCalls;Refuses([&]{(void)object->MenuSlot38ForAnalysis();});Check(host.Snapshot()==before&&host.reads.empty()&&host.effects.empty()&&host.clockCalls==clocks,"Slot38 analytical admission precedes effects");};
+        host.admitted=false;reject();host.admitted=true;host.platform=Host::HookProfileForAnalysis::PS2;reject();host.platform=Host::HookProfileForAnalysis::PC;
+        spBaseObject foreign;object->MenuStateForFixture().object4C=&foreign;reject();object->MenuStateForFixture().object4C=nullptr;std::array<std::byte,8> buffer{};object->MenuStateForFixture().allocation3C=buffer.data();reject();object->MenuStateForFixture().allocation3C=nullptr;
+        const auto before=host.Snapshot();Refuses([&]{object->FlowSlot28ForAnalysis();});Refuses([&]{object->FlowSlot2CForAnalysis();});Check(host.Snapshot()==before&&host.reads.empty()&&host.effects.empty(),"Slot38 admission does not admit neighboring profiles");
+        Arm(*object);host.active=nullptr;object.reset();Closed(host);
+    }
+    void ReplaySlot38()
+    {Slot38Config c;while(std::cin>>c.index){Check(bool(std::cin>>c.field25>>c.view>>c.mode>>c.cachedInputID),"Complete slot38 replay row");Slot38One(c,true);}Check(std::cin.eof(),"Complete slot38 replay input");}
+
+    std::string HexBytes(const void* data,std::size_t bytes)
+    {
+        static constexpr char digits[]="0123456789abcdef";const auto* raw=static_cast<const unsigned char*>(data);std::string out;out.reserve(bytes*2);
+        for(std::size_t i=0;i<bytes;++i){out+=digits[raw[i]>>4];out+=digits[raw[i]&15];}return out;
+    }
+    struct Slot40Path{bool present=false;std::vector<char> bytes;};
+    Slot40Path DecodeSlot40Path(const std::string& encoded)
+    {
+        if(encoded=="-")return {};Slot40Path path;path.present=true;
+        if(encoded!="_")
+        {
+            Check(encoded.size()%2==0&&encoded.size()<=126,"Bounded supplied path bytes");
+            const auto nibble=[](char c){Check((c>='0'&&c<='9')||(c>='a'&&c<='f'),"Lowercase path hex");return c<='9'?c-'0':c-'a'+10;};
+            for(std::size_t i=0;i<encoded.size();i+=2)path.bytes.push_back(static_cast<char>((nibble(encoded[i])<<4)|nibble(encoded[i+1])));
+        }
+        path.bytes.push_back(0);return path;
+    }
+    struct Slot40Host final:Host
+    {
+        struct Buffer{void* address;std::size_t bytes;unsigned id,freeCount=0;bool live=true;};
+        std::vector<Buffer> buffers;std::vector<std::string> events;
+        bool admitted=true,destructing=false;int call=0;
+        Slot40Host(){buffers.reserve(3);events.reserve(8);}
+        ~Slot40Host() override{for(auto& buffer:buffers)if(buffer.live)std::free(buffer.address);}
+        Slot40ProfileForAnalysis GameOverSlot40ProfileForAnalysis() const noexcept override
+        {return admitted?Slot40ProfileForAnalysis::PCStableDisjointOwnedPath:Slot40ProfileForAnalysis::Unqualified;}
+        Buffer& LiveBuffer(const void* address)
+        {for(auto i=buffers.rbegin();i!=buffers.rend();++i)if(i->address==address&&i->live)return *i;throw std::runtime_error("Unknown live owned path buffer");}
+        unsigned MemberID()
+        {const auto* address=registered->GetMenuStateForAnalysis().allocation3C;return address?LiveBuffer(address).id:0;}
+        void Event(const char* kind,unsigned id,std::size_t bytes,unsigned before,unsigned after)
+        {
+            std::ostringstream out;out<<"{\"call\":"<<(destructing?-1:call)<<",\"phase\":\""<<(destructing?"destructor":"operation")<<"\",\"kind\":\""<<kind
+                <<"\",\"id\":"<<id<<",\"bytes\":"<<bytes<<",\"memberBefore\":"<<before<<",\"memberAfter\":"<<after<<'}';events.push_back(out.str());
+        }
+        std::string Events(std::size_t first=0) const
+        {std::ostringstream out;out<<'[';for(std::size_t i=first;i<events.size();++i){if(i!=first)out<<',';out<<events[i];}out<<']';return out.str();}
+        void* AllocateMenuPathBufferForAnalysis(std::size_t bytes) override
+        {
+            Check(!destructing&&active&&bytes>=1&&bytes<=64&&MemberID()==0,"Length-sized storage after old member clear");
+            auto* address=std::malloc(bytes);if(!address)throw std::bad_alloc();std::memset(address,0xCC,bytes);
+            const auto id=static_cast<unsigned>(buffers.size()+1);buffers.push_back({address,bytes,id});Event("Allocate",id,bytes,0,MemberID());return address;
+        }
+        void FreeMenuAllocationForAnalysis(void* address) override
+        {
+            Check(registered&&registered->GetMenuStateForAnalysis().allocation3C==address,"Free observes live Menu owned member before source clear");
+            auto& buffer=LiveBuffer(address);const auto member=MemberID();Event("Free",buffer.id,buffer.bytes,member,MemberID());++buffer.freeCount;buffer.live=false;std::free(address);
+        }
+        std::string Snapshot()
+        {
+            const auto& menu=active->GetMenuStateForAnalysis();std::ostringstream out;out<<"{\"buffer\":";
+            if(menu.allocation3C){const auto& buffer=LiveBuffer(menu.allocation3C);out<<"{\"id\":"<<buffer.id<<",\"bytes\":"<<buffer.bytes<<",\"data\":\""<<HexBytes(buffer.address,buffer.bytes)<<"\"}";}
+            else out<<"null";
+            out<<",\"view\":"<<menu.view40<<",\"mode\":"<<menu.mode44<<",\"field25\":"<<unsigned(active->GetStateForAnalysis().field25)
+               <<",\"cachedInputID\":"<<InputID(active->GetGameOverStateForAnalysis().borrowedInput5C)<<",\"parentBorrow30ID\":"<<InputID(active->GetBorrowedInputForAnalysis())
+               <<",\"menuBorrow54ID\":"<<InputID(menu.borrowedInput54)<<'}';return out.str();
+        }
+    };
+    void Slot40One(unsigned index,const std::vector<std::string>& encoded,bool emit)
+    {
+        Check(index<6&&!encoded.empty()&&encoded.size()<=3,"Bounded slot40 sequence");std::vector<Slot40Path> paths;paths.reserve(encoded.size());
+        for(const auto& value:encoded)paths.push_back(DecodeSlot40Path(value));const auto beforePaths=paths;
+        Slot40Host host;auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();
+        const auto beforeSequence=host.Snapshot(),beforeInputs=HexBytes(host.inputs.data(),sizeof(host.inputs));const auto base=object->GetStateForAnalysis();const auto menu=object->GetMenuStateForAnalysis();
+        const auto timer=TimerState(object->TimerForAnalysis()),extra=TimerState(*menu.timer50);const auto clocks=host.clockCalls;std::ostringstream steps;steps<<'[';
+        for(std::size_t i=0;i<paths.size();++i)
+        {
+            host.call=static_cast<int>(i);const auto before=host.Snapshot();const auto eventStart=host.events.size();wxMenuGameFlowState& menuView=*object;
+            menuView.MenuSlot40ForAnalysis(paths[i].present?paths[i].bytes.data():nullptr);
+            const auto& after=object->GetMenuStateForAnalysis();
+            if(paths[i].present)
+            {
+                const auto bytes=std::strlen(paths[i].bytes.data())+1;const auto& buffer=host.LiveBuffer(after.allocation3C);
+                Check(buffer.bytes==bytes&&std::memcmp(buffer.address,paths[i].bytes.data(),bytes)==0,"Exact owned copy through first NUL");
+            }
+            else Check(!after.allocation3C,"Null path clears owned member without allocation");
+            Check(after.object4C==menu.object4C&&after.timer50==menu.timer50&&after.word48==menu.word48&&after.field58==menu.field58&&after.view40==menu.view40&&after.mode44==menu.mode44&&after.borrowedInput54==menu.borrowedInput54,"Slot40 preserves remaining Menu state");
+            Check(SameExcept25(base,object->GetStateForAnalysis())&&base.field25==object->GetStateForAnalysis().field25&&TimerState(object->TimerForAnalysis())==timer&&TimerState(*menu.timer50)==extra&&host.clockCalls==clocks,"Slot40 preserves actual parent state/timers");
+            Check(HexBytes(host.inputs.data(),sizeof(host.inputs))==beforeInputs&&host.reads.empty()&&host.effects.empty(),"Slot40 leaves borrowed inputs without foreign operations");
+            for(std::size_t j=0;j<paths.size();++j)Check(paths[j].bytes==beforePaths[j].bytes,"Stable complete borrowed paths including ignored tail");
+            if(i)steps<<',';steps<<"{\"ordinal\":"<<i<<",\"before\":"<<before<<",\"after\":"<<host.Snapshot()<<",\"storageEvents\":"<<host.Events(eventStart)
+                <<",\"parentTaskTimerBytesUnchanged\":true,\"borrowedInputBytesUnchanged\":true,\"borrowedPathBytesUnchanged\":true}";
+        }
+        steps<<']';const auto afterSequence=host.Snapshot();Arm(*object);host.destructing=true;object.reset();host.active=nullptr;Closed(host);
+        for(const auto& buffer:host.buffers)Check(!buffer.live&&buffer.freeCount==1,"Every owned path buffer freed exactly once");
+        Check(HexBytes(host.inputs.data(),sizeof(host.inputs))==beforeInputs,"Borrowed input survives owned teardown");
+        for(std::size_t i=0;i<paths.size();++i)Check(paths[i].bytes==beforePaths[i].bytes,"Borrowed path survives owned teardown");
+        if(emit)std::cout<<"{\"beforeSequence\":"<<beforeSequence<<",\"steps\":"<<steps.str()<<",\"afterSequence\":"<<afterSequence<<",\"storageEvents\":"<<host.Events()
+            <<",\"allSelectedOwnedAllocationsFreedExactlyOnce\":true,\"borrowedPathsAndInputsSurviveCleanup\":true}\n";
+    }
+    void Slot40Contracts()
+    {
+        Slot40One(0,{"-"},false);Slot40One(1,{"_"},false);Slot40One(2,{"616c706861","6c6f6e6765722f70617468"},false);
+        Slot40One(3,{"616c706861","-"},false);Slot40One(4,{"d090d091","610069676e6f726564"},false);Slot40One(5,{"616c706861","ff80","_"},false);
+        Slot40Host host;auto object=std::make_unique<wxGameOverGameFlowState>(host);host.active=object.get();
+        const auto reject=[&]{const auto before=host.Snapshot();Refuses([&]{object->MenuSlot40ForAnalysis("unused");});Check(host.Snapshot()==before&&host.events.empty(),"Slot40 admission before storage effects");};
+        host.admitted=false;reject();host.admitted=true;host.platform=Host::HookProfileForAnalysis::PS2;reject();host.platform=Host::HookProfileForAnalysis::PC;
+        spBaseObject foreign;object->MenuStateForFixture().object4C=&foreign;reject();object->MenuStateForFixture().object4C=nullptr;
+        Refuses([&]{object->FlowSlot20ForAnalysis();});Refuses([&]{object->FlowSlot24ForAnalysis();});Refuses([&]{object->FlowSlot28ForAnalysis();});Refuses([&]{object->FlowSlot2CForAnalysis();});Refuses([&]{(void)object->MenuSlot38ForAnalysis();});
+        Refuses([&]{(void)object->FlowSlot30ForAnalysis();});Refuses([&]{(void)object->MenuSlot44ForAnalysis();});spCloneManager clones;Refuses([&]{(void)object->vfunc_10(clones);});
+        Check(host.events.empty()&&host.reads.empty()&&host.effects.empty(),"Slot40 admission leaves other profiles and Clone unqualified");
+        Arm(*object);host.destructing=true;object.reset();host.active=nullptr;Closed(host);
+    }
+    void ReplaySlot40()
+    {
+        unsigned index,count;while(std::cin>>index)
+        {Check(bool(std::cin>>count)&&count>=1&&count<=3,"Complete bounded slot40 replay count");std::vector<std::string> paths(count);for(auto& path:paths)Check(bool(std::cin>>path),"Complete slot40 replay path");Slot40One(index,paths,true);}
+        Check(std::cin.eof(),"Complete slot40 replay input");
+    }
+
     void Contracts()
     {
         Lifecycle(false);
@@ -494,6 +865,10 @@ int main(int argc,char** argv)
     try
     {
         if(argc==2&&std::string_view(argv[1])=="--lifecycle")Lifecycle(true);
+        else if(argc==2&&std::string_view(argv[1])=="--slot28-replay")ReplaySlot28();
+        else if(argc==2&&std::string_view(argv[1])=="--slot2c-replay")ReplaySlot2C();
+        else if(argc==2&&std::string_view(argv[1])=="--slot38-replay")ReplaySlot38();
+        else if(argc==2&&std::string_view(argv[1])=="--slot40-replay")ReplaySlot40();
         else if(argc==2&&std::string_view(argv[1])=="--exit-replay")ReplayExit();
         else if(argc==2&&std::string_view(argv[1])=="--entry-replay")ReplayEntry();
         else if(argc==2&&std::string_view(argv[1])=="--replay")
@@ -502,7 +877,7 @@ int main(int argc,char** argv)
             {Check(bool(std::cin>>c.flag>>c.a1B>>c.a2A>>c.b1B>>c.b2A>>c.mutation>>c.afterRead>>c.flowMutation>>c.resolveMutation),"Complete replay input row");One(c,true);}
             Check(std::cin.eof(),"Complete replay input row");
         }
-        else{Contracts();EntryContracts();ExitContracts();std::cout<<"GameOver constructor, Entry, inherited Exit and own Tick contracts passed\n";}
+        else{Contracts();EntryContracts();ExitContracts();Slot28Contracts();Slot2CContracts();Slot38Contracts();Slot40Contracts();std::cout<<"GameOver constructor, Entry, Exit/28/2C, wrapper38, owned path40 and own Tick contracts passed\n";}
         return 0;
     }
     catch(const std::exception& error){watching=false;std::cerr<<"GameOver "<<error.what()<<'\n';return 1;}

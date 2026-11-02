@@ -22,10 +22,13 @@ namespace winx::reconstruction
         void FlowSlot20ForAnalysis() override;
         // Inherited Menu Exit under a separate explicit borrowed-binding profile.
         void FlowSlot24ForAnalysis() override;
+        // Inherited Menu28 under its own borrowed-GUI/null-ownership profile.
         void FlowSlot28ForAnalysis() override;
+        // Independent inherited Menu2C input/GUI/null-ownership profile.
         void FlowSlot2CForAnalysis() override;
-        // Extended38/40 remain unqualified. The measured44 target forwards
-        // to the real parent only under the explicit empty Entry profile.
+        // Extended38 and owned path40 have independent PC profiles.
+        // The measured44 target forwards to the real parent only under the
+        // explicit empty Entry profile.
         [[nodiscard]] bool MenuSlot38ForAnalysis() override;
         void MenuSlot40ForAnalysis(const char*) override;
         [[nodiscard]] bool MenuSlot44ForAnalysis() override;

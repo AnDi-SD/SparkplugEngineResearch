@@ -103,7 +103,7 @@ namespace
             else if(key == L"--report") o.report = value;
             else throw std::invalid_argument("Unknown diagnostic option");
         }
-        const std::wstring prefix = L"Local\\WinxCoop.DiagnosticInput4.";
+        const std::wstring prefix = L"Local\\WinxCoop.DiagnosticInput5.";
         if(!role || !bind || !o.nonce || !o.session || !o.scenario || !o.levelEpoch || !o.generation ||
             !o.credits || !o.maxSamples || !o.token || o.runMilliseconds < 100 || o.actorLeaseMilliseconds < 500 ||
             o.mapping.size() <= prefix.size() || o.mapping.size() > 160 || o.mapping.compare(0, prefix.size(), prefix) != 0 ||
@@ -400,7 +400,7 @@ namespace
             { Rearm(now); return; }
             const auto& r = m.input;
             if(r.sourceSequence != received_ + 1 || r.sourceSequence > grant->maximum || r.captureOrdinal <= lastOrdinal_ ||
-                (sourceNeutral_ && (r.buttons & 1)) || pending_.size() >= MaximumCredits || receivedTotal_ == o_.maxSamples)
+                (sourceNeutral_ && r.buttons != 0) || pending_.size() >= MaximumCredits || receivedTotal_ == o_.maxSamples)
             { Stop(Terminal::Sequence); return; }
             InputRecord accepted = r; accepted.hostIngressMilliseconds = now; // Assigned exactly once at this Pump's decode admission.
             pending_.push_back(accepted); received_ = r.sourceSequence; lastOrdinal_ = r.captureOrdinal; lastIngress_ = now;

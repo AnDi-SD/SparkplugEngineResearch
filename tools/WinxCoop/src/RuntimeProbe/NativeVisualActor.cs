@@ -30,8 +30,16 @@ internal sealed class NativeVisualActor(ProbeConfiguration config, PEReader imag
     private float[] _origin = [];
     private float _minimumObservedY = float.PositiveInfinity, _maximumObservedY = float.NegativeInfinity;
     internal bool EverCreated { get; private set; }
+    private bool ExternalWorld => config.DiagnosticWorldState?.Role == WorldStateRole.Guest;
+    private uint _externalSemantic;
+    internal bool WorldReady => ExternalWorld && _stage == 7 && _actor != 0 && _wrapper != 0;
+    internal WorldPresentationBinding WorldBinding => WorldReady ? new(1, WorldPresentationActorState.BloomType,
+        _wrapper, _actor, U(_wrapper + 0x3C), _parent, true) :
+        throw new InvalidOperationException("Passive Bloom is not ready for external world state.");
+    internal void SetWorldAnimation(uint semantic)
+    { if (!ExternalWorld || semantic > 5) throw new InvalidDataException("Invalid passive Bloom semantic."); _externalSemantic = semantic; }
     internal bool HasActor => _actor != 0;
-    internal bool Cleaned => (_cycles == 2 || (config.Mode == "visual-unload" && _unloads > 0)) &&
+    internal bool Cleaned => (_cycles == 2 || ((config.Mode == "visual-unload" || ExternalWorld) && _unloads > 0)) &&
         _stage == 30 && _source == 0 && _hairSource == 0 && _wrapper == 0 && _actor == 0;
     internal object Summary => new { stage = _stage, completedCycles = _cycles, everCreated = EverCreated,
         cleaned = Cleaned, source = Hex(_source), wrapper = Hex(_wrapper), actor = Hex(_actor),
@@ -92,6 +100,34 @@ internal sealed class NativeVisualActor(ProbeConfiguration config, PEReader imag
                 actorDeleted = true, finalParentOwnerReleasedByNativeDetach = true, originalEntryStillNotExecuted = true });
         });
         return true;
+    }
+
+    internal WorldPresentationCleanupPlan PrepareWorldCleanup(DebuggerHost host, uint tid,
+        ref Win32Native.X86Context ctx, bool callPending)
+    {
+        if (!ExternalWorld || !HasActor || _stage != 7 || _source != 0 || _hairSource != 0 ||
+            !_wrapperOwner || callPending || !host.IsAtDebugStop || tid != host.MainThreadId)
+            throw new InvalidDataException("World Bloom cleanup requires a completed owned visual transaction.");
+        _host = host;
+        foreach (uint fn in new uint[] { 0x5A21C0, 0x5A35A0, 0x4217E0 }) VerifyFunction(fn);
+        if (U(_wrapper + 0x2C) != _parent || Count(_wrapper) != 2)
+            throw new InvalidDataException("World Bloom cleanup lost its exact two wrapper owners.");
+        uint root = _wrapper, deleting = U(U(root)); VerifyFunction(deleting);
+        SetCount(root, 1); _wrapperOwner = false; _wrapperDeletingObserved = false; _stage = 40;
+        return new([new(0x5A21C0, _actor, [], false), new(0x5A35A0, _actor, [1], false),
+                new(0x4217E0, root, [], false)], deleting, root,
+            (wt, wc) =>
+            {
+                if (wt != host.MainThreadId || wc.Eip != deleting || wc.Ecx != root || Count(root) != 0 || _wrapperDeletingObserved)
+                    throw new InvalidDataException("World Bloom cleanup lacks its native zero-owner destructor witness.");
+                _wrapperDeletingObserved = true;
+            }, () =>
+            {
+                if (!_wrapperDeletingObserved) throw new InvalidDataException("World Bloom wrapper deletion was not observed.");
+                _actor = _clip = _wrapper = 0; ++_unloads; _stage = 42;
+                log(new { @event = "world-presentation-bloom-pre-unload-cleaned", deletedRoot = Hex(root),
+                    nativeDeletingWitness = true, historicalGraphReads = false });
+            });
     }
 
     internal void Step(DebuggerHost host, uint tid, ref Win32Native.X86Context ctx,
@@ -284,9 +320,10 @@ internal sealed class NativeVisualActor(ProbeConfiguration config, PEReader imag
                 if (!float.IsFinite(observedY)) throw new InvalidDataException("Remote world position became nonfinite");
                 _minimumObservedY = Math.Min(_minimumObservedY, observedY); _maximumObservedY = Math.Max(_maximumObservedY, observedY);
                 if (_liveUpdates is 1 or 120 or 720 or 1320) ObserveLighting();
-                int desired = _liveUpdates < 600 ? 0 : _liveUpdates < 1200 ? 1 : _liveUpdates < 1440 ? 2 : 0;
+                int desired = ExternalWorld ? (_externalSemantic == 1 ? 1 : _externalSemantic == 2 ? 2 : 0) :
+                    _liveUpdates < 600 ? 0 : _liveUpdates < 1200 ? 1 : _liveUpdates < 1440 ? 2 : 0;
                 if (desired != _activeClip) { _wantedClip = desired; _stage = 15; break; }
-                if (_liveUpdates % 3 == 0)
+                if (!ExternalWorld && _liveUpdates % 3 == 0)
                 {
                     float x = _origin[0] + 180, y = _origin[1];
                     if (_activeClip == 1) x += 75 * MathF.Sin((_liveUpdates - 600) * MathF.Tau / 600);
@@ -302,7 +339,7 @@ internal sealed class NativeVisualActor(ProbeConfiguration config, PEReader imag
                         wrapper = Hex(_wrapper), actor = Hex(_actor), animation = ClipNames[_activeClip], playbackSample = Float(Playback() + 0x34),
                         localPosition = new[] { Float(_localRoot + 0x20), Float(_localRoot + 0x24), Float(_localRoot + 0x28) },
                         remoteWorldPosition = new[] { Float(_wrapper + 0x74), Float(_wrapper + 0x78), Float(_wrapper + 0x7C) } });
-                if (_liveUpdates >= 2400 && (config.Mode != "visual-unload" || _cycles == 0)) _stage = 8;
+                if (!ExternalWorld && _liveUpdates >= 2400 && (config.Mode != "visual-unload" || _cycles == 0)) _stage = 8;
                 break;
             case 15:
                 _stage = 16;
@@ -429,7 +466,14 @@ internal sealed class NativeVisualActor(ProbeConfiguration config, PEReader imag
         // and descendant world transforms remain stock engine work.
         Write(_wrapper + 0x20, BitConverter.GetBytes(x).Concat(BitConverter.GetBytes(y)).Concat(BitConverter.GetBytes(z)).ToArray());
         Write(_wrapper + 0x30, _scale);
-        Write(_wrapper + 0x40, _orientation);
+        byte[] orientation = _orientation;
+        if (ExternalWorld)
+        {
+            float[] nativeRotation = Enumerable.Range(0, 9).Select(i => BitConverter.ToSingle(_orientation, i * 4)).ToArray();
+            orientation = WorldPresentationModelOrientation.Apply(nativeRotation, characterVisualHalfTurn: true)
+                .SelectMany(BitConverter.GetBytes).ToArray();
+        }
+        Write(_wrapper + 0x40, orientation);
         Write(_wrapper + 0xB0, BitConverter.GetBytes(U(_wrapper + 0xB0) | 1u));
     }
     private void VerifyFunction(uint function)

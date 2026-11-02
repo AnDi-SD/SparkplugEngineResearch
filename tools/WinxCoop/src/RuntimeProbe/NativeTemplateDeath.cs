@@ -64,6 +64,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void RetireSharedBattleAdaptersAtEntry(uint tid, ref Win32Native.X86Context context)
     {
+        if (_mosquitoPlayerTargets?.Active == true) _mosquitoPlayerTargets.RetireBeforeOwnDelete(tid, ref context);
         RetireTemplateStarBeforeOwnDelete(tid, ref context);
         RetireSharedMagicBeforeOwnDelete(tid, ref context);
         if (_stingerSecondaryRole?.Active == true) _stingerSecondaryRole.RetireBeforeOwnDelete(tid, ref context);

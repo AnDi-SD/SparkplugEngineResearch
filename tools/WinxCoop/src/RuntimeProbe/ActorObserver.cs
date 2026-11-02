@@ -11,7 +11,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     private uint _updates, _samples, _readySamples, _factoryReturns;
     private bool _mediaVerified;
     private NativeCallDispatcher _calls = new(log,
-        TimeSpan.FromSeconds(config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" ? 30 : 10));
+        TimeSpan.FromSeconds(config.ReacquireOriginalGamePadDiagnostic ? 5 : config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" ? 30 : 10));
     private bool _callCheckBegun, _callCheckPassed;
     private uint _localCharacter;
     private NativeVisualActor? _visual;
@@ -23,13 +23,21 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     private SharedStateObservation? _sharedState;
     private DiagnosticInputClient? _diagnosticGuest;
     private NativeInputCapture? _nativeInputCapture;
+    private NativeHostFocusPolicy? _hostFocus;
+    private NativeInitialSaveBootstrap? _initialSave;
+    private NativeWorldEntrySeed? _entry;
+    private NativeMenuInputObservation? _menuInput;
+    private WorldStateSession? _world;
+    private NativeHostTransportRebind? _hostRebind;
     private uint _unloadGuardHits, _unloadCleanupsStarted;
     private readonly HashSet<uint> _machines = [];
     private readonly HashSet<uint> _bodyReceivers = [];
     internal uint ReadySamples => _sharedState?.ReadySamples ?? (config.Mode == "controller-reset" ? _movement?.ReadySamples ?? 0 : _readySamples);
     internal bool RemoteCreated => _visual?.EverCreated == true;
     internal bool ModeCompleted => _sharedState?.ModeCompleted == true || _clientPresentation?.ModeCompleted == true || _clientDispatch?.ModeCompleted == true || config.Mode is ("template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn") && _template?.ModeCompleted == true;
-    internal bool ModeSucceeded => config.Mode switch
+    internal bool ModeSucceeded => !config.IsolatedMenuInputDiagnostic && (config.DiagnosticHostRebind is null || _hostRebind?.Succeeded == true) &&
+        (!config.DiagnosticAutoBattlePauseFixture || _template?.DiagnosticBattlePauseQualified == true) &&
+        (config.DiagnosticWorldState is null || _world is { GoalPassed: true, Retired: true }) && (config.Mode switch
     {
         "observe" => _readySamples > 0,
         "shared-state-observe" => _sharedState?.ModeSucceeded == true,
@@ -43,16 +51,20 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         "native-call-check" => _callCheckPassed,
         "visual-actor" or "visual-unload" => _visual?.Cleaned == true,
         _ => false
-    };
+    });
     internal object Summary => new { worldUpdates = _updates, samples = _samples,
         readySamples = ReadySamples, mediaVerified = _mediaVerified, factoryReturns = _factoryReturns,
         observedBloomMachines = _machines.Select(Hex).ToArray(), observedBodyReceivers = _bodyReceivers.Select(Hex).ToArray(),
         nativeCallCheckPassed = _callCheckPassed, nativeCalls = _calls.Summary, visual = _visual?.Summary,
         control = _control?.Summary, template = _template?.Summary, movement = _movement?.Summary,
+        diagnosticAutoBattlePause = _template?.DiagnosticBattlePauseSummary,
         clientDispatch = _clientDispatch?.Summary,
         clientPresentation = _clientPresentation?.Summary,
         sharedState = _sharedState?.Summary,
         nativeInputCapture = _nativeInputCapture?.Summary,
+        hostFocusPolicy = _hostFocus?.Summary, initialSaveBootstrap = _initialSave?.Summary,
+        worldState = _world?.Summary, nativeWorldEntry = _entry?.Summary, menuInputObservation = _menuInput?.Summary,
+        hostTransportRebind = _hostRebind?.Summary,
         unloadGuardHits = _unloadGuardHits, unloadCleanupsStarted = _unloadCleanupsStarted,
         deferredUnloadRearms = _unloadRearms.Count };
     internal void CheckTimeout() => _calls.CheckTimeout();
@@ -61,10 +73,26 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     {
         _host = host;
         if (host.ImageBase != 0x400000) throw new InvalidDataException("Image base mismatch");
+        if (config.ObserveNativeMenuInput)
+        { _menuInput = new(host, image, log); _menuInput.InstallStopped(); }
+        if (config.EnableWorldEntry)
+        {
+            var identity = config.DiagnosticWorldState ?? throw new InvalidDataException("Native entry requires a WorldState identity.");
+            _entry = new(host, image, log, identity.Role, config.WorldBattlePresentation ? 47u : 28u,
+                identity.LevelEpoch, identity.Generation, config.WorldEntrySeed, config.WorldEntryCaptureOrdinal);
+            _entry.InstallStopped();
+        }
+        if (config.DiagnosticWorldState is not null)
+        { _world = new(config, host, image, log); _world.Entry = _entry; }
         if (config.DiagnosticGuestInput is DiagnosticInputIdentity guestIdentity)
         {
             _diagnosticGuest = new(guestIdentity, log);
-            _nativeInputCapture = new(host, image, _diagnosticGuest, log);
+            _nativeInputCapture = new(host, image, _diagnosticGuest, log,
+                config.TemplateNetworkOrdinaryAttackFixture || config.WorldBattlePresentation, config.DiagnosticInputHeartbeatMilliseconds,
+                config.DiagnosticWorldState is not null, config.LimitContinuousGuestInput);
+            log(new { @event = "diagnostic-input-capture-installed",
+                guestPresentationFixture = config.DiagnosticGuestCaptureFixture,
+                readyRequiresNativeInputReturn = true, readyRequiresInitializedOwner = true });
         }
         if (config.Mode is "shared-state-observe" or "shared-state-combat-live")
             _sharedState = new SharedStateObservation(host, image, log, config.Mode == "shared-state-combat-live", config.PrepareFirstMagicStage);
@@ -76,6 +104,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         {
             _template = new NativeTemplateProbe(config, image, log);
             _template.InstallWitnesses(host);
+            _template.ConfigureDiagnosticBattlePause(config);
         }
         if (config.Mode == "control-observe" || _nativeInputCapture is not null)
         {
@@ -86,14 +115,40 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 // Do not publish Ready while private native construction is
                 // stopped. Its first lease starts with the retained controller.
                 _nativeInputCapture?.ObserveAtInputReturn(tid, at, ref ctx,
-                    _mediaVerified && _template?.NetworkInputCaptureReady == true);
+                    _mediaVerified && (_template?.NetworkInputCaptureReady == true ||
+                        config.DiagnosticGuestCaptureFixture && _clientPresentation?.InputCaptureReady == true));
             });
         }
+        if (config.TemplateHostBackgroundFixture)
+        {
+            _hostFocus = new(host, image, log, () => _template?.NetworkInputCaptureReady == true);
+            _hostFocus.InstallStopped();
+        }
+        if (config.InitialSaveSha256 is not null) _initialSave = new(config, host, image, log);
+        if (config.DiagnosticHostRebind is not null) _hostRebind = new(config, host, log);
         // Native scene-manager RET after currentScene has been cleared. This
         // establishes an observation boundary, not a mutation permission.
         Persistent(0x45A802, 8, "SceneManager.return", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
             ++_updates;
+            _menuInput?.ObserveAtWorld(tid, ref ctx);
+            if (config.RefreshOriginalGamePadDiagnostic && _menuInput is not null)
+            {
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                bool inputCallStarted = config.ReacquireOriginalGamePadDiagnostic
+                    ? _menuInput.TryReacquireOriginalPadAtWorld(tid, ref ctx, _calls, () => _resumeObservation?.Invoke())
+                    : _menuInput.TryRefreshOriginalPadAtWorld(tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
+                if (inputCallStarted) return;
+            }
+            ObserveEntryAtWorld(tid, ref ctx);
+            if (_initialSave is { Complete: false })
+            {
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                if (_initialSave.ObserveAtWorld(tid, ref ctx, _calls, () => _resumeObservation?.Invoke(),
+                    _mediaVerified, _entry?.WorldQualified == true)) return;
+            }
+            if (_hostRebind is not null && _world is not null && _template is not null)
+                _hostRebind.PollAtWorld(tid, ref ctx, _calls, _world, _template);
             if (_sharedState is not null)
             {
                 _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
@@ -102,7 +157,25 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             }
             if (_clientPresentation?.Started == true)
             {
+                _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
+                foreach (Action rearm in _unloadRearms) rearm();
+                _unloadRearms.Clear();
                 _clientPresentation.ObserveWorld(tid, ref ctx, _updates, _mediaVerified);
+                if (_world is not null)
+                {
+                    if (_clientPresentation.AfterUnload)
+                    {
+                        if (_visual?.HasActor == false) _visual.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
+                    }
+                    else
+                    {
+                        _world.RefreshGuestAtWorld(tid, ref ctx, _clientPresentation);
+                        if (!_world.CanPresentAtWorld()) return;
+                        _visual ??= new NativeVisualActor(config, image, log);
+                        _visual.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
+                        if (!_calls.Pending) _world.ObserveGuest(tid, ref ctx, _clientPresentation, _visual, _calls, () => _resumeObservation?.Invoke());
+                    }
+                }
                 return;
             }
             if (_template?.SharedBattleUnloadStarted == true)
@@ -120,6 +193,12 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 foreach (Action rearm in _unloadRearms) rearm();
                 _unloadRearms.Clear();
                 _template.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
+                if (!_calls.Pending)
+                {
+                    _world?.ObserveHost(tid, ref ctx, _template, _calls);
+                    if (!_calls.Pending) _template.TryBeginDiagnosticBattlePauseAtWorld(tid, ref ctx, _calls,
+                        () => _resumeObservation?.Invoke());
+                }
                 return;
             }
             if (_template?.BodyUnloadStarted == true)
@@ -156,6 +235,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             }
             if (config.Mode is "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" && _readySamples >= (config.TemplateSharedPlayerProfile is null ? 15 : 1))
                 _template!.Step(host, tid, ref ctx, _calls, () => _resumeObservation?.Invoke());
+            if (!_calls.Pending && _template is not null) _world?.ObserveHost(tid, ref ctx, _template, _calls);
             if (config.Mode == "native-call-check" && !_callCheckBegun && _readySamples >= 15 && _localCharacter != 0)
             {
                 byte[] expected = image.GetSectionData(0x4F3DF0 - 0x400000).GetContent(0, 3).ToArray();
@@ -207,7 +287,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             // actor releases. Lower entries cover body/profile replacement and
             // direct cache unloading. These are native function identities;
             // their receiver type is not inferred from this common callback.
-            if (_template?.RequiresEarlyBattleExitGuard == true)
+            if (_template?.RequiresEarlyBattleExitGuard == true || config.WorldBattlePresentation)
                 InstallUnloadGuard(0x5F2300, 0x56, "BattleLevelExiting.entry");
             InstallUnloadGuard(0x5F86C0, 0x53, "PlayingLevelExiting.entry");
             InstallUnloadGuard(0x4E8AA0, 0x53, "PlayerBodyRemoval.entry");
@@ -241,7 +321,18 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                     expectedReceiverVtable = entry == 0x5F86C0 ? Hex(0x710874) : null,
                     receiverMatchesExpected = entry == 0x5F86C0 ? TryU(ctx.Ecx) == 0x710874 : (bool?)null,
                     nativeCallPending = _calls.Pending, hasTemplate });
-            if (_clientPresentation?.TryBeginUnload(tid, ref ctx, entry) == true)
+            if (_clientPresentation is not null && _world?.TryBeginGuestUnload(tid, ref ctx, entry,
+                expected[0], _visual, _calls, _clientPresentation, RetireDiagnosticInput) == true)
+            {
+                ++_unloadCleanupsStarted;
+                _unloadRearms.Add(() => _host.Breakpoints.AddReturn(at, tid, name, guard));
+                return;
+            }
+            if (hasTemplate && _world is { Retired: false })
+                _world.ObserveHostSceneExit(tid, ref ctx, entry);
+            if (_world?.Retired == true) _hostRebind?.RetireCached();
+            if (_clientPresentation?.TryBeginUnload(tid, ref ctx, entry,
+                    config.DiagnosticGuestCaptureFixture ? RetireDiagnosticInput : null) == true)
             {
                 ++_unloadCleanupsStarted;
                 _host.Breakpoints.AddReturn(at, tid, name, guard);
@@ -293,13 +384,35 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     }
 
     private Action? _resumeObservation;
+    private void ObserveEntryAtWorld(uint tid, ref Win32Native.X86Context context)
+    {
+        if (_entry is not { EntryCompleted: true, WorldQualified: false } || _calls.Pending) return;
+        var identity = config.DiagnosticWorldState!.Value;
+        uint flow = U(0x755294), profile = U(0x765AD4);
+        if (flow < 0x10000 || profile < 0x10000 || U(profile) != 0x6F5A44 || U(flow + 0x1B8) != 0) return;
+        uint depth = U(flow + 0x1AC);
+        if (depth > 20) throw new InvalidDataException("Native entry post-init flow exceeds its bound.");
+        uint playing = U(flow + 0x15C + depth * 4), level = config.WorldBattlePresentation ? 47u : 28u;
+        uint table = config.WorldBattlePresentation ? 0x7105C8u : 0x710874u;
+        if (playing < 0x10000 || U(playing) != table || U(playing + 0x10) != level || U(flow + 0x1B0) != level) return;
+        uint primary = U(profile + 0x2B4);
+        if (primary < 0x10000 || U(primary) != 0x710F80) return;
+        uint root = U(primary + 0x24);
+        if (root < 0x10000 || U(root) != VisualGraphReader.NodeVtable) return;
+        _entry.ObserveAtWorld(tid, ref context, new(identity.LevelEpoch, identity.Generation,
+            level, playing, table, U(root + 0x3C)));
+        if (identity.Role == WorldStateRole.Guest)
+            _entry.VerifyExpectedWitness(config.WorldEntryExpectedWitness!);
+    }
     internal void RetireDiagnosticInput()
     {
+        _hostRebind?.RetireCached();
+        _hostFocus?.RetireCached();
         _nativeInputCapture?.Retire();
         _diagnosticGuest?.Dispose();
         _template?.ReleaseNetworkInputEndpoint();
     }
-    public void Dispose() => RetireDiagnosticInput();
+    public void Dispose() { RetireDiagnosticInput(); _world?.Dispose(); }
     private void Persistent(uint address, int length, string name, BreakpointCallback callback)
     {
         byte[] expected = image.GetSectionData(checked((int)(address - 0x400000))).GetContent(0, length).ToArray();

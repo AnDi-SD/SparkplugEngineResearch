@@ -16,6 +16,7 @@ internal sealed class StingerSecondaryRole
     private readonly PEReader _image;
     private readonly Action<object> _log;
     private readonly int _ownerThread;
+    private readonly bool _traceTrajectory;
     private readonly Dictionary<uint, Shot> _shots = [];
     private readonly Dictionary<uint, Pair> _collisions = [];
     private readonly List<Pair> _pending = [];
@@ -24,7 +25,9 @@ internal sealed class StingerSecondaryRole
     private uint _instance, _root, _move, _character, _scene, _metadata, _engine, _timer;
     private uint _profile, _primaryInstance;
     private uint _epoch, _generation, _worlds, _retireEntry;
+    private uint _lastVerifiedWorldStop, _presentationCaptures, _activePresentationCaptures, _presentationRecords, _maximumPresentedAtOnce;
     private bool _bound, _retired, _failed;
+    private bool _presentationBindingFailureLogged;
 
     private sealed class Shot(uint projectile, uint generation, uint source, uint sourceInstance,
         uint sourceRoot, uint node)
@@ -33,6 +36,8 @@ internal sealed class StingerSecondaryRole
         internal readonly uint SourceInstance = sourceInstance, SourceRoot = sourceRoot, Node = node;
         internal bool Active, ActivationPending = true, DeactivationPending;
         internal uint Deadline, ActivatedAtRaw, Deactivations, RoleOverrides, OwnSendCallsites;
+        internal uint TrajectoryCollisionSamples;
+        internal bool TrajectoryContactSampled;
     }
     private sealed class Pair(string kind, Shot shot, uint esp, uint caller, uint delta, uint esi, uint edi)
     {
@@ -44,12 +49,13 @@ internal sealed class StingerSecondaryRole
     }
     private sealed record Source(uint Manager, uint Instance, uint Root, uint Node);
 
-    internal StingerSecondaryRole(DebuggerHost host, PEReader image, Action<object> log)
+    internal StingerSecondaryRole(DebuggerHost host, PEReader image, Action<object> log, bool traceTrajectory = false)
     {
         _host = host ?? throw new ArgumentNullException(nameof(host));
         _image = image ?? throw new ArgumentNullException(nameof(image));
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _ownerThread = Environment.CurrentManagedThreadId;
+        _traceTrajectory = traceTrajectory;
     }
 
     internal bool Active => _bound && !_retired && !_failed;
@@ -67,6 +73,10 @@ internal sealed class StingerSecondaryRole
         knownProjectileBindings = _shots.Count, activeKnownGenerations = _shots.Values.Count(shot => shot.Active),
         maximumKnownProjectiles = 64, maximumNativePairs = 8,
         counts = new Dictionary<string, uint>(_counts), samples = _samples.ToArray(),
+        trajectoryTraceEnabled = _traceTrajectory, maximumTracedGenerations = 16, maximumTrajectoryCollisionSamplesPerGeneration = 3,
+        presentationCaptures = _presentationCaptures, activePresentationCaptures = _activePresentationCaptures,
+        presentationRecords = _presentationRecords, maximumPresentedAtOnce = _maximumPresentedAtOnce,
+        presentationReusesActualActivationGenerations = true, presentationNativeWrites = 0,
         shots = _shots.Values.Select(shot => new { projectile = Hex(shot.Projectile), generation = shot.Generation,
             source = Hex(shot.Source), sourceInstance = Hex(shot.SourceInstance), shot.Active,
             shot.Deadline, shot.ActivatedAtRaw, shot.Deactivations, shot.RoleOverrides, shot.OwnSendCallsites }).ToArray(),
@@ -128,6 +138,7 @@ internal sealed class StingerSecondaryRole
         Hook(0x501AD0, "568BF18B4E14", "deactivation", Deactivate);
         Hook(0x501D20, "6AFF6868696C00", "collision-entry", Collision);
         Hook(RoleBranch, "7413", "role-decision", RoleDecision);
+        if (_traceTrajectory) Hook(0x501E10, "0F84EE000000", "trajectory-contact", TraceContact);
         Hook(0x501EF8, "E8333EF3FF", "native-own-send-callsite", OwnSend);
         Hook(0x501B60, "6AFF6854696C00", "destructor-entry", Destroy);
         Sample("bound", new { epoch = _epoch, ownInstance = Hex(_instance), ownRoot = Hex(_root),
@@ -143,14 +154,77 @@ internal sealed class StingerSecondaryRole
         if (_retired) return;
         Require(Active && _pending.Count == 0 && _collisions.Count == 0,
             "Stinger role reached WorldRET with an inactive or unpaired native operation.");
-        VerifyOwn(); Require(++_worlds <= 36000, "Stinger role native-world budget exceeded.");
+        VerifyOwn(); Require(++_worlds <= NativeObservationBudget.WorldLimit, "Stinger role native-world budget exceeded.");
         foreach (Shot shot in _shots.Values)
         {
             VerifyShot(shot);
             Require(!shot.ActivationPending && !shot.DeactivationPending && Byte(shot.Projectile + 0x30) == (shot.Active ? 1 : 0),
                 "Stinger native active state changed without its paired lifetime witness.");
         }
+        _lastVerifiedWorldStop = _host.DebugStopSequence;
     }
+
+    internal IReadOnlyList<WorldPresentationActorState> CaptureActiveAtWorld(uint tid,
+        ref Win32Native.X86Context context)
+    {
+        Ensure(tid);
+        Require(Active && context.Eip == NativeCallDispatcher.WorldReturn && _pending.Count == 0 && _collisions.Count == 0,
+            "Stinger presentation capture requires the live WorldRET with no pending native lifetime operation.");
+        // The Host normally verified every known Shot earlier at this same
+        // stopped WorldRET. Reuse that exact-stop proof instead of repeating a
+        // complete source/pool traversal for each snapshot at the same stop.
+        if (_lastVerifiedWorldStop != _host.DebugStopSequence) VerifyAtWorld(tid, ref context);
+        Shot[] active = _shots.Values.Where(shot => shot.Active).OrderBy(shot => shot.Generation).ToArray();
+        Require(active.Length <= 6 && active.Select(shot => shot.Generation).Distinct().Count() == active.Length &&
+            active.Select(shot => shot.Node).Distinct().Count() == active.Length,
+            "Battle47 Stinger presentation exceeds six distinct live pool slots or aliases an activation/Node.");
+        uint parent = Pointer(_root + 0x2C);
+        Require(U(parent) == VisualGraphReader.NodeVtable && U(parent + 0x3C) == _scene,
+            "Stinger presentation has no admitted common scene parent.");
+        List<WorldPresentationActorState> records = [];
+        foreach (Shot shot in active)
+        {
+            Require(!shot.ActivationPending && !shot.DeactivationPending && shot.Generation is > 0 and <= 4096,
+                "Stinger presentation generation is not a completed native activation.");
+            byte[] projectile = Read(shot.Projectile, 0x54), node = Read(shot.Node, 0xB4);
+            bool bound = BitConverter.ToUInt32(projectile, 0) == StingerTable &&
+                BitConverter.ToUInt32(projectile, 0x14) == shot.Node && BitConverter.ToUInt32(projectile, 0x18) == shot.Source &&
+                projectile[0x30] == 1 && BitConverter.ToUInt32(node, 0) == VisualGraphReader.NodeVtable &&
+                BitConverter.ToUInt32(node, 0x2C) == parent && BitConverter.ToUInt32(node, 0x3C) == _scene;
+            if (!bound && !_presentationBindingFailureLogged)
+            {
+                _presentationBindingFailureLogged = true;
+                _log(new { @event = "world-stinger-host-binding-rejected", generation = shot.Generation,
+                    projectile = Hex(shot.Projectile), node = Hex(shot.Node), source = Hex(shot.Source),
+                    expectedParent = Hex(parent), expectedScene = Hex(_scene),
+                    actualProjectileTable = Hex(BitConverter.ToUInt32(projectile, 0)), actualActive30 = projectile[0x30],
+                    actualNode14 = Hex(BitConverter.ToUInt32(projectile, 0x14)), actualSource18 = Hex(BitConverter.ToUInt32(projectile, 0x18)),
+                    actualNodeTable = Hex(BitConverter.ToUInt32(node, 0)), actualNodeParent = Hex(BitConverter.ToUInt32(node, 0x2C)),
+                    actualNodeScene = Hex(BitConverter.ToUInt32(node, 0x3C)), nativeWrites = 0 });
+            }
+            Require(bound, "Active Stinger presentation lost its exact native projectile/Node/common-parent/scene binding.");
+            float speed = BitConverter.ToSingle(projectile, 0x34);
+            float[] direction = NativeFloats(projectile, 0x40, 3);
+            Require(float.IsFinite(speed) && speed > 0 && speed <= 100000,
+                "Native Stinger speed is outside the bounded finite presentation domain.");
+            float[] velocity = direction.Select(value => value * speed).ToArray();
+            WorldPresentationActorState state = new(checked(0x10000u + shot.Generation), WorldPresentationActorState.StingerType,
+                1, 5, WorldPresentationActorState.Present | WorldPresentationActorState.Visible | WorldPresentationActorState.HasVelocity,
+                NativeFloats(node, 0x20, 3), NativeFloats(node, 0x30, 3), NativeFloats(node, 0x40, 9), velocity, -1, -1);
+            state.Validate(); records.Add(state);
+        }
+        ++_presentationCaptures;
+        _presentationRecords = checked(_presentationRecords + (uint)records.Count);
+        _maximumPresentedAtOnce = Math.Max(_maximumPresentedAtOnce, (uint)records.Count);
+        if (records.Count != 0 && ++_activePresentationCaptures <= 4)
+            _log(new { @event = "world-stinger-host-captured", capture = _presentationCaptures, sceneEpoch = _epoch,
+                activeCount = records.Count, records, actualPairedActivationGenerations = true,
+                nativePointersTransmitted = false, nativeWrites = 0, nativeCalls = 0 });
+        return records;
+    }
+
+    private static float[] NativeFloats(byte[] bytes, int offset, int count) => Enumerable.Range(0, count)
+        .Select(index => BitConverter.ToSingle(bytes, offset + index * sizeof(float))).ToArray();
     internal void RetireBeforeOwnDelete()
     { Win32Native.X86Context context = WorldContext(); RetireBeforeOwnDelete(_host.MainThreadId, ref context); }
     internal void RetireBeforeOwnDelete(uint tid, ref Win32Native.X86Context context)
@@ -178,6 +252,11 @@ internal sealed class StingerSecondaryRole
         Require(++_generation <= 4096, "Stinger activation generation budget exceeded.");
         Shot shot = new(projectile, _generation, source.Manager, source.Instance, source.Root, source.Node);
         _shots[projectile] = shot;
+        if (Trace(shot)) Sample("trajectory-activation-entry", new { epoch = _epoch, generation = shot.Generation,
+            projectile = Hex(projectile), sourceManager = Hex(shot.Source), sourceInstance = Hex(shot.SourceInstance),
+            originalSpawnArguments = TraceVector(c.Esp + 4), originalDirectionArguments = TraceVector(c.Esp + 0x10),
+            primaryRoot = TraceNode(Pointer(_primaryInstance + 0x24)), secondaryRoot = TraceNode(_root),
+            nativeInputUnchanged = true });
         Pair pair = BeginPair(tid, "activation", shot, c, 0x1C,
             (Pair p, ref Win32Native.X86Context returned) =>
             {
@@ -191,6 +270,11 @@ internal sealed class StingerSecondaryRole
                     nativeCaller = Hex(p.Caller), entryEsp = Hex(p.Esp), returnedEsp = Hex(returned.Esp),
                     expectedEspDelta = 0x1C, nativeRetArgumentBytes = 0x18, nativeActive30 = 1,
                     deadline28 = shot.Deadline, activationTime2CRaw = shot.ActivatedAtRaw, nativeAl = returned.Eax & 0xFF });
+                if (Trace(shot)) Sample("trajectory-activation-return", new { epoch = _epoch, generation = shot.Generation,
+                    projectile = Hex(projectile), sourceManager = Hex(shot.Source), sourceInstance = Hex(shot.SourceInstance),
+                    storedDirection40 = TraceVector(projectile + 0x40), nativeSpeed34 = TraceScalar(projectile + 0x34),
+                    projectileNode = TraceNode(shot.Node), nativeFilter50 = U(projectile + 0x50),
+                    secondaryRoot = TraceNode(_root), nativeReturnPaired = true, trajectoryUnchanged = true });
             });
         Sample("activation-entry", new { epoch = _epoch, generationReserved = shot.Generation,
             projectile = Hex(projectile), caller = Hex(pair.Caller), sourceInstance = Hex(shot.SourceInstance) });
@@ -201,6 +285,11 @@ internal sealed class StingerSecondaryRole
         if (!_shots.TryGetValue(c.Ecx, out Shot? shot)) return;
         VerifyShot(shot);
         Require(!shot.ActivationPending && !shot.DeactivationPending, "Stinger deactivation nested an uncompleted lifetime operation.");
+        if (Trace(shot)) Sample("trajectory-deactivation-entry", new { epoch = _epoch, generation = shot.Generation,
+            projectile = Hex(shot.Projectile), sourceManager = Hex(shot.Source), sourceInstance = Hex(shot.SourceInstance),
+            caller = Hex(U(c.Esp)), projectileNode = TraceNode(shot.Node), storedDirection40 = TraceVector(shot.Projectile + 0x40),
+            nativeTargetF4 = Hex(U(shot.Projectile + 0xF4)), nativeFilter50 = U(shot.Projectile + 0x50),
+            nativeMilliseconds = U(_timer + 0x1C), secondaryRoot = TraceNode(_root), nativeFieldsUnchanged = true });
         shot.DeactivationPending = true;
         BeginPair(tid, "deactivation", shot, c, 4,
             (Pair p, ref Win32Native.X86Context returned) =>
@@ -245,7 +334,48 @@ internal sealed class StingerSecondaryRole
                 _collisions.Remove(shot.Projectile);
             });
         frame.DeactivationsAtEntry = shot.Deactivations; _collisions.Add(shot.Projectile, frame);
+        if (Trace(shot) && shot.TrajectoryCollisionSamples++ < 3)
+            Sample("trajectory-collision-position", new { epoch = _epoch, generation = shot.Generation,
+                projectile = Hex(shot.Projectile), sourceManager = Hex(shot.Source), projectileNode = TraceNode(shot.Node),
+                nativeMilliseconds = U(_timer + 0x1C), storedDirection40 = TraceVector(shot.Projectile + 0x40),
+                secondaryRoot = TraceNode(_root), nativeFieldsUnchanged = true });
     }
+
+    private void TraceContact(uint tid, ref Win32Native.X86Context c)
+    {
+        if (!_traceTrajectory || !_shots.TryGetValue(c.Esi, out Shot? shot) || !Trace(shot) || shot.TrajectoryContactSampled) return;
+        Require(_collisions.TryGetValue(shot.Projectile, out Pair? frame) && frame is not null &&
+            c.Esp == checked(frame.Esp - 0x58) && U(c.Esp + 0x58) == 0x502255,
+            "Stinger contact trace lacks its exact original collision frame.");
+        shot.TrajectoryContactSampled = true;
+        uint metadata = c.Ecx;
+        byte[]? prefix = metadata == 0 ? null : Read(metadata, 12);
+        Sample("trajectory-contact-candidate", new { epoch = _epoch, generation = shot.Generation,
+            projectile = Hex(shot.Projectile), sourceManager = Hex(shot.Source), sourceInstance = Hex(shot.SourceInstance),
+            metadata = Hex(metadata), metadataFlags = prefix is null ? (ushort?)null : BitConverter.ToUInt16(prefix, 4),
+            metadataInstance = prefix is null ? null : Hex(BitConverter.ToUInt32(prefix, 8)),
+            closestHitPoint = TraceVector(c.Esp + 0x1C), projectileNode = TraceNode(shot.Node),
+            primaryRoot = TraceNode(Pointer(_primaryInstance + 0x24)), secondaryRoot = TraceNode(_root),
+            nativeNoMetadataBranch = metadata == 0, nativeFieldsUnchanged = true });
+    }
+
+    private bool Trace(Shot shot) => _traceTrajectory && shot.Generation <= 16;
+    private object TraceNode(uint node)
+    {
+        byte[] bytes = Read(node, 0x80);
+        return new { address = Hex(node), table = Hex(BitConverter.ToUInt32(bytes, 0)),
+            localPosition = TraceValues(bytes, 0x20), worldPosition = TraceValues(bytes, 0x74) };
+    }
+    private object TraceVector(uint address)
+    {
+        byte[] bytes = Read(address, 12);
+        return new { values = TraceValues(bytes, 0), bits = Enumerable.Range(0, 3)
+            .Select(i => Hex(BitConverter.ToUInt32(bytes, i * 4))).ToArray() };
+    }
+    private object TraceScalar(uint address)
+    { byte[] bytes = Read(address, 4); float value = BitConverter.ToSingle(bytes); return new { value = float.IsFinite(value) ? (float?)value : null, bits = Hex(BitConverter.ToUInt32(bytes)) }; }
+    private static float?[] TraceValues(byte[] bytes, int offset) => Enumerable.Range(0, 3)
+        .Select(i => BitConverter.ToSingle(bytes, offset + i * 4)).Select(value => float.IsFinite(value) ? (float?)value : null).ToArray();
 
     private void RoleDecision(uint tid, ref Win32Native.X86Context c)
     {

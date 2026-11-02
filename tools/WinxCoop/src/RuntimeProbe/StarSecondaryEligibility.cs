@@ -13,7 +13,8 @@ internal sealed class StarSecondaryEligibility
 {
     private const uint StarTable = 0x702160, InstanceTable = 0x710F80, NodeTable = 0x6DC4F4;
     private const uint ProfileTable = 0x6F5A44;
-    private const uint EventLimit = 100000, WorldLimit = 36000;
+    private const uint EventLimit = 100000;
+    private static uint WorldLimit => NativeObservationBudget.WorldLimit;
     private readonly DebuggerHost _host;
     private readonly PEReader _image;
     private readonly Action<object> _log;

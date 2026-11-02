@@ -41,6 +41,19 @@ namespace winx::analysis::pc
         return true;
     }
 
+    // PC5971A0 metric for finite float-spilled yaws in [-PCpi,PCpi].
+    // PC596F80 wraps argument copies, including -PCpi to +PCpi; folding
+    // the distance gives the same metric without changing the caller's yaw.
+    // This does not qualify arbitrary angles outside this bounded domain.
+    inline double PcPlanarAngleDistanceForAnalysis(const float currentYaw,
+        const float desiredYaw) noexcept
+    {
+        double distance = std::abs(double(desiredYaw) - double(currentYaw));
+        if (distance > double(0x1.921fb6p+1f))
+            distance = double(0x1.921fb6p+2f) - distance;
+        return distance;
+    }
+
     inline bool PcPlanarFacingForAnalysis(PlanarVectorForAnalysis forward,
         const float desiredYaw, const float tolerance, bool& facing) noexcept
     {
@@ -53,9 +66,7 @@ namespace winx::analysis::pc
         // Both stored yaws are already within PC596F80's [-pi,pi] limits.
         // Their subtraction is exact in binary64; PC5971A0 keeps the result
         // wider than float until this comparison. Equality is NOT facing.
-        double distance = std::abs(double(desiredYaw) - double(currentYaw));
-        if (distance > double(0x1.921fb6p+1f))
-            distance = double(0x1.921fb6p+2f) - distance;
+        const double distance = PcPlanarAngleDistanceForAnalysis(currentYaw, desiredYaw);
         facing = distance < double(tolerance);
         return true;
     }

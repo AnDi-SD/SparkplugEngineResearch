@@ -7,7 +7,8 @@ internal sealed partial class NativeTemplateProbe
 {
     // Root declares/configures _sharedBattleLifetimeEnabled and supplies the
     // managed gameplay-goal and adapter-retirement integration methods.
-    private const uint SharedBattleWorldLimit = 36000, SharedBattlePostWorldLimit = 3600;
+    private static uint SharedBattleWorldLimit => NativeObservationBudget.WorldLimit;
+    private const uint SharedBattlePostWorldLimit = 3600;
     private bool _sharedBattleCaptured, _sharedBattlePaused, _sharedBattleUnloadStarted;
     private bool _sharedBattleBatchCompleted, _sharedBattleResourcesReleased, _sharedBattleGoalAtUnload;
     private bool _sharedBattleTemplateOwnerHeld, _sharedBattleNativePauseObserved;
@@ -17,6 +18,9 @@ internal sealed partial class NativeTemplateProbe
     private uint _sharedBattleNativePauseTransitions;
     private ushort _sharedBattleLastTemplateRefs;
     private byte _sharedBattleLastNativePaused;
+    private byte _sharedBattleLastInputEnabled = byte.MaxValue;
+    private byte _sharedBattleLastMenuCommand = byte.MaxValue, _sharedBattleLastPauseArm = byte.MaxValue;
+    private uint _sharedBattleMenuEdgeObservations;
     private long _sharedBattleStarted, _sharedBattleDeadline, _sharedBattlePauseStarted, _sharedBattlePausedMilliseconds;
     private long _sharedBattleNativePauseStarted, _sharedBattleLongestNativePauseMilliseconds;
     private long _sharedBattleLastNativePauseMilliseconds, _sharedBattleLongestResumedNativePauseMilliseconds;
@@ -29,7 +33,8 @@ internal sealed partial class NativeTemplateProbe
     internal bool SharedBattleLifetimePaused => _sharedBattlePaused;
     internal bool SharedBattleLifetimeCompleted => _sharedBattleLifetimeEnabled &&
         _sharedBattleBatchCompleted && _sharedBattleResourcesReleased && _sharedBattleMenuWorlds >= 2 &&
-        _cleaned && !_sharedBattleTemplateOwnerHeld && _sharedBattleReferenceWrites == 2;
+        _cleaned && !_sharedBattleTemplateOwnerHeld && _sharedBattleReferenceWrites == 2 &&
+        (_mosquitoPlayerTargets is null || !_mosquitoPlayerTargets.HasLiveOwnership);
     internal bool SharedBattleLifetimeSucceeded => SharedBattleLifetimeCompleted && _sharedBattleGoalAtUnload && SharedStoryOutcomePassed;
     internal object SharedBattleLifetimeSummary => new
     {
@@ -129,7 +134,10 @@ internal sealed partial class NativeTemplateProbe
         if (_sharedBattleWorlds <= 2 || _sharedBattleWorlds % 120 == 0)
             _log(new { @event = "template-shared-battle-lifetime-world", world = _sharedBattleWorlds, ready,
                 elapsedMs = Math.Max(0, Environment.TickCount64 - _sharedBattleStarted), nativePaused = _sharedBattleLastNativePaused,
-                templateReferences = _sharedBattleLastTemplateRefs, managerMembership = _sharedBattleTemplateMembership });
+                current, pending, stack, deviceContext,
+                templateReferences = _sharedBattleLastTemplateRefs, managerMembership = _sharedBattleTemplateMembership,
+                inputEnabled = Read(_input + 0x20, 1)[0], nativeMenuCommand2B = Read(_command + 0x2B, 1)[0],
+                playingPauseArm = Read(_active + 0x3C, 1)[0], playingPauseInhibited = Read(_active + 0x17D, 1)[0] });
         return ready;
     }
 
@@ -152,6 +160,25 @@ internal sealed partial class NativeTemplateProbe
     {
         long now = Environment.TickCount64; byte paused = Read(_sharedBattleTimer + 0x40, 1)[0];
         Require(paused <= 1, "Shared Battle GameTimer pause byte is not a native bool.");
+        byte inputEnabled = Read(_input + 0x20, 1)[0];
+        Require(inputEnabled <= 1, "Shared Battle UserInput enable byte is not a native bool.");
+        byte menuCommand = Read(_command + 0x2B, 1)[0], pauseArm = Read(_active + 0x3C, 1)[0];
+        Require(menuCommand <= 1 && pauseArm <= 1, "Shared Battle native menu command/arm left its bool domain.");
+        if (menuCommand != _sharedBattleLastMenuCommand || pauseArm != _sharedBattleLastPauseArm)
+        {
+            Require(++_sharedBattleMenuEdgeObservations <= 256, "Shared Battle menu edge observation budget exceeded.");
+            _sharedBattleLastMenuCommand = menuCommand; _sharedBattleLastPauseArm = pauseArm;
+            _log(new { @event = "template-shared-battle-menu-arm-observed", menuCommand, pauseArm, inputEnabled,
+                nativePaused = paused, current, pending, stack, deviceContext, observedAtMilliseconds = now,
+                nativeCommandOrArmWrites = 0 });
+        }
+        if (inputEnabled != _sharedBattleLastInputEnabled)
+        {
+            _sharedBattleLastInputEnabled = inputEnabled;
+            _log(new { @event = "template-shared-battle-input-enable-observed", inputEnabled,
+                nativePaused = paused, top = Hex(top), stack, current, pending, deviceContext,
+                privateInputWrites = 0, observedAtMilliseconds = now });
+        }
         if (paused == 1)
         {
             _sharedBattleNativePauseObserved = true;
@@ -224,8 +251,8 @@ internal sealed partial class NativeTemplateProbe
             VerifySharedBattleBorrowedOwners(fullLocal: true); VerifySharedBattleOwnGraph(); VerifySharedBattleTemplateOwner(true);
         }
         RetireBodyInputFixtureBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
-        RetireOrdinaryAttackBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
         RetireNetworkInputBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
+        RetireOrdinaryAttackBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
         PrepareProjectileManagerRetainedDeleteBaseline();
 
         _sharedBattleGoalAtUnload = SharedBattleGameplayGoalPassed;
@@ -288,6 +315,7 @@ internal sealed partial class NativeTemplateProbe
             ++_sharedBattlePostWorlds <= (_sharedPlayerProfile.Story && _deathBattleFixture ? 360000 : SharedBattlePostWorldLimit),
             "Shared Battle post-unload requires a later real WorldRET after its completed native entry batch.");
         calls.ReleaseRetiredAtWorldStop(host, tid, ref context);
+        _mosquitoPlayerTargets?.ReleaseRetiredPagesAtWorld(tid, ref context);
         Require(!HasLiveOwnership && _instance == 0 && _traits == 0 && _template == 0 && _stream == 0 &&
             U(0x765ACC) == _gameManager && Memberships(_sharedBattleDeletedEntities).Matches.Length == 0,
             "Shared Battle post-unload still owns or reobserved a deleted graph in the current manager.");

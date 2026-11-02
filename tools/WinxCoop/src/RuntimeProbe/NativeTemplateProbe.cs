@@ -96,10 +96,12 @@ internal sealed partial class NativeTemplateProbe
         _layout = NativeTemplateLayout.Select(config);
         _playerTraitsPreparePickupFx = config.TemplatePlayerTraitsPickupFx;
         _sharedHealthAliasEnabled = config.TemplateSharedHealthAlias;
+        _sharedHealthInitializeFromCanonical = config.InitialSaveSha256 is not null && config.EnableWorldEntry;
         _sharedPlayerProfile = NativeSharedPlayerProfile.Select(config);
         _healthBattleFixture = _sharedPlayerProfile.LiveResources;
         _configureTargetRegion = config.TemplateConfigureTargetRegion;
         _stingerSecondaryRoleEnabled = config.TemplateStingerSecondaryRole;
+        _mosquitoPlayerTargetsEnabled = config.TemplateMosquitoPlayerTargets;
         _starSecondaryEligibilityEnabled = config.TemplateStarSecondaryEligibility;
         _battleCombatFixtureEnabled = config.TemplateBattleCombatFixture;
         _templatePrepareFirstMagicStage = config.PrepareFirstMagicStage;
@@ -399,7 +401,7 @@ internal sealed partial class NativeTemplateProbe
                         },
                         results =>
                         {
-                            Require(results.Length == (_near ? 3 : _idle ? 2 : 3) + (_hairEnabled ? 1 : 0) + (_playerTraitsPreparePickupFx ? 1 : 0) + (_configureTargetRegion ? 1 : 0) + (_ordinaryAttackFixture ? 1 : 0) && results[0] == _instance && _initializedWitness is not null &&
+                            Require(results.Length == (_near ? 3 : _idle ? 2 : 3) + (_hairEnabled ? 1 : 0) + (_playerTraitsPreparePickupFx ? 1 : 0) + (_configureTargetRegion ? 1 : 0) + (_ordinaryAttackFixture || _ordinaryNetwork ? 1 : 0) && results[0] == _instance && _initializedWitness is not null &&
                                 (!_near || _nearPositioned),
                                 "Dependent lifecycle completion/results mismatch.");
                             if (_idle)

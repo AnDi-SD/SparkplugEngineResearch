@@ -173,7 +173,8 @@ internal sealed class NativeCallDispatcher
     /// legacy context and unchanged original stack. This is not a plain RET.
     /// </summary>
     internal void BeginAtEntry(DebuggerHost host, uint threadId, ref Win32Native.X86Context ctx,
-        uint entry, byte expectedFirstByte, IReadOnlyList<NativeCallSpec> calls, Action<uint[]> completed)
+        uint entry, byte expectedFirstByte, IReadOnlyList<NativeCallSpec> calls, Action<uint[]> completed,
+        int maximumCalls = 4)
     {
         ArgumentNullException.ThrowIfNull(host);
         ArgumentNullException.ThrowIfNull(calls);
@@ -184,8 +185,8 @@ internal sealed class NativeCallDispatcher
             throw new InvalidOperationException("A previous private page still requires release at a later world stop before entry cleanup.");
         if (_host is not null && !ReferenceEquals(_host, host))
             throw new InvalidOperationException("One dispatcher belongs to one owned debugger session.");
-        if (calls.Count is < 1 or > 4)
-            throw new ArgumentException("Entry cleanup requires one to four native calls.", nameof(calls));
+        if (maximumCalls is not (4 or 64 or 80) || calls.Count < 1 || calls.Count > maximumCalls)
+            throw new ArgumentException("Entry cleanup exceeds its explicitly selected bounded call budget.", nameof(calls));
         var ownedCalls = new NativeCallSpec[calls.Count];
         for (int i = 0; i < calls.Count; ++i)
         {

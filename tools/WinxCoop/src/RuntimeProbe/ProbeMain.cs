@@ -20,7 +20,18 @@ internal sealed record ProbeConfiguration(
     bool TemplateCollisionDetectorSecondaryRole = false, bool TemplateProjectileManagerFixture = false,
     bool TemplateBodyInputFixture = false, bool TemplateOrdinaryAttackFixture = false,
     bool TemplateNetworkInputFixture = false, DiagnosticInputIdentity? DiagnosticHostInput = null,
-    DiagnosticInputIdentity? DiagnosticGuestInput = null, bool TemplateNetworkInputBackpressureFixture = false);
+    DiagnosticInputIdentity? DiagnosticGuestInput = null, bool TemplateNetworkInputBackpressureFixture = false,
+    bool DiagnosticGuestCaptureFixture = false, bool TemplateNetworkOrdinaryAttackFixture = false,
+    bool TemplateHostBackgroundFixture = false, int DiagnosticInputHeartbeatMilliseconds = 50,
+    bool TemplateNetworkOrdinaryAimFixture = false, bool TemplateNetworkPrimaryCaptureOnlyFixture = false,
+    int TemplateNetworkInputDrainHoldMilliseconds = 300,
+    WorldStateIdentity? DiagnosticWorldState = null, bool WorldBattlePresentation = false,
+    bool EnableWorldEntry = false, uint WorldEntryCaptureOrdinal = 1, byte[]? WorldEntrySeed = null,
+    byte[]? WorldEntryExpectedWitness = null, string? InitialSaveSha256 = null,
+    bool ObserveNativeMenuInput = false, HostTransportRebindPermit? DiagnosticHostRebind = null,
+    bool IsolatedMenuInputDiagnostic = false, bool RefreshOriginalGamePadDiagnostic = false,
+    bool ReacquireOriginalGamePadDiagnostic = false, bool LimitContinuousGuestInput = false,
+    bool TemplateMosquitoPlayerTargets = false, bool DiagnosticAutoBattlePauseFixture = false);
 
 internal static class ProbeMain
 {
@@ -41,26 +52,132 @@ internal static class ProbeMain
                 ?? throw new InvalidDataException("Missing case configuration");
             if (config.DurationSeconds is < 5 or > 600 || config.SampleEvery is < 1 or > 1000)
                 throw new InvalidDataException("Duration must be 5..600 seconds, sample interval 1..1000 updates");
+            NativeObservationBudget.Configure(config);
             NativeSharedPlayerProfile sharedProfile = NativeSharedPlayerProfile.Select(config);
+            if (config.ReacquireOriginalGamePadDiagnostic && !config.RefreshOriginalGamePadDiagnostic)
+                throw new InvalidDataException("One same-device acquisition cycle requires the explicit original-pad diagnostic.");
+            if (config.RefreshOriginalGamePadDiagnostic && !config.IsolatedMenuInputDiagnostic)
+                throw new InvalidDataException("One original GamePad refresh is confined to the isolated non-acceptance input diagnostic.");
+            if (config.IsolatedMenuInputDiagnostic &&
+                (!config.ObserveNativeMenuInput || config.DiagnosticWorldState?.Role != WorldStateRole.Host ||
+                    config.TemplateSharedPlayerProfile != "battle-01-network-input" || config.DiagnosticHostRebind is not null))
+                throw new InvalidDataException("Isolated menu input is an explicit non-acceptance Host Battle diagnostic only.");
+            if (config.DiagnosticHostRebind is not null &&
+                (!config.TemplateNetworkInputFixture || config.DiagnosticGuestInput is not null ||
+                 config.DiagnosticHostInput is not { Role: DiagnosticInputRole.Host } rebindInput ||
+                 config.DiagnosticWorldState is not { Role: WorldStateRole.Host } rebindWorld ||
+                 rebindInput.SessionId != rebindWorld.SessionId || rebindInput.ScenarioId != rebindWorld.ScenarioId ||
+                 rebindInput.LevelEpoch != rebindWorld.LevelEpoch || rebindInput.BodyGeneration != rebindWorld.Generation))
+                throw new InvalidDataException("Diagnostic Host rebind requires matching explicit Host-only Input/World fixtures.");
+            if (config.ObserveNativeMenuInput &&
+                (config.DiagnosticWorldState?.Role != WorldStateRole.Host || !config.TemplateSharedBattleLifetime ||
+                    config.TemplateSharedPlayerProfile != "battle-01-network-input"))
+                throw new InvalidDataException("Native menu input observation requires its bounded Host Battle47 lifetime cohort.");
+            if (config.EnableWorldEntry)
+            {
+                if (config.DiagnosticWorldState is not { } entryIdentity || config.WorldBattlePresentation ||
+                    config.WorldEntryCaptureOrdinal is < 1 or > 2)
+                    throw new InvalidDataException("Native entry bootstrap currently requires the explicit Alfea28 WorldState cohort.");
+                if (entryIdentity.Role == WorldStateRole.Host)
+                {
+                    if (config.WorldEntrySeed is not null || config.WorldEntryExpectedWitness is not null ||
+                        config.WorldEntryCaptureOrdinal != 2 || config.InitialSaveSha256 is not { Length: 64 } entrySaveHash || !entrySaveHash.All(Uri.IsHexDigit))
+                        throw new InvalidDataException("Host entry requires its real save bootstrap at original entry ordinal2.");
+                }
+                else
+                {
+                    if (config.WorldEntryCaptureOrdinal != 1 || config.InitialSaveSha256 is not null ||
+                        config.WorldEntrySeed is null || config.WorldEntryExpectedWitness is not { Length: 64 })
+                        throw new InvalidDataException("Guest entry requires the Host seed and native witness before startup.");
+                    var seed = WorldEntrySeedState.Unpack(config.WorldEntrySeed);
+                    if (seed.Level != 28 || seed.LevelEpoch != entryIdentity.LevelEpoch || seed.Generation != entryIdentity.Generation || seed.HostEntryOrdinal != 2)
+                        throw new InvalidDataException("Guest pre-init entry seed belongs to another native cohort.");
+                }
+            }
+            else if (config.WorldEntrySeed is not null || config.WorldEntryExpectedWitness is not null ||
+                config.InitialSaveSha256 is not null || config.WorldEntryCaptureOrdinal != 1)
+                throw new InvalidDataException("Entry payload/options require the explicit native entry bootstrap.");
+            if (config.DiagnosticWorldState is { } world &&
+                (world.Role == WorldStateRole.Host ? !config.TemplateNetworkInputFixture :
+                    !config.DiagnosticGuestCaptureFixture || config.Mode != "client-presentation-live"))
+                throw new InvalidDataException("WorldState requires the explicit Host input-body or Guest presentation cohort.");
+            if (config.WorldBattlePresentation &&
+                (config.DiagnosticWorldState?.Role != WorldStateRole.Guest || !config.DiagnosticGuestCaptureFixture))
+                throw new InvalidDataException("Battle presentation requires its separate Guest WorldState cohort.");
+            if (config.LimitContinuousGuestInput &&
+                (config.DiagnosticWorldState?.Role != WorldStateRole.Guest || !config.DiagnosticGuestCaptureFixture))
+                throw new InvalidDataException("Continuous input cadence limiting requires its explicit World Guest capture cohort.");
+            if (config.DiagnosticInputHeartbeatMilliseconds is < 16 or > 100 ||
+                config.DiagnosticInputHeartbeatMilliseconds > 50 && !config.LimitContinuousGuestInput ||
+                config.DiagnosticInputHeartbeatMilliseconds != 50 && config.DiagnosticGuestInput is null)
+                throw new InvalidDataException("Native capture requires16..50ms, or up to100ms with the explicit World Guest cadence policy.");
+            if (config.TemplateNetworkOrdinaryAttackFixture && !config.TemplateNetworkInputFixture)
+                throw new InvalidDataException("Network ordinary attack requires its explicit network input fixture.");
+            if ((config.TemplateNetworkOrdinaryAimFixture || config.TemplateNetworkPrimaryCaptureOnlyFixture) &&
+                (!config.TemplateNetworkOrdinaryAttackFixture || !config.TemplateNetworkInputFixture))
+                throw new InvalidDataException("Optional network aim/source policies require the explicit ordinary network fixture.");
+            if (config.TemplateNetworkPrimaryCaptureOnlyFixture && config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest)
+                throw new InvalidDataException("Primary capture-only policy requires the same-game Guest endpoint.");
+            if (config.TemplateHostBackgroundFixture &&
+                (!config.TemplateNetworkInputFixture || config.DiagnosticHostInput is null || config.DiagnosticGuestInput is not null))
+                throw new InvalidDataException("Background fixture requires a pure Host network body and no local source.");
+            if (config.DiagnosticAutoBattlePauseFixture &&
+                (config.Mode != "template-bloom-body-hair-idle" || config.TemplateSharedPlayerProfile != "battle-01-network-input" ||
+                 !config.TemplateNetworkInputFixture || !config.TemplateNetworkOrdinaryAttackFixture ||
+                 !config.TemplateNetworkOrdinaryAimFixture || !config.TemplateSharedBattleLifetime ||
+                 !config.TemplateSharedHealthAlias || !config.TemplateHealthBattleFixture ||
+                 !config.TemplateMosquitoPlayerTargets || !config.TemplateStingerSecondaryRole ||
+                 config.DiagnosticHostInput?.Role != DiagnosticInputRole.Host || config.DiagnosticGuestInput is not null ||
+                 config.DiagnosticWorldState?.Role != WorldStateRole.Host || config.DiagnosticGuestCaptureFixture ||
+                 config.TemplateNetworkPrimaryCaptureOnlyFixture || config.IsolatedMenuInputDiagnostic))
+                throw new InvalidDataException("Automatic diagnostic Diary pause requires its explicit two-game Battle47 Host targeting/ordinary/shared-HP lifetime cohort.");
+            if (config.DiagnosticGuestCaptureFixture &&
+                (config.Mode != "client-presentation-live" ||
+                 config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest || config.DiagnosticHostInput is not null ||
+                 config.TemplateFile is not null || config.TemplateSha256 is not null || config.TemplateSharedPlayerProfile is not null ||
+                 config.TemplateNetworkInputFixture || config.TemplateNetworkInputBackpressureFixture ||
+                 config.TemplateNetworkOrdinaryAttackFixture || config.TemplateHostBackgroundFixture ||
+                 config.TemplateProjectileManagerFixture || config.TemplateBodyInputFixture || config.TemplateOrdinaryAttackFixture ||
+                 config.TemplatePlayerTraitsFixture || config.TemplatePlayerTraitsPickupFx || config.TemplateSharedHealthAlias ||
+                 config.TemplateHealthBattleFixture || config.TemplateTargetRegionFixture || config.TemplateConfigureTargetRegion ||
+                 config.TemplateStingerSecondaryRole || config.TemplateStarSecondaryEligibility || config.TemplateBattleCombatFixture ||
+                 config.TemplateStarPlacementFixture || config.TemplateSharedMagicEnergyAlias || config.TemplateSecondAttackDegreeFixture ||
+                 config.TemplateSharedBattleLifetime || config.TemplateDeathBattleFixture || config.TemplateStoryDeathFixture ||
+                 config.TemplateCollisionDetectorSecondaryRole || config.PrepareFirstMagicStage))
+                throw new InvalidDataException("Guest capture requires its separate Alfea28 client-presentation-live cohort, Guest endpoint and no Host/template/combat adapters.");
             if (config.TemplateNetworkInputBackpressureFixture && !config.TemplateNetworkInputFixture)
                 throw new InvalidDataException("Backpressure requires its separate network input fixture.");
+            if (config.TemplateNetworkInputDrainHoldMilliseconds is < 100 or > 650 ||
+                config.TemplateNetworkInputDrainHoldMilliseconds != 300 && !config.TemplateNetworkInputBackpressureFixture)
+                throw new InvalidDataException("Diagnostic drain hold must be100..650ms; nondefault duration requires its explicit backpressure fixture.");
+            if (config.TemplateNetworkInputDrainHoldMilliseconds > 300 &&
+                (!config.TemplateNetworkInputFixture || !config.TemplateNetworkInputBackpressureFixture ||
+                 config.DiagnosticHostInput?.Role != DiagnosticInputRole.Host ||
+                 config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest ||
+                 config.DiagnosticInputHeartbeatMilliseconds != 50))
+                throw new InvalidDataException("Extended diagnostic drain hold requires same-game Host/Guest endpoints, its network/backpressure fixture and50ms source heartbeat.");
             if (config.TemplateNetworkInputFixture &&
-                (config.Mode != "template-bloom-body-hair-idle" || config.TemplateSharedPlayerProfile != "alfea-28-network-input" ||
+                (config.Mode != "template-bloom-body-hair-idle" ||
+                 config.TemplateSharedPlayerProfile != (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "alfea-28-network-input") ||
                  config.DiagnosticHostInput?.Role != DiagnosticInputRole.Host ||
                  !config.TemplateProjectileManagerFixture || !config.TemplatePlayerTraitsFixture ||
                  !config.TemplatePlayerTraitsPickupFx || !config.TemplateTargetRegionFixture ||
                  !config.TemplateConfigureTargetRegion || !config.TemplateSharedHealthAlias ||
                  config.TemplateBodyInputFixture || config.TemplateOrdinaryAttackFixture ||
-                 config.TemplateHealthBattleFixture || config.TemplateSharedBattleLifetime || config.TemplateBattleCombatFixture ||
-                 config.PrepareFirstMagicStage || config.TemplateSecondAttackDegreeFixture ||
+                 config.TemplateHealthBattleFixture != config.TemplateNetworkOrdinaryAttackFixture ||
+                 config.TemplateSharedBattleLifetime != config.TemplateNetworkOrdinaryAttackFixture ||
+                 config.TemplateBattleCombatFixture != config.TemplateNetworkOrdinaryAttackFixture ||
+                 config.PrepareFirstMagicStage != config.TemplateNetworkOrdinaryAttackFixture || config.TemplateSecondAttackDegreeFixture ||
                  config.TemplateDeathBattleFixture || config.TemplateStoryDeathFixture ||
-                 config.TemplateCollisionDetectorSecondaryRole || config.TemplateStingerSecondaryRole ||
+                 config.TemplateCollisionDetectorSecondaryRole ||
+                 config.TemplateStingerSecondaryRole && !config.TemplateNetworkOrdinaryAttackFixture ||
                  config.TemplateStarSecondaryEligibility || config.TemplateStarPlacementFixture || config.TemplateSharedMagicEnergyAlias))
-                throw new InvalidDataException("Network input requires its separate Alfea28 retained manager/shared-HP fixture and Host IPC4 identity.");
+                throw new InvalidDataException("Network input requires its separate Alfea28 or explicit first-degree Battle47 retained manager/shared-HP fixture and Host IPC5 identity.");
             if (config.DiagnosticHostInput is not null && !config.TemplateNetworkInputFixture ||
                 config.DiagnosticGuestInput is not null &&
-                (config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest || !config.TemplateNetworkInputFixture))
-                throw new InvalidDataException("Diagnostic IPC4 endpoints require the explicitly bounded network-input cohort.");
+                (config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest ||
+                 !(config.TemplateNetworkInputFixture || config.DiagnosticGuestCaptureFixture)))
+                throw new InvalidDataException("Diagnostic IPC5 endpoints require the explicitly bounded network-input cohort.");
             if (config.TemplateBodyInputFixture &&
                 (config.Mode != "template-bloom-body-hair-idle" || config.TemplateSharedPlayerProfile != "alfea-28-input" ||
                  !config.TemplateProjectileManagerFixture || !config.TemplatePlayerTraitsFixture ||
@@ -126,6 +243,12 @@ internal static class ProbeMain
                 throw new InvalidDataException("TargetRegion requires its separate scoped or neutral shared-health fixture.");
             if (config.TemplateConfigureTargetRegion && !(config.TemplateTargetRegionFixture && config.TemplatePlayerTraitsPickupFx))
                 throw new InvalidDataException("Explicit TargetRegion setup requires its separate fixture and native pickup setup sequence.");
+            if (config.TemplateMosquitoPlayerTargets &&
+                (!config.TemplateNetworkInputFixture || !config.TemplateNetworkOrdinaryAttackFixture ||
+                 !config.TemplateStingerSecondaryRole || !config.TemplateSharedBattleLifetime ||
+                 config.TemplateSharedPlayerProfile != "battle-01-network-input" ||
+                 config.DiagnosticWorldState?.Role != WorldStateRole.Host || config.DiagnosticHostRebind is not null))
+                throw new InvalidDataException("Two-player Mosquito perception requires its explicit retained network Battle47 Host, Stinger role and unload-only lifecycle.");
             if (config.TemplateStingerSecondaryRole && !(config.TemplateTargetRegionFixture && config.TemplateConfigureTargetRegion &&
                 config.TemplateSharedHealthAlias && config.TemplateHealthBattleFixture))
                 throw new InvalidDataException("Own Stinger eligibility requires its explicit battle/TargetRegion/shared-health fixture.");

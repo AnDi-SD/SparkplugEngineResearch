@@ -23,6 +23,8 @@ internal sealed class SharedHealthAlias
     private Owner? _primary, _secondary;
     private uint _profile, _scene, _primaryDying, _secondaryDying, _sequence;
     private uint _worlds, _mirrorWriteAttempts, _mirrorWrites, _retireEntry;
+    private uint _bindDwordAttempts, _bindDwordWrites, _bindBytesWritten, _bindMemoryWriteCalls;
+    private bool _initializeFromCanonicalAtBind;
     private bool _bound, _retired, _terminalFailure, _automaticDeathCommandPinned;
 
     private sealed record Owner(uint Record, uint Traits, uint Character, uint Machine,
@@ -65,6 +67,9 @@ internal sealed class SharedHealthAlias
         counts = new Dictionary<string, uint>(_counts), samples = _samples.ToArray(),
         derivedViewDwordWriteAttempts = _mirrorWriteAttempts,
         derivedViewDwordWritesReadbackVerified = _mirrorWrites,
+        initializedFromCanonicalAtBind = _initializeFromCanonicalAtBind,
+        bindDwordWriteAttempts = _bindDwordAttempts, bindDwordWritesReadbackVerified = _bindDwordWrites,
+        bindBytesReadbackVerified = _bindBytesWritten, bindMemoryWriteCalls = _bindMemoryWriteCalls,
         automaticNativeDeathCommandSourcePinned = _automaticDeathCommandPinned,
         boundedDeathCycleObserved = BoundedDeathCycleObserved,
         lethalAllowedOnlyForBothNativeTypeZero = true,
@@ -77,10 +82,14 @@ internal sealed class SharedHealthAlias
         fullE3Complete = false
     };
 
-    /// <summary>Binding makes no game-field write and requires an actual WorldRET.</summary>
+    /// <summary>
+    /// Binding requires an actual WorldRET. The default makes no game-field
+    /// write; explicit save bootstrap may initialize only the owned derived view.
+    /// </summary>
     internal void BindAtWorld(uint tid, ref Win32Native.X86Context context,
         uint primaryRecord, uint primaryTraits, uint primaryCharacter,
-        uint secondaryRecord, uint secondaryTraits, uint secondaryCharacter, uint secondaryMachine)
+        uint secondaryRecord, uint secondaryTraits, uint secondaryCharacter, uint secondaryMachine,
+        bool initializeFromCanonical = false)
     {
         Ensure(tid);
         Require(!_bound && !_retired && !_terminalFailure && context.Eip == NativeCallDispatcher.WorldReturn,
@@ -98,7 +107,10 @@ internal sealed class SharedHealthAlias
             "Shared HP bodies do not own separate native graphs.");
         _scene = Pointer(_primary.Root + 0x3C);
         Require(U(_secondary.Root + 0x3C) == _scene, "Shared HP bodies are not in one native scene.");
-        VerifyOwners(); EqualViews();
+        VerifyOwners();
+        _initializeFromCanonicalAtBind = initializeFromCanonical;
+        if (initializeFromCanonical) InitializeDerivedViewAtBind(tid);
+        EqualViews();
         Require(View(Primary.Traits).Current > 0 && View(Primary.Traits).Maximum > 0,
             "Shared HP first binding requires an initialized living native resource.");
         Pin(Setter, "FF254C2A3B01");
@@ -131,7 +143,79 @@ internal sealed class SharedHealthAlias
         Hook(0x5135D8, "A18C527500", "dying-global-completion", DyingCompletion);
         Sample("bound", new { primary = Describe(_primary), secondary = Describe(_secondary),
             initialCanonical = View(_primary.Traits), initialSecondary = View(_secondary.Traits),
-            ownDerivedViewWritesAtBind = 0, sourcePinnedOnly = true });
+            ownDerivedViewWritesAtBind = _bindDwordWrites, ownDerivedBytesWrittenAtBind = _bindBytesWritten,
+            initializedFromCanonical = initializeFromCanonical, sourcePinnedOnly = true });
+    }
+
+    private void InitializeDerivedViewAtBind(uint tid)
+    {
+        IntPtr process = _host.ProcessHandle; uint pid = _host.ProcessPid;
+        uint stop = _host.DebugStopSequence, thread = _host.MainThreadId;
+        Verify();
+        byte[] canonical = Read(Primary.Traits + 0x124, 16), before = Read(Secondary.Traits + 0x124, 16);
+        Health actual = Values(canonical), secondaryBefore = Values(before);
+        Require(actual.Current > 0 && actual.Maximum > 0 && actual.Minimum <= actual.Current &&
+            actual.Current <= actual.Maximum,
+            "Shared HP saved canonical resource is not a living valid min/current/max tuple.");
+        Verify();
+        Require(Read(Primary.Traits + 0x124, 16).AsSpan().SequenceEqual(canonical) &&
+            Read(Secondary.Traits + 0x124, 16).AsSpan().SequenceEqual(before),
+            "Shared HP bind tuple changed during stopped initialization staging.");
+        bool changed = !before.AsSpan().SequenceEqual(canonical); byte[] after = before;
+        if (changed)
+        {
+            try
+            {
+                Verify();
+                Require(Read(Primary.Traits + 0x124, 16).AsSpan().SequenceEqual(canonical) &&
+                    Read(Secondary.Traits + 0x124, 16).AsSpan().SequenceEqual(before),
+                    "Shared HP bind before-images changed before the owned derived write.");
+                _bindDwordAttempts += 4; ++_bindMemoryWriteCalls;
+                Win32Native.WriteMemory(process, Secondary.Traits + 0x124, canonical, executable: false);
+                Verify();
+                after = Read(Secondary.Traits + 0x124, 16);
+                Require(after.AsSpan().SequenceEqual(canonical) &&
+                    Read(Primary.Traits + 0x124, 16).AsSpan().SequenceEqual(canonical),
+                    "Shared HP initial derived tuple readback differs or canonical resource changed.");
+                _bindDwordWrites += 4; _bindBytesWritten += 16;
+            }
+            catch (Exception error)
+            {
+                _terminalFailure = true;
+                // A failed WriteProcessMemory can partially commit. Observe
+                // actual bytes before aborting; never assume an untouched tuple.
+                bool ownersCurrent = false; string? actualAfterHex = null, canonicalAfterHex = null, observationError = null;
+                try
+                {
+                    Verify(); ownersCurrent = true;
+                    actualAfterHex = Convert.ToHexString(Read(Secondary.Traits + 0x124, 16));
+                    canonicalAfterHex = Convert.ToHexString(Read(Primary.Traits + 0x124, 16));
+                }
+                catch (Exception observationFailure) { observationError = observationFailure.Message; }
+                Sample("bind-canonical-initialization-failed", new { error = error.ToString(),
+                    canonicalRequested = actual, secondaryBefore, beforeHex = Convert.ToHexString(before),
+                    requestedHex = Convert.ToHexString(canonical), ownersCurrent, actualAfterHex, canonicalAfterHex,
+                    observationError, dwordWriteAttempts = _bindDwordAttempts, memoryWriteCalls = _bindMemoryWriteCalls,
+                    rollbackAttempted = false, nativeContinuationForbidden = true });
+                throw;
+            }
+        }
+        Sample("bind-canonical-initialized", new { canonical = actual, secondaryBefore,
+            secondaryAfter = Values(after), changed,
+            readbackVerified = true, dwordWrites = changed ? 4 : 0, bytesWritten = changed ? 16 : 0,
+            memoryWriteCalls = changed ? 1 : 0, nativeSetterCalls = 0, rewardCalls = 0, hudCalls = 0,
+            canonicalResourceWritten = false, valuesClamped = false, historicalRollbackAtUnload = false });
+
+        void Verify()
+        {
+            Ensure(tid);
+            Require(_host.ProcessHandle == process && _host.ProcessPid == pid && _host.MainThreadId == thread &&
+                _host.DebugStopSequence == stop && U(_scene) == 0x6E7358,
+                "Shared HP initial derived write lost its exact stopped process/scene owner.");
+            VerifyOwners();
+        }
+        static Health Values(byte[] bytes) => new(BitConverter.ToUInt32(bytes, 0), BitConverter.ToUInt32(bytes, 4),
+            BitConverter.ToUInt32(bytes, 8), BitConverter.ToUInt32(bytes, 12));
     }
 
     internal void VerifyAtWorld(uint tid, ref Win32Native.X86Context context)
@@ -141,7 +225,7 @@ internal sealed class SharedHealthAlias
         if (_retired) return; // No historical owner read is permitted after retirement.
         Require(Active && _pending.Count == 0, "Shared HP reached WorldRET with an inactive or pending transaction.");
         VerifyOwners(); EqualViews();
-        Require(++_worlds <= 36000, "Shared HP native-world budget exceeded.");
+        Require(++_worlds <= NativeObservationBudget.WorldLimit, "Shared HP native-world budget exceeded.");
     }
 
     internal void RetireBeforeOwnUnload(uint tid, ref Win32Native.X86Context context)

@@ -127,7 +127,7 @@ internal sealed class CollisionDetectorSecondaryRole
     {
         Ensure(tid); Require(context.Eip == NativeCallDispatcher.WorldReturn, "Ghoul role verification requires WorldRET.");
         if (_retired) return;
-        Require(Active && _health?.Active == true && !HasPendingNativePair && ++_worlds <= 36000,
+        Require(Active && _health?.Active == true && !HasPendingNativePair && ++_worlds <= NativeObservationBudget.WorldLimit,
             "Ghoul role reached WorldRET with an unmatched native operation or outside its budget.");
         VerifyOwn(); foreach (Window window in _windows.Values) VerifyWindow(window);
     }

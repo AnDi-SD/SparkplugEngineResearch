@@ -2557,6 +2557,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-character-registry.md",
+      "title": "wxCharacterRegistry",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-character-state-machine.md",
       "title": "wxCharacterStateMachine",
       "category": "reference/classes"
@@ -2579,6 +2584,11 @@
     {
       "path": "docs/reference/classes/wx-crouching-state.md",
       "title": "`wxCrouchingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-darcy-attack-ai-action.md",
+      "title": "wxDarcyAttackAIAction",
       "category": "reference/classes"
     },
     {
@@ -2672,6 +2682,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-frog-attack-ai-action.md",
+      "title": "wxFrogAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-frog-attack-state.md",
       "title": "wxFrogAttackState",
       "category": "reference/classes"
@@ -2727,8 +2742,18 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-golem-attack-ai-action.md",
+      "title": "wxGolemAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-hanging-state.md",
       "title": "wxHangingState",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-help-ai-action.md",
+      "title": "wxHelpAIAction",
       "category": "reference/classes"
     },
     {
@@ -2782,6 +2807,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ice-worm-attack-ai-action.md",
+      "title": "wxIceWormAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-ice-worm-attack-state.md",
       "title": "wxIceWormAttackState",
       "category": "reference/classes"
@@ -2797,6 +2827,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-icy-attack-ai-action.md",
+      "title": "wxIcyAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-idle-ai-action.md",
       "title": "`wxIdleAIAction`",
       "category": "reference/classes"
@@ -2804,6 +2839,11 @@
     {
       "path": "docs/reference/classes/wx-kiko-hole-ai-action.md",
       "title": "wxKikoHoleAIAction",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-knut-attack-ai-action.md",
+      "title": "wxKnutAttackAIAction",
       "category": "reference/classes"
     },
     {
@@ -2829,6 +2869,11 @@
     {
       "path": "docs/reference/classes/wx-mikael-waiting-state.md",
       "title": "`wxMikaelWaitingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-mikael-wandring-ai-action.md",
+      "title": "wxMikaelWandringAIAction",
       "category": "reference/classes"
     },
     {
@@ -2859,6 +2904,11 @@
     {
       "path": "docs/reference/classes/wx-minotaur-stunned-state.md",
       "title": "`wxMinotaurStunnedState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-mosquito-attack-ai-action.md",
+      "title": "wxMosquitoAttackAIAction",
       "category": "reference/classes"
     },
     {
@@ -2987,6 +3037,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-stormy-attack-ai-action.md",
+      "title": "wxStormyAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-strafing-state.md",
       "title": "wxStrafingState",
       "category": "reference/classes"
@@ -3004,6 +3059,11 @@
     {
       "path": "docs/reference/classes/wx-trix-attack-state.md",
       "title": "`wxTrixAttackState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-troll-attack-ai-action.md",
+      "title": "wxTrollAttackAIAction",
       "category": "reference/classes"
     },
     {
@@ -3032,6 +3092,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-wander-ai-action.md",
+      "title": "wxWanderAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-way-to-go-state.md",
       "title": "`wxWayToGoState`",
       "category": "reference/classes"
@@ -3039,6 +3104,16 @@
     {
       "path": "docs/reference/classes/wx-web-spit-projectile.md",
       "title": "`wxWebSpitProjectile`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-winx-fly-ai-action.md",
+      "title": "wxWinxFlyAIAction",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-yeti-attack-ai-action.md",
+      "title": "wxYetiAttackAIAction",
       "category": "reference/classes"
     },
     {

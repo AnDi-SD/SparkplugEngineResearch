@@ -8,7 +8,7 @@
 
 namespace winxcoop::diagnostic_input
 {
-    constexpr std::uint32_t ApplicationClass = 0x34494357, ProtocolVersion = 4;
+    constexpr std::uint32_t ApplicationClass = 0x35494357, ProtocolVersion = 5;
     constexpr std::uint16_t WireBytes = 140;
     enum class Kind : std::uint32_t { Hello = 1, Grant = 2, Input = 3, Ack = 4, Pause = 5, Stop = 6, SourceState = 7 };
     constexpr std::uint32_t NeutralRequired = 1;

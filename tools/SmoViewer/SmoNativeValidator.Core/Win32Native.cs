@@ -464,10 +464,15 @@ internal static class Win32Native
             return string.Empty;
         List<byte> result = [];
         const int blockSize = 128;
-        for (int offset = 0; offset < maximumBytes; offset += blockSize)
+        int pageSize = Environment.SystemPageSize;
+        for (int offset = 0; offset < maximumBytes;)
         {
-            int count = Math.Min(blockSize, maximumBytes - offset);
-            byte[] block = ReadMemory(process, checked(address + (uint)offset), count);
+            uint current = checked(address + (uint)offset);
+            // A valid terminator may precede an unreadable next page. Never
+            // require that page merely to complete a speculative string block.
+            int pageRemaining = pageSize - (int)(current % (uint)pageSize);
+            int count = Math.Min(blockSize, Math.Min(maximumBytes - offset, pageRemaining));
+            byte[] block = ReadMemory(process, current, count);
             int zero = Array.IndexOf(block, (byte)0);
             if (zero >= 0)
             {
@@ -475,6 +480,7 @@ internal static class Win32Native
                 break;
             }
             result.AddRange(block);
+            offset += count;
         }
         return Encoding.Latin1.GetString(result.ToArray());
     }

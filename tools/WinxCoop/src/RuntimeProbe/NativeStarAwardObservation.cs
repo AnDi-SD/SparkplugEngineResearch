@@ -104,7 +104,7 @@ internal sealed class NativeStarAwardObservation
         if (_retired) return;
         Require(Active && _eligibility?.Active == true && !_eligibility.HasPendingNativePair &&
             _pendingAward is null && _awaitingQuery is null, "Star award observation reached WorldRET with an unmatched native operation.");
-        VerifyOwners(); Require(++_worlds <= 36000, "Star award observation world budget exceeded.");
+        VerifyOwners(); Require(++_worlds <= NativeObservationBudget.WorldLimit, "Star award observation world budget exceeded.");
     }
 
     internal void RetireBeforeOwnDelete(uint tid, ref Win32Native.X86Context context)

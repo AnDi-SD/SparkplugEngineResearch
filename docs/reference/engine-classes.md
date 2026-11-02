@@ -90,7 +90,7 @@
 | `spDXMirrorLayer` | `0x39FA6E0B` | Да | — | — | — |
 | `spDXMouse` | `0x72F650C7` | Да | — | [1](classes/sp-dx-mouse.md) | [spDXMouse.h](../../Sparkplug/Code/SparkplugPC/spDXMouse.h), [spDXMouse.cpp](../../Sparkplug/Code/SparkplugPC/spDXMouse.cpp) |
 | `spDXNetwork` | `0x41FB6C73` | Да | — | [1](classes/sp-dx-network.md) | [spDXNetwork.h](../../Sparkplug/Code/SparkplugDX/spDXNetwork.h) |
-| `spDXPixelShader` | `0x2B5D52DF` | Да | — | — | — |
+| `spDXPixelShader` | `0x2B5D52DF` | Да | — | [1](../engine/materials/pixel-shader.md) | [spDXPixelShader.h](../../Sparkplug/Code/SparkplugDX/spDXPixelShader.h) |
 | `spDXRenderer` | `0x46004EE1` | Да | — | [1](classes/sp-renderer.md) | [spDXRenderer.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer.h), [spDXRenderer.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer.cpp), [spDXRenderer_Init.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Init.cpp), [spDXRenderer_Startup.h](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Startup.h), [spDXRenderer_Startup.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Startup.cpp), [spDXRenderer_Palette.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Palette.cpp), [spDXRenderer_Declarations.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderer_Declarations.cpp) |
 | `spDXRenderTarget` | `0x189A4642` | Да | — | [1](classes/sp-render-target.md) | [spDXRenderTarget.h](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget.h), [spDXRenderTarget.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget.cpp), [spDXRenderTarget_Device.cpp](../../Sparkplug/Code/SparkplugDX/spDXRenderTarget_Device.cpp) |
 | `spDXSceneGraphOptimizer` | `0x7E120EC3` | Да | — | — | — |
@@ -109,7 +109,7 @@
 | `spDXSharedMeshDataSerializer` | `0x506F8A8C` | Да | — | — | [spDXSharedMeshDataSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXSharedMeshDataSerializer.h) |
 | `spDXTexture` | `0x3F3651B6` | Да | — | [1](classes/sp-render-target.md) | [spDXTexture.h](../../Sparkplug/Code/SparkplugDX/spDXTexture.h), [spDXTexture.cpp](../../Sparkplug/Code/SparkplugDX/spDXTexture.cpp), [spDXTextureResource.cpp](../../Sparkplug/Code/SparkplugDX/spDXTextureResource.cpp), [spDXTexture_Native.cpp](../../Sparkplug/Code/SparkplugDX/spDXTexture_Native.cpp) |
 | `spDXTextureDataSerializer` | `0x1C6D480F` | Да | Да | [1](classes/sp-dx-texture-data-serializer.md) | [spDXTextureDataSerializer.h](../../Sparkplug/Code/Sparkplug/spDXTextureDataSerializer.h) |
-| `spDXTextureManager` | `0x3B9304C7` | Да | — | — | — |
+| `spDXTextureManager` | `0x3B9304C7` | Да | — | [1](classes/sp-dx-texture-manager.md) | [spDXTextureManager.h](../../Sparkplug/Code/SparkplugDX/spDXTextureManager.h) |
 | `spDXTextureSerializer` | `0x196D44FE` | Да | — | — | [spDXTextureSerializer.h](../../Sparkplug/Code/SparkplugDX/spDXTextureSerializer.h) |
 | `spDXVertexBuffer` | `0x37036C17` | Да | — | [1](classes/sp-dx-buffers.md) | [spDXVertexBuffer.h](../../Sparkplug/Code/SparkplugDX/spDXVertexBuffer.h), [spDXVertexBuffer.cpp](../../Sparkplug/Code/SparkplugDX/spDXVertexBuffer.cpp) |
 | `spDXVertexDeclaration` | `0x33C42E58` | Да | — | [1](classes/sp-vertex-declaration.md) | [spDXVertexDeclaration.h](../../Sparkplug/Code/SparkplugDX/spDXVertexDeclaration.h) |
@@ -227,7 +227,7 @@
 | `spPCLensFlareManager` | `0x4838786B` | Да | — | — | — |
 | `spPCPartitionRenderable` | `0x9CBB56A2` | Да | — | — | [spPCPartitionRenderable.h](../../Sparkplug/Code/SparkplugPC/spPCPartitionRenderable.h) |
 | `spPCPartitionRenderableSerializer` | `0x24B2A272` | Да | — | — | — |
-| `spPCPixelShader` | `0x77F8325C` | Да | — | — | — |
+| `spPCPixelShader` | `0x77F8325C` | Да | — | [1](../engine/materials/pixel-shader.md) | [spPCPixelShader.h](../../Sparkplug/Code/SparkplugPC/spPCPixelShader.h) |
 | `spPCProjectionFX` | `0xF37E1DC5` | Да | — | [1](classes/sp-projection-fx.md) | [spPCProjectionFX.h](../../Sparkplug/Code/SparkplugPC/spPCProjectionFX.h) |
 | `spPCProjectionManager` | `0xE10D6FC2` | Да | — | [1](classes/sp-projection-manager.md) | [spPCProjectionManager.h](../../Sparkplug/Code/SparkplugPC/spPCProjectionManager.h) |
 | `spPCRenderer` | `0x26267C84` | Да | — | [1](classes/sp-renderer.md) | [spPCRenderer.h](../../Sparkplug/Code/SparkplugPC/spPCRenderer.h) |
@@ -277,7 +277,7 @@
 | `spPS2MeshDataSerializer` | `0x6B0C238F` | Да | Да | [1](classes/sp-ps2-mesh-data-serializer.md) | [spPS2MeshDataSerializer.h](../../Sparkplug/Code/Sparkplug/spPS2MeshDataSerializer.h) |
 | `spPS2MicrocodeManager` | `0x0CEC4B69` | — | Да | [1](classes/sp-ps2-microcode-manager.md) | [spPS2MicrocodeManager.h](../../Sparkplug/Code/SparkplugPS2/spPS2MicrocodeManager.h), [spPS2MicrocodeManager.cpp](../../Sparkplug/Code/SparkplugPS2/spPS2MicrocodeManager.cpp) |
 | `spPS2MirrorLayer` | `0x50CC6CA8` | — | Да | — | — |
-| `spPS2Mouse` | `0x5E6722F3` | — | Да | — | — |
+| `spPS2Mouse` | `0x5E6722F3` | — | Да | [1](../engine/architecture/ps2-mouse.md) | [spPS2Mouse.h](../../Sparkplug/Code/SparkplugPS2/spPS2Mouse.h) |
 | `spPS2MultistreamManager` | `0x10960FFB` | — | Да | — | — |
 | `spPS2PartitionRenderable` | `0x8C2AA5B2` | — | Да | — | — |
 | `spPS2PartitionRenderableSerializer` | `0x24BCA235` | — | Да | — | — |
@@ -350,7 +350,7 @@
 | `spTextureBuffer` | `0x205B390B` | Да | Да | [1](classes/sp-texture-buffer.md) | [spTextureBuffer.h](../../Sparkplug/Code/Sparkplug/spTextureBuffer.h) |
 | `spTextureData` | `0x78EA082B` | Да | Да | [1](classes/sp-texture-data.md) | [spTextureData.h](../../Sparkplug/Code/Sparkplug/spTextureData.h) |
 | `spTextureDataSerializer` | `0x1C4C75BA` | Да | Да | [1](classes/sp-texture-data-serializer.md) | [spTextureDataSerializer.h](../../Sparkplug/Code/Sparkplug/spTextureDataSerializer.h) |
-| `spTextureManager` | `0x2F434D04` | Да | Да | — | — |
+| `spTextureManager` | `0x2F434D04` | Да | Да | [1](classes/sp-texture-manager.md) | [spTextureManager.h](../../Sparkplug/Code/Sparkplug/spTextureManager.h) |
 | `spTextureProjection` | `0x58DA4026` | — | Да | — | — |
 | `spTextureTrack` | `0x0B3C1B09` | Да | Да | — | [spTextureTrack.h](../../Sparkplug/Code/Sparkplug/spTextureTrack.h) |
 | `spTextWidget` | `0x0A3053A8` | Да | Да | [1](classes/sp-text-widget.md) | [spTextWidget.h](../../Sparkplug/Code/Sparkplug/spTextWidget.h) |

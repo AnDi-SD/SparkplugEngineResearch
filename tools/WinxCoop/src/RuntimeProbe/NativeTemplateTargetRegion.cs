@@ -28,7 +28,7 @@ internal sealed partial class NativeTemplateProbe
         NativePostInitCallPlan plan = PlayerTraitsPickupPlan();
         if (!_configureTargetRegion) return plan;
         NativePostInitCallPlan target = TargetRegionConfigurationPlan();
-        if (_ordinaryAttackFixture) target = target with { Next = OrdinaryAimExclusionPlan() };
+        if (_ordinaryAttackFixture || _ordinaryNetwork) target = target with { Next = OrdinaryAimExclusionPlan() };
         return plan with { Next = target };
     }
 

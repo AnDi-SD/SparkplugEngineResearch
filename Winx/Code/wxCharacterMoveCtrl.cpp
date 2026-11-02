@@ -31,4 +31,9 @@ namespace winx::reconstruction
         for (const auto offset:evidence::pc::wxCharacterMoveCtrlResetFields)
             std::memcpy(own_.data()+offset-PcOwnStartForAnalysis,&zero,4);
     }
+    void wxCharacterMoveCtrl::ClearWord1E0ForAnalysis() noexcept
+    {
+        const std::uint32_t zero=0;
+        std::memcpy(own_.data()+evidence::pc::wxCharacterMoveCtrlRawWord1E0-PcOwnStartForAnalysis,&zero,4);
+    }
 }
