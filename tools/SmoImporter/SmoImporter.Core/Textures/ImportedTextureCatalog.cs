@@ -1,9 +1,21 @@
 namespace SmoImporter.Core;
 
+/// <summary>A logical texture shared by the listed materials in the base scene.</summary>
+/// <remarks>The key is the first material index in this slot. It belongs to the base scene.</remarks>
+public sealed record ImportedTextureSlot(
+    int Key,
+    string Name,
+    IReadOnlyList<int> MaterialIndices,
+    int EffectiveTextureIndex,
+    bool IsExplicit);
+
 public sealed record ImportedTextureCatalogResult(
     ImportedScene EffectiveScene,
     IReadOnlyList<ImportedTexture> UnusedExternalTextures,
-    IReadOnlyList<string> Messages);
+    IReadOnlyList<string> Messages)
+{
+    public IReadOnlyList<ImportedTextureSlot> Slots { get; init; } = [];
+}
 
 /// <summary>
 /// Resolves external image files against the logical texture groups declared by
@@ -15,6 +27,16 @@ public static class ImportedTextureCatalog
     public static ImportedTextureCatalogResult ResolveExternalOverrides(
         ImportedScene source,
         IReadOnlyList<ImportedTexture> external)
+        => ResolveExternalOverrides(source, external, null);
+
+    /// <summary>
+    /// Applies selected-slot assignments before automatic matching. The keys come from
+    /// <see cref="ImportedTextureCatalogResult.Slots"/> for this base scene.
+    /// </summary>
+    public static ImportedTextureCatalogResult ResolveExternalOverrides(
+        ImportedScene source,
+        IReadOnlyList<ImportedTexture> external,
+        IReadOnlyDictionary<int, ImportedTexture>? explicitAssignments)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(external);
@@ -22,6 +44,21 @@ public static class ImportedTextureCatalog
         ImportedTexture[] sourceTextures = source.Textures.ToArray();
         ImportedMaterial[] sourceMaterials = source.Materials.ToArray();
         TextureGroup[] groups = BuildGroups(sourceTextures, sourceMaterials);
+        var selectedTextures = new Dictionary<TextureGroup, ImportedTexture>();
+        if (explicitAssignments is { Count: > 0 })
+        {
+            foreach (TextureGroup group in groups)
+            {
+                if (explicitAssignments.TryGetValue(group.MaterialIndices[0], out ImportedTexture? texture))
+                {
+                    selectedTextures.Add(group, texture ?? throw new ArgumentException(
+                        $"Texture for slot [{group.MaterialIndices[0]}] is null.", nameof(explicitAssignments)));
+                }
+            }
+            if (selectedTextures.Count != explicitAssignments.Count)
+                throw new InvalidDataException("A selected texture slot is absent from the base scene.");
+        }
+
         ExternalEntry[] externalEntries = external
             .Select((texture, index) => new ExternalEntry(
                 index,
@@ -44,9 +81,14 @@ public static class ImportedTextureCatalog
 
             int bestScore = candidates.Max(candidate => candidate.Score);
             TextureGroup[] bestGroups = candidates
-                .Where(candidate => candidate.Score == bestScore)
+                .Where(candidate => candidate.Score == bestScore &&
+                    !selectedTextures.ContainsKey(candidate.Group))
                 .Select(candidate => candidate.Group)
                 .ToArray();
+            // An explicit override occupies its slot without sending its
+            // automatic candidate to a different, less specific match.
+            if (bestGroups.Length == 0)
+                continue;
             if (bestGroups.Length != 1)
             {
                 throw new InvalidDataException(
@@ -78,32 +120,31 @@ public static class ImportedTextureCatalog
         HashSet<int> assignedExternalIndices = assignments.Values
             .Select(entry => entry.Index)
             .ToHashSet();
-        ExternalEntry[] unmatchedExternal = externalEntries
-            .Where(entry => !assignedExternalIndices.Contains(entry.Index))
-            .ToArray();
         var effectiveTextures = sourceTextures.ToList();
         ImportedMaterial[] effectiveMaterials = sourceMaterials.ToArray();
         var messages = new List<string>();
-        foreach ((TextureGroup group, ExternalEntry entry) in assignments
-                     .OrderBy(pair => pair.Key.SortKey))
+        var effectiveAssignments = assignments
+            .Select(pair => new KeyValuePair<TextureGroup, ImportedTexture>(pair.Key, pair.Value.Texture))
+            .Concat(selectedTextures)
+            .OrderBy(pair => pair.Key.SortKey);
+        foreach ((TextureGroup group, ImportedTexture texture) in effectiveAssignments)
         {
-            int effectiveTextureIndex;
-            if (group.TextureIndex >= 0)
-            {
-                effectiveTextureIndex = group.TextureIndex;
-                effectiveTextures[effectiveTextureIndex] = entry.Texture;
-                messages.Add(
-                    $"External texture '{DisplayName(entry.Texture)}' overrides source " +
-                    $"texture [{effectiveTextureIndex}] for {group.MaterialDescription}.");
-            }
+            int effectiveTextureIndex = group.TextureIndex;
+            if (effectiveTextureIndex >= 0)
+                effectiveTextures[effectiveTextureIndex] = texture;
             else
             {
                 effectiveTextureIndex = effectiveTextures.Count;
-                effectiveTextures.Add(entry.Texture);
-                messages.Add(
-                    $"External texture '{DisplayName(entry.Texture)}' resolves " +
-                    $"{group.MaterialDescription} by an explicit filename match.");
+                effectiveTextures.Add(texture);
             }
+
+            messages.Add(selectedTextures.ContainsKey(group)
+                ? $"External texture '{DisplayName(texture)}' is assigned to {group.MaterialDescription}."
+                : group.TextureIndex >= 0
+                    ? $"External texture '{DisplayName(texture)}' overrides source " +
+                      $"texture [{effectiveTextureIndex}] for {group.MaterialDescription}."
+                    : $"External texture '{DisplayName(texture)}' resolves " +
+                      $"{group.MaterialDescription} by an explicit filename match.");
 
             foreach (int materialIndex in group.MaterialIndices)
             {
@@ -125,20 +166,41 @@ public static class ImportedTextureCatalog
                 "source material and remains unused.");
         }
 
-        var effectiveScene = new ImportedScene(
-            source.Meshes,
-            effectiveTextures.AsReadOnly(),
-            Array.AsReadOnly(effectiveMaterials))
+        var effectiveScene = source with
         {
-            ImportWarnings = source.ImportWarnings
+            EmbeddedTextures = effectiveTextures.AsReadOnly(),
+            SourceMaterials = Array.AsReadOnly(effectiveMaterials)
         };
         ImportedModelResourceLimits.ValidateTextures(
             effectiveScene.Textures,
             "Imported scene");
+        ImportedTextureSlot[] slots = groups.Select(group =>
+        {
+            int key = group.MaterialIndices[0];
+            return new ImportedTextureSlot(
+                key,
+                SlotName(group, sourceTextures, sourceMaterials[key]),
+                group.MaterialIndices.AsReadOnly(),
+                effectiveMaterials[key].BaseColorTextureIndex,
+                selectedTextures.ContainsKey(group));
+        }).ToArray();
         return new ImportedTextureCatalogResult(
             effectiveScene,
             Array.AsReadOnly(unused),
-            messages.AsReadOnly());
+            messages.AsReadOnly())
+        {
+            Slots = Array.AsReadOnly(slots)
+        };
+    }
+
+    private static string SlotName(TextureGroup group, IReadOnlyList<ImportedTexture> textures, ImportedMaterial material)
+    {
+        if (group.TextureIndex >= 0 && !string.IsNullOrWhiteSpace(textures[group.TextureIndex].Name))
+            return textures[group.TextureIndex].Name;
+
+        return string.IsNullOrWhiteSpace(material.BaseColorTextureName)
+            ? material.Name
+            : NormalizeGroupReference(material.BaseColorTextureName);
     }
 
     private static TextureGroup[] BuildGroups(
@@ -159,11 +221,11 @@ public static class ImportedTextureCatalog
             }
 
             bool resolved = material.BaseColorTextureIndex >= 0;
-            if (!resolved && string.IsNullOrWhiteSpace(material.BaseColorTextureName))
-                continue;
+            bool unbound = !resolved && string.IsNullOrWhiteSpace(material.BaseColorTextureName);
             string key = resolved
                 ? $"texture:{material.BaseColorTextureIndex}"
-                : "unresolved:" + NormalizeGroupReference(material.BaseColorTextureName!);
+                : unbound ? $"unbound:{materialIndex}"
+                    : "unresolved:" + NormalizeGroupReference(material.BaseColorTextureName!);
             if (!groups.TryGetValue(key, out TextureGroup? group))
             {
                 group = new TextureGroup(
@@ -171,7 +233,8 @@ public static class ImportedTextureCatalog
                     resolved ? material.BaseColorTextureIndex : -1,
                     resolved
                         ? $"source texture [{material.BaseColorTextureIndex}]"
-                        : $"unresolved texture '{material.BaseColorTextureName}'");
+                        : unbound ? $"untextured material [{materialIndex}] '{material.Name}'"
+                            : $"unresolved texture '{material.BaseColorTextureName}'");
                 groups.Add(key, group);
             }
             group.MaterialIndices.Add(materialIndex);

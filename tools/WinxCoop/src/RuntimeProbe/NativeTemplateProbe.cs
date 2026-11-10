@@ -45,6 +45,12 @@ internal sealed partial class NativeTemplateProbe
     private string _localComponentKeys = "";
     private uint _templateManager, _gameManager, _fileManager, _engine, _flow, _level, _active;
     private readonly NativeSharedPlayerProfile _sharedPlayerProfile;
+    private readonly bool _progressionSavedReloadCohort;
+    // The retired-HP exception is visible to the retained-input verifier only
+    // while its controller retires at the separately verified native Exit.
+    private bool RetainedInputHealthAliasReady => _sharedHealthAlias?.Active == true ||
+        _progressionSavedReloadCohort && _progressionSavedReloadPrepared &&
+        _progressionSavedReloadInputRetirementAtEntry && _sharedHealthAlias?.Retired == true;
     internal bool RequiresEarlyBattleExitGuard => _sharedBattleLifetimeEnabled && !_sharedPlayerProfile.Story;
     private uint _character, _move, _animator, _machine, _traits, _ownRoot;
     private uint _localAnimator, _localActor, _ownNotify1C, _ownMoveInit, _ownAnimatorInit;
@@ -96,8 +102,17 @@ internal sealed partial class NativeTemplateProbe
         _layout = NativeTemplateLayout.Select(config);
         _playerTraitsPreparePickupFx = config.TemplatePlayerTraitsPickupFx;
         _sharedHealthAliasEnabled = config.TemplateSharedHealthAlias;
-        _sharedHealthInitializeFromCanonical = config.InitialSaveSha256 is not null && config.EnableWorldEntry;
+        _sharedHealthInitializeFromCanonical = config.InitialSaveSha256 is not null && config.EnableWorldEntry ||
+            ProbeMain.IsClosedStory3Host(config);
         _sharedPlayerProfile = NativeSharedPlayerProfile.Select(config);
+        _preWaitingReloadPreparationEnabled = config.ProgressionPreWaitingReloadPreparation;
+        _progressionSavedReloadCohort = config.ProgressionControl is not null &&
+            config.EnableProgressionAuthority && config.UseProcessLocalMediaPath && config.EnableWorldEntry &&
+            config.DiagnosticWorldState is { Role: WorldStateRole.Host } &&
+            config.DiagnosticHostInput is { Role: DiagnosticInputRole.Host } && config.DiagnosticGuestInput is null &&
+            config.TemplateSharedPlayerProfile == "alfea-28-network-input" && config.TemplateNetworkInputFixture &&
+            !config.WorldBattlePresentation && !config.TemplateNetworkOrdinaryAttackFixture &&
+            !config.TemplateDeathBattleFixture && !config.TemplateStoryDeathFixture && !config.TemplateMosquitoPlayerTargets;
         _healthBattleFixture = _sharedPlayerProfile.LiveResources;
         _configureTargetRegion = config.TemplateConfigureTargetRegion;
         _stingerSecondaryRoleEnabled = config.TemplateStingerSecondaryRole;

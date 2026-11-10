@@ -7,18 +7,43 @@ public static class ObjModelReader
 {
     public static ImportedScene Read(
         string path,
+        CancellationToken cancellationToken = default) =>
+        ReadCore(path, null, cancellationToken);
+
+    public static ImportedScene ReadWithMaterialLibrary(
+        string path,
+        string materialLibraryPath,
         CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(materialLibraryPath);
+        string fullMaterialLibraryPath = Path.GetFullPath(materialLibraryPath);
+        if (!Path.GetExtension(fullMaterialLibraryPath).Equals(".mtl", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Выберите библиотеку материалов в формате MTL.");
+        return ReadCore(path, fullMaterialLibraryPath, cancellationToken);
+    }
+
+    private static ImportedScene ReadCore(
+        string path,
+        string? materialLibraryPath,
+        CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         string fullPath = Path.GetFullPath(path);
         ImportedModelResourceLimits.ValidateInputFile(fullPath, "OBJ");
         cancellationToken.ThrowIfCancellationRequested();
 
-        var materials = ReadMaterials(
-            fullPath, File.ReadLines(fullPath), cancellationToken);
-        var materialIndices = materials
-            .Select((material, index) => (material.Name, index))
-            .ToDictionary(item => item.Name, item => item.index, StringComparer.OrdinalIgnoreCase);
+        var warnings = new List<string>();
+        string[] libraryPaths = materialLibraryPath is null
+            ? ResolveMaterialLibraries(fullPath, File.ReadLines(fullPath), warnings, cancellationToken)
+            : [materialLibraryPath];
+        var materials = new List<ImportedMaterial>();
+        var materialIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var authoredMaps = new Dictionary<int, (string LibraryPath, string Reference)>();
+        foreach (string libraryPath in libraryPaths)
+        {
+            ImportedModelResourceLimits.ValidateInputFile(libraryPath, "MTL");
+            ReadMaterialLibrary(libraryPath, materials, materialIndices, authoredMaps, cancellationToken);
+        }
         var positions = new List<Vector3>();
         var normals = new List<Vector3>();
         var uvs = new List<Vector2>();
@@ -65,7 +90,9 @@ public static class ObjModelReader
                     break;
                 case "usemtl" when parts.Length >= 2:
                 {
-                    string materialName = string.Join(' ', parts.Skip(1));
+                    string materialName = string.Join(' ', Tokenize(line[6..]));
+                    if (materialName.Length == 0)
+                        throw new InvalidDataException("OBJ содержит usemtl без имени материала.");
                     if (!materialIndices.TryGetValue(materialName, out materialIndex))
                     {
                         materialIndex = materials.Count;
@@ -115,22 +142,20 @@ public static class ObjModelReader
             meshes.Sum(mesh => (long)mesh.Positions.Length),
             ImportedModelResourceLimits.MaximumTotalVertices,
             "OBJ expanded vertex");
-        var warnings = new List<string>();
         AdjacentTextureResolution resolved = ResolveAdjacentTextures(
-            fullPath,
             meshes,
             materials,
-            warnings,
+            authoredMaps,
             cancellationToken);
         var scene = new ImportedScene(
             resolved.Meshes,
             resolved.Textures,
             resolved.Materials)
         {
-            ImportWarnings = warnings.AsReadOnly()
+            ImportWarnings = warnings.AsReadOnly(),
+            ObjMaterialLibraryPaths = Array.AsReadOnly(libraryPaths)
         };
-        ImportedModelResourceLimits.ValidateTextures(scene.Textures, "OBJ scene");
-        return scene;
+        return ImportedTextureRecovery.Recover(scene, "OBJ", cancellationToken, resolved.UnavailableReasons, inferTextureAlpha: true);
     }
 
     private static Builder SwitchBuilder(
@@ -166,20 +191,20 @@ public static class ObjModelReader
             ? $"{objectName}_{materials[materialIndex].Name}"
             : objectName;
 
-    private static List<ImportedMaterial> ReadMaterials(
+    private static string[] ResolveMaterialLibraries(
         string objPath,
         IEnumerable<string> lines,
+        ICollection<string> warnings,
         CancellationToken cancellationToken)
     {
         string directory = Path.GetDirectoryName(objPath) ?? Directory.GetCurrentDirectory();
-        var result = new List<ImportedMaterial>();
-        var indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var adjacentFiles = Directory.EnumerateFiles(directory)
             .ToDictionary(
                 file => Path.GetFileName(file),
                 file => file,
                 StringComparer.OrdinalIgnoreCase);
         var libraryPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var warnedReferences = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (string raw in lines)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -191,18 +216,22 @@ public static class ObjModelReader
                 adjacentFiles,
                 Unquote(references));
             if (completeReference is not null)
-                libraryPaths.Add(completeReference);
-            else
             {
-                foreach (string reference in Tokenize(references))
-                {
-                    string? materialPath = FindAdjacentFile(
-                        adjacentFiles,
-                        reference);
-                    if (materialPath is not null)
-                        libraryPaths.Add(materialPath);
-                }
+                libraryPaths.Add(completeReference);
+                continue;
             }
+
+            bool missingReference = false;
+            foreach (string reference in Tokenize(references))
+            {
+                string? materialPath = FindAdjacentFile(adjacentFiles, reference);
+                if (materialPath is not null)
+                    libraryPaths.Add(materialPath);
+                else
+                    missingReference = true;
+            }
+            if (missingReference && warnedReferences.Count < 16 && warnedReferences.Add(references))
+                warnings.Add($"OBJ: не найдена библиотека материалов из mtllib {references}.");
         }
         if (libraryPaths.Count == 0)
         {
@@ -210,21 +239,14 @@ public static class ObjModelReader
             if (adjacentFiles.TryGetValue(fallbackName, out string? fallbackPath))
                 libraryPaths.Add(fallbackPath);
         }
-        foreach (string materialPath in libraryPaths.OrderBy(
-                     path => path,
-                     StringComparer.OrdinalIgnoreCase))
-        {
-            ImportedModelResourceLimits.ValidateInputFile(materialPath, "MTL");
-            ReadMaterialLibrary(
-                materialPath, result, indices, cancellationToken);
-        }
-        return result;
+        return libraryPaths.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     private static void ReadMaterialLibrary(
         string path,
         List<ImportedMaterial> materials,
         Dictionary<string, int> indices,
+        Dictionary<int, (string LibraryPath, string Reference)> authoredMaps,
         CancellationToken cancellationToken)
     {
         int current = -1;
@@ -236,7 +258,7 @@ public static class ObjModelReader
                 continue;
             if (line.StartsWith("newmtl ", StringComparison.OrdinalIgnoreCase))
             {
-                string name = Unquote(line[7..].Trim());
+                string name = string.Join(' ', Tokenize(line[7..]));
                 if (name.Length == 0)
                     throw new InvalidDataException($"MTL '{path}' contains an empty material name.");
                 if (!indices.TryGetValue(name, out current))
@@ -256,6 +278,7 @@ public static class ObjModelReader
                 string? textureName = ParseMapReference(line[7..]);
                 if (!string.IsNullOrWhiteSpace(textureName))
                 {
+                    authoredMaps[current] = (path, textureName);
                     materials[current] = materials[current] with
                     {
                         BaseColorTextureName = SafeFileName(textureName)
@@ -282,231 +305,70 @@ public static class ObjModelReader
     }
 
     private static AdjacentTextureResolution ResolveAdjacentTextures(
-        string objPath,
         IReadOnlyList<ImportedMesh> sourceMeshes,
         IReadOnlyList<ImportedMaterial> sourceMaterials,
-        ICollection<string> warnings,
+        IReadOnlyDictionary<int, (string LibraryPath, string Reference)> authoredMaps,
         CancellationToken cancellationToken)
     {
-        string directory = Path.GetDirectoryName(objPath) ?? Directory.GetCurrentDirectory();
-        AdjacentTextureCandidate[] candidates = Directory.EnumerateFiles(directory)
-            .Where(IsSupportedTextureFile)
-            .Select(path => new AdjacentTextureCandidate(
-                Path.GetFullPath(path),
-                Path.GetFileName(path),
-                Path.GetFileNameWithoutExtension(path),
-                IsLikelyBaseColorTexture(path)))
-            .OrderBy(candidate => candidate.FileName, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        AdjacentTextureCandidate[] colorCandidates = candidates
-            .Where(candidate => candidate.IsLikelyBaseColor)
-            .ToArray();
-        var meshes = sourceMeshes.ToArray();
-        var materials = sourceMaterials.ToList();
+        var materials = sourceMaterials.ToArray();
         var textures = new List<ImportedTexture>();
-        var textureIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var textureHasAlpha = new Dictionary<int, bool>();
-        var usedCandidatePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        int ResolveTexture(AdjacentTextureCandidate candidate)
+        var indices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var failures = new Dictionary<int, string>();
+        foreach (int materialIndex in sourceMeshes.Select(mesh => mesh.MaterialIndex)
+                     .Where(index => index >= 0 && index < materials.Length).Distinct().OrderBy(index => index))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            usedCandidatePaths.Add(candidate.FullPath);
-            if (textureIndices.TryGetValue(candidate.FullPath, out int existing))
-                return existing;
-            ImportedTexture texture = ImportedTextureFileReader.Read(candidate.FullPath);
-            int index = textures.Count;
-            textures.Add(texture);
-            textureIndices.Add(candidate.FullPath, index);
-            textureHasAlpha.Add(
-                index,
-                ImportedTextureImageTools.TextureContainsTransparency(texture));
-            return index;
-        }
-
-        void AssignMaterial(int materialIndex, AdjacentTextureCandidate candidate)
-        {
-            int textureIndex = ResolveTexture(candidate);
             ImportedMaterial material = materials[materialIndex];
-            materials[materialIndex] = material with
+            string? reference = material.BaseColorTextureName;
+            string? texturePath = null;
+            if (authoredMaps.TryGetValue(materialIndex, out var authoredMap))
             {
-                BaseColorTextureName = candidate.FileName,
-                BaseColorTextureIndex = textureIndex,
-                AlphaMode = textureHasAlpha[textureIndex]
-                    ? ImportedMaterialAlphaMode.Blend
-                    : material.AlphaMode
-            };
-        }
-
-        int[] usedMaterialIndices = meshes
-            .Select(mesh => mesh.MaterialIndex)
-            .Where(index => index >= 0 && index < materials.Count)
-            .Distinct()
-            .OrderBy(index => index)
-            .ToArray();
-        var unresolvedMaterials = new List<int>();
-        foreach (int materialIndex in usedMaterialIndices)
-        {
-            ImportedMaterial material = materials[materialIndex];
-            if (material.BaseColorTextureIndex >= 0)
-                continue;
-            CandidateMatch match = string.IsNullOrWhiteSpace(
-                    material.BaseColorTextureName)
-                ? new CandidateMatch(null, Ambiguous: false)
-                : FindCandidate(candidates, material.BaseColorTextureName);
-            if (match.Candidate is null && !match.Ambiguous)
-                match = FindCandidate(colorCandidates, material.Name);
-            if (match.Candidate is not null)
-                AssignMaterial(materialIndex, match.Candidate);
-            else
-            {
-                unresolvedMaterials.Add(materialIndex);
-                if (match.Ambiguous)
-                {
-                    warnings.Add(
-                        $"OBJ material '{material.Name}' matches multiple adjacent " +
-                        "textures and was left untextured.");
-                }
+                reference = authoredMap.Reference;
+                texturePath = ResolveMaterialTexturePath(authoredMap.LibraryPath, reference);
             }
-        }
-
-        var unresolvedMeshGroups = new List<UnresolvedMeshGroup>();
-        foreach (IGrouping<string, (ImportedMesh Mesh, int Index)> group in meshes
-                     .Select((mesh, index) => (Mesh: mesh, Index: index))
-                     .Where(item => item.Mesh.MaterialIndex < 0)
-                     .GroupBy(item => item.Mesh.Name, StringComparer.OrdinalIgnoreCase))
-        {
-            CandidateMatch match = FindCandidate(colorCandidates, group.Key);
-            if (match.Candidate is null)
+            // An absent authored binding stays absent. Nearby images, matching
+            // mesh names, or a single unused image are not evidence of intent.
+            if (string.IsNullOrWhiteSpace(reference)) continue;
+            if (texturePath is null)
             {
-                unresolvedMeshGroups.Add(new UnresolvedMeshGroup(
-                    group.Key,
-                    group.Select(item => item.Index).ToArray()));
-                if (match.Ambiguous)
-                {
-                    warnings.Add(
-                        $"OBJ mesh group '{group.Key}' matches multiple adjacent " +
-                        "textures and was left untextured.");
-                }
+                failures[materialIndex] = $"не найдена указанная текстура «{reference}»";
                 continue;
             }
-            AssignNewMaterialToMeshes(
-                group.Key,
-                group.Select(item => item.Index).ToArray(),
-                match.Candidate,
-                meshes,
-                materials,
-                AssignMaterial);
-        }
-
-        AdjacentTextureCandidate[] unusedCandidates = colorCandidates
-            .Where(candidate => !usedCandidatePaths.Contains(candidate.FullPath))
-            .ToArray();
-        int unresolvedGroupCount = unresolvedMaterials.Count + unresolvedMeshGroups.Count;
-        if (unresolvedGroupCount == 1 && unusedCandidates.Length == 1)
-        {
-            AdjacentTextureCandidate fallback = unusedCandidates[0];
-            if (unresolvedMaterials.Count == 1)
-                AssignMaterial(unresolvedMaterials[0], fallback);
-            else
+            if (!indices.TryGetValue(texturePath, out int textureIndex))
             {
-                UnresolvedMeshGroup group = unresolvedMeshGroups[0];
-                AssignNewMaterialToMeshes(
-                    group.Name,
-                    group.MeshIndices,
-                    fallback,
-                    meshes,
-                    materials,
-                    AssignMaterial);
+                if (!ImportedTextureRecovery.TryReadReferencedFile(texturePath, out ImportedTexture? texture, out string? issue))
+                {
+                    failures[materialIndex] = $"текстура «{reference}» недоступна или повреждена: {issue}";
+                    continue;
+                }
+                textureIndex = textures.Count;
+                indices.Add(texturePath, textureIndex);
+                textures.Add(texture!);
             }
-            warnings.Add(
-                $"OBJ adjacent texture '{fallback.FileName}' was assigned by the " +
-                "unique untextured-group fallback.");
+            materials[materialIndex] = material with { BaseColorTextureIndex = textureIndex };
         }
-        else if (candidates.Length > 0 && textures.Count == 0 && unresolvedGroupCount > 0)
-        {
-            warnings.Add(
-                $"OBJ found {candidates.Length} adjacent image file(s), but none could " +
-                "be assigned unambiguously by material or mesh name.");
-        }
-
         return new AdjacentTextureResolution(
-            Array.AsReadOnly(meshes),
-            textures.AsReadOnly(),
-            materials.AsReadOnly());
+            sourceMeshes, textures.AsReadOnly(), Array.AsReadOnly(materials), failures);
     }
-
-    private static void AssignNewMaterialToMeshes(
-        string name,
-        IReadOnlyList<int> meshIndices,
-        AdjacentTextureCandidate candidate,
-        ImportedMesh[] meshes,
-        List<ImportedMaterial> materials,
-        Action<int, AdjacentTextureCandidate> assignMaterial)
+    private static string? ResolveMaterialTexturePath(string materialLibraryPath, string reference)
     {
-        int materialIndex = materials.Count;
-        materials.Add(new ImportedMaterial(
-            string.IsNullOrWhiteSpace(name) ? "OBJ_Default" : name,
-            candidate.FileName));
-        assignMaterial(materialIndex, candidate);
-        foreach (int meshIndex in meshIndices)
-            meshes[meshIndex] = meshes[meshIndex] with { MaterialIndex = materialIndex };
-    }
+        string relative = reference.Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+        if (Path.IsPathRooted(relative) || relative.Contains(':'))
+            return null;
 
-    private static CandidateMatch FindCandidate(
-        IReadOnlyList<AdjacentTextureCandidate> candidates,
-        params string?[] references)
-    {
-        foreach (string reference in references
-                     .OfType<string>()
-                     .Where(reference => !string.IsNullOrWhiteSpace(reference)))
-        {
-            string fileName = SafeFileName(reference);
-            AdjacentTextureCandidate[] exact = candidates
-                .Where(candidate => candidate.FileName.Equals(
-                    fileName,
-                    StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-            if (exact.Length == 1)
-                return new CandidateMatch(exact[0], Ambiguous: false);
-            if (exact.Length > 1)
-                return new CandidateMatch(null, Ambiguous: true);
-
-            string baseName = Path.GetFileNameWithoutExtension(fileName);
-            AdjacentTextureCandidate[] byBaseName = candidates
-                .Where(candidate => candidate.BaseName.Equals(
-                    baseName,
-                    StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-            if (byBaseName.Length == 1)
-                return new CandidateMatch(byBaseName[0], Ambiguous: false);
-            if (byBaseName.Length > 1)
-                return new CandidateMatch(null, Ambiguous: true);
-        }
-        return new CandidateMatch(null, Ambiguous: false);
+        string directory = Path.GetDirectoryName(materialLibraryPath)!;
+        string prefix = Path.TrimEndingDirectorySeparator(directory);
+        if (!Path.EndsInDirectorySeparator(prefix))
+            prefix += Path.DirectorySeparatorChar;
+        string candidate = Path.GetFullPath(relative, directory);
+        return candidate.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) &&
+            IsSupportedTextureFile(candidate) && File.Exists(candidate) ? candidate : null;
     }
 
     private static bool IsSupportedTextureFile(string path) =>
         Path.GetExtension(path).ToLowerInvariant() is
             ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tga";
-
-    private static bool IsLikelyBaseColorTexture(string path)
-    {
-        string name = Path.GetFileNameWithoutExtension(path).ToLowerInvariant();
-        string[] tokens = name.Split(
-            ['_', '-', '.', ' '],
-            StringSplitOptions.RemoveEmptyEntries);
-        string[] nonColorTokens =
-        [
-            "normal", "norm", "nomr", "rough", "roughness", "metal",
-            "metallic", "spec", "specular", "ao", "occlusion", "orm",
-            "bump", "height", "displacement"
-        ];
-        return !tokens.Any(token => nonColorTokens.Contains(
-                   token,
-                   StringComparer.OrdinalIgnoreCase)) &&
-               !name.EndsWith("_n", StringComparison.OrdinalIgnoreCase);
-    }
 
     private static string? FindAdjacentFile(
         IReadOnlyDictionary<string, string> adjacentFiles,
@@ -629,27 +491,19 @@ public static class ObjModelReader
             ? value[1..^1]
             : value;
 
-    private static float Parse(string value) =>
-        float.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
-
-    private sealed record AdjacentTextureCandidate(
-        string FullPath,
-        string FileName,
-        string BaseName,
-        bool IsLikelyBaseColor);
-
-    private sealed record CandidateMatch(
-        AdjacentTextureCandidate? Candidate,
-        bool Ambiguous);
-
-    private sealed record UnresolvedMeshGroup(
-        string Name,
-        IReadOnlyList<int> MeshIndices);
+    private static float Parse(string value)
+    {
+        if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result) ||
+            !float.IsFinite(result))
+            throw new InvalidDataException($"OBJ: недопустимое числовое значение «{value}»; исправьте координаты, нормали или UV модели.");
+        return result;
+    }
 
     private sealed record AdjacentTextureResolution(
         IReadOnlyList<ImportedMesh> Meshes,
         IReadOnlyList<ImportedTexture> Textures,
-        IReadOnlyList<ImportedMaterial> Materials);
+        IReadOnlyList<ImportedMaterial> Materials,
+        IReadOnlyDictionary<int, string> UnavailableReasons);
 
     private sealed class Builder(string name, int materialIndex)
     {

@@ -397,7 +397,7 @@ public static class SmoLevelModelGraphReplacer
                     textureIndex,
                     textureTemplate is null
                         ? BuildCanonicalTextureObject(
-                            document, replacement.Textures[textureIndex])
+                            document, replacement.Textures[textureIndex], prepared.LegacyCommonTextureSource)
                         : BuildTextureObject(
                             document,
                             textureTemplate,
@@ -700,6 +700,9 @@ public static class SmoLevelModelGraphReplacer
 
         cancellationToken.ThrowIfCancellationRequested();
         SmoDocument verified = SmoDocument.ParseOwned(output, document.SourcePath);
+        if (PatchRigidBlendSort(verified, replacement, plan, placementModelIdsByMesh,
+                oldToNewMeshIds, newTextureIds, cancellationToken) is { } ordered)
+            (verified, output) = ordered;
         int removedTextureCount = replacedOldTextureIds.Count(id =>
             !retainedOldTextureIds.Contains(id));
         int expectedObjectCount = document.Objects.Count
@@ -790,6 +793,87 @@ public static class SmoLevelModelGraphReplacer
         };
     }
 
+    private static (SmoDocument Document, byte[] Data)? PatchRigidBlendSort(
+        SmoDocument document,
+        ImportedScene replacement,
+        SmoLevelModelGraphPlan plan,
+        IReadOnlyDictionary<uint, uint[]> referenceModelsByMesh,
+        IReadOnlyDictionary<uint, uint> newMeshIds,
+        IReadOnlyDictionary<int, uint> newTextureIds,
+        CancellationToken cancellationToken)
+    {
+        if ((document.Header.PlatformMask & 2) == 0 || document.HasErrors)
+            return null;
+
+        SmoLoadedResources? resources = null;
+        SmoMutationTransaction? transaction = null;
+        var enabled = new byte[sizeof(uint)];
+        WriteUInt32(enabled, 0, 1);
+        var changedModels = new Dictionary<int, SmoLoadedModel>();
+        for (int index = 0; index < plan.Components.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ImportedMesh donor = replacement.Meshes[index];
+            if (donor.MaterialIndex < 0 || donor.MaterialIndex >= replacement.Materials.Count ||
+                replacement.Materials[donor.MaterialIndex].AlphaMode != ImportedMaterialAlphaMode.Blend ||
+                !newTextureIds.TryGetValue(ResolveImportedTextureIndex(replacement, donor), out uint textureId))
+                continue;
+
+            SmoLevelModelGraphComponent component = plan.Components[index];
+            uint meshId = newMeshIds[component.MeshObjectId];
+            resources ??= RequireLoadedResources(document);
+            SmoTextureUvAlphaCoverage? coverage = null;
+            foreach (uint modelId in referenceModelsByMesh[component.MeshObjectId].Prepend(component.ModelObjectId))
+            {
+                SmoObjectEntry entry = document.Objects.Single(item => item.Id == modelId);
+                SmoLoadedModel model = RequireLoadedModel(resources, entry);
+                SmoLoadedMaterialPass? pass = model.Material?.Passes.FirstOrDefault();
+                if (entry.TypeHash != SmoClassIds.Model || model.MeshId != meshId || model.AlphaSort ||
+                    pass is null || pass.Blend != 2 || changedModels.ContainsKey(entry.Index))
+                    continue;
+                SmoTexture? texture = pass.Layers.FirstOrDefault(layer => layer.Texture?.ObjectId == textureId)
+                    ?.Texture?.Texture;
+                if (texture is null)
+                    continue;
+                coverage ??= SmoTextureUvAlphaAnalyzer.Analyze(
+                    SmoMeshDecoder.Decode(document, document.Objects.Single(item => item.Id == meshId)),
+                    texture);
+                if (!coverage.Value.HasPartialAlpha)
+                    continue;
+
+                // spModel reads the shared Renderable section first. Change only
+                // its existing UInt32 AlphaSortEnable, never a derived Model field.
+                SmoObjectField[] fields = SmoObjectFieldReader.Read(document, entry)
+                    .TakeWhile(field => field.SizeKind != SmoDataBlockSizeCode.Empty || field.PayloadSize != 0)
+                    .Where(field => field.FieldType == 2)
+                    .ToArray();
+                if (fields.Length != 1 || fields[0].PayloadSize != sizeof(uint) ||
+                    BinaryPrimitives.ReadUInt32LittleEndian(fields[0].Payload.Span) != 0)
+                    continue;
+                transaction ??= new SmoMutationTransaction(document);
+                transaction.SetFieldPayload(entry.Index, fields[0].Selector, enabled);
+                changedModels.Add(entry.Index, model);
+            }
+        }
+        if (transaction is null)
+            return null;
+
+        byte[] data = transaction.Commit().Data;
+        SmoDocument patched = SmoDocument.ParseOwned(data, document.SourcePath);
+        SmoLoadedResources readback = RequireLoadedResources(patched);
+        foreach ((int index, SmoLoadedModel before) in changedModels)
+        {
+            SmoLoadedModel after = RequireLoadedModel(readback, patched.Objects[index]);
+            if (!after.AlphaSort || after.AlphaSortData?.RequiresQueue != true ||
+                after.Priority != before.Priority || after.MeshId != before.MeshId ||
+                after.MaterialId != before.MaterialId || after.FogId != before.FogId ||
+                after.Projection != before.Projection ||
+                patched.Objects[index].ParentIndex != document.Objects[index].ParentIndex)
+                throw new InvalidDataException($"Model {patched.Objects[index].Id} failed alpha-sort readback.");
+        }
+        return (patched, data);
+    }
+
     private static PreparedGraphReplacement PrepareGraphReplacement(
         SmoDocument document,
         int selectedMeshObjectIndex,
@@ -810,6 +894,12 @@ public static class SmoLevelModelGraphReplacer
             throw new InvalidDataException(
                 "Model preparation produced no writable mesh parts.");
 
+        // Standalone normalization can remove the branch carrying the original
+        // common texture. Recognize its format against the untouched input.
+        SmoDocument? legacyCommonTextureSource =
+            options == SmoLevelModelGraphWriteOptions.StandaloneStatic &&
+            document.Header.PlatformMask == 1 &&
+            replacement.Meshes.Count == 1 ? document : null;
         int originalObjectCount = document.Objects.Count;
         int originalTargetMeshCount = document.Objects.Count(entry =>
             entry.TypeHash == SmoClassIds.MeshData);
@@ -859,6 +949,7 @@ public static class SmoLevelModelGraphReplacer
         }
         return new PreparedGraphReplacement(
             document,
+            legacyCommonTextureSource,
             plan,
             replacement,
             originalObjectCount,
@@ -1087,7 +1178,7 @@ public static class SmoLevelModelGraphReplacer
             {
                 _ = textureTemplate is null
                     ? BuildCanonicalTextureObject(
-                        document, replacement.Textures[textureIndex])
+                        document, replacement.Textures[textureIndex], prepared.LegacyCommonTextureSource)
                     : BuildTextureObject(
                         document,
                         textureTemplate,
@@ -1317,6 +1408,7 @@ public static class SmoLevelModelGraphReplacer
 
     private sealed record PreparedGraphReplacement(
         SmoDocument Document,
+        SmoDocument? LegacyCommonTextureSource,
         SmoLevelModelGraphPlan Plan,
         ImportedScene Replacement,
         int OriginalObjectCount,
@@ -1474,9 +1566,11 @@ public static class SmoLevelModelGraphReplacer
                 "Legacy-common/PS2 container conversion is not implemented.");
     }
 
-    private static byte[] BuildCanonicalTextureObject(SmoDocument document, ImportedTexture imported)
+    private static byte[] BuildCanonicalTextureObject(
+        SmoDocument document, ImportedTexture imported, SmoDocument? legacyTemplateSource)
     {
-        RequirePcTextureDestination(document);
+        if (legacyTemplateSource is null)
+            RequirePcTextureDestination(document);
         if (!SmoTextureSerializationLimits.IsSizeRepresentable(imported.Width, imported.Height))
         {
             throw new InvalidDataException(
@@ -1487,7 +1581,59 @@ public static class SmoLevelModelGraphReplacer
         if (image.Width != imported.Width || image.Height != imported.Height)
             throw new InvalidDataException(
                 $"Texture {imported.Name} dimensions do not match its image payload.");
-        return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, EncodeBgra(image));
+        byte[] pixels = EncodeBgra(image);
+        if (legacyTemplateSource is not null)
+            return BuildLegacyCommonTextureObject(legacyTemplateSource, image.Width, image.Height, pixels);
+        return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, pixels);
+    }
+
+    private static byte[] BuildLegacyCommonTextureObject(
+        SmoDocument document, int width, int height, byte[] pixels)
+    {
+        // A bare common texture has a single field 0. Its nested field 5
+        // stores the four words read by spTextureDataSerializer, then BGRA.
+        // Keep the exact old envelope used by Book and read by the legacy adapter.
+        const int crossHeaderSize = 4 * sizeof(uint);
+        const int objectHeaderSize = 8;
+        const int adapterReadLimit = 16 * 1024 * 1024;
+        foreach (SmoObjectEntry template in document.Objects.Where(
+                     entry => entry.TypeHash == SmoClassIds.TextureData))
+        {
+            if (!SmoTextureDataDecoder.TryDecode(document, template, out var decoded, out _) ||
+                decoded is not { SourceKind: SmoTextureSourceKind.LegacyCrossPlatform,
+                    CrossPlatform: { Kind: SmoTextureRepresentationKind.CrossPlatformBgra32 } } ||
+                !SmoObjectFieldReader.TryRead(document, template, out var fields, out _) ||
+                fields is not [{ FieldType: 0 } source, { RawHeader: 0 }])
+            {
+                continue;
+            }
+            ReadOnlySpan<byte> nested = source.Payload.Span;
+            if (!SmoDataBlockReader.TryReadHeader(nested, out SmoDataBlockHeader raw) ||
+                raw.FieldType != 5 || raw.PayloadSize < crossHeaderSize ||
+                raw.PayloadEnd != nested.Length - 1 || nested[^1] != 0 ||
+                BinaryPrimitives.ReadUInt32LittleEndian(nested[(raw.PayloadOffset + 8)..]) != 0 ||
+                BinaryPrimitives.ReadUInt32LittleEndian(nested[(raw.PayloadOffset + 12)..]) != 4)
+            {
+                continue;
+            }
+
+            byte[] rawPayload = new byte[checked(crossHeaderSize + pixels.Length)];
+            nested.Slice(raw.PayloadOffset, crossHeaderSize).CopyTo(rawPayload);
+            WriteUInt32(rawPayload, 0, checked((uint)width));
+            WriteUInt32(rawPayload, sizeof(uint), checked((uint)height));
+            pixels.CopyTo(rawPayload, crossHeaderSize);
+            byte[] rawField = SmoDataBlockWriter.BuildField(5, rawPayload);
+            byte[] crossField = SmoDataBlockWriter.BuildField(0, [.. rawField, 0]);
+            if (crossField.Length >= adapterReadLimit)
+                throw new NotSupportedException("Texture data exceeds the legacy-common read limit.");
+
+            byte[] result = new byte[checked(objectHeaderSize + crossField.Length + 1)];
+            ObjectBytes(document, template)[..objectHeaderSize].CopyTo(result);
+            crossField.CopyTo(result, objectHeaderSize);
+            return result;
+        }
+        throw new NotSupportedException(
+            "TEXTURE_DESTINATION_PLATFORM: No supported legacy-common BGRA texture template was found.");
     }
 
     internal static byte[] BuildTextureObject(

@@ -10,6 +10,40 @@ public readonly record struct SmoBlendIndices(byte X, byte Y, byte Z, byte W);
 /// </summary>
 public sealed class SmoMesh
 {
+    /// <summary>Creates confirmed PC rigid triangle input for the original mesh writer.</summary>
+    public static SmoMesh CreateRigidTransient(string name, Vector3[] positions, Vector3[] normals,
+        Vector2[] textureCoordinates, Vector2[] secondaryTextureCoordinates, uint[] diffuseColorsArgb,
+        uint[] triangleIndices)
+    {
+        ArgumentNullException.ThrowIfNull(positions);
+        ArgumentNullException.ThrowIfNull(normals);
+        ArgumentNullException.ThrowIfNull(textureCoordinates);
+        ArgumentNullException.ThrowIfNull(secondaryTextureCoordinates);
+        ArgumentNullException.ThrowIfNull(diffuseColorsArgb);
+        ArgumentNullException.ThrowIfNull(triangleIndices);
+        foreach (int length in new[] { normals.Length, textureCoordinates.Length, secondaryTextureCoordinates.Length,
+                     diffuseColorsArgb.Length })
+            if (length != 0 && length != positions.Length)
+                throw new ArgumentException("Rigid attribute count differs from positions.");
+        if (positions.Length > ushort.MaxValue || triangleIndices.Length % 3 != 0 ||
+            triangleIndices.Any(index => index >= positions.Length))
+            throw new ArgumentException("Rigid mesh exceeds UInt16 bounds or has invalid triangles.", nameof(triangleIndices));
+        uint format = 0;
+        if (normals.Length != 0) format |= 0x0800;
+        if (textureCoordinates.Length != 0) format |= 0x0100;
+        if (secondaryTextureCoordinates.Length != 0) format |= 0x1000;
+        if (diffuseColorsArgb.Length != 0) format |= 0x0040;
+        if (!SmoVertexLayoutRegistry.TryGet(format, out var layout) || layout is null ||
+            layout.BlendWeightsOffset.HasValue || layout.BlendIndicesOffset.HasValue)
+            throw new NotSupportedException($"Rigid vertex layout 0x{format:X4} is unsupported.");
+        return new SmoMesh(-1, name, SmoMeshDecoder.E1Marker, SmoMeshDecoder.TriangleListPrimitive,
+            format, layout.SerializedStride, layout.SerializedStride, 0,
+            checked((uint)(positions.Length * layout.SerializedStride)), -1, -1, -1, -1,
+            positions, normals, textureCoordinates, secondaryTextureCoordinates, diffuseColorsArgb,
+            [], [], triangleIndices.Select(index => checked((ushort)index)).ToArray(), triangleIndices)
+        { PrimitiveCount = checked((uint)(triangleIndices.Length / 3)) };
+    }
+
     public static SmoMesh CreateTransient(
         SmoMesh template,
         Vector3[] positions,

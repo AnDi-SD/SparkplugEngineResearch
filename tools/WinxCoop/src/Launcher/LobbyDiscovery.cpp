@@ -6,13 +6,14 @@
 #include <array>
 #include <algorithm>
 #include <cstring>
+#include <stdexcept>
+#include <utility>
 
 namespace winxcoop::launcher
 {
     namespace
     {
         constexpr std::size_t MaximumNameBytes = 48, ReplyHeader = 12;
-        constexpr std::array<unsigned char,4> ProbeMagic{'W','C','Q',1}, ReplyMagic{'W','C','R',1};
         std::uint32_t Read32(const unsigned char* p) noexcept
         { return std::uint32_t(p[0]) | (std::uint32_t(p[1])<<8) | (std::uint32_t(p[2])<<16) | (std::uint32_t(p[3])<<24); }
         void Write32(unsigned char* p, std::uint32_t value) noexcept
@@ -25,6 +26,7 @@ namespace winxcoop::launcher
 
     struct LobbyDiscovery::Impl
     {
+        const DiscoveryOptions options;
         SOCKET host=INVALID_SOCKET, search=INVALID_SOCKET;
         bool wsa=false, occupied=false;
         std::uint16_t tcpPort=0;
@@ -36,6 +38,13 @@ namespace winxcoop::launcher
         int error=0;
         std::vector<DiscoveredLobby> lobbies;
         DiscoveryMetrics metrics;
+
+        explicit Impl(DiscoveryOptions value) : options(std::move(value))
+        {
+            const auto zero = [](const auto& magic) { return std::all_of(magic.begin(), magic.end(), [](auto byte) { return byte == 0; }); };
+            if (!options.port || !options.probeAddress || zero(options.probeMagic) || zero(options.replyMagic) ||
+                options.probeMagic == options.replyMagic) throw std::invalid_argument("Explicit discovery domain/port required");
+        }
 
         bool StartRuntime()
         {
@@ -75,7 +84,7 @@ namespace winxcoop::launcher
             const auto converted=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,title.data(),static_cast<int>(title.size()),name.data(),static_cast<int>(name.size()),nullptr,nullptr);
             if(converted<=0) { error=WSAEINVAL; return false; }
             nameSize=static_cast<std::size_t>(converted); tcpPort=port;
-            return Open(host,DiscoveryPort,false);
+            return Open(host,options.port,false);
         }
         void StopHosting() noexcept { CloseSocket(host); tcpPort=0; nameSize=0; occupied=false; }
         bool BeginSearch(const std::uint64_t now)
@@ -112,11 +121,11 @@ namespace winxcoop::launcher
                 std::array<unsigned char,256> bytes{}; sockaddr_in from{}; int size=0;
                 if(!Receive(host,bytes,from,size)) break;
                 if(size<0) continue;
-                if(size!=8 || !std::equal(ProbeMagic.begin(),ProbeMagic.end(),bytes.begin()) || !Read32(bytes.data()+4) || !from.sin_addr.s_addr || !from.sin_port)
+                if(size!=8 || !std::equal(options.probeMagic.begin(),options.probeMagic.end(),bytes.begin()) || !Read32(bytes.data()+4) || !from.sin_addr.s_addr || !from.sin_port)
                 { ++metrics.invalidDatagrams; continue; }
                 ++metrics.probesReceived;
                 std::array<unsigned char,ReplyHeader+MaximumNameBytes> reply{};
-                std::copy(ReplyMagic.begin(),ReplyMagic.end(),reply.begin());
+                std::copy(options.replyMagic.begin(),options.replyMagic.end(),reply.begin());
                 std::copy_n(bytes.data()+4,4,reply.data()+4);
                 reply[8]=static_cast<unsigned char>(tcpPort); reply[9]=static_cast<unsigned char>(tcpPort>>8);
                 reply[10]=static_cast<unsigned char>(nameSize); reply[11]=occupied?1:0;
@@ -133,8 +142,8 @@ namespace winxcoop::launcher
             lastNow=now;
             if(attempts<3 && now>=nextProbe)
             {
-                std::array<unsigned char,8> probe{}; std::copy(ProbeMagic.begin(),ProbeMagic.end(),probe.begin()); Write32(probe.data()+4,nonce);
-                const auto broadcast=Address(0xffffffffu,DiscoveryPort);
+                std::array<unsigned char,8> probe{}; std::copy(options.probeMagic.begin(),options.probeMagic.end(),probe.begin()); Write32(probe.data()+4,nonce);
+                const auto broadcast=Address(options.probeAddress,options.port);
                 const auto sent=sendto(search,reinterpret_cast<const char*>(probe.data()),static_cast<int>(probe.size()),0,reinterpret_cast<const sockaddr*>(&broadcast),sizeof(broadcast));
                 if(sent==static_cast<int>(probe.size())) ++metrics.probesSent;
                 else { error=sent==SOCKET_ERROR?WSAGetLastError():WSAEFAULT; ++metrics.sendErrors; }
@@ -147,7 +156,7 @@ namespace winxcoop::launcher
                 if(size<0) continue;
                 const auto length=bytes[10]; const auto port=std::uint16_t(bytes[8] | (std::uint16_t(bytes[9])<<8));
                 if(size<static_cast<int>(ReplyHeader) || size!=static_cast<int>(ReplyHeader+length) || length==0 || length>MaximumNameBytes || !port || bytes[11]>1 ||
-                   !std::equal(ReplyMagic.begin(),ReplyMagic.end(),bytes.begin()) || Read32(bytes.data()+4)!=nonce || ntohs(from.sin_port)!=DiscoveryPort ||
+                   !std::equal(options.replyMagic.begin(),options.replyMagic.end(),bytes.begin()) || Read32(bytes.data()+4)!=nonce || ntohs(from.sin_port)!=options.port ||
                    !from.sin_addr.s_addr || from.sin_addr.s_addr==INADDR_BROADCAST)
                 { ++metrics.invalidDatagrams; continue; }
                 std::array<wchar_t,MaximumNameBytes> wide{};
@@ -171,7 +180,8 @@ namespace winxcoop::launcher
         ~Impl(){Close();}
     };
 
-    LobbyDiscovery::LobbyDiscovery():impl_(std::make_unique<Impl>()){}
+    LobbyDiscovery::LobbyDiscovery():LobbyDiscovery(DiscoveryOptions{}){}
+    LobbyDiscovery::LobbyDiscovery(DiscoveryOptions options):impl_(std::make_unique<Impl>(std::move(options))){}
     LobbyDiscovery::~LobbyDiscovery()=default;
     bool LobbyDiscovery::StartHosting(const std::uint16_t port,const std::wstring& name){return impl_->StartHosting(port,name);}
     void LobbyDiscovery::StopHosting() noexcept {impl_->StopHosting();}
@@ -185,4 +195,6 @@ namespace winxcoop::launcher
     std::uint64_t LobbyDiscovery::Revision() const noexcept {return impl_->revision;}
     const std::vector<DiscoveredLobby>& LobbyDiscovery::Lobbies() const noexcept {return impl_->lobbies;}
     const DiscoveryMetrics& LobbyDiscovery::Metrics() const noexcept {return impl_->metrics;}
+    std::size_t LobbyDiscovery::OwnedSocketCount() const noexcept
+    { return (impl_->host != INVALID_SOCKET ? 1u : 0u) + (impl_->search != INVALID_SOCKET ? 1u : 0u); }
 }

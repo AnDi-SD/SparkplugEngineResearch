@@ -1,4 +1,5 @@
 #include "spDXTextureDataSerializer.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 #include "../SparkplugDX/spDXTexture.h"
 #include "spSerializerManager.h"
 #include "spTextureData.h"
@@ -85,15 +86,18 @@ namespace sparkplug::reconstruction
     }
 
     bool spDXTextureDataSerializer::ReadNativeSectionForAnalysis(spSerializerReadContextForAnalysis& context,
-        spStream& stream,std::uint32_t byteCount,NativeReadForAnalysis& output,std::string* error)
+        spStream& stream,std::uint32_t byteCount,NativeReadForAnalysis& output,std::string* error,bool allowLargeBgraInspection)
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
-        SectionCursor native(context,stream,byteCount,true,error);
+        using namespace sparkplug::host::pc_texture_storage;
+        SectionCursor native(context,stream,byteCount,true,error,
+            allowLargeBgraInspection?BgraSectionBytes:DefaultBytes);
         output={};
         bool prefix=false,terminated=false;
         auto& width=output.width;auto& height=output.height;auto& flags=output.flags;
         auto& nativeFlag=output.nativeFlag;auto& field1C=output.field1C;
         auto& mips=output.mips;
+        std::uint64_t nativeBytes=0;
         while(const auto* mipField=native.Next())
         {
             if(mipField->IsTerminator()){terminated=true;break;}
@@ -105,6 +109,7 @@ namespace sparkplug::reconstruction
                 if(!stream.ReadData(&nativeFlag,1)||!stream.ReadData(&width,4)||!stream.ReadData(&height,4)
                     ||!stream.ReadData(&flags,4)||!stream.ReadData(&field1C,1))return native.Fail("Truncated native mip prefix");
                 payload-=14;prefix=true;
+                if(flags&&byteCount>DefaultBytes)return native.Fail("Invalid bounded compressed mip section");
                 if(!nativeFlag||!width||!height||width>65535||height>65535||flags>3
                     ||(flags&&((width&(width-1))||(height&(height-1)))))
                     return native.Fail("Native BGRA or power-of-two compressed mip data with confirmed flags is required");
@@ -114,10 +119,15 @@ namespace sparkplug::reconstruction
             if(!stream.ReadData(&wireWidth,4)||!stream.ReadData(&wireStride,4)||!stream.ReadData(&wireRows,4))return native.Fail("Truncated native mip row header");
             auto w=width,h=height;for(std::size_t i=0;i<mips.size();++i){w=std::max(1u,w>>1);h=std::max(1u,h>>1);}
             spDXTexture::MipForAnalysis mip;
-            if(!spDXTexture::DescribeMipForAnalysis(w,h,flags?flags-1:3u,mip)||wireWidth!=w||wireStride!=mip.rowBytes||wireRows!=mip.rows
+            const bool largeBgra=allowLargeBgraInspection&&flags==0;
+            if(!spDXTexture::DescribeMipForAnalysis(w,h,flags?flags-1:3u,mip,largeBgra)||wireWidth!=w||wireStride!=mip.rowBytes||wireRows!=mip.rows
                 ||std::uint64_t(wireStride)*wireRows!=payload-12)return native.Fail("Native mip layout/extent differs from confirmed packed surface");
             if(context.pcTexturePitchForAnalysis)mip.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),mip.rowBytes);
-            if(mip.physicalPitch<mip.rowBytes||std::uint64_t(mip.physicalPitch)*mip.rows>16u*1024u*1024u)return native.Fail("Invalid declared native mip surface pitch");
+            const auto mipBytes=std::uint64_t(mip.physicalPitch)*mip.rows;
+            if(mip.physicalPitch<mip.rowBytes||mipBytes>(largeBgra?BgraBytes:DefaultBytes))
+                return native.Fail("Invalid declared native mip surface pitch");
+            nativeBytes+=mipBytes;
+            if(largeBgra&&nativeBytes>BgraBytes)return native.Fail("Native BGRA mip data exceeds the host inspection budget");
             mip.packedBytes.resize(static_cast<std::size_t>(wireStride)*wireRows);
             if(!stream.ReadData(mip.packedBytes.data(),static_cast<std::uint32_t>(mip.packedBytes.size())))return native.Fail("Truncated native mip row bytes");
             output.pixelOffsets.push_back(mipField->dataStreamPosition+(mipField->fieldID==0?26:12));
@@ -161,7 +171,11 @@ namespace sparkplug::reconstruction
         spStream& stream,std::uint32_t byteCount,spBaseObject& object,std::string* error) const
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
-        if(error)error->clear();SectionCursor guard(context,stream,byteCount,false,error);
+        using namespace sparkplug::host::pc_texture_storage;
+        const bool allowLargeBgraInspection=context.textureReadInspectionForAnalysis||
+            context.maximumToolStructuralSectionBytesForAnalysis>DefaultBytes;
+        const auto maximumSection=allowLargeBgraInspection?BgraSectionBytes:DefaultBytes;
+        if(error)error->clear();SectionCursor guard(context,stream,byteCount,false,error,maximumSection);
         auto* texture=dynamic_cast<spDXTexture*>(&object);
         if(!texture||!object.IsExactly(spDXTexture::ClassID))return guard.Fail("DX native data requires actual runtime DXTexture target");
         auto* const inspection=context.textureReadInspectionForAnalysis;
@@ -170,7 +184,7 @@ namespace sparkplug::reconstruction
         bool handled=false;std::uint32_t remaining=0;
         if(!ReadSourceWrapperForAnalysis(context,stream,byteCount,object,remaining,handled,error))return false;
         if(handled)return remaining==0?true:guard.Fail("Trailing bytes after embedded DX source");
-        SectionCursor local(context,stream,remaining,true,error);auto platform=context.manager.GetPlatformMaskForAnalysis();bool initialized=false;
+        SectionCursor local(context,stream,remaining,true,error,maximumSection);auto platform=context.manager.GetPlatformMaskForAnalysis();bool initialized=false;
         while(const auto* field=local.Next())
         {
             const auto observed=inspection?inspection->BeginFieldForAnalysis(stream,*field,
@@ -214,7 +228,7 @@ namespace sparkplug::reconstruction
                 finish(spTextureReadInspectionForAnalysis::Outcome::Skipped);continue;
             }
             NativeReadForAnalysis input;
-            if(!ReadNativeSectionForAnalysis(context,stream,field->payloadSize,input,error))return false;
+            if(!ReadNativeSectionForAnalysis(context,stream,field->payloadSize,input,error,allowLargeBgraInspection))return false;
             // Capture only the stored records before generation mutates this
             // vector. The input pixel buffers remain owned by the normal reader.
             if(inspection&&observed!=spTextureReadInspectionForAnalysis::NoField)
@@ -234,21 +248,22 @@ namespace sparkplug::reconstruction
             }
             const auto width=input.width,height=input.height,flags=input.flags;const auto field1C=input.field1C;
             auto& mips=input.mips;
+            const bool largeBgra=allowLargeBgraInspection&&flags==0;
             while(mips.size()<spDXTexture::FullMipCountForAnalysis(width,height))
             {
                 spDXTexture::MipForAnalysis generated;
                 const auto& previous=mips.back();
                 const bool powerOfTwo=!(previous.width&(previous.width-1))&&!(previous.height&(previous.height-1));
                 const bool created=flags?sparkplug::evidence::pc::texture_mips::GenerateNextCompressed(previous,flags,generated)
-                    :powerOfTwo?sparkplug::evidence::pc::texture_mips::GenerateNext(previous,generated)
+                    :powerOfTwo?sparkplug::evidence::pc::texture_mips::GenerateNext(previous,generated,largeBgra)
                     :sparkplug::evidence::pc::texture_mips::ResampleRaw(previous,0,
-                        std::max(1u,previous.width/2),std::max(1u,previous.height/2),false,generated);
+                        std::max(1u,previous.width/2),std::max(1u,previous.height/2),false,generated,largeBgra);
                 if(!created)return local.Fail("Cannot generate bounded native mip");
                 if(context.pcTexturePitchForAnalysis)generated.physicalPitch=context.pcTexturePitchForAnalysis(context.pcTexturePitchContext,static_cast<std::uint32_t>(mips.size()),generated.rowBytes);
                 if(generated.physicalPitch<generated.rowBytes||std::uint64_t(generated.physicalPitch)*generated.rows>16u*1024u*1024u)return local.Fail("Invalid declared generated mip surface pitch");
                 mips.push_back(std::move(generated));
             }
-            if(!texture->InitializeNativeMipShadowForAnalysis(width,height,flags,field1C,std::move(mips)))
+            if(!texture->InitializeNativeMipShadowForAnalysis(width,height,flags,field1C,std::move(mips),largeBgra))
                 return local.Fail("Invalid complete native mip chain");
             initialized=true;
             finish(spTextureReadInspectionForAnalysis::Outcome::Native);

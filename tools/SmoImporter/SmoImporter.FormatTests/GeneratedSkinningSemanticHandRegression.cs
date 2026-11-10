@@ -236,11 +236,13 @@ internal static class GeneratedSkinningSemanticHandRegression
         {
             CoarseWeights weights = ReadCoarseWeights(
                 skin, vertex, region, fingerJoints, allowProximal: false);
-            if (weights.ActiveCount is < 1 or > 2)
+            if (weights.ActiveCount is < 1 or > 3 ||
+                weights.Anchor < 0.35f - WeightEpsilon ||
+                weights.Proxy > 0.65f + WeightEpsilon)
             {
                 throw new InvalidOperationException(
-                    $"{fixture.Region} core vertex {vertex} is not a bounded " +
-                    "two-joint Hand/finger-chain profile.");
+                    $"{fixture.Region} core vertex {vertex} exceeded the " +
+                    "Hand/finger motion envelope.");
             }
             AssertAdjacentChainInfluences(
                 skin, vertex, region.AnchorSkeletonJointIndex, parents);
@@ -414,22 +416,20 @@ internal static class GeneratedSkinningSemanticHandRegression
     {
         int[] joints = ActiveInfluences(skin, vertex)
             .Select(value => value.Joint)
+            .Where(joint => joint != anchor)
             .ToArray();
-        if (joints.Length < 2)
-            return;
-        if (joints.Length != 2 ||
-            parents[joints[0]] != joints[1] && parents[joints[1]] != joints[0])
+        if (joints.Any(joint => !IsDescendantOf(joint, anchor, parents)))
+        {
+            throw new InvalidOperationException(
+                $"Hand core vertex {vertex} escaped its Hand subtree.");
+        }
+        if (joints.Length > 2 || (joints.Length == 2 &&
+            parents[joints[0]] != joints[1] && parents[joints[1]] != joints[0]))
         {
             throw new InvalidOperationException(
                 $"Hand core vertex {vertex} blends non-adjacent or different " +
                 $"finger lanes: {string.Join(", ", joints.Select(joint =>
                     skin.Skeleton.JointNames[joint]))}.");
-        }
-        if (!IsDescendantOf(joints[0], anchor, parents) ||
-            !IsDescendantOf(joints[1], anchor, parents))
-        {
-            throw new InvalidOperationException(
-                $"Hand core vertex {vertex} escaped its Hand subtree.");
         }
     }
 

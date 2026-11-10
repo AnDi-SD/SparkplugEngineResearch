@@ -83,6 +83,8 @@ public sealed record ImportedMaterial(
     ImportedMaterialAlphaMode AlphaMode = ImportedMaterialAlphaMode.Opaque,
     float AlphaCutoff = 0.5f)
 {
+    public string? PreviewTextureUri { get; init; }
+
     public bool UsesTextureAlpha => AlphaMode is
         ImportedMaterialAlphaMode.Mask or ImportedMaterialAlphaMode.Blend;
 }
@@ -99,6 +101,8 @@ public sealed record ImportedScene(
     /// source asset. Preparation paths must preserve and surface these messages.
     /// </summary>
     public IReadOnlyList<string> ImportWarnings { get; init; } = [];
+    /// <summary>Absolute paths of the material libraries read for an OBJ, in load order.</summary>
+    public IReadOnlyList<string> ObjMaterialLibraryPaths { get; init; } = [];
     public bool HasSkinning => Meshes.Any(mesh => mesh.Skinning is not null);
 }
 

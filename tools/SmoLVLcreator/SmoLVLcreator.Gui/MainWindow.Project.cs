@@ -12,6 +12,7 @@ public partial class MainWindow
 {
     private SmoProject? _project;
     private SmoProjectSession? _projectSession;
+    private bool _projectDeletionInProgress;
     private string? _projectPath;
     private ProjectPlacementClipboard? _projectPlacementClipboard;
 
@@ -724,15 +725,7 @@ public partial class MainWindow
             SetBusy(true, "Пересборка preview проекта…");
             SmoLevelWorkspace workspace = await Task.Run(() =>
                 BuildProjectPreviewWorkspace(_project!));
-            AttachWorkspace(
-                workspace,
-                savePath: null,
-                preserveEditorState: true);
-            RestoreProjectCollisionLinks();
-            if (selectObjectIds is not null)
-                SelectProjectObjects(selectObjectIds);
-            ApplyProjectUiState();
-            UpdateDocumentCaption();
+            AttachProjectPreview(workspace, selectObjectIds);
             SetBusy(false, status);
         }
         catch (Exception exception)
@@ -740,6 +733,23 @@ public partial class MainWindow
             SetBusy(false, "Не удалось обновить preview проекта");
             ShowProjectError("Ошибка preview проекта", exception);
         }
+    }
+
+    private void AttachProjectPreview(
+        SmoLevelWorkspace workspace,
+        IReadOnlyCollection<uint>? selectObjectIds = null,
+        SmoLevelDocument? preparedDocument = null)
+    {
+        AttachWorkspace(
+            workspace,
+            savePath: null,
+            preserveEditorState: true,
+            preparedDocument: preparedDocument);
+        RestoreProjectCollisionLinks();
+        if (selectObjectIds is not null)
+            SelectProjectObjects(selectObjectIds);
+        ApplyProjectUiState();
+        UpdateDocumentCaption();
     }
 
     private static SmoLevelWorkspace BuildProjectPreviewWorkspace(
@@ -1178,20 +1188,19 @@ public partial class MainWindow
     {
         try
         {
-            bool changed = _projectSession!.Execute(label, project =>
-            {
-                foreach (ProjectTransformTarget target in targets.Where(item =>
-                             item.Kind == SmoLevelEntityKind.Visual))
-                    project.SetPlacementTransform(target.ObjectId, target.WorldTransform);
-                SmoProjectCollisionTransformEdit[] collisions = targets
-                    .Where(item => item.Kind == SmoLevelEntityKind.Collision)
-                    .Select(item => new SmoProjectCollisionTransformEdit(
-                        item.ObjectId,
-                        item.OriginalWorldTransform,
-                        item.WorldTransform))
-                    .ToArray();
-                project.SetCollisionTransforms(collisions);
-            });
+            KeyValuePair<uint, Matrix4x4>[] placements = targets
+                .Where(item => item.Kind == SmoLevelEntityKind.Visual)
+                .Select(item => KeyValuePair.Create(item.ObjectId, item.WorldTransform))
+                .ToArray();
+            SmoProjectCollisionTransformEdit[] collisions = targets
+                .Where(item => item.Kind == SmoLevelEntityKind.Collision)
+                .Select(item => new SmoProjectCollisionTransformEdit(
+                    item.ObjectId,
+                    item.OriginalWorldTransform,
+                    item.WorldTransform))
+                .ToArray();
+            bool changed = _projectSession!.ExecutePlacementTransforms(
+                label, placements, collisions);
             if (!changed)
                 return;
             await RefreshProjectPreviewAsync(
@@ -1225,6 +1234,8 @@ public partial class MainWindow
 
     private async Task DeleteProjectSelectionAsync()
     {
+        if (_isBusy || _projectSession is not SmoProjectSession session)
+            return;
         if (!TryCaptureProjectTransforms(
                 _selectedEntities,
                 out ProjectTransformTarget[] targets,
@@ -1251,19 +1262,45 @@ public partial class MainWindow
             : $"Удалить размещения ({targets.Length})";
         try
         {
-            bool changed = _projectSession!.Execute(label, project =>
-                project.RemoveSceneBranches(
-                    targets.Select(item => item.ObjectId).ToArray()));
-            if (!changed)
+            _projectDeletionInProgress = true;
+            SetBusy(true, "Подготовка удаления и preview проекта…");
+            uint[] objectIds = targets.Select(item => item.ObjectId).ToArray();
+            SmoLevelDocument? preview = await Task.Run(() =>
+                PrepareProjectDeletion(session, label, objectIds));
+            if (preview is null)
+            {
+                SetBusy(false, "Проект не изменился");
                 return;
+            }
             _selectedEntities.Clear();
-            await RefreshProjectPreviewAsync(
+            AttachProjectPreview(preview.Workspace, preparedDocument: preview);
+            SetBusy(false,
                 $"Удалено размещений: {targets.Length:N0} · общие ресурсы сохранены");
         }
         catch (Exception exception)
         {
+            SetBusy(false, "Не удалось удалить объекты из проекта");
             ShowProjectError("Ошибка удаления из проекта", exception);
         }
+        finally
+        {
+            _projectDeletionInProgress = false;
+        }
+    }
+
+    private static SmoLevelDocument? PrepareProjectDeletion(
+        SmoProjectSession session,
+        string label,
+        IReadOnlyCollection<uint> objectIds)
+    {
+        SmoLevelDocument? preview = null;
+        bool changed = session.Execute(label, project =>
+        {
+            project.RemoveSceneBranches(objectIds);
+            // A bad preview must roll back the deletion before it enters history.
+            preview = new SmoLevelDocument(BuildProjectPreviewWorkspace(project));
+        });
+        return changed ? preview : null;
     }
 
     private void RestoreOrdinaryMenuHeaders()
@@ -1290,7 +1327,7 @@ public partial class MainWindow
         object? sender,
         System.ComponentModel.CancelEventArgs e)
     {
-        if (!ConfirmDiscardProjectChanges())
+        if (_projectDeletionInProgress || !ConfirmDiscardProjectChanges())
             e.Cancel = true;
     }
 

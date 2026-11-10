@@ -100,7 +100,8 @@ internal sealed partial class NativeTemplateProbe
     {
         _projectileManagerFixture = config.TemplateProjectileManagerFixture;
         Require(new[] { config.TemplateBodyInputFixture, config.TemplateOrdinaryAttackFixture, config.TemplateNetworkInputFixture }.Count(x => x) <= 1 &&
-            (!(config.TemplateBodyInputFixture || config.TemplateOrdinaryAttackFixture || config.TemplateNetworkInputFixture) || _projectileManagerFixture),
+            (!(config.TemplateBodyInputFixture || config.TemplateOrdinaryAttackFixture || config.TemplateNetworkInputFixture) ||
+                _projectileManagerFixture || ProbeMain.IsClosedStory3Host(config)),
             "Retained body input and ordinary Battle attacks require distinct projectile-manager fixtures.");
         if (!_projectileManagerFixture) return;
         _projectileRetainedAlfea = config.TemplateBodyInputFixture || config.TemplateNetworkInputFixture && !config.TemplateNetworkOrdinaryAttackFixture;

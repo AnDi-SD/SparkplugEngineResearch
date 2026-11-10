@@ -17,7 +17,7 @@ public static class ImportedTextureFileReader
                 "above the safe encoded-texture limit.");
         }
         byte[] data = File.ReadAllBytes(fullPath);
-        ImageInfo info = Image.Identify(data) ?? throw new InvalidDataException(
+        ImageInfo info = Image.Identify(data) ?? throw new UnknownImageFormatException(
             $"Texture {fullPath} has an unsupported or invalid image payload.");
         ImportedModelResourceLimits.AddTexturePixels(
             0, info.Width, info.Height, $"Texture '{Path.GetFileName(fullPath)}'");

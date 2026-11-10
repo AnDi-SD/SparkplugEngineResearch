@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <WinxCoopTargetFramework Condition="'$(WinxCoopTargetFramework)' == ''">net8.0</WinxCoopTargetFramework>
+    <WinxCoopPlatform Condition="'$(WinxCoopPlatform)' == ''">x64</WinxCoopPlatform>
+    <BaseIntermediateOutputPath>obj/$(MSBuildProjectName)/$(WinxCoopTargetFramework)/$(WinxCoopPlatform)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/$(MSBuildProjectName)/$(WinxCoopPlatform)/</BaseOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <TargetFramework>$(WinxCoopTargetFramework)</TargetFramework>
+    <AssemblyName>WinxCoop.SessionRuntime</AssemblyName>
+    <PlatformTarget>$(WinxCoopPlatform)</PlatformTarget>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NuGetAudit>false</NuGetAudit>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <CheckEolTargetFramework Condition="'$(WinxCoopTargetFramework)' == 'net6.0'">false</CheckEolTargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/SessionRuntime/*.cs" />
+    <Compile Include="src/RuntimeProbe/RuntimeFramework.cs" />
+    <Compile Include="src/Compatibility/Net6FrameworkShims.cs" />
+    <InternalsVisibleTo Include="WinxCoop.E6Coordinator" />
+    <InternalsVisibleTo Include="WinxCoop.SessionHost" />
+    <InternalsVisibleTo Include="WinxCoop.SessionRuntimeChecks" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

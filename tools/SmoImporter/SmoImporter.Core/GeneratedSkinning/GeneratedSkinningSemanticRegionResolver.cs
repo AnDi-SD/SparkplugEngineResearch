@@ -2112,7 +2112,7 @@ public static partial class GeneratedSkinningPreparer
         {
             influences = assignment.CoreMotionInfluences.ToArray();
             float total = influences.Sum(value => value.Weight);
-            if (influences.Length is < 1 or > 2 ||
+            if (influences.Length is < 1 or > 3 ||
                 influences.Select(value => value.Joint).Distinct().Count() !=
                 influences.Length ||
                 influences.Any(value =>

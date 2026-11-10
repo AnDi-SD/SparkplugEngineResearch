@@ -304,12 +304,119 @@ namespace
         Check(!q.host.Receive(fake)&&q.host.State()==Phase::Closed,"unoffered revision ACK failsclosed");
         Check(!q.host.ObserveActor(Availability::Ready,2),"closed session cannotbe reused");
     }
+    void QualifyInitialNativeApply(Pair& pair)
+    {
+        Check(pair.host.OfferSnapshot(ExtendedState(1)),"initial complete state is offered before suspension");
+        Flush(pair.host,pair.guest);
+        Check(pair.guest.TakeReceivedSnapshot().has_value()&&pair.guest.ObserveApplied(1,1),
+            "suspension fixture first takes and actually acknowledges a native delivery");
+        Flush(pair.host,pair.guest);
+        Check(pair.host.AppliedSnapshotCount()==1&&pair.guest.AppliedSnapshotCount()==1,
+            "both owners observe the initial explicit native apply");
+    }
+    void LocalWaitingDrainsAlreadyCommittedSnapshot()
+    {
+        Pair pair;QualifyInitialNativeApply(pair);
+        Check(pair.host.OfferSnapshot(ExtendedState(2)),"multipart old-epoch state begins before local Waiting");
+        Check(Transfer(pair.host,pair.guest),"first old fragment enters an incomplete assembly");
+        Check(!pair.guest.TakeReceivedSnapshot(),"partial old assembly cannot be delivered");
+
+        using winxcoop::networking::SessionCore;
+        using winxcoop::networking::SessionConfig;
+        using winxcoop::networking::SessionRole;
+        using winxcoop::networking::SessionPhase;
+        SessionConfig hc;hc.role=SessionRole::Host;hc.local={0x7F000001,42000};
+        SessionConfig gc;gc.role=SessionRole::Guest;gc.local={0x7F000001,42001};gc.server=hc.local;
+        SessionCore wireHost(hc),wireGuest(gc);
+        Check(wireHost.HostStart(0xE606,1000)&&wireHost.Attach(1000)&&wireGuest.Attach(1000),
+            "retained frame fixture uses the real common carrier handshake");
+        auto wireTransfer=[](SessionCore& source,SessionCore& target)
+        { while(auto frame=source.TakeOutbound())for(auto byte:*frame)
+            Check(target.Receive(&byte,1,1000)==1,"real carrier consumes its ordered partial stream"); };
+        for(unsigned i=0;i<8;++i){wireTransfer(wireHost,wireGuest);wireTransfer(wireGuest,wireHost);}
+        Check(wireHost.Phase()==SessionPhase::Running&&wireGuest.Phase()==SessionPhase::Running,
+            "common carrier is running before the in-flight snapshot fragment");
+        const auto next=pair.host.PeekOutbound();Check(next&&next->kind==Kind::Snapshot&&next->offset>0,
+            "the retained frame contains a later fragment of the old snapshot");
+        const auto payload=Encode(*next);Check(payload.has_value(),"old complete envelope encodes before transport admission");
+        Check(wireHost.SendApplicationMessage(ApplicationClass,static_cast<unsigned>(next->kind),
+            payload->data(),static_cast<std::uint16_t>(payload->size()),1000)&&pair.host.CommitOutbound(),
+            "World commit follows acceptance of the complete immutable carrier frame");
+        const auto frame=wireHost.TakeOutbound();Check(frame&&frame->size()>2,"accepted immutable frame remains transport-owned");
+        const auto cut=frame->size()/2;
+        Check(wireGuest.Receive(frame->data(),cut,1000)==cut&&!wireGuest.TakeMessage()&&wireGuest.PendingBytes()==cut,
+            "half a real packet is retained without producing a World message");
+        std::vector<Message> inFlight;
+        while(const auto fragment=pair.host.PeekOutbound())
+        { inFlight.push_back(CarrierRoundTrip(*fragment));Check(pair.host.CommitOutbound(),"remaining complete frames were accepted before Host sees Waiting"); }
+        Check(!inFlight.empty()&&pair.host.SentRevision()==2,"whole old multipart flight is committed before readiness control arrives");
+
+        Check(pair.guest.ObserveActor(Availability::Waiting,2),"Guest local Waiting clears incomplete old native delivery");
+        const auto sourceState=pair.guest.PeekOutbound();Check(sourceState&&sourceState->kind==Kind::SourceState&&sourceState->flags==0,
+            "local Waiting queues only its readiness control, never an apply ACK");
+        Check(wireGuest.PendingBytes()==cut,"local World suspension preserves the transport's partial frame");
+        Check(wireGuest.Receive(frame->data()+cut,frame->size()-cut,1000)==frame->size()-cut,
+            "remaining immutable packet bytes complete after local Waiting");
+        const auto complete=wireGuest.TakeMessage();const auto decoded=complete?Decode(*complete):std::nullopt;
+        Check(decoded&&pair.guest.Receive(*decoded),"current old-epoch frame drains after partial packet completion");
+        for(const auto& fragment:inFlight)Check(pair.guest.Receive(fragment),"all remaining valid old fragments drain before Host Pause");
+        Check(pair.guest.Receive(inFlight.back()),"repeated current-epoch in-flight fragment has no native effect while Waiting");
+        Check(!pair.guest.TakeReceivedSnapshot()&&pair.guest.ReceivedRevision()==0&&pair.guest.AppliedRevision()==0&&
+            pair.guest.AppliedSnapshotCount()==1&&pair.guest.Failure()==Terminal::None,
+            "draining performs no decode delivery revision progress or native apply ACK");
+        Check(Transfer(pair.guest,pair.host),"Host finally receives the ordered local suspension control");
+        const auto pause=pair.host.PeekOutbound();Check(pause&&pause->kind==Kind::Pause&&Transfer(pair.host,pair.guest),
+            "Host Pause follows the already committed old transport frames");
+        Check(pair.guest.ObserveActor(Availability::Ready,3),"same native owner explicitly becomes ready again");
+        Flush(pair.host,pair.guest);
+        Check(pair.host.Epoch()==2&&pair.guest.Epoch()==2&&!pair.host.AppliedRevision(),
+            "new readiness creates a fresh epoch without accepting an old native apply");
+        const auto full=pair.guest.TakeReceivedSnapshot();Check(full&&full->revision==2,
+            "fresh epoch resends the complete latest state rather than continuing discarded assembly");
+        Check(pair.guest.ObserveApplied(1,2)&&!pair.host.AppliedRevision(),"old-epoch ACK cannot qualify the fresh full delivery");
+        Check(pair.guest.ObserveApplied(2,2),"fresh full native apply is explicit");Flush(pair.host,pair.guest);
+        Check(pair.host.AppliedRevision()==2&&pair.host.AppliedSnapshotCount()==2&&
+            pair.guest.AppliedSnapshotCount()==2&&pair.host.State()==Phase::Ready&&pair.guest.State()==Phase::Ready,
+            "normal full native ACK resumes only the fresh epoch");
+    }
+    void WaitingDrainKeepsAuthorityAndSequenceFences()
+    {
+        for(unsigned bad=0;bad<7;++bad)
+        {
+            Pair pair;QualifyInitialNativeApply(pair);
+            Check(pair.guest.ObserveActor(Availability::Waiting,2),"prepare epoch1 pause");Flush(pair.host,pair.guest);
+            Check(pair.guest.ObserveActor(Availability::Ready,3),"prepare epoch2 readiness");Flush(pair.host,pair.guest);
+            Check(pair.guest.TakeReceivedSnapshot().has_value()&&pair.guest.ObserveApplied(2,1),"epoch2 has its own native apply");
+            Flush(pair.host,pair.guest);
+            Check(pair.guest.ObserveActor(Availability::Waiting,4),"second local suspension is explicit");
+            const auto bytes=EncodeSnapshot(State(2));Check(bytes.has_value(),"negative envelope starts with valid absolute bytes");
+            Message m;m.kind=Kind::Snapshot;m.sessionId=11;m.scenarioId=22;m.connectionToken=33;
+            m.levelEpoch=m.generation=1;m.syncEpoch=2;m.revision=2;m.totalBytes=static_cast<std::uint32_t>(bytes->size());
+            m.chunk.assign(bytes->begin(),bytes->begin()+MaximumChunkBytes);
+            if(bad==0)m.syncEpoch=1;
+            else if(bad==1)m.syncEpoch=3;
+            else if(bad==2)m.sessionId=99;
+            else if(bad==3)m.connectionToken=99;
+            else if(bad==4)m.kind=static_cast<Kind>(99);
+            else if(bad==5)m.chunk.pop_back();
+            else m.generation=2;
+            Check(!pair.guest.Receive(m)&&pair.guest.State()==Phase::Closed&&!pair.guest.TakeReceivedSnapshot()&&
+                pair.guest.AppliedSnapshotCount()==2,
+                "local Waiting never admits stale/future epoch, other identity/token/kind or malformed envelope");
+        }
+        Pair unqualified;Check(unqualified.host.OfferSnapshot(State(1)),"unqualified old flight exists");
+        const auto fragment=unqualified.host.PeekOutbound();Check(fragment.has_value(),"unqualified flight has a valid envelope");
+        Check(unqualified.guest.ObserveActor(Availability::Waiting,2)&&!unqualified.guest.Receive(*fragment)&&
+            unqualified.guest.Failure()==Terminal::Sequence&&unqualified.guest.AppliedSnapshotCount()==0,
+            "Waiting before the first actual native apply never enables old-flight drain tolerance");
+    }
 }
 int main()
 {
     try {ScalarRoundTripAndValidation();EntrySeedValidation();StarPresentationValidation();ExtendedSnapshotValidation();
         FragmentBoundaries();ExtendedSessionAndSeedIdentity();FreshSessionFullResynchronization();
         NativeAckAndAbsoluteCoalescing();FailClosedAndWaitingHello();
+        LocalWaitingDrainsAlreadyCommittedSnapshot();WaitingDrainKeepsAuthorityAndSequenceFences();
         std::cout<<"WorldState: schema2 entry/Star bounds, fragmentation, explicit ACK, full resync and identity fences PASS\n";return 0;}
     catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }

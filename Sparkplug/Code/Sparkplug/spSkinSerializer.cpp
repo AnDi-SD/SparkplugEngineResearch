@@ -1,4 +1,5 @@
 #include "spSkinSerializer.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 
 #include "spNode.h"
 #include "spSkin.h"
@@ -88,6 +89,8 @@ namespace sparkplug::reconstruction
     {
         if(error)error->clear();observation={};
         spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        if(size<=sparkplug::host::pc_texture_storage::ToolResourceGraphBytes)
+            context.maximumToolStructuralSectionBytesForAnalysis=size;
         return ReadSectionsForAnalysis(context,stream,size,partial,error,&observation);
     }
 
@@ -99,7 +102,7 @@ namespace sparkplug::reconstruction
         if(!stream.GetCurrentPosition(start)||!ReadModelFieldsForAnalysis(context,stream,size,*skin,false,error,observation?&observation->model:nullptr)
             ||!stream.GetCurrentPosition(position)||position<start||position-start>=size)
         {context.failed=true;if(error&&error->empty())*error="Missing Skin section";return false;}
-        evidence::pc::serialization::SectionCursor cursor(context,stream,size-(position-start),true,error);
+        evidence::pc::serialization::SectionCursor cursor(context,stream,size-(position-start),true,error,context.GetStructuralSectionLimitForAnalysis());
         while(const auto* header=cursor.Next())
         {
             if(header->IsTerminator())return true;

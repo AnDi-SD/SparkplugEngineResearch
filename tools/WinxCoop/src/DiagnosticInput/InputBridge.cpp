@@ -2,9 +2,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
-#include <mmsystem.h>
 #include "InputProtocol.h"
 #include "Networking/WindowsTcpTransport.h"
+#include "Networking/WindowsPumpWait.h"
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -139,74 +139,6 @@ namespace
         Mapping& operator=(const Mapping&) = delete;
         Shared& Get() noexcept { return *shared_; }
     };
-    class PumpWait final
-    {
-        HANDLE timer_ = nullptr;
-        bool period_ = false, highResolution_ = false;
-        std::uint32_t created_ = 0, closed_ = 0, periodBegins_ = 0, periodEnds_ = 0;
-        DWORD highResolutionError_ = 0, waitError_ = 0, closeError_ = 0;
-        MMRESULT beginResult_ = TIMERR_NOERROR, endResult_ = TIMERR_NOERROR;
-        std::uint64_t waits_ = 0, failures_ = 0;
-    public:
-        PumpWait()
-        {
-            // Unnamed, auto-reset, process-owned timer. Flag2 is the Windows
-            // 10/1803 high-resolution option; its absence is a measured fallback,
-            // never a claim that this diagnostic has been qualified on Win7.
-            timer_ = CreateWaitableTimerExW(nullptr, nullptr, 0x2, TIMER_MODIFY_STATE | SYNCHRONIZE);
-            if(timer_) { highResolution_ = true; ++created_; return; }
-            highResolutionError_ = GetLastError();
-            if(highResolutionError_ != ERROR_INVALID_PARAMETER && highResolutionError_ != ERROR_NOT_SUPPORTED &&
-                highResolutionError_ != ERROR_CALL_NOT_IMPLEMENTED && highResolutionError_ != ERROR_INVALID_FLAGS)
-                throw std::runtime_error("High-resolution pump timer creation failed for a non-compatibility reason");
-            beginResult_ = timeBeginPeriod(1);
-            if(beginResult_ != TIMERR_NOERROR) throw std::runtime_error("Scoped pump timer resolution request failed");
-            period_ = true; ++periodBegins_;
-            timer_ = CreateWaitableTimerExW(nullptr, nullptr, 0, TIMER_MODIFY_STATE | SYNCHRONIZE);
-            if(!timer_) { waitError_ = GetLastError(); Close(); throw std::runtime_error("Fallback pump waitable timer creation failed"); }
-            ++created_;
-        }
-        ~PumpWait() { Close(); }
-        PumpWait(const PumpWait&) = delete;
-        PumpWait& operator=(const PumpWait&) = delete;
-        bool WaitOneMillisecond() noexcept
-        {
-            ++waits_; LARGE_INTEGER due{}; due.QuadPart = -10000; // Relative100ns units, one-shot1ms.
-            if(!timer_) { waitError_ = ERROR_INVALID_HANDLE; ++failures_; return false; }
-            if(!SetWaitableTimer(timer_, &due, 0, nullptr, nullptr, FALSE))
-            { waitError_ = GetLastError(); ++failures_; return false; }
-            const auto result = WaitForSingleObject(timer_, 100);
-            if(result != WAIT_OBJECT_0)
-            { waitError_ = result == WAIT_FAILED ? GetLastError() : result; ++failures_; return false; }
-            return true;
-        }
-        void Close() noexcept
-        {
-            if(timer_)
-            {
-                (void)CancelWaitableTimer(timer_);
-                if(CloseHandle(timer_)) ++closed_; else closeError_ = GetLastError();
-                timer_ = nullptr;
-            }
-            if(period_)
-            {
-                endResult_ = timeEndPeriod(1); if(endResult_ == TIMERR_NOERROR) ++periodEnds_;
-                period_ = false;
-            }
-        }
-        bool Balanced() const noexcept { return created_ == closed_ && periodBegins_ == periodEnds_ && closeError_ == 0; }
-        std::string Json() const
-        {
-            return "{\"mode\":\"" + std::string(highResolution_ ? "high-resolution-waitable-timer" : "scoped-period-normal-timer") +
-                "\",\"timerHandlesCreated\":" + std::to_string(created_) + ",\"timerHandlesClosed\":" + std::to_string(closed_) +
-                ",\"periodBeginCount\":" + std::to_string(periodBegins_) + ",\"periodEndCount\":" + std::to_string(periodEnds_) +
-                ",\"highResolutionCreateError\":" + std::to_string(highResolutionError_) + ",\"periodBeginResult\":" + std::to_string(beginResult_) +
-                ",\"periodEndResult\":" + std::to_string(endResult_) + ",\"waitCalls\":" + std::to_string(waits_) +
-                ",\"waitFailures\":" + std::to_string(failures_) + ",\"waitError\":" + std::to_string(waitError_) +
-                ",\"closeError\":" + std::to_string(closeError_) + ",\"balanced\":" + (Balanced() ? "true" : "false") +
-                ",\"win7RuntimeQualified\":false}";
-        }
-    };
     class Bridge final
     {
         struct Grant { std::uint32_t id, maximum; std::uint64_t deadline; };
@@ -215,7 +147,8 @@ namespace
         Shared& ipc_;
         const Header header_;
         WindowsTcpTransport tcp_;
-        PumpWait wait_;
+        WindowsPumpWait wait_;
+        WindowsPumpCadence cadence_;
         HANDLE actorProcess_ = nullptr;
         ActorStatus actor_{};
         BridgeStatus status_{};
@@ -228,8 +161,6 @@ namespace
         std::uint64_t connection_ = 0, token_ = 0, lastNow_ = 0, lastGrantAt_ = 0, lastIngress_ = 0, lastOrdinal_ = 0, lastCapture_ = 0;
         std::uint64_t receivedTotal_ = 0, sentTotal_ = 0, appliedTotal_ = 0, staleEpochs_ = 0, rearms_ = 0, ringWaits_ = 0;
         Terminal terminal_ = Terminal::None;
-        std::uint64_t qpcFrequency_ = 0, lastPumpQpc_ = 0, pumpIntervals_ = 0, pumpTickSum_ = 0, pumpTickMaximum_ = 0;
-        std::array<std::uint64_t, 5> pumpHistogram_{}; // <=2ms, <=5ms, <=10ms, <=20ms, >20ms.
         static constexpr std::size_t TraceCapacity = 1024 * 1024;
         std::string trace_;
         std::uint64_t traceLines_ = 0, droppedDiagnosticLines_ = 0;
@@ -326,20 +257,7 @@ namespace
         bool Running() const noexcept
         { return tcp_.Session() && tcp_.Session()->Phase() == SessionPhase::Running; }
         void ObservePumpInterval()
-        {
-            LARGE_INTEGER value{};
-            if(!QueryPerformanceCounter(&value) || value.QuadPart < 0) { Stop(Terminal::Clock); return; }
-            const auto tick = static_cast<std::uint64_t>(value.QuadPart);
-            if(lastPumpQpc_)
-            {
-                if(tick < lastPumpQpc_) { Stop(Terminal::Clock); return; }
-                const auto delta = tick - lastPumpQpc_; ++pumpIntervals_; pumpTickSum_ += delta;
-                pumpTickMaximum_ = (std::max)(pumpTickMaximum_, delta);
-                const auto micros = static_cast<std::uint64_t>(static_cast<long double>(delta) * 1000000 / qpcFrequency_);
-                ++pumpHistogram_[micros <= 2000 ? 0 : micros <= 5000 ? 1 : micros <= 10000 ? 2 : micros <= 20000 ? 3 : 4];
-            }
-            lastPumpQpc_ = tick;
-        }
+        { if (!cadence_.Observe()) Stop(Terminal::Clock); }
         void Pause()
         {
             advertisedAck_ = 0;
@@ -554,9 +472,6 @@ namespace
         explicit Bridge(Options options) : o_(std::move(options)), mapping_(o_), ipc_(mapping_.Get()), header_(ipc_.header), tcp_(o_.tcp)
         {
             trace_.reserve(TraceCapacity); // Allocate the bounded diagnostic store before publishing Ready.
-            LARGE_INTEGER frequency{};
-            if(!QueryPerformanceFrequency(&frequency) || frequency.QuadPart <= 0) throw std::runtime_error("Pump QPC frequency unavailable");
-            qpcFrequency_ = static_cast<std::uint64_t>(frequency.QuadPart);
             status_.state = static_cast<unsigned>(BridgeState::Waiting); status_.neutralRequired = 1; if(Host()) token_ = o_.nonce;
         }
         ~Bridge() { if(actorProcess_) CloseHandle(actorProcess_); }
@@ -608,12 +523,7 @@ namespace
                 ",\"rearms\":" + std::to_string(rearms_) + ",\"ringWaits\":" + std::to_string(ringWaits_) +
                 ",\"grantsIssued\":" + std::to_string(nextGrant_) + ",\"lastAdvertisedAck\":" + std::to_string(advertisedAck_) +
                 ",\"socketsOpened\":" + std::to_string(metrics.socketsOpened) + ",\"socketsClosed\":" + std::to_string(metrics.socketsClosed) +
-                ",\"pumpIntervals\":" + std::to_string(pumpIntervals_) + ",\"pumpAverageMicroseconds\":" +
-                std::to_string(pumpIntervals_ ? static_cast<double>(static_cast<long double>(pumpTickSum_) * 1000000 / qpcFrequency_ / pumpIntervals_) : 0.0) +
-                ",\"pumpMaximumMicroseconds\":" + std::to_string(static_cast<std::uint64_t>(static_cast<long double>(pumpTickMaximum_) * 1000000 / qpcFrequency_)) +
-                ",\"pumpHistogramLe2Le5Le10Le20Gt20Ms\":[" + std::to_string(pumpHistogram_[0]) + "," + std::to_string(pumpHistogram_[1]) + "," +
-                std::to_string(pumpHistogram_[2]) + "," + std::to_string(pumpHistogram_[3]) + "," + std::to_string(pumpHistogram_[4]) +
-                "],\"pumpWait\":" + wait_.Json() +
+                "," + cadence_.JsonFields() + ",\"pumpWait\":" + wait_.Json() +
                 ",\"wireCodec\":\"existing-SessionCore-Packet-MemoryStream\",\"attackQualified\":false,\"twoGameQualified\":false}\n";
             FreshFile(o_.report, report); std::cout << report;
             return wait_.Balanced() && (terminal_ == Terminal::RunLimit || terminal_ == Terminal::ActorClosed) ? 0 : 2;

@@ -80,8 +80,27 @@ the build; later invocations publish from clean intermediates again.
 
 Use `-PackageSource <local-directory>` for an offline build from an available
 NuGet package cache, for example the `.nuget/packages` directory in the user's
-profile. Shared compilation is disabled and MSBuild concurrency is
-limited to two workers. Package generation never publishes to GitHub.
+profile. Shared compilation is disabled. `-BuildWorkers <1..4>` controls MSBuild
+concurrency and defaults to two workers; select one when available memory is low.
+The same value is passed to the native FBX bridge build.
+NuGet security auditing uses its normal project and SDK settings and is not
+disabled by the package builder. Package generation never publishes to GitHub.
+
+The native Sparkplug bridge is built by the referenced project unless
+`-SkipSparkplugNativeBuild` is supplied. Use that switch only after a successful
+canonical native build from the current sources, with the matching configuration.
+It allows the native build and managed publish to use separate resource budgets:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/SparkplugViewer.Native/Build-Native.ps1 `
+    -Configuration Release -BuildWorkers 1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File release/Build-Releases.ps1 `
+    -Product SmoImporter -BuildWorkers 1 -SkipSparkplugNativeBuild `
+    -OutputDirectory artifacts/release/candidates-smoimporter-0.7.0
+```
+
+This switch does not skip the separate FBX bridge build or its pinned reuse
+validation described below.
 
 Manifest schema 2 accepts both source-path strings and `{ "source": "...",
 "name": "README.md" }` document entries. The mapped form installs a concise
@@ -109,6 +128,17 @@ Check an unpacked candidate against the current source manifest:
 python release/audit_packages.py artifacts/release/candidates-20260908-1900 `
     --report local-data/results/package-audit.json
 ```
+
+By default the audit requires every product declared in the manifest. For a
+candidate built with selected products, pass `--product ID` once for each product:
+
+```powershell
+python release/audit_packages.py artifacts/release/candidates-smoimporter-0.7.0 `
+    --product SmoImporter --archives --report local-data/results/importer-package-audit.json
+```
+
+Checks inside each selected package remain the same. A SmoImporter-only audit
+does not qualify its copy in the SmoViewer suite.
 
 The audit checks exact file inventories, document copies and local links,
 Windows file versions, native runtime hashes and suite/standalone payload

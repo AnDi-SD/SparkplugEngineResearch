@@ -1,7 +1,8 @@
 param(
     [string]$FbxSdkRoot = 'C:\Program Files\Autodesk\FBX\FBX SDK\2020.3.10',
     [ValidateSet('Debug', 'Release')]
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    [ValidateRange(1, 4)][int]$BuildWorkers = 2
 )
 
 $ErrorActionPreference = 'Stop'
@@ -46,7 +47,7 @@ if ($installation) {
 }
 & $cmake @configureArguments
 if ($LASTEXITCODE -ne 0) { throw "CMake configure failed with exit code $LASTEXITCODE." }
-& $cmake --build $buildRoot --config $Configuration --parallel 2
+& $cmake --build $buildRoot --config $Configuration --parallel $BuildWorkers
 if ($LASTEXITCODE -ne 0) { throw "Native FBX bridge build failed with exit code $LASTEXITCODE." }
 
 $output = Join-Path $buildRoot "bin\$Configuration\SmoFbxBridge.exe"

@@ -1,0 +1,36 @@
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj/Win7ActorProbe/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/Win7ActorProbe/</BaseOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework Condition="'$(WinxCoopBundleDesktopRuntime)' != 'true'">net6.0</TargetFramework>
+    <TargetFramework Condition="'$(WinxCoopBundleDesktopRuntime)' == 'true'">net6.0-windows</TargetFramework>
+    <AssemblyName>WinxCoop.ActorProbe</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <RuntimeFrameworkVersion>6.0.36</RuntimeFrameworkVersion>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Explicit legacy compatibility build; the normal Actor stays NET8/x64. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <!-- Use the Host's Desktop runtime set only in the combined bundle.
+       Actor remains a console application; normal NET6 builds stay unchanged. -->
+  <ItemGroup Condition="'$(WinxCoopBundleDesktopRuntime)' == 'true'">
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src/RuntimeProbe/**/*.cs" />
+    <Compile Include="src/Compatibility/Net6FrameworkShims.cs" />
+    <ProjectReference Include="WinxCoop.CompatCore.csproj" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

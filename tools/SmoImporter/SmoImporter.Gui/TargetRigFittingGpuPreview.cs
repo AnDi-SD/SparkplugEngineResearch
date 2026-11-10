@@ -12,6 +12,7 @@ using SmoImporter.Core;
 using SmoViewer.Core;
 using SmoViewer.Rendering.Wpf;
 using SmoViewer.Scene;
+using SmoViewer.Sparkplug;
 using Vector3 = System.Numerics.Vector3;
 
 namespace SmoImporter.Gui;
@@ -74,6 +75,38 @@ public sealed class TargetRigFittingGpuPreview : IDisposable
         {
             throw new InvalidOperationException("Shared GPU target fitting preview failed: " + error.Message, error);
         }
+    }
+
+    /// <summary>Reads positions from the shared shader after the shared native runtime sampled a SAN.</summary>
+    public IReadOnlyDictionary<SmoExportMeshKey, Vector3[]> ReadAnimatedPositions(
+        SmoDocument document, SmoExportScene scene, SparkplugSceneRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(scene);
+        ArgumentNullException.ThrowIfNull(runtime);
+        VerifyAccess();
+        if (scene.Meshes.All(mesh => mesh.SkinObjectIndex is null))
+            return new Dictionary<SmoExportMeshKey, Vector3[]>();
+        return WithContext(() =>
+        {
+            EnsureScene(document, scene);
+            var positions = new Dictionary<SmoExportMeshKey, Vector3[]>();
+            foreach (SmoExportMesh mesh in scene.Meshes)
+            {
+                if (mesh.SkinObjectIndex is not int skin)
+                    continue;
+                Matrix4x4[] palette = runtime.Palette(skin)
+                    .Select(SmoExportCoordinateSystem.ToExportMatrix).ToArray();
+                _renderer.SetBoneMatrices(_keys[mesh], palette);
+                Vector3[] values = _renderer.ReadPositionsForPicking(_keys[mesh], mesh.ObjectIndex);
+                if (values.Length != mesh.Positions.Length || values.Any(value =>
+                    !float.IsFinite(value.X) || !float.IsFinite(value.Y) || !float.IsFinite(value.Z)))
+                    throw new InvalidOperationException("The animated preview returned incomplete or non-finite positions.");
+                positions.Add(mesh.VariantKey, values);
+                ++ReadbackCount;
+            }
+            return positions;
+        });
     }
 
     private void EnsureScene(SmoDocument document, SmoExportScene scene)

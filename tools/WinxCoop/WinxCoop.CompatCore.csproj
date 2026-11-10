@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj/Win7CompatCore/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/Win7CompatCore/</BaseOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>SmoNativeValidator.Core</AssemblyName>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Explicit legacy compatibility build; the normal Core stays NET8. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../SmoViewer/SmoNativeValidator.Core/**/*.cs"
+             Exclude="../SmoViewer/SmoNativeValidator.Core/bin/**;../SmoViewer/SmoNativeValidator.Core/obj/**" />
+    <Compile Include="src/Compatibility/Net6RequiredAttributes.cs" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

@@ -22,6 +22,7 @@ internal sealed class ClientScenePolicy
     private readonly DebuggerHost _host;
     private readonly PEReader _image;
     private readonly Action<object> _log;
+    private readonly bool _controlledStory3;
     private readonly Dictionary<uint, NativeType> _types = [];
     private readonly Dictionary<uint, NativeType> _quarantine = [];
     private readonly List<object> _clockWitness = [], _controllerWitness = [];
@@ -30,12 +31,17 @@ internal sealed class ClientScenePolicy
     private uint _frameCallback30, _frameCallback34;
     private bool _captured;
 
-    internal ClientScenePolicy(DebuggerHost host, PEReader image, Action<object> log)
-    { _host = host; _image = image; _log = log; }
+    internal ClientScenePolicy(DebuggerHost host, PEReader image, Action<object> log,
+        ProbeConfiguration? controlledStory3 = null)
+    {
+        Require(controlledStory3 is null || ProbeMain.IsClosedStory3Guest(controlledStory3),
+            "Additional Story predicates require the explicit closed Guest progression cohort.");
+        _host = host; _image = image; _log = log; _controlledStory3 = controlledStory3 is not null;
+    }
 
     internal object Summary => new
     {
-        captured = _captured, supportedLevel = 28, entityCount = _entityCount,
+        captured = _captured, supportedLevel = _controlledStory3 ? 3 : 28, entityCount = _entityCount,
         controllerCount = _controllerCount, clockCount = _clockCount,
         keyboard = Hex(_keyboard),
         quarantine = _quarantine.Values.OrderBy(t => t.Table).Select(Describe).ToArray(),
@@ -76,7 +82,16 @@ internal sealed class ClientScenePolicy
                 continue;
             Require(type.FlagsCallback is 0x4DA930 or 0x4F4040 or 0x5B7A00,
                 $"Unqualified client flags callback {type.Name}/{Hex(type.FlagsCallback)}.");
-            Require(KnownEntityPredicates.Contains(type.Predicate),
+            // Gem virtual11 is the original read-only proximity/flags predicate
+            // (collectible-proximity.md). Its gameplay Notify stays quarantined.
+            bool storyGem = _controlledStory3 && type.Table == 0x6FCF20 && type.ClassId == 0x27F540A1 &&
+                type.Name == "wxCollectibleGem" && type.Predicate == 0x544C90 &&
+                type.Notify == 0x544C10 && type.FlagsCallback == 0x4DA930;
+            if (storyGem)
+                Require(BitConverter.ToUInt32(Image(type.Table + 0x2C, 4)) == type.Predicate &&
+                    Read(type.Predicate, 16).SequenceEqual(Image(type.Predicate, 16)),
+                    "Story Gem predicate differs from its pinned original virtual slot/code.");
+            Require(KnownEntityPredicates.Contains(type.Predicate) || storyGem,
                 $"Unqualified client predicate {type.Name}/{Hex(type.Predicate)}.");
         }
         foreach ((uint slot, string name) in HostOnlyServices)
@@ -209,10 +224,18 @@ internal sealed class ClientScenePolicy
                 "Client animation controller list is not finite/reciprocal.");
             NativeType type = Type(item);
             uint update = U(type.Table + 0x1C);
+            // Original material-controller time accumulation; the render path
+            // selects texture frames, with no game/entity update callback.
+            bool storyTextureController = _controlledStory3 && type.Table == 0x6DE6A4 &&
+                type.ClassId == 0x16FB0E47 && type.Name == "spAnimTexController" && update == 0x423190;
+            if (storyTextureController)
+                Require(BitConverter.ToUInt32(Image(type.Table + 0x1C, 4)) == update &&
+                    Read(update, 12).SequenceEqual(Image(update, 12)),
+                    "Story texture time controller differs from the original material-only update.");
             Require((type.Table == 0x6DE8CC && type.ClassId == 0x1C0053D6 &&
                 type.Name == "spUVController" && update == 0x423190) ||
                 (type.Table == 0x703F80 && type.ClassId == 0x19D676E6 &&
-                type.Name == "spActor" && update == 0x5A2380),
+                type.Name == "spActor" && update == 0x5A2380) || storyTextureController,
                 $"Unqualified physical client controller {type.Name}/{Hex(type.Table)}/{Hex(update)}.");
             _controllerWitness.Add(new { address = Hex(item), type = Describe(type),
                 update = Hex(update), enabled = Read(item + 0x10, 1)[0] });

@@ -43,7 +43,7 @@ repository's default MPL-2.0 license and is not linked into SparkplugEngine.
 
 The unmodified decoder headers and GPL license are external build inputs.
 The pinned source, file hashes and local adapter repairs are recorded in
-[`ps2_vu_decoder_source.json`](tools/ResearchWorkbench/ps2_vu_decoder_source.json).
+[`ps2_vu_decoder_source.json`](https://github.com/AnDi-SD/SparkplugEngineResearch/blob/main/tools/ResearchWorkbench/ps2_vu_decoder_source.json).
 Source: [PCSX2](https://github.com/PCSX2/pcsx2/tree/265d123dc33ee0ddf9c31e5bdf6c03f9d64e9d34/pcsx2/DebugTools).
 
 ## No warranty

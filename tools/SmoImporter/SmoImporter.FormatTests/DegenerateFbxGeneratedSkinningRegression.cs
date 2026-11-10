@@ -56,8 +56,12 @@ internal static class DegenerateFbxGeneratedSkinningRegression
             ElbowBendDegrees: 0,
             LegSpreadDegrees: -8,
             KneeBendDegrees: 0,
-            TorsoPitchDegrees: 8.4f,
-            NeckForward: -36.6f);
+            // This regression isolates topology normalization and repeatable
+            // authored limb poses. The former extreme neck/torso fixture can
+            // put every donor vertex below the hard Head plane; that is a
+            // valid protection rejection, covered by the Head-plane contracts.
+            TorsoPitchDegrees: 0,
+            NeckForward: 0);
         TargetRigFittingPoseSnapshot authoredPose =
             TargetRigBodyPoseMapper.CreateSnapshot(rig, authoredParameters);
         GeneratedSkinningPreparationResult authored = GeneratedSkinningPreparer.Prepare(
@@ -98,7 +102,7 @@ internal static class DegenerateFbxGeneratedSkinningRegression
             $"degenerate={expected.DegenerateTriangleCount}; " +
             $"nonSurfaceVertices={expected.NonSurfaceVertexCount}; " +
             $"components={authored.Analysis.DonorComponentCount}; " +
-            $"alignmentScale={alignment.Scale:G9}.");
+            $"alignmentScale={alignment.Scale:G9}; torso/neck neutral, authored limbs.");
     }
 
     private static void RunSyntheticNonSurfaceContract(

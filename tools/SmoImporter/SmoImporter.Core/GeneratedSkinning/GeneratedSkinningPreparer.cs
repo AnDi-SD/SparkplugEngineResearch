@@ -2880,6 +2880,12 @@ public static partial class GeneratedSkinningPreparer
             {
                 if (!smoothByMesh[meshIndex][vertexIndex])
                     continue;
+                // Generation resolves the protective Head plane before the
+                // shoulder walls. Keep that ownership order in validation;
+                // ValidateHeadPlaneWeights separately enforces exact Head=1.
+                if (TryGetRigidHeadPlaneJoint(
+                        positionsByMesh[meshIndex][vertexIndex], preparation, out _))
+                    continue;
                 ShoulderPlaneClassification classification =
                     ClassifyShoulderPlanes(
                         positionsByMesh[meshIndex][vertexIndex],

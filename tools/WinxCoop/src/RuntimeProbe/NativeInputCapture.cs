@@ -17,6 +17,14 @@ internal sealed class NativeInputCapture
     private readonly bool _ordinaryAttack;
     private readonly bool _traceEdges;
     private readonly bool _limitContinuousChanges;
+    private readonly bool _progressionRetirementAllowed;
+    private readonly bool _progressionNeutralCaptureWhileUnfocused;
+    private bool _unfocusedNeutralActive;
+    private ulong _unfocusedNeutralModeEntries, _unfocusedNeutralReadyReturns, _unfocusedNeutralCapturedRecords,
+        _unfocusedNeutralPublishedRecords, _unfocusedNeutralRawDiscarded;
+    private uint _lastUnfocusedNeutralInputDebugStop;
+    private ulong _progressionPreparedOperation, _progressionPreparedRawDiscarded;
+    private bool _progressionPreparedPeerClosed;
     private uint _lastSampleButtons;
     private bool _lastSampleMoving;
     private ulong _continuousChangesDeferred;
@@ -42,7 +50,8 @@ internal sealed class NativeInputCapture
     private int _maximumRawPending, _maximumFlushedPerReturn;
     private long _oldestRawAgeMilliseconds, _maximumRawAgeMilliseconds, _maximumEligibleReadyGapMilliseconds;
     private readonly record struct RawCapture(uint InputEpoch, ulong ConnectionToken, ulong CaptureOrdinal,
-        ulong CaptureMilliseconds, float Magnitude, float RelativeDirection, float ReferenceHeading, uint Buttons, bool Edge);
+        ulong CaptureMilliseconds, float Magnitude, float RelativeDirection, float ReferenceHeading, uint Buttons, bool Edge,
+        bool UnfocusedHeldNeutral, ulong NativeInputReturnOrdinal, uint NativeInputDebugStop);
     private byte[]? _lastFingerprint;
     private string _failure = "";
 
@@ -51,7 +60,8 @@ internal sealed class NativeInputCapture
 
     internal NativeInputCapture(DebuggerHost host, PEReader image, DiagnosticInputClient client, Action<object> log,
         bool ordinaryAttack = false, int heartbeatMilliseconds = 50, bool traceEdges = false,
-        bool limitContinuousChanges = false)
+        bool limitContinuousChanges = false, uint? qualifiedSceneLevel = null,
+        ProgressionControlPermit? progressionControl = null, bool progressionNeutralCaptureWhileUnfocused = false)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(client); ArgumentNullException.ThrowIfNull(log);
@@ -59,7 +69,17 @@ internal sealed class NativeInputCapture
         _heartbeatMilliseconds = heartbeatMilliseconds; _ordinaryAttack = ordinaryAttack;
         _traceEdges = traceEdges;
         _limitContinuousChanges = limitContinuousChanges;
-        _level = ordinaryAttack ? 47u : 28u; _playingTable = ordinaryAttack ? 0x7105C8u : 0x710874u;
+        uint legacyLevel = ordinaryAttack ? 47u : 28u;
+        _level = qualifiedSceneLevel ?? legacyLevel;
+        Require(_level == legacyLevel || _level == 3 && !ordinaryAttack &&
+            progressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 },
+            "Native input scene selection requires its legacy cohort or explicit controlled Gardenia03 progression permit.");
+        _progressionRetirementAllowed = !ordinaryAttack && (_level is 28 or 3) &&
+            progressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 };
+        _progressionNeutralCaptureWhileUnfocused = progressionNeutralCaptureWhileUnfocused;
+        Require(!progressionNeutralCaptureWhileUnfocused || _level == 28 && !ordinaryAttack && _progressionRetirementAllowed,
+            "Unfocused neutral capture requires controlled Alfea Guest input without ordinary attack capture.");
+        _playingTable = ordinaryAttack ? 0x7105C8u : 0x710874u;
         if (!host.IsAtDebugStop || host.ProcessHandle == IntPtr.Zero || host.ProcessPid == 0 || host.ImageBase != 0x400000 ||
             host.MainThreadId == 0 || client.Identity.Role != DiagnosticInputRole.Guest || client.TerminalOrRetired)
             throw new InvalidOperationException("Native capture requires its owned pinned game stop and live Guest IPC endpoint.");
@@ -100,6 +120,15 @@ internal sealed class NativeInputCapture
         maximumEligibleReadyReturnGapMilliseconds = _maximumEligibleReadyGapMilliseconds,
         cadenceMeasuresActualReadyInputReturns = true, heartbeatMeasuresRawCapture = true,
         rawCaptureClockUsesOnlyLocalAge = true, wireSequenceAndGrantAssignedOnlyAtPublication = true,
+        progressionPreparedOperation = _progressionPreparedOperation,
+        progressionPreparedPeerClosed = _progressionPreparedPeerClosed,
+        progressionPreparedRawDiscarded = _progressionPreparedRawDiscarded,
+        progressionNeutralCaptureWhileUnfocused = _progressionNeutralCaptureWhileUnfocused,
+        unfocusedNeutralActive = _unfocusedNeutralActive, unfocusedNeutralModeEntries = _unfocusedNeutralModeEntries,
+        unfocusedNeutralReadyReturns = _unfocusedNeutralReadyReturns, unfocusedNeutralCapturedRecords = _unfocusedNeutralCapturedRecords,
+        unfocusedNeutralPublishedRecords = _unfocusedNeutralPublishedRecords, unfocusedNeutralRawDiscarded = _unfocusedNeutralRawDiscarded,
+        lastUnfocusedNeutralInputDebugStop = _lastUnfocusedNeutralInputDebugStop,
+        unfocusedNeutralIsBackgroundGameplay = false, unfocusedNeutralHostNativeApplyStillRequired = true,
         nativeCommandWrites = 0, syntheticKeys = 0, nativeTicksAdded = 0,
         captureClockIsDiagnosticOnly = true, hostIngressAssignedByCapture = false,
         ipc = _client.Summary, twoGuestGamesOrLANQualified = false
@@ -108,11 +137,12 @@ internal sealed class NativeInputCapture
     // Caller composes this with the existing static UserInput-return observer.
     // Raw records are immutable observations under an already observed epoch.
     // Only publication binds a wire sequence and current immutable credit grant.
-    internal void ObserveAtInputReturn(uint tid, uint address, ref Win32Native.X86Context context, bool mediaVerified)
+    internal void ObserveAtInputReturn(uint tid, uint address, ref Win32Native.X86Context context, bool mediaVerified,
+        bool progressionUnfocusedNeutralPermit = false)
     {
         EnsureOwner(); if (_retired || _failed) return;
         if (_client.TerminalOrRetired)
-        { Fail("Guest IPC became terminal before the next actual InputRET.", DiagnosticInputTerminal.Transport); return; }
+        { if (!TryObservePreparedPeerClosed()) Fail("Guest IPC became terminal before the next actual InputRET.", DiagnosticInputTerminal.Transport); return; }
         EnsureStop();
         Require(tid == _host.MainThreadId && address == InputReturn && context.Eip == InputReturn && Read(InputReturn, 1)[0] == 0xC3,
             "Native capture was not called at the original main-thread UserInput RET.");
@@ -120,13 +150,15 @@ internal sealed class NativeInputCapture
         try
         {
             if (!mediaVerified) { Disarm("media-not-ready"); _client.SetAvailability(DiagnosticInputAvailability.Waiting); return; }
-            if (!TryReadyTuple(out StockTuple? tuple, out DiagnosticInputAvailability unavailable))
+            if (!TryReadyTuple(progressionUnfocusedNeutralPermit, out StockTuple? tuple,
+                out DiagnosticInputAvailability unavailable, out bool unfocusedHeldNeutral))
             { Disarm("native-" + unavailable); _client.SetAvailability(unavailable); return; }
             _everQualified = true;
             bool changedOwner = _tuple is not null && !SameIdentity(_tuple, tuple!);
             if (changedOwner)
             { Fail("Native source tuple changed; a fresh mapping and generation are required.", DiagnosticInputTerminal.Identity); return; }
             _tuple = tuple;
+            ObserveUnfocusedNeutralMode(unfocusedHeldNeutral);
             if (!_client.SetAvailability(DiagnosticInputAvailability.Ready))
             { Fail("Guest IPC could not publish actual native readiness.", DiagnosticInputTerminal.Transport); return; }
             DiagnosticBridgeStatus previousGrant = _observedGrant; bool hadGrant = _haveObservedGrant;
@@ -161,6 +193,8 @@ internal sealed class NativeInputCapture
             uint buttons = jump | ((uint)ordinary << 1);
             Require(float.IsFinite(magnitude) && magnitude is >= 0 and <= 1 && Angle(relative) && Angle(reference) && jump <= 1 && ordinary <= 1,
                 "Native movement/jump command lies outside the explicitly admitted scalar domain.");
+            Require(!unfocusedHeldNeutral || magnitude == 0 && jump == 0 && command[0x20] == 0,
+                "Unfocused held source was not neutral at this actual native InputRET readback.");
             Require(_captureOrdinal != ulong.MaxValue, "Native capture ordinal would wrap."); ++_captureOrdinal;
             long now = DiagnosticInputClient.LocalNowMilliseconds();
             if (_lastEligibleReadyMilliseconds >= 0)
@@ -200,7 +234,9 @@ internal sealed class NativeInputCapture
                 ObserveRawAge(now);
                 if (_raw.Count == RawCapacity)
                 { Fail("Bounded raw native capture FIFO reached64 records; no observation was overwritten.", DiagnosticInputTerminal.Overflow); return; }
-                _raw.Enqueue(new(_epoch, current.ConnectionToken, _captureOrdinal, checked((ulong)now), magnitude, relative, reference, buttons, edge));
+                _raw.Enqueue(new(_epoch, current.ConnectionToken, _captureOrdinal, checked((ulong)now), magnitude, relative, reference, buttons, edge,
+                    unfocusedHeldNeutral, _nativeReturns, _host.DebugStopSequence));
+                if (unfocusedHeldNeutral) ++_unfocusedNeutralCapturedRecords;
                 ++_rawQueued; _maximumRawPending = Math.Max(_maximumRawPending, _raw.Count);
                 _lastRawCaptureMilliseconds = now; _lastFingerprint = fingerprint;
                 _lastSampleButtons = buttons; _lastSampleMoving = magnitude > 0;
@@ -216,6 +252,32 @@ internal sealed class NativeInputCapture
         }
     }
 
+    // Root separately proves its fresh primary neutral InputRET before calling
+    // this at WorldRET. This latch keeps the source mapping live until actual
+    // native unload; it never turns a close into an input apply acknowledgment.
+    internal void PrepareProgressionRetirementAtWorld(uint tid, in Win32Native.X86Context context, ulong operation)
+    {
+        EnsureStop();
+        Require(_progressionRetirementAllowed && !_retired && !_failed && _everQualified &&
+            _tuple is not null && operation > 0 && tid == _host.MainThreadId &&
+            context.Eip == NativeCallDispatcher.WorldReturn,
+            "Prepared input retirement requires its controlled, previously native-qualified Guest source at WorldRET.");
+        if (_progressionPreparedOperation != 0)
+        {
+            Require(operation == _progressionPreparedOperation, "Prepared input retirement changed operation.");
+            if (_client.TerminalOrRetired)
+                Require(TryObservePreparedPeerClosed(), "Prepared input source ended with an unexpected terminal reason.");
+            return;
+        }
+        Require(!_client.TerminalOrRetired && _client.TryReadBridgeStatus(out _),
+            "Guest source became terminal before its explicit prepared-retirement phase.");
+        _progressionPreparedOperation = operation;
+        _log(new { @event = "progression-guest-input-retirement-prepared", operation,
+            levelEpoch = _client.Identity.LevelEpoch, generation = _client.Identity.BodyGeneration,
+            actualReadyInputReturnPreviouslyObserved = true, mappingRetired = false,
+            nativeApplyAcknowledgmentAdded = false });
+    }
+
     // Only actual ready InputRET callbacks call this bounded, nonblocking drain.
     // NoCredit leaves RAW observations queued; Published records are never edited.
     private bool FlushRaw(DiagnosticBridgeStatus previousGrant, DiagnosticBridgeStatus observedCurrent,
@@ -226,6 +288,8 @@ internal sealed class NativeInputCapture
         {
             long now = DiagnosticInputClient.LocalNowMilliseconds(); ObserveRawAge(now);
             RawCapture raw = _raw.Peek();
+            Require(!raw.UnfocusedHeldNeutral || raw.Magnitude == 0 && raw.Buttons == 0,
+                "Unfocused held raw source record lost its exact neutral invariant.");
             if (!_client.TryReadBridgeStatus(out DiagnosticBridgeStatus admissionGrant))
             { Fail("Bridge control became unreadable while flushing captured raw input.", DiagnosticInputTerminal.Transport); return false; }
             if (admissionGrant.State != DiagnosticBridgeState.Ready || admissionGrant.InputEpoch != _epoch ||
@@ -258,6 +322,7 @@ internal sealed class NativeInputCapture
             _raw.Dequeue(); --budget; _sourceSequence = record.SourceSequence;
             _maximumFlushedPerReturn = Math.Max(_maximumFlushedPerReturn, MaximumFlushPerReturn - budget);
             _lastPublicationMilliseconds = now; ++_published;
+            if (raw.UnfocusedHeldNeutral) ++_unfocusedNeutralPublishedRecords;
             if (raw.Edge) ++_edges; else ++_heartbeats;
             ObserveRawAge(now);
             // Keep a bounded prefix after each actual command edge. A native
@@ -271,7 +336,9 @@ internal sealed class NativeInputCapture
                 jumpHeld = (raw.Buttons & 1) != 0, ordinaryAttackHeld = (raw.Buttons & 2) != 0,
                 grant = record.Grant, leaseDeadlineHostClock = record.LeaseDeadlineMilliseconds,
                 rawCaptureWasPreserved = true, boundAtActualInputReturn = _nativeReturns, rawPending = _raw.Count,
-                realInputReturn = true, edge = raw.Edge, hostIngressMilliseconds = 0 }, raw.Edge, transitionTrace);
+                realInputReturn = true, edge = raw.Edge, hostIngressMilliseconds = 0,
+                unfocusedHeldNeutral = raw.UnfocusedHeldNeutral,
+                capturedAtNativeInputReturn = raw.NativeInputReturnOrdinal, capturedAtNativeDebugStop = raw.NativeInputDebugStop }, raw.Edge, transitionTrace);
         }
         return true;
     }
@@ -299,6 +366,7 @@ internal sealed class NativeInputCapture
     }
     private void Disarm(string reason)
     {
+        if (_unfocusedNeutralActive) ObserveUnfocusedNeutralMode(false);
         DiscardRaw(reason);
         if (_epoch != 0) { _blockedEpoch = _epoch; _waitingForNewEpoch = true; }
         _armed = false; _haveObservedGrant = false; _lastFingerprint = null;
@@ -331,12 +399,31 @@ internal sealed class NativeInputCapture
     private void Fail(string reason, DiagnosticInputTerminal terminal)
     {
         if (_failed || _retired) return;
+        if (TryObservePreparedPeerClosed()) return;
         int rawPendingBeforeFence = _raw.Count; long oldestRawAgeBeforeFence = _oldestRawAgeMilliseconds;
         _failure = reason; _failed = true; Disarm("terminal"); _client.Fence(terminal);
         _log(new { @event = "native-input-capture", name = "fenced", bypassesSampleLimit = true,
             data = new { reason, terminal = terminal.ToString(), rawPendingBeforeFence, oldestRawAgeBeforeFence,
                 rawQueued = _rawQueued, published = _published, rawDiscarded = _rawDiscarded,
                 nativeCommandWrites = 0, nextHostWorldMustNeutralize = true } });
+    }
+    private bool TryObservePreparedPeerClosed()
+    {
+        if (_progressionPreparedOperation == 0 ||
+            _client.Terminal is not (DiagnosticInputTerminal.ActorClosed or DiagnosticInputTerminal.PeerClosed)) return false;
+        ulong before = _rawDiscarded;
+        Disarm("prepared-peer-closed");
+        _progressionPreparedRawDiscarded = checked(_progressionPreparedRawDiscarded + _rawDiscarded - before);
+        if (!_progressionPreparedPeerClosed)
+        {
+            _progressionPreparedPeerClosed = true;
+            _log(new { @event = "progression-guest-prepared-input-peer-closed", operation = _progressionPreparedOperation,
+                terminal = _client.Terminal.ToString(), levelEpoch = _client.Identity.LevelEpoch,
+                generation = _client.Identity.BodyGeneration, mappingRetired = false,
+                rawDiscardedWithoutAcknowledgment = _progressionPreparedRawDiscarded,
+                nativeCommandWrites = 0, nativeApplyAcknowledgmentAdded = false });
+        }
+        return true;
     }
     private void Sample(string name, object data, bool edge = false, bool transitionTrace = false)
     {
@@ -347,9 +434,45 @@ internal sealed class NativeInputCapture
         _log(new { @event = "native-input-capture", name, data });
     }
 
-    private bool TryReadyTuple(out StockTuple? result, out DiagnosticInputAvailability unavailable)
+    private void ObserveUnfocusedNeutralMode(bool active)
     {
-        result = null; unavailable = DiagnosticInputAvailability.Paused;
+        if (active)
+        {
+            if (!_unfocusedNeutralActive)
+            {
+                // Fence only unpublished observations when entering an explicit
+                // Hold0 source scope. Never rewrite/ACK an old published record.
+                ObserveRawAge(DiagnosticInputClient.LocalNowMilliseconds());
+                ulong before = _rawDiscarded; DiscardRaw("unfocused-held-neutral-entry");
+                _unfocusedNeutralRawDiscarded = checked(_unfocusedNeutralRawDiscarded + _rawDiscarded - before);
+                _armed = false; _lastFingerprint = null; _lastRawCaptureMilliseconds = -1;
+                _unfocusedNeutralActive = true; ++_unfocusedNeutralModeEntries;
+                _log(new { @event = "progression-unfocused-neutral-input-entered", actualInputReturn = $"0x{InputReturn:X8}",
+                    actualInputReturnOrdinal = _nativeReturns, actualDebugStop = _host.DebugStopSequence,
+                    levelEpoch = _client.Identity.LevelEpoch, generation = _client.Identity.BodyGeneration,
+                    sameReturnFreshHoldZeroPermit = true, inputEnabledByteRemainsZero = true,
+                    actualCommandReadbackMagnitude = 0, actualCommandReadbackJump = 0, actualCommandReadbackOrdinary = 0,
+                    originalPlaying28UnpausedRequired = true, typedOwnerTupleVerified = true,
+                    unpublishedRawDiscardedWithoutAck = _rawDiscarded - before,
+                    sourceRecordSynthesized = false, nativeCommandWritesByCapture = 0, nativeApplyAcknowledgmentAdded = false });
+            }
+            ++_unfocusedNeutralReadyReturns; _lastUnfocusedNeutralInputDebugStop = _host.DebugStopSequence;
+        }
+        else if (_unfocusedNeutralActive)
+        {
+            _unfocusedNeutralActive = false;
+            _log(new { @event = "progression-unfocused-neutral-input-left", actualInputReturnOrdinal = _nativeReturns,
+                lastQualifiedInputDebugStop = _lastUnfocusedNeutralInputDebugStop,
+                levelEpoch = _client.Identity.LevelEpoch, generation = _client.Identity.BodyGeneration,
+                readyReturns = _unfocusedNeutralReadyReturns, capturedRecords = _unfocusedNeutralCapturedRecords,
+                publishedRecords = _unfocusedNeutralPublishedRecords, nativeCommandWritesByCapture = 0 });
+        }
+    }
+
+    private bool TryReadyTuple(bool progressionUnfocusedNeutralPermit, out StockTuple? result,
+        out DiagnosticInputAvailability unavailable, out bool unfocusedHeldNeutral)
+    {
+        result = null; unavailable = DiagnosticInputAvailability.Paused; unfocusedHeldNeutral = false;
         uint flow = Pointer(0x755294), level = U(flow + 0x1B0), pending = U(flow + 0x1B8), stack = U(flow + 0x1AC);
         if (level != _level) { unavailable = DiagnosticInputAvailability.Waiting; return false; }
         Require(stack <= 20, "Native source flow stack exceeds its admitted bound.");
@@ -359,7 +482,15 @@ internal sealed class NativeInputCapture
         Require(paused <= 1, "Native GameTimer pause byte is outside0/1."); if (paused != 0) return false;
         uint input = Pointer(0x7552A0); Table(input, 0x6F5508);
         uint command = Pointer(input + 0x18), device = Pointer(input + 0x1C); Table(command, 0x703090); Table(device, 0x7116CC);
-        if (U(device + 0x14) != 3 || Read(input + 0x20, 1)[0] == 0) return false;
+        if (U(device + 0x14) != 3) return false;
+        if (Read(input + 0x20, 1)[0] == 0)
+        {
+            if (!_progressionNeutralCaptureWhileUnfocused || !progressionUnfocusedNeutralPermit) return false;
+            byte[] held = Read(command, CommandBytes);
+            Require(BitConverter.ToSingle(held, 4) == 0 && held[0x1A] == 0 && held[0x20] == 0,
+                "Inactive progression source must contain actual same-RET neutral stock command readback.");
+            unfocusedHeldNeutral = true;
+        }
         uint profile = Pointer(0x765AD4); Table(profile, 0x6F5A44);
         uint instance = Pointer(profile + 0x2B4); Table(instance, 0x710F80);
         uint root = Pointer(instance + 0x24); Table(root, 0x6DC4F4); uint scene = Pointer(root + 0x3C); Table(scene, 0x6E7358);

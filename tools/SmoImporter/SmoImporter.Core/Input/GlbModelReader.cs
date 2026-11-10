@@ -34,6 +34,10 @@ public static class GlbModelReader
         if (file.Length < 20 || BinaryPrimitives.ReadUInt32LittleEndian(file) != 0x46546C67 ||
             BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(4)) != 2)
             throw new InvalidDataException("Only binary glTF 2.0 (.glb) is supported.");
+        if (BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(8)) != (uint)file.Length)
+            throw new InvalidDataException("GLB: размер в заголовке не совпадает с файлом; файл повреждён или обрезан.");
+        if (BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(16)) != 0x4E4F534A)
+            throw new InvalidDataException("GLB: первый блок должен содержать JSON; заголовок файла повреждён.");
         int jsonLength = checked((int)BinaryPrimitives.ReadUInt32LittleEndian(file.AsSpan(12)));
         if (jsonLength <= 0 ||
             jsonLength > ImportedModelResourceLimits.MaximumJsonBytes ||
@@ -98,6 +102,7 @@ public static class GlbModelReader
                 uint[] indices = primitive.TryGetProperty("indices", out JsonElement index)
                     ? ReadIndices(root, binary, index.GetInt32())
                     : Enumerable.Range(0, positions.Length).Select(value => (uint)value).ToArray();
+                ValidateMeshGeometry(baseName, positions, normals, uvs, secondaryUvs, colors, indices);
                 Matrix4x4 transform = meshTransforms[meshIndex];
                 ImportedSkinning? skinning = null;
                 bool hasJoints = attributes.TryGetProperty("JOINTS_0", out JsonElement joints);
@@ -159,6 +164,8 @@ public static class GlbModelReader
                                   "вершин получили безопасную резервную нормаль."));
                     }
                 }
+                if (positions.Any(position => !IsFinite(position)))
+                    throw new InvalidDataException($"GLB: меш «{baseName}» после преобразования содержит нечисловые координаты; исправьте transform модели.");
                 result.Add(new ImportedMesh(
                     primitiveIndex == 0 ? baseName : $"{baseName}_{primitiveIndex}",
                     positions, normals, uvs, indices, colors,
@@ -171,14 +178,35 @@ public static class GlbModelReader
                 primitiveIndex++;
             }
         }
+        if (result.Count == 0)
+            throw new InvalidDataException("GLB: модель не содержит треугольных мешей; проверьте экспорт исходной модели.");
         GlbTextureCatalog textureCatalog = ReadEmbeddedBaseColorTextures(root, binary);
-        return new ImportedScene(
+        IReadOnlyList<ImportedMaterial> materials = ReadMaterials(
+            root, textureCatalog.SceneTextureIndexByImage, out var unavailableReasons);
+        return ImportedTextureRecovery.Recover(new ImportedScene(
             result,
             textureCatalog.Textures,
-            ReadMaterials(root, textureCatalog.SceneTextureIndexByImage))
+            materials)
         {
             ImportWarnings = importWarnings.AsReadOnly()
-        };
+        }, "GLB", cancellationToken, unavailableReasons);
+    }
+
+    private static void ValidateMeshGeometry(
+        string name, Vector3[] positions, Vector3[] normals, Vector2[] uvs,
+        Vector2[] secondaryUvs, uint[] colors, uint[] indices)
+    {
+        if (positions.Length == 0 || positions.Any(position => !IsFinite(position)))
+            throw new InvalidDataException($"GLB: меш «{name}» содержит пустые или нечисловые координаты вершин; исправьте модель.");
+        if (indices.Length == 0 || indices.Length % 3 != 0 || indices.Any(index => index >= positions.Length))
+            throw new InvalidDataException($"GLB: меш «{name}» содержит некорректные индексы треугольников; исправьте модель.");
+        if ((normals.Length != 0 && normals.Length != positions.Length) ||
+            (uvs.Length != 0 && uvs.Length != positions.Length) ||
+            (secondaryUvs.Length != 0 && secondaryUvs.Length != positions.Length) ||
+            (colors.Length != 0 && colors.Length != positions.Length))
+            throw new InvalidDataException($"GLB: меш «{name}»: число normals/UV/colors не совпадает с числом вершин; исправьте модель.");
+        if (uvs.Concat(secondaryUvs).Any(uv => !float.IsFinite(uv.X) || !float.IsFinite(uv.Y)))
+            throw new InvalidDataException($"GLB: меш «{name}» содержит нечисловые UV; исправьте модель.");
     }
 
     private static void ValidateDocumentResourceLimits(
@@ -495,8 +523,11 @@ public static class GlbModelReader
 
     private static IReadOnlyList<ImportedMaterial> ReadMaterials(
         JsonElement root,
-        IReadOnlyDictionary<int, int> sceneTextureIndexByImage)
+        IReadOnlyDictionary<int, int> sceneTextureIndexByImage,
+        out IReadOnlyDictionary<int, string> unavailableReasons)
     {
+        var failures = new Dictionary<int, string>();
+        unavailableReasons = failures;
         if (!root.TryGetProperty("materials", out JsonElement materials))
             return [];
         bool hasTextures = root.TryGetProperty("textures", out JsonElement textures);
@@ -510,27 +541,33 @@ public static class GlbModelReader
                 ? materialName.GetString()!
                 : $"material_{materialIndex}";
             string? textureName = null;
+            string? textureUri = null;
             int sceneTextureIndex = -1;
-            if (hasTextures && hasImages &&
-                TryGetColorTextureIndex(material, out int texture))
+            if (TryGetColorTextureIndex(material, out int texture))
             {
-                if ((uint)texture < (uint)textures.GetArrayLength() &&
+                failures[materialIndex] = "ссылка на texture/image отсутствует или некорректна";
+                if (hasTextures && hasImages && (uint)texture < (uint)textures.GetArrayLength() &&
                     textures[texture].TryGetProperty("source", out JsonElement source))
                 {
-                    int image = source.GetInt32();
+                    int image = ReadOptionalTextureIndex(source);
                     if ((uint)image < (uint)images.GetArrayLength())
                     {
                         JsonElement imageElement = images[image];
-                        textureName = imageElement.TryGetProperty("uri", out JsonElement uri) &&
-                                      !string.IsNullOrWhiteSpace(uri.GetString())
-                            ? Path.GetFileName(uri.GetString())
+                        if (imageElement.TryGetProperty("uri", out JsonElement uri))
+                            textureUri = uri.GetString();
+                        textureName = !string.IsNullOrWhiteSpace(textureUri)
+                            ? Path.GetFileName(textureUri)
                             : imageElement.TryGetProperty("name", out JsonElement imageName) &&
                               !string.IsNullOrWhiteSpace(imageName.GetString())
                                 ? imageName.GetString()
                                 : null;
                         if (!sceneTextureIndexByImage.TryGetValue(
                                 image, out sceneTextureIndex))
+                        {
                             sceneTextureIndex = -1;
+                            failures[materialIndex] = "изображение не встроено в GLB или недоступно; назначьте текстуру вручную";
+                        }
+                        else failures.Remove(materialIndex);
                     }
                 }
             }
@@ -549,7 +586,10 @@ public static class GlbModelReader
                 textureName,
                 sceneTextureIndex,
                 alphaMode,
-                alphaCutoff);
+                alphaCutoff)
+            {
+                PreviewTextureUri = sceneTextureIndex < 0 ? textureUri : null
+            };
         }
         return result;
     }
@@ -604,6 +644,8 @@ public static class GlbModelReader
                     : name;
             }).ToArray();
             Matrix4x4[] matrices = ReadMatrix4(root, binary, inverseBind.GetInt32());
+            if (matrices.Any(matrix => !float.IsFinite(matrix.GetDeterminant())))
+                throw new InvalidDataException($"GLB: skin {skinIndex} содержит нечисловую или чрезмерно большую bind-матрицу; исправьте скелет модели.");
             if (matrices.Length != names.Length)
                 throw new InvalidDataException(
                     $"Skin {skinIndex} has {names.Length} joints but {matrices.Length} inverse bind matrices.");
@@ -853,13 +895,12 @@ public static class GlbModelReader
             if ((uint)texture >= (uint)textures.GetArrayLength() ||
                 !textures[texture].TryGetProperty("source", out JsonElement source))
                 continue;
-            int image = source.GetInt32();
+            int image = ReadOptionalTextureIndex(source);
             if ((uint)image < (uint)images.GetArrayLength() && !imageIndices.Contains(image))
                 imageIndices.Add(image);
         }
 
         var result = new List<ImportedTexture>(imageIndices.Count);
-        long decodedTexturePixels = 0;
         foreach (int imageIndex in imageIndices)
         {
             JsonElement image = images[imageIndex];
@@ -888,16 +929,9 @@ public static class GlbModelReader
             string mime = image.TryGetProperty("mimeType", out JsonElement mimeType)
                 ? mimeType.GetString() ?? "application/octet-stream" : "application/octet-stream";
             byte[] imageBytes = binary.Slice(offset, length).ToArray();
-            ImageInfo info = Image.Identify(imageBytes) ?? throw new InvalidDataException(
-                $"GLB image {imageIndex} has an unsupported or invalid image payload.");
-            decodedTexturePixels = ImportedModelResourceLimits.AddTexturePixels(
-                decodedTexturePixels,
-                info.Width,
-                info.Height,
-                $"GLB image {imageIndex} '{name}'");
             sceneTextureIndexByImage.Add(imageIndex, result.Count);
             result.Add(new ImportedTexture(
-                name, mime, info.Width, info.Height, imageBytes));
+                name, mime, 0, 0, imageBytes));
         }
         return new GlbTextureCatalog(
             result.AsReadOnly(), sceneTextureIndexByImage);
@@ -918,18 +952,22 @@ public static class GlbModelReader
             pbr.TryGetProperty("baseColorTexture", out JsonElement baseColor) &&
             baseColor.TryGetProperty("index", out JsonElement baseColorIndex))
         {
-            textureIndex = baseColorIndex.GetInt32();
+            textureIndex = ReadOptionalTextureIndex(baseColorIndex);
             return true;
         }
         if (material.TryGetProperty("emissiveTexture", out JsonElement emissive) &&
             emissive.TryGetProperty("index", out JsonElement emissiveIndex))
         {
-            textureIndex = emissiveIndex.GetInt32();
+            textureIndex = ReadOptionalTextureIndex(emissiveIndex);
             return true;
         }
         textureIndex = -1;
         return false;
     }
+
+    private static int ReadOptionalTextureIndex(JsonElement value) =>
+        value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out int index)
+            ? index : int.MinValue;
 
     private static Matrix4x4[] ResolveMeshTransforms(
         JsonElement root,

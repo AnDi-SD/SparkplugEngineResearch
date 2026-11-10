@@ -94,7 +94,7 @@ namespace sparkplug::reconstruction
         if(!source.GetCurrentPosition(start)||!ReadNodeFieldsForAnalysis(context,source,size,node,false,error)
             ||!source.GetCurrentPosition(position)||position<start||position-start>=size)
         {context.failed=true;if(error&&error->empty())*error="Missing RenderNode derived section";return false;}
-        evidence::pc::serialization::SectionCursor cursor(context,source,size-(position-start),requireExactEnd,error);
+        evidence::pc::serialization::SectionCursor cursor(context,source,size-(position-start),requireExactEnd,error,context.GetStructuralSectionLimitForAnalysis());
         while(const auto* header=cursor.Next())
         {
             if(header->IsTerminator())return true;

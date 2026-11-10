@@ -2,6 +2,7 @@
 // Original619219 wrap coefficient table and61C44F source-order accumulation.
 // Common upload uses both axes when either normalized dimension changes.
 #include "spTextureMipFilter.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 
 namespace sparkplug::evidence::pc::texture_mips
 {
@@ -55,12 +56,16 @@ namespace sparkplug::evidence::pc::texture_mips
         return static_cast<unsigned>(PositiveFloatTowardZero(double(scaled)+bias));
     }
     inline bool ResampleRaw(const Mip& source,std::uint32_t format,std::uint32_t width,std::uint32_t height,
-        bool dither,Mip& output)
+        bool dither,Mip& output,bool allowLargeBgraInspection=false)
     {
         if(format>4)return false;const unsigned pixelSize=format<=1?4:format==2?1:2;
+        using namespace sparkplug::host::pc_texture_storage;
+        // The extra budget applies only to the stored source for inspected
+        // native BGRA downsampling. Destination allocations keep the old cap.
+        const auto maximumSource=allowLargeBgraInspection&&format==0?BgraBytes:DefaultBytes;
         if(!source.width||!source.height||source.rowBytes!=source.width*pixelSize||source.rows!=source.height
             ||source.packedBytes.size()!=std::uint64_t(source.width)*source.height*pixelSize
-            ||std::uint64_t(source.width)*source.height*4>16u*1024u*1024u
+            ||std::uint64_t(source.width)*source.height*4>maximumSource
             ||std::uint64_t(width)*height*4>16u*1024u*1024u)return false;
         Mip destination;
         if(!reconstruction::spDXTexture::DescribeMipForAnalysis(width,height,format+3,destination))return false;

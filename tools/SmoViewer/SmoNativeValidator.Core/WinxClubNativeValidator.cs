@@ -355,9 +355,9 @@ public sealed class WinxClubNativeValidator
 
     private static void ValidateRequest(NativeValidationRequest request)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.ExecutablePath);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.AssetPath);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.LogicalGameAssetPath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(request.ExecutablePath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(request.AssetPath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(request.LogicalGameAssetPath);
         if (!request.UseIsolatedLaunchWorkspace)
         {
             throw new ArgumentException(

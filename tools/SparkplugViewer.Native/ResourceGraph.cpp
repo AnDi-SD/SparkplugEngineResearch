@@ -1,4 +1,5 @@
 #include "ResourceGraph.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 #include "BorrowedInput.h"
 #include "LegacyTextureAdapter.h"
 #include "Code/Sparkplug/spSerializerManager.h"
@@ -92,7 +93,8 @@ std::shared_ptr<spPCRenderer> CpuRenderer() {
     static auto renderer=std::make_shared<spPCRenderer>();return renderer;
 }
 ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool captureReadTrace,bool allowLegacyTextures) {
-    if(!bytes||count<36||count>64u*1024u*1024u)throw std::runtime_error("SMO must fit 64 MiB");
+    if(!bytes||count<36||count>sparkplug::host::pc_texture_storage::ToolResourceGraphBytes)
+        throw std::runtime_error("SMO must fit 64 MiB");
     renderer=CpuRenderer();
     // Cache/serializer lifetime is confined to this load. Separate documents
     // therefore cannot accidentally reuse a different file's same-name texture.
@@ -147,6 +149,7 @@ ResourceGraph::ResourceGraph(const std::uint8_t* bytes,std::uint32_t count,bool 
     // default font/startup is invented; explicit serialized Fonts supply layout.
     spFontManager textLayout;
     spSerializerReadContextForAnalysis context(manager,resources);
+    if(allowLegacyTextures)context.maximumToolStructuralSectionBytesForAnalysis=count;
     context.fontManager=&textLayout;
     context.directOwnedClassIDsForAnalysis={spPartitionNode::ClassID,spPartitionRenderable::ClassID};
     // Host limit: pristine Alfea02 has4266 resources and reached4096 at a

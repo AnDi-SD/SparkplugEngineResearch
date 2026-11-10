@@ -201,23 +201,32 @@ public partial class MainWindow : Window
     private void AttachWorkspace(
         SmoLevelWorkspace workspace,
         string? savePath,
-        bool preserveEditorState = false)
+        bool preserveEditorState = false,
+        SmoLevelDocument? preparedDocument = null)
     {
-        if (_document is not null)
-            _document.Changed -= LevelDocument_Changed;
+        SmoLevelDocument document = preparedDocument ?? new SmoLevelDocument(workspace);
+        SmoLevelWorkspace? previousWorkspace = _workspace;
+        SmoLevelDocument? previousDocument = _document;
+        if (previousDocument is not null)
+            previousDocument.Changed -= LevelDocument_Changed;
         _workspace = workspace;
-        _document = new SmoLevelDocument(workspace);
+        _document = document;
         _document.Changed += LevelDocument_Changed;
         if (preserveEditorState)
         {
-            _selectedEntities.RemoveWhere(id => !_document.TryGetEntity(id, out _));
-            _hiddenEntities.RemoveWhere(id => !_document.TryGetEntity(id, out _));
+            SmoLevelEntityId? active = RemapProjectEditorEntities(
+                previousWorkspace, previousDocument, workspace, _document);
             _selectedPendingPlacement = null;
             _pendingPlacementByScene.Clear();
+            _collisionRegionByInfo.Clear();
+            ActivateFirstSelectedEntity(active);
+            _activePlacementIndex = 0;
         }
         _savePath = savePath;
         _allAssets.Clear();
         _allAssets.AddRange(workspace.Assets.Select(EditorAssetItem.FromAsset));
+        if (preserveEditorState && TryResolveActiveSelection(out _, out _, out int placementIndex))
+            _activePlacementIndex = placementIndex;
         SetWorkspaceUiState(hasDocument: true);
         ClearInspector(workspace.DisplayName);
         ViewportEmptyTitleText.Text = _gpuViewportFailureReason is not null
@@ -246,6 +255,70 @@ public partial class MainWindow : Window
         else
             ViewportSelectionText.Text = "NO SELECTION";
         UpdateStatistics();
+    }
+
+    private SmoLevelEntityId? RemapProjectEditorEntities(
+        SmoLevelWorkspace? previousWorkspace,
+        SmoLevelDocument? previousDocument,
+        SmoLevelWorkspace workspace,
+        SmoLevelDocument document)
+    {
+        if (_project is null || previousWorkspace is null || previousDocument is null)
+        {
+            _selectedEntities.Clear();
+            _hiddenEntities.Clear();
+            return null;
+        }
+        if (_selectedEntities.Count == 0 && _hiddenEntities.Count == 0)
+            return null;
+
+        // Preview rebuilds can shift dense indices. Only IDs from the original
+        // catalog are stable across removal and reuse of generated object IDs.
+        HashSet<uint> originalIds = _project.Objects.Select(entry => entry.Id).ToHashSet();
+        IReadOnlyList<SmoObjectEntry> previousObjects = previousWorkspace.Document.Objects;
+        ILookup<uint, SmoObjectEntry> previousById = previousObjects.ToLookup(entry => entry.Id);
+        ILookup<uint, SmoObjectEntry> currentById = workspace.Document.Objects.ToLookup(entry => entry.Id);
+
+        int? activeIndex = _activeCollisionEntityIndex ?? _activeSelectionKey?.SceneObjectIndex;
+        SmoLevelEntityId? active = activeIndex is int index
+            ? RemapEntity(new SmoLevelEntityId(index))
+            : null;
+        RemapSet(_selectedEntities);
+        RemapSet(_hiddenEntities);
+        return active;
+
+        void RemapSet(HashSet<SmoLevelEntityId> entities)
+        {
+            var remapped = new List<SmoLevelEntityId>(entities.Count);
+            foreach (SmoLevelEntityId entityId in entities)
+            {
+                if (RemapEntity(entityId) is SmoLevelEntityId currentId)
+                    remapped.Add(currentId);
+            }
+            entities.Clear();
+            entities.UnionWith(remapped);
+        }
+
+        SmoLevelEntityId? RemapEntity(SmoLevelEntityId entityId)
+        {
+            if ((uint)entityId.SceneObjectIndex >= (uint)previousObjects.Count ||
+                !previousDocument.TryGetEntity(entityId, out SmoLevelEntity? previousEntity))
+                return null;
+
+            SmoObjectEntry previous = previousObjects[entityId.SceneObjectIndex];
+            if (previous.Id == 0 || !originalIds.Contains(previous.Id) ||
+                previousById[previous.Id].Count() != 1 || currentById[previous.Id].Count() != 1)
+                return null;
+
+            SmoObjectEntry current = currentById[previous.Id].Single();
+            var currentId = new SmoLevelEntityId(current.Index);
+            if (current.TypeHash != previous.TypeHash ||
+                !document.TryGetEntity(currentId, out SmoLevelEntity? currentEntity) ||
+                currentEntity!.Kind != previousEntity!.Kind)
+                return null;
+
+            return currentId;
+        }
     }
 
     private void SetBusy(bool busy, string message)

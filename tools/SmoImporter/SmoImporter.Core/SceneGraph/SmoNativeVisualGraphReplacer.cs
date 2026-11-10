@@ -16,6 +16,11 @@ public sealed record SmoNativeVisualGraphPlan(
     IReadOnlyList<string> Warnings)
 {
     public bool CanReplace => Errors.Count == 0;
+
+    public bool CanScaleStatic { get; init; }
+
+    public bool HasMeshPlatformMismatch => Errors.Any(error => error.StartsWith(
+        SmoNativeVisualGraphReplacer.MeshPlatformMismatchErrorCode + ":", StringComparison.Ordinal));
 }
 
 public sealed record SmoNativeVisualGraphReplaceResult(
@@ -37,6 +42,8 @@ public sealed record SmoNativeVisualGraphReplaceResult(
 /// </summary>
 public static class SmoNativeVisualGraphReplacer
 {
+    internal const string MeshPlatformMismatchErrorCode = "NATIVE_MESH_PLATFORM";
+    private const uint PcPlatform = 0x2;
     private const int ObjectSignatureSize = 8;
     private const int ObjectReferenceSize = 8;
     private const int Matrix4x4Size = 16 * sizeof(float);
@@ -91,14 +98,38 @@ public static class SmoNativeVisualGraphReplacer
             layout.MatchedBoneNames,
             layout.IgnoredDonorBoneNames,
             errors,
-            warnings);
+            warnings)
+        {
+            CanScaleStatic = CanScaleStaticForest(target, layout)
+        };
     }
 
     public static SmoNativeVisualGraphReplaceResult Replace(
         SmoDocument target,
         SmoDocument donor,
         string outputPath,
+        CancellationToken cancellationToken = default) =>
+        ReplaceCore(target, donor, outputPath, 1f, cancellationToken);
+
+    /// <summary>Uniformly scales a supported unskinned render forest around the model origin.</summary>
+    public static SmoNativeVisualGraphReplaceResult ReplaceScaledStatic(
+        SmoDocument target,
+        SmoDocument donor,
+        string outputPath,
+        float scale,
         CancellationToken cancellationToken = default)
+    {
+        if (!float.IsFinite(scale) || scale <= 0f)
+            throw new ArgumentOutOfRangeException(nameof(scale));
+        return ReplaceCore(target, donor, outputPath, scale, cancellationToken);
+    }
+
+    private static SmoNativeVisualGraphReplaceResult ReplaceCore(
+        SmoDocument target,
+        SmoDocument donor,
+        string outputPath,
+        float scale,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(donor);
@@ -107,6 +138,8 @@ public static class SmoNativeVisualGraphReplacer
 
         NativeReplacementLayout layout = BuildLayout(
             target, donor, cancellationToken);
+        if (scale != 1f && !CanScaleStaticForest(target, layout))
+            throw new NotSupportedException("Uniform scaling is unsupported for this native SMO forest.");
         SmoDocument effectiveDonor = layout.Donor;
         // IDs start beyond the complete original catalog; monotonic allocation
         // needs no repeated catalog scans and cannot recycle a removed ID.
@@ -160,6 +193,8 @@ public static class SmoNativeVisualGraphReplacer
             layout,
             ref nextId,
             cancellationToken);
+        if (scale != 1f)
+            rebuilt = ApplyStaticScale(rebuilt, layout, idMap, scale, cancellationToken);
         outputData = rebuilt.Data.ToArray();
         VerifyResult(target, effectiveDonor, rebuilt, layout, idMap);
 
@@ -172,6 +207,8 @@ public static class SmoNativeVisualGraphReplacer
                     cancellationToken.ThrowIfCancellationRequested();
                     SmoDocument verified = SmoDocument.Load(temporary);
                     VerifyResult(target, effectiveDonor, verified, layout, idMap);
+                    if (scale != 1f)
+                        VerifyStaticScale(verified, layout, idMap, scale);
                 },
                 cancellationToken,
                 target.SourcePath,
@@ -188,6 +225,134 @@ public static class SmoNativeVisualGraphReplacer
             layout.DonorVisualEntries.Count,
             new FileInfo(installed.OutputPath).Length,
             installed.Sha256);
+    }
+
+    private static bool CanScaleStaticForest(SmoDocument target, NativeReplacementLayout layout)
+    {
+        try
+        {
+            return HasScalableStaticForest(target, layout);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or
+            NotSupportedException or OverflowException or ArgumentException or DllNotFoundException or
+            EntryPointNotFoundException or BadImageFormatException)
+        {
+            return false;
+        }
+    }
+
+    private static bool HasScalableStaticForest(SmoDocument target, NativeReplacementLayout layout)
+    {
+        SmoDocument donor = layout.Donor;
+        if (layout.TargetLeafGrafts.Count != 0 ||
+            target.Objects.Any(entry => entry.TypeHash is SmoClassIds.Skin or SmoClassIds.Animation) ||
+            donor.Objects.Any(entry => entry.TypeHash is SmoClassIds.Skin or SmoClassIds.Animation))
+            return false;
+
+        var targetResources = SmoLoadedResources.Get(target);
+        var donorResources = SmoLoadedResources.Get(donor);
+        var targetOwner = target.Objects.Single(entry => entry.Id == layout.TargetOwnerId);
+        // Bound authoring to standalone forests whose incoming coordinate system
+        // is the same in both files. Scaled placements and animation need their own policy.
+        if (targetResources.LoadIssue is not null || targetResources.SceneIssue is not null ||
+            donorResources.LoadIssue is not null || donorResources.SceneIssue is not null ||
+            !IsIdentityNode(targetResources, targetOwner.Index))
+            return false;
+
+        if (layout.DonorRoots.Any(root => root.ParentIndex is not int parent ||
+            !IsIdentityNode(donorResources, parent) || !CanScaleRenderRoot(donor, root)))
+            return false;
+
+        HashSet<int> visualIndices = layout.DonorVisualEntries.Select(entry => entry.Index).ToHashSet();
+        var occurrences = donorResources.RenderOccurrences.Where(occurrence =>
+            visualIndices.Contains(occurrence.RenderableObjectIndex)).ToArray();
+        return occurrences.Length > 0 && occurrences.All(occurrence => occurrence.Issue is null &&
+            occurrence.InputWorld is { } world && IsFinite(world) &&
+            visualIndices.Contains(occurrence.Key.ContainerObjectIndex));
+    }
+
+    private static bool CanScaleRenderRoot(SmoDocument donor, SmoObjectEntry root)
+    {
+        if (!SmoRenderNodeDecoder.TryDecode(donor, root, out var renderNode) ||
+            renderNode is null || renderNode.Node.IsBone || renderNode.Node.BillboardAxis != 0)
+            return false;
+
+        // IsAnimated only marks a node eligible for binding. Actual serialized animation
+        // objects are excluded above. Restrict this write to scalar-only node sections.
+        var fields = SmoObjectFieldReader.Read(donor, root).TakeWhile(field => field.RawHeader != 0).ToArray();
+        return fields.All(field => field.FieldType is 0 or 1 or 2 or 3 or 4 or 6 or 8) &&
+            fields.DistinctBy(field => field.FieldType).Count() == fields.Length;
+    }
+
+    private static bool IsIdentityNode(SmoLoadedResources resources, int index) =>
+        resources.NodeWorlds.TryGetValue(index, out Matrix4x4 world) && world.IsIdentity;
+
+    private static SmoDocument ApplyStaticScale(SmoDocument rebuilt, NativeReplacementLayout layout,
+        IReadOnlyDictionary<uint, uint> idMap, float scale, CancellationToken cancellationToken)
+    {
+        var transaction = new SmoMutationTransaction(rebuilt);
+        var entries = rebuilt.Objects.ToDictionary(entry => entry.Id);
+        foreach (SmoObjectEntry root in layout.DonorRoots)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var entry = entries[idMap[root.Id]];
+            if (!SmoNodeTransformDecoder.TryDecode(rebuilt, entry, out var transform) || transform is null)
+                throw new InvalidDataException($"Render node {entry.Id} lost its local transform.");
+
+            // The confirmed base-node section of spRenderNode is first.
+            // spNodeSerializer permits omitted defaults and reads scalar fields by ID.
+            var fields = SmoObjectFieldReader.Read(rebuilt, entry);
+            var nodeFields = fields.TakeWhile(field => field.RawHeader != 0).ToArray();
+            if (transform.Position != Vector3.Zero)
+                transaction.SetFieldPayload(entry.Index, nodeFields.Single(field => field.FieldType == 0).Selector,
+                    SmoPropertyValueCodec.Encode(transform.Position * scale));
+            byte[] scalePayload = SmoPropertyValueCodec.Encode(transform.Scale * scale);
+            if (nodeFields.SingleOrDefault(field => field.FieldType == 2) is { } scaleField)
+                transaction.SetFieldPayload(entry.Index, scaleField.Selector, scalePayload);
+            else
+                transaction.AddField(entry.Index, 2, scalePayload, SmoFieldInsertion.Before(fields[0].Selector));
+        }
+        var scaled = SmoDocument.Parse(transaction.Commit().Data, rebuilt.SourcePath);
+        VerifyStaticScale(scaled, layout, idMap, scale);
+        return scaled;
+    }
+
+    private static void VerifyStaticScale(SmoDocument output, NativeReplacementLayout layout,
+        IReadOnlyDictionary<uint, uint> idMap, float scale)
+    {
+        SmoLoadedResources donor = SmoLoadedResources.Get(layout.Donor);
+        SmoLoadedResources result = SmoLoadedResources.Get(output);
+        if (output.HasErrors || result.LoadIssue is not null || result.SceneIssue is not null)
+            throw new InvalidDataException("Scaled render forest could not be loaded for verification.");
+
+        var outputIndices = output.Objects.ToDictionary(entry => entry.Id, entry => entry.Index);
+        var resultOccurrences = result.RenderOccurrences.ToDictionary(occurrence => occurrence.Key);
+        Matrix4x4 scaling = Matrix4x4.CreateScale(scale);
+        foreach (var original in donor.RenderOccurrences)
+        {
+            uint modelId = layout.Donor.Objects[original.RenderableObjectIndex].Id;
+            if (!idMap.TryGetValue(modelId, out uint newModelId))
+                continue;
+            uint containerId = layout.Donor.Objects[original.Key.ContainerObjectIndex].Id;
+            var key = new SmoRenderOccurrenceKey(outputIndices[idMap[containerId]], original.Key.MemberSlot);
+            if (!resultOccurrences.TryGetValue(key, out var actual) || actual.Issue is not null ||
+                actual.RenderableObjectIndex != outputIndices[newModelId] ||
+                actual.InputWorld is not { } actualWorld || original.InputWorld is not { } originalWorld ||
+                !MatchesScaledWorld(actualWorld, originalWorld * scaling))
+                throw new InvalidDataException($"Scaled render occurrence {newModelId} did not verify.");
+        }
+    }
+
+    private static bool MatchesScaledWorld(Matrix4x4 actual, Matrix4x4 expected)
+    {
+        return IsFinite(actual) && IsFinite(expected) &&
+            Near(actual.Translation, expected.Translation) &&
+            Near(Vector3.TransformNormal(Vector3.UnitX, actual), Vector3.TransformNormal(Vector3.UnitX, expected)) &&
+            Near(Vector3.TransformNormal(Vector3.UnitY, actual), Vector3.TransformNormal(Vector3.UnitY, expected)) &&
+            Near(Vector3.TransformNormal(Vector3.UnitZ, actual), Vector3.TransformNormal(Vector3.UnitZ, expected));
+
+        static bool Near(Vector3 a, Vector3 b) => NearAxis(a.X, b.X) && NearAxis(a.Y, b.Y) && NearAxis(a.Z, b.Z);
+        static bool NearAxis(float a, float b) => MathF.Abs(a - b) <= 1e-5f * MathF.Max(1f, MathF.Abs(b));
     }
 
     private static NativeReplacementLayout BuildLayout(
@@ -233,6 +398,7 @@ public static class SmoNativeVisualGraphReplacer
             donor, donorRoots);
         ValidateCompleteVisualCoverage(target, targetVisualEntries, "target");
         ValidateCompleteVisualCoverage(donor, donorVisualEntries, "donor");
+        ValidateStaticMeshPlatform(target, donor, donorVisualEntries, cancellationToken);
 
         string[] donorBoneNames = FindSkinBoneNames(
             donor, donorVisualEntries, cancellationToken);
@@ -258,6 +424,35 @@ public static class SmoNativeVisualGraphReplacer
             normalization.IgnoredBoneNames,
             removedTargetIds,
             targetLeafGrafts);
+    }
+
+    private static void ValidateStaticMeshPlatform(
+        SmoDocument target,
+        SmoDocument donor,
+        IReadOnlyList<SmoObjectEntry> donorVisualEntries,
+        CancellationToken cancellationToken)
+    {
+        if (((target.Header.PlatformMask ^ donor.Header.PlatformMask) & PcPlatform) == 0 ||
+            target.Objects.Any(entry => entry.TypeHash == SmoClassIds.Skin) ||
+            donor.Objects.Any(entry => entry.TypeHash == SmoClassIds.Skin))
+        {
+            return;
+        }
+
+        // spMeshDataSerializer selects field 1 for PC and field 0 otherwise.
+        // The target header is retained, and some donor meshes carry both fields.
+        int requiredField = (target.Header.PlatformMask & PcPlatform) != 0 ? 1 : 0;
+        foreach (SmoObjectEntry mesh in donorVisualEntries.Where(entry => entry.TypeHash == SmoClassIds.MeshData))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!SmoObjectFieldReader.Read(donor, mesh).Any(field =>
+                    field.FieldType == requiredField && field.PayloadSize != 0))
+            {
+                throw new InvalidDataException(
+                    $"{MeshPlatformMismatchErrorCode}: Donor mesh {mesh.Id} does not contain " +
+                    $"geometry field {requiredField} for target FFPS mask 0x{target.Header.PlatformMask:X}.");
+            }
+        }
     }
 
     private static DonorSkeletonNormalization NormalizeDonorSkeleton(

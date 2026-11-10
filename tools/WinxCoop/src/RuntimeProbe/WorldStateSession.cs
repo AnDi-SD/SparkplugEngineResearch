@@ -19,6 +19,8 @@ internal sealed class WorldStateSession : IDisposable
     private readonly Dictionary<uint, WorldPresentationAnimation> _animations = [];
     private readonly Dictionary<uint, WorldPresentationBinding> _bindings = [];
     private WorldPresentationPoseApplier? _poses;
+    private readonly WorldPresentationSmoothing? _smoothing;
+    private uint _lastPresentationSnapshotFlags;
     private WorldStateDelivery? _pending;
     private SharedProfileScene _scene;
     private WorldPresentationNativeRig? _local;
@@ -33,6 +35,11 @@ internal sealed class WorldStateSession : IDisposable
     private uint _flow, _transitionWorlds;
     private ulong _hostNativeApplied;
     private bool _peerRetired;
+    private readonly uint _qualifiedLevel;
+    private uint _nativeOutcomeWaitingWorlds;
+    private ulong _progressionPreparedOperation;
+    private uint _progressionPreparedWorlds, _progressionPreparedPendingDiscarded;
+    private bool _progressionPreparedPeerClosed;
     private WorldPresentationStarPoolReader? _starInventory;
     private readonly WorldStarNativeTracker _starTracker;
     private WorldPresentationStarMirror? _starMirror;
@@ -45,6 +52,23 @@ internal sealed class WorldStateSession : IDisposable
     {
         _config = config; _host = host; _image = image; _log = log;
         _identity = config.DiagnosticWorldState ?? throw new InvalidDataException("Missing WorldState identity.");
+        bool story3 = config.ProgressionControl is not null && config.ProgressionSceneLevel == 3;
+        Require(!story3 || config.EnableProgressionAuthority && config.EnableWorldEntry && !config.WorldBattlePresentation &&
+            (_identity.Role == WorldStateRole.Host
+                ? config.TemplateSharedPlayerProfile == "gardenia-03-network-input" &&
+                    config.TemplateNetworkInputFixture && config.TemplateStoryDeathFixture
+                : config.DiagnosticGuestCaptureFixture),
+            "Gardenia03 World requires its closed Host outcome or Guest presentation progression cohort.");
+        _qualifiedLevel = story3 ? 3u : config.WorldBattlePresentation ? 47u : 28u;
+        if (config.WorldPresentationSmoothingMilliseconds > 0)
+        {
+            Require(_identity.Role == WorldStateRole.Guest && _qualifiedLevel == 28 &&
+                config.ProgressionControl is not null && config.DiagnosticGuestCaptureFixture &&
+                config.EnableWorldEntry && config.EnableProgressionAuthority &&
+                config.WorldPresentationSmoothingMilliseconds <= 200,
+                "Display smoothing cannot expand the admitted Guest scene or simulation policy.");
+            _smoothing = new(_identity.LevelEpoch, _identity.Generation, log, config.WorldPresentationSmoothingMilliseconds);
+        }
         _client = new(_identity, log); _profile = new(host, log, _identity.Role == WorldStateRole.Guest);
         _reader = new(host, image);
         _starTracker = new(host, image, log, _identity.Role);
@@ -62,6 +86,11 @@ internal sealed class WorldStateSession : IDisposable
         peerRetiredAfterNativeApply = _peerRetired, goalPassed = GoalPassed,
         transportAttempt = _transportAttempt, previousTransport = _previousTransport,
         nativeTransitionWorldsDeferred = _transitionWorlds,
+        nativeOutcomeWaitingWorlds = _nativeOutcomeWaitingWorlds,
+        progressionPreparedOperation = _progressionPreparedOperation,
+        progressionPreparedWaitingWorlds = _progressionPreparedWorlds,
+        progressionPreparedPendingDiscarded = _progressionPreparedPendingDiscarded,
+        progressionPreparedPeerClosed = _progressionPreparedPeerClosed,
         nativeObservationTicks = _nativeTicks, originalGuestEnemiesHidden = _stockHidden,
         passiveEnemiesRemoved = _removed, profile = _profile.Summary, ipc = _client.Summary,
         starPoolInventory = _starInventory?.Summary,
@@ -69,13 +98,19 @@ internal sealed class WorldStateSession : IDisposable
         starNativeTracker = _starTracker.Summary, starPresentation = _starMirror?.Summary,
         projectilePresentation = _projectileMirror?.Summary,
         entry = Entry?.Summary, authoritativeEntrySeedAdmitted = _admittedEntrySeed is not null,
-        poses = _poses?.Summary, visuals = _visuals.Values.Select(v => v.Summary).ToArray(),
+        poses = _poses?.Summary, displaySmoothing = _smoothing?.Summary,
+        visuals = _visuals.Values.Select(v => v.Summary).ToArray(),
         animations = _animations.Values.Select(v => v.Summary).ToArray(),
         nativePointersTransmitted = false, physicsPredictionAdded = false };
 
     internal void ObserveHost(uint tid, ref Win32Native.X86Context context, NativeTemplateProbe template,
         NativeCallDispatcher calls)
     {
+        if (template.ProgressionNativeOutcomeWaiting)
+        {
+            ObserveHostNativeOutcomeWaitingAtWorld(tid, ref context, template, calls);
+            return;
+        }
         if (_retired || _peerRetired || !template.WorldStateBodyReady || calls.Pending) return;
         if (!_client.SetReady(true))
         {
@@ -139,6 +174,84 @@ internal sealed class WorldStateSession : IDisposable
         }
     }
 
+    // No native body/scene/camera/Profile reads on this path. The template's
+    // cached state requires its actual paired lethal producer publication.
+    // Only a previously bound and native-ACKed World may wait for the outcome.
+    internal void ObserveHostNativeOutcomeWaitingAtWorld(uint tid, ref Win32Native.X86Context context,
+        NativeTemplateProbe template, NativeCallDispatcher calls)
+    {
+        if (_retired || _peerRetired || calls.Pending) return;
+        Require(_identity.Role == WorldStateRole.Host && _config.ProgressionControl is not null &&
+            _config.ProgressionSceneLevel == 3 && _qualifiedLevel == 3 &&
+            template.ProgressionNativeOutcomeWaiting && _bound && _hostNativeApplied > 0 && GoalPassed &&
+            _host.IsAtDebugStop && tid == _host.MainThreadId && context.Eip == NativeCallDispatcher.WorldReturn,
+            "Native outcome Waiting requires the closed actual WorldRET and an already bound/native-ACKed story World.");
+        if (!_client.SetReady(false))
+        {
+            if (_client.Terminal is WorldStateTerminal.ActorClosed or WorldStateTerminal.PeerClosed)
+            {
+                _peerRetired = true;
+                _log(new { @event = "world-host-native-outcome-peer-retired", revision = _hostNativeApplied,
+                    nativeOutcomeWaiting = true, noHistoricalBodyOrSceneRead = true });
+                return;
+            }
+            throw new InvalidDataException("Story outcome World lost its native owner/lease before coordinated retirement.");
+        }
+        if (_client.TryReadBridgeStatus(out var status)) _hostNativeApplied = Math.Max(_hostNativeApplied, status.AppliedRevision);
+        Require(++_nativeOutcomeWaitingWorlds <= NativeObservationBudget.WorldLimit,
+            "Native outcome World Waiting exceeded its bounded lifetime.");
+        if (_nativeOutcomeWaitingWorlds == 1)
+            _log(new { @event = "world-host-native-outcome-waiting", revision = _hostNativeApplied,
+                originalWorldAlreadyApplied = true, nativeOwnerHeartbeatRefreshed = true,
+                snapshotCaptured = false, oldBodySceneProfileOrCameraRead = false });
+    }
+
+    // Preparing the old Guest is distinct from retiring its native borrowers.
+    // Keep its native-owner lease alive without reading the old graph or ACKing
+    // a delivery while the Host performs the authorized native transition.
+    internal void ObserveGuestProgressionPreparedWaitingAtWorld(uint tid, ref Win32Native.X86Context context,
+        NativeCallDispatcher calls, ulong operation)
+    {
+        Require(_config.ProgressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 } &&
+            _config.EnableProgressionAuthority && _config.EnableWorldEntry &&
+            _identity.Role == WorldStateRole.Guest && !_retired && _bound && _applications >= 2 && GoalPassed &&
+            _host.IsAtDebugStop && tid == _host.MainThreadId && context.Eip == NativeCallDispatcher.WorldReturn &&
+            !calls.Pending && operation > 0 &&
+            (_progressionPreparedOperation == 0 || operation == _progressionPreparedOperation),
+            "Guest prepared Waiting requires its bound/native-ACKed controlled WorldRET and immutable operation.");
+        bool alreadyPrepared = _progressionPreparedOperation != 0;
+        _smoothing?.Clear("progression-prepared-waiting");
+        if (!_client.SetReady(false))
+        {
+            Require(alreadyPrepared &&
+                _client.Terminal is WorldStateTerminal.ActorClosed or WorldStateTerminal.PeerClosed,
+                "Guest World ended before preparation or with an unexpected terminal reason.");
+            if (!_progressionPreparedPeerClosed)
+            {
+                _progressionPreparedPeerClosed = true;
+                _log(new { @event = "progression-guest-prepared-world-peer-closed", operation,
+                    levelEpoch = _identity.LevelEpoch, generation = _identity.Generation,
+                    terminal = _client.Terminal.ToString(), oldNativeGraphRead = false,
+                    nativeApplyAcknowledgmentAdded = false, mappingRetired = false });
+            }
+        }
+        if (_pending is not null)
+        {
+            _pending = null; _poseApplied = false;
+            _progressionPreparedPendingDiscarded = checked(_progressionPreparedPendingDiscarded + 1);
+        }
+        _progressionPreparedOperation = operation;
+        Require(++_progressionPreparedWorlds <= NativeObservationBudget.WorldLimit,
+            "Guest prepared Waiting exceeded its finite native World budget.");
+        if (!alreadyPrepared)
+            _log(new { @event = "progression-guest-prepared-native-wait", operation,
+                levelEpoch = _identity.LevelEpoch, generation = _identity.Generation,
+                actualNativeWorldPreviouslyApplied = true, nativeOwnerHeartbeatRefreshed = true,
+                pendingDeliveryDiscardedWithoutAcknowledgment = _progressionPreparedPendingDiscarded,
+                oldBodySceneProfileOrCameraRead = false, nativeApplyAcknowledgmentAdded = false,
+                bindingsAndQuarantineRetained = true, mappingRetired = false });
+    }
+
     internal HostWorldTransportRebindWitness PrepareHostTransportRebindAtWorld(uint tid,
         ref Win32Native.X86Context context, NativeTemplateProbe template, NativeCallDispatcher calls)
     {
@@ -182,7 +295,7 @@ internal sealed class WorldStateSession : IDisposable
             uint profile = U(0x765AD4), instance = U(profile + 0x2B4);
             _local = _reader.ReadRigAtWorld(tid, ref context, instance, WorldPresentationActorState.BloomType);
             uint flow = U(0x755294), count = U(flow + 0x1AC); Require(count <= 20, "World Guest flow bound exceeded.");
-            uint level = _config.WorldBattlePresentation ? 47u : 28u;
+            uint level = _qualifiedLevel;
             uint table = _config.WorldBattlePresentation ? 0x7105C8u : 0x710874u;
             uint playing = 0;
             for (uint i = 0; i <= count; ++i) { uint item = U(flow + 0x15C + i * 4); if (U(item) == table && U(item + 0x10) == level) playing = item; }
@@ -320,7 +433,35 @@ internal sealed class WorldStateSession : IDisposable
             starNativeVisibilityComplete = _starMirror is null || _starMirror.ApplyComplete,
             projectileNativeVisibilityComplete = _projectileMirror is null || _projectileMirror.ApplyComplete,
             nativeAppliedCount = _applications });
+        // ACK above still describes the exact canonical PRS/profile readback.
+        // The separately owned render sampler never advances protocol state.
+        _lastPresentationSnapshotFlags = snapshot.Flags;
+        _smoothing?.AcceptAcknowledgedSnapshot(snapshot, Environment.TickCount64);
         _pending = null; _poseApplied = false;
+    }
+
+    internal void SampleGuestPresentationAtWorld(uint tid, ref Win32Native.X86Context context,
+        ClientPresentationSession presentation)
+    {
+        if (_smoothing is null || _retired || !_bound || _poses is null || _pending is not null) return;
+        Require(_identity.Role == WorldStateRole.Guest && _scene.Level == 28 &&
+            _host.IsAtDebugStop && tid == _host.MainThreadId && context.Eip == NativeCallDispatcher.WorldReturn &&
+            presentation.WorldQuarantineActive, "Display sample lost its owned quarantined WorldRET.");
+        if (_progressionPreparedOperation != 0 || !_client.TryReadBridgeStatus(out var status) ||
+            status.Phase is not (WorldStatePhase.Connected or WorldStatePhase.Ready) ||
+            status.SyncEpoch == 0 || status.AppliedRevision == 0)
+        { _smoothing.Clear("world-waiting"); return; }
+        uint timer = U(0x755298);
+        Require(timer >= 0x10000 && U(timer) == 0x702F94, "Display sample lost its native pause owner.");
+        if ((_lastPresentationSnapshotFlags & 1) != 0 ||
+            Win32Native.ReadMemory(_host.ProcessHandle, timer + 0x40, 1)[0] != 0)
+        { _smoothing.Clear("native-pause"); return; }
+        foreach (WorldPresentationActorState state in _smoothing.SampleAtWorld(Environment.TickCount64))
+        {
+            _poses.ApplyDisplayPoseAtWorld(tid, ref context, _identity.LevelEpoch, state);
+            if (state.StableId == 2)
+                presentation.AcceptDisplayedRootAtWorld(tid, ref context, _identity.LevelEpoch, state);
+        }
     }
 
     internal void RefreshGuestAtWorld(uint tid, ref Win32Native.X86Context context, ClientPresentationSession presentation)
@@ -343,7 +484,8 @@ internal sealed class WorldStateSession : IDisposable
         ClientPresentationSession presentation)
     {
         _poses!.BindAtWorld(tid, ref context, binding); _bindings.Add(binding.StableId, binding);
-        _animations.Add(binding.StableId, new(_host, _image, () => presentation.WorldQuarantineActive, _log, binding));
+        _animations.Add(binding.StableId, new(_host, _image, () => presentation.WorldQuarantineActive, _log, binding,
+            fullKeyboardMovingUsesRun: _config.ProgressionControl is not null && _scene.Level == 28));
     }
     private void Bind(uint tid, ref Win32Native.X86Context context, SharedProfileScene scene, uint parent)
     {
@@ -408,6 +550,7 @@ internal sealed class WorldStateSession : IDisposable
         Require(top >= 0x10000, "World transition has no typed top state.");
         if (pending != 0 || U(flow + 0x1B0) != U(top + 0x10))
         {
+            _smoothing?.Clear("native-transition");
             ++_transitionWorlds;
             if (_transitionWorlds <= 2 || _transitionWorlds % 1200 == 0)
                 _log(new { @event = "world-native-transition-deferred", pending,
@@ -457,6 +600,7 @@ internal sealed class WorldStateSession : IDisposable
     internal void RetireAtNativeBoundary(uint tid, ref Win32Native.X86Context context, uint entry)
     {
         if (_retired) return;
+        _smoothing?.Clear("native-retirement");
         if (_bound)
         {
             foreach (var animation in _animations.Values) animation.RetireBeforeUnload(tid, ref context, false);
@@ -477,7 +621,7 @@ internal sealed class WorldStateSession : IDisposable
         Require(context.Ecx == _scene.PlayingState, "World Host exit receiver changed its captured scene.");
         RetireAtNativeBoundary(tid, ref context, entry);
     }
-    public void Dispose() { _client.Dispose(); }
+    public void Dispose() { _smoothing?.Dispose(); _client.Dispose(); }
     private uint U(uint address) => Win32Native.ReadUInt32(_host.ProcessHandle, address);
     private static void Require(bool value, string message) { if (!value) throw new InvalidDataException(message); }
 }

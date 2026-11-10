@@ -46,8 +46,7 @@ internal sealed class NativeHostTransportRebind : IDisposable
     private string? _requestHash;
     private long _lastPoll;
     private bool _consumed, _committed, _inputReady, _succeeded, _retired, _failed;
-    private static readonly JsonSerializerOptions Json = new()
-    { MaxDepth = 8, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
+    private static readonly JsonSerializerOptions Json = RuntimeControlJson.CreateOptions(8);
 
     internal NativeHostTransportRebind(ProbeConfiguration config, DebuggerHost host, Action<object> log)
     {
@@ -135,7 +134,7 @@ internal sealed class NativeHostTransportRebind : IDisposable
             if (!_oldInputOwner.HasExited || !_oldWorldOwner.HasExited) return;
             byte[]? bytes = ReadRequest(); if (bytes is null) return;
             Require(!_consumed, "Host rebind request was already consumed.");
-            HostTransportRebindRequest request = JsonSerializer.Deserialize<HostTransportRebindRequest>(bytes, Json)
+            HostTransportRebindRequest request = RuntimeControlJson.Deserialize<HostTransportRebindRequest>(bytes, Json)
                 ?? throw new InvalidDataException("Missing complete Host rebind request object.");
             ValidateRequest(request, now);
             _consumed = true; _request = request; _requestHash = Convert.ToHexString(SHA256.HashData(bytes));
@@ -204,7 +203,7 @@ internal sealed class NativeHostTransportRebind : IDisposable
             "Host rebind endpoint session/scene/body/mapping/nonce/token freshness is invalid.");
     }
     private bool FreshMapping(string? value, string prefix) => value is not null && value.StartsWith(prefix, StringComparison.Ordinal) &&
-        value.Length > prefix.Length && value.Length <= 160 && value.Skip(prefix.Length).All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_') &&
+        value.Length > prefix.Length && value.Length <= 160 && value.Skip(prefix.Length).All(c => RuntimeFramework.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_') &&
         value != _initialInput.MappingName && value != _initialWorld.MappingName;
     private byte[]? ReadRequest()
     {

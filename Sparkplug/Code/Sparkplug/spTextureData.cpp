@@ -1,4 +1,5 @@
 #include "spTextureData.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 
 #include <limits>
 #include <algorithm>
@@ -40,13 +41,15 @@ namespace sparkplug::reconstruction
         // compressed layout whose wider dimension domain is not established.
         if(!width||!height||width>65535||height>65535||flags>3||mips.empty()
             ||(flags&&((width&(width-1))||(height&(height-1)))))return false;
+        using namespace sparkplug::host::pc_texture_storage;
+        const auto maximumBytes=flags?DefaultBytes:BgraBytes;
         auto w=width,h=height;std::uint64_t total=0;bool ended=false;
         for(const auto& mip:mips)
         {
             const auto stride=flags?std::max(1u,w>>2)*(flags==1?8u:16u):w*4u;
             const auto rows=flags?std::max(1u,h>>2):h;const auto size=std::uint64_t(stride)*rows;
             total+=size;
-            if(ended||mip.width!=w||mip.rows!=rows||mip.rowStride!=stride||mip.bytes.size()!=size||total>16u*1024u*1024u)return false;
+            if(ended||mip.width!=w||mip.rows!=rows||mip.rowStride!=stride||mip.bytes.size()!=size||total>maximumBytes)return false;
             ended=w==1&&h==1;w=std::max(1u,w>>1);h=std::max(1u,h>>1);
         }
         // Host initialization of proven fields; no claim of native vector creation.

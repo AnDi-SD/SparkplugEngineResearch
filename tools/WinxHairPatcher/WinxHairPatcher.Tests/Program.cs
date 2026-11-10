@@ -267,6 +267,7 @@ try
     File.WriteAllBytes(exePath, fileFixture);
     WinxExePatchResult firstFilePatch = WinxExeHairPatcher.PatchFile(exePath, requested);
     byte[] firstFileBytes = File.ReadAllBytes(exePath);
+    Check(firstFilePatch.BytesChanged, "initial file patch reports changed bytes");
     Check(firstFileBytes.SequenceEqual(WinxExeHairPatcher.PatchBytes(fileFixture, requested)),
         "file patch writes the same verified bytes as the in-memory operation");
     Check(File.ReadAllBytes(firstFilePatch.BackupPath).SequenceEqual(fileFixture),
@@ -279,8 +280,15 @@ try
         "repatch preserves the first original backup");
     Check(File.ReadAllBytes(secondFilePatch.BackupPath).SequenceEqual(firstFileBytes),
         "repatch separately backs up the preceding patch");
-    Check(File.ReadAllBytes(exePath).SequenceEqual(WinxExeHairPatcher.PatchBytes(fileFixture, secondMask)),
+    byte[] secondFileBytes = File.ReadAllBytes(exePath);
+    Check(secondFileBytes.SequenceEqual(WinxExeHairPatcher.PatchBytes(fileFixture, secondMask)),
         "repatch writes the newly requested mask to the file");
+
+    WinxExePatchResult repeatedFilePatch = WinxExeHairPatcher.PatchFile(exePath, secondMask);
+    Check(!repeatedFilePatch.BytesChanged, "reapplying the same mask reports unchanged bytes");
+    Check(File.ReadAllBytes(exePath).SequenceEqual(secondFileBytes), "unchanged patch preserves the target bytes");
+    Check(File.ReadAllBytes(repeatedFilePatch.BackupPath).SequenceEqual(secondFileBytes),
+        "unchanged patch preserves the existing backup contract");
     Check(!Directory.EnumerateFiles(fileTestDirectory, "*.tmp").Any(),
         "successful file replacement leaves no temporary file");
 

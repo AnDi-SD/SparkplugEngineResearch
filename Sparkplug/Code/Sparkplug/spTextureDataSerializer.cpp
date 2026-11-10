@@ -1,4 +1,5 @@
 #include "spTextureDataSerializer.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 
 #include "spTextureData.h"
 #include "../SparkBase/spMemoryStream.h"
@@ -163,7 +164,13 @@ namespace sparkplug::reconstruction
         spStream& source,std::uint32_t byteCount,spBaseObject& object,std::uint32_t& remaining,bool& handled,std::string* error) const
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
-        SectionCursor wrapper(context,source,byteCount,false,error);std::uint32_t start=0;handled=false;remaining=0;
+        using namespace sparkplug::host::pc_texture_storage;
+        const bool allowLargeBgra=context.textureReadInspectionForAnalysis||
+            context.maximumToolStructuralSectionBytesForAnalysis>DefaultBytes;
+        const auto maximumSection=allowLargeBgra&&object.IsExactly(spDXTexture::ClassID)
+            ? BgraSectionBytes : DefaultBytes;
+        SectionCursor wrapper(context,source,byteCount,false,error,maximumSection);
+        std::uint32_t start=0;handled=false;remaining=0;
         if(!source.GetCurrentPosition(start))return wrapper.Fail("Cannot locate texture source section");
         auto* const inspection=context.textureReadInspectionForAnalysis;
         while(const auto* header=wrapper.Next())
@@ -241,7 +248,10 @@ namespace sparkplug::reconstruction
     {
         if(error)error->clear();const auto fail=[&](const char* text){if(error)*error=text;return false;};
         std::uint32_t size=0;
-        if(!source||!source->GetSize(&size)||!size||size>16u*1024u*1024u||!source->GetBuffer())
+        using namespace sparkplug::host::pc_texture_storage;
+        const auto maximumSection=texture.GetTextureFlagsForAnalysis()==0&&
+            !texture.GetNativeMipsForAnalysis().empty()?BgraSectionBytes:DefaultBytes;
+        if(!source||!source->GetSize(&size)||!size||size>maximumSection||!source->GetBuffer())
             return fail("Embedded source requires a bounded owned MemoryStream");
         spDataBlockSerializer wrapper;
         if(!wrapper.BeginObjectForAnalysis(stream,&texture)||!wrapper.WriteBeginForAnalysis(3)

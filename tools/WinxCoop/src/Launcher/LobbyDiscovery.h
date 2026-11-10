@@ -3,6 +3,7 @@
 // WinxCoop's bounded LAN advertisement protocol. This is not the recovered
 // Sparkplug Packet protocol; it advertises an endpoint for that TCP carrier.
 #include "Networking/SessionCore.h"
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -10,6 +11,16 @@
 
 namespace winxcoop::launcher
 {
+    // Defaults preserve the Stage P advertisement domain. A different runtime
+    // must choose both a distinct port and distinct probe/reply magic. The
+    // optional target supports directed diagnostics; normal LAN uses broadcast.
+    struct DiscoveryOptions
+    {
+        std::uint16_t port = 27026;
+        std::array<unsigned char, 4> probeMagic{'W', 'C', 'Q', 1};
+        std::array<unsigned char, 4> replyMagic{'W', 'C', 'R', 1};
+        std::uint32_t probeAddress = 0xffffffffu;
+    };
     struct DiscoveredLobby
     {
         networking::Endpoint endpoint;
@@ -32,6 +43,7 @@ namespace winxcoop::launcher
         static constexpr std::size_t MaximumLobbies = 16;
         static constexpr std::uint64_t SearchMilliseconds = 2500;
         LobbyDiscovery();
+        explicit LobbyDiscovery(DiscoveryOptions);
         ~LobbyDiscovery();
         LobbyDiscovery(const LobbyDiscovery&) = delete;
         LobbyDiscovery& operator=(const LobbyDiscovery&) = delete;
@@ -50,6 +62,7 @@ namespace winxcoop::launcher
         [[nodiscard]] std::uint64_t Revision() const noexcept;
         [[nodiscard]] const std::vector<DiscoveredLobby>& Lobbies() const noexcept;
         [[nodiscard]] const DiscoveryMetrics& Metrics() const noexcept;
+        [[nodiscard]] std::size_t OwnedSocketCount() const noexcept;
     private:
         struct Impl;
         std::unique_ptr<Impl> impl_;

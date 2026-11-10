@@ -166,6 +166,13 @@ namespace winxcoop::world_state
             if(m.syncEpoch>epoch_) epoch_=m.syncEpoch;
             controls_.clear();ClearEpoch();phase_=Phase::Connected;return true;
         }
+        // A locally suspended, previously native-applied Guest may still have
+        // complete old-epoch frames in the ordered transport. ObserveActor
+        // already discarded its assembly/delivery and queued SourceState(false).
+        // Drain only these validated current-epoch envelopes: do not decode,
+        // assemble, deliver, acknowledge or advance an observation counter.
+        if(m.kind==Kind::Snapshot && epoch_ && m.syncEpoch==epoch_ &&
+            !localReady_ && !epochActive_ && appliedCount_>0) return true;
         if(m.kind!=Kind::Snapshot||m.syncEpoch!=epoch_||!epochActive_||!handshake_||!localReady_||waitingNative_||m.revision<=received_)
             return Fail(Terminal::Sequence);
         if(!assembly_.Push(m)) return Fail(Terminal::Sequence);

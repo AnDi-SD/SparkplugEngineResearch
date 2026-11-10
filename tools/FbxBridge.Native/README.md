@@ -10,6 +10,10 @@ Build on Windows with Visual Studio C++ tools (including standalone Build Tools)
 .\Build-Native.ps1
 ```
 
+`-BuildWorkers <1..4>` controls compiler concurrency and defaults to two workers.
+Use `-BuildWorkers 1` when available memory is low. The release package builder
+passes its own `BuildWorkers` value to this script.
+
 The build places `SmoFbxBridge.exe` and `libfbxsdk.dll` in
 `build\bin\Release`.
 

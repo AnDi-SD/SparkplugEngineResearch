@@ -16,7 +16,7 @@ internal sealed class NativeSceneReadyTracker
 
     internal NativeSceneReadyTracker(int expectedStateId)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(expectedStateId);
+        FrameworkGuards.ThrowIfNegativeOrZero(expectedStateId);
         _expectedStateId = checked((uint)expectedStateId);
     }
 

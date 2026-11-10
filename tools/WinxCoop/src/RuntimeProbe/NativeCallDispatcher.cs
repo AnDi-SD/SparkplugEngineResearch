@@ -39,6 +39,10 @@ internal sealed class NativeCallDispatcher
     private uint _pageAddress, _trapAddress, _resultAddress;
     private uint _threadId, _resumeEip, _resumeEsp, _sequence, _completed, _freed;
     private uint _originalReturnAddress, _entryAddress;
+    private uint _ordinaryFunction, _ordinaryThis, _ordinaryReturn;
+    private uint[] _ordinaryArguments = [];
+    private bool _ordinaryCdecl, _retiredOrdinaryProgression, _retiredOrdinaryGuestMenu;
+    private uint _completedDebugStop, _completedCallSequence, _freedAtProgressionExit;
     private int _resultCount = 1;
     private byte _entryOriginalByte;
     private bool _entryBatch;
@@ -66,8 +70,15 @@ internal sealed class NativeCallDispatcher
 
     internal bool Pending { get; private set; }
     internal bool HasRetiredPage => _retired;
+    internal bool MatchesPendingOrdinaryEntry(uint function, uint receiver, uint[] arguments,
+        in Win32Native.X86Context context) =>
+        Pending && !_entryBatch && !_dependencyActive && _ordinaryFunction == function && _ordinaryThis == receiver &&
+        _ordinaryArguments.SequenceEqual(arguments) && context.Eip == function && context.Ecx == receiver &&
+        context.Esp == checked(_saved.Esp - (uint)(arguments.Length + 1) * 4) &&
+        Win32Native.ReadUInt32(_host!.ProcessHandle, context.Esp) == _ordinaryReturn;
     internal object Summary => new { callsBegun = _sequence, callsCompleted = _completed,
         pagesFreedAtLaterWorldStop = _freed, pending = Pending, retiredPage = _retired,
+        pagesFreedAtProgressionExit = _freedAtProgressionExit,
         terminalFailure = _terminalFailure, timeoutMs = _timeout.TotalMilliseconds, dependentLifecycle = DependentSummary };
 
     internal object DependentSummary => new { begun = _dependentBegun, completed = _dependentCompleted,
@@ -123,6 +134,9 @@ internal sealed class NativeCallDispatcher
             _pageAddress = checked((uint)_page.ToInt64());
             _resultAddress = checked(_pageAddress + ResultOffset);
             byte[] stub = BuildStub(function, thisPtr, arguments, cdecl, _resultAddress);
+            _ordinaryFunction = function; _ordinaryThis = thisPtr; _ordinaryArguments = arguments;
+            _ordinaryCdecl = cdecl;
+            _ordinaryReturn = checked(_pageAddress + (uint)arguments.Length * 5 + 12);
             if (stub.Length >= ResultOffset || stub[^1] != 0xCC)
                 throw new InvalidDataException("Native-call stub exceeded its one-page contract.");
             _trapAddress = checked(_pageAddress + (uint)stub.Length - 1);
@@ -726,6 +740,16 @@ internal sealed class NativeCallDispatcher
         if (_entryBatch && Win32Native.ReadMemory(host.ProcessHandle, _entryAddress, 1)[0] != _entryOriginalByte)
             throw new InvalidDataException("Entry instruction changed or was rearmed before original execution; terminate without resuming it.");
 
+        // Save this before a dependent interval clears its active flag below.
+        // Stale ordinary metadata must never qualify a dependent/entry page.
+        _retiredOrdinaryProgression = !_entryBatch && !_dependencyActive && !_ordinaryCdecl && _resultCount == 1 &&
+            (_ordinaryFunction == 0x595450 && _ordinaryArguments.AsSpan().SequenceEqual(new uint[] { 28, 1 }) ||
+             _ordinaryFunction == 0x4E7580 && _ordinaryArguments.AsSpan().SequenceEqual(new uint[] { 0 }) && (results[0] & 255) == 1);
+        _retiredOrdinaryGuestMenu = !_entryBatch && !_dependencyActive && !_ordinaryCdecl && _resultCount == 1 &&
+            _ordinaryFunction == 0x595450 && _ordinaryArguments.Length == 2 &&
+            _ordinaryArguments[0] is >= 51 and <= 80 && _ordinaryArguments[1] == 0;
+        _completedDebugStop = host.DebugStopSequence; _completedCallSequence = _sequence;
+
         // This replaces the full partial-BP context. Core will commit it with
         // SetX86Context after this callback, using CONTEXT_ALL 0x1003F.
         ctx = Clone(_saved);
@@ -770,6 +794,109 @@ internal sealed class NativeCallDispatcher
         uint freedAddress = _pageAddress;
         _page = IntPtr.Zero; _pageAddress = 0; _retired = false; ++_freed;
         _log(new { @event = "native-call-page-released", threadId, page = Hex(freedAddress), atLaterWorldStop = true });
+    }
+
+    /// <summary>
+    /// Explicit E6 Host continuation only: a completed ordinary Alfea reload
+    /// may reach original Playing Exit before another WorldRET. This does not
+    /// admit entry cleanup/dependent pages or change the normal World release.
+    /// The caller separately owns the actual original Exit-return receipt.
+    /// </summary>
+    internal void ReleaseRetiredBeforeProgressionExit(DebuggerHost host, uint threadId,
+        ref Win32Native.X86Context ctx, uint entry, byte expectedFirstByte)
+    {
+        if (Pending) throw new InvalidOperationException("Cannot release an active progression request page.");
+        if (!_retired) return;
+        if (_terminalFailure || !ReferenceEquals(host, _host) || !_retiredOrdinaryProgression ||
+            _entryBatch || _dependencyActive || _completedCallSequence != _sequence || _completed != _sequence ||
+            _sequence == 0 || host.DebugStopSequence <= _completedDebugStop || threadId != _threadId ||
+            entry != 0x5F86C0 || expectedFirstByte != 0x53 || _page == IntPtr.Zero || _pageAddress == 0 ||
+            _resumeEip != _originalReturnAddress || _resumeEsp != checked(_saved.Esp + 4))
+            throw new InvalidDataException("Progression Exit release does not own its later completed ordinary reload page.");
+        Win32Native.X86Context full = VerifyEntryStop(host, threadId, ref ctx, entry, expectedFirstByte);
+        uint U(uint address) => Win32Native.ReadUInt32(host.ProcessHandle, address);
+        uint flow = U(0x755294), receiver = ctx.Ecx;
+        if (flow < 0x10000 || U(flow) != 0x702D2C || receiver < 0x10000 || (receiver & 3) != 0 ||
+            U(receiver) != 0x710874 || U(receiver + 0x10) != 28 || ctx.Esp < 0x10000 || (ctx.Esp & 3) != 0)
+            throw new InvalidDataException("Progression Exit release lost its original typed Alfea28 Flow/receiver/stack.");
+        uint depth = U(flow + 0x1AC), caller = U(ctx.Esp);
+        if (depth >= 20 || U(flow + 0x15C + depth * 4) != receiver ||
+            caller is not (0x596617 or 0x5966B0 or 0x596574) || ctx.Edx != 0x710874 || ctx.Eax != U(ctx.Esp + 4) ||
+            (_ordinaryFunction == 0x595450 ? _ordinaryThis != flow :
+                _ordinaryFunction != 0x4E7580 || U(0x765AD4) != _ordinaryThis || U(_ordinaryThis) != 0x6F5A44))
+            throw new InvalidDataException("Progression Exit release is not its exact original virtual caller or canonical reload receiver.");
+        uint limit = checked(_pageAddress + PageSize);
+        bool InPage(uint value) => value >= _pageAddress && value < limit;
+        if (_ordinaryReturn < _pageAddress || _ordinaryReturn >= limit ||
+            _trapAddress < _pageAddress || _trapAddress >= limit ||
+            _resultAddress != checked(_pageAddress + ResultOffset) || host.Breakpoints.Contains(_trapAddress) ||
+            new[] { full.Eip, full.Esp, full.Eax, full.Ebx, full.Ecx, full.Edx, full.Esi, full.Edi, full.Ebp,
+                caller, _resumeEip }.Any(InPage))
+            throw new InvalidDataException("Progression Exit still references or owns an unconsumed private completion page.");
+        if (!VirtualFreeEx(host.ProcessHandle, _page, UIntPtr.Zero, MemRelease))
+            throw new Win32Exception(Marshal.GetLastWin32Error(), "Completed progression request page release before original Exit failed.");
+        uint freedAddress = _pageAddress;
+        _page = IntPtr.Zero; _pageAddress = 0; _retired = false; _retiredOrdinaryProgression = false; ++_freedAtProgressionExit;
+        _log(new { @event = "native-call-page-released-before-progression-exit", threadId,
+            page = Hex(freedAddress), originalExitEntry = Hex(entry), originalExitCaller = Hex(caller),
+            completedFunction = Hex(_ordinaryFunction), completedArguments = _ordinaryArguments,
+            completedCallSequence = _completedCallSequence, completedDebugStop = _completedDebugStop,
+            actualLaterDebugStop = host.DebugStopSequence, atLaterWorldStop = false,
+            fullLegacyEntryContextMatched = true, currentInstructionAndGpRegistersOutsidePrivatePage = true,
+            privateCompletionProbeConsumed = true, ordinaryCallAlreadyReturned = true,
+            originalExitFirstInstructionNotExecuted = true, actualOriginalExitReturnNotClaimed = true,
+            nativeContextWrites = 0, otherThreadOrWholeHeapPointerScanClaimed = false });
+    }
+
+    /// <summary>Only the explicitly captured Guest MainMenu request may use this later original replace-Exit stop.</summary>
+    internal void ReleaseRetiredBeforeGuestProgressionExit(DebuggerHost host, uint threadId,
+        ref Win32Native.X86Context ctx, uint entry, byte expectedFirstByte,
+        uint menuId, uint menuObject, uint level)
+    {
+        if (Pending) throw new InvalidOperationException("Cannot release an active Guest menu request page.");
+        if (!_retired) return;
+        if (_terminalFailure || !ReferenceEquals(host, _host) || !_retiredOrdinaryGuestMenu ||
+            _entryBatch || _dependencyActive || _completedCallSequence != _sequence || _completed != _sequence ||
+            _sequence == 0 || host.DebugStopSequence <= _completedDebugStop || threadId != _threadId ||
+            entry != 0x5F86C0 || expectedFirstByte != 0x53 || _page == IntPtr.Zero || _pageAddress == 0 ||
+            _resumeEip != _originalReturnAddress || _resumeEsp != checked(_saved.Esp + 4) ||
+            level is not (3 or 28) || menuId is < 51 or > 80 ||
+            _ordinaryFunction != 0x595450 || !_ordinaryArguments.AsSpan().SequenceEqual(new uint[] { menuId, 0 }))
+            throw new InvalidDataException("Guest progression Exit release does not own its completed exact MainMenu request page.");
+        Win32Native.X86Context full = VerifyEntryStop(host, threadId, ref ctx, entry, expectedFirstByte);
+        uint U(uint address) => Win32Native.ReadUInt32(host.ProcessHandle, address);
+        uint flow = U(0x755294), receiver = ctx.Ecx;
+        if (flow < 0x10000 || (flow & 3) != 0 || U(flow) != 0x702D2C || _ordinaryThis != flow ||
+            receiver < 0x10000 || (receiver & 3) != 0 || U(receiver) != 0x710874 || U(receiver + 0x10) != level ||
+            ctx.Esp < 0x10000 || (ctx.Esp & 3) != 0 || menuObject < 0x10000 || (menuObject & 3) != 0 ||
+            U(flow + 0x18 + menuId * 4) != menuObject || U(menuObject) != 0x7102A8 || U(menuObject + 0x10) != menuId)
+            throw new InvalidDataException("Guest progression Exit release lost its captured original Flow, Playing or registered MainMenu identity.");
+        uint depth = U(flow + 0x1AC), caller = U(ctx.Esp);
+        if (depth >= 20 || U(flow + 0x15C + depth * 4) != receiver || caller != 0x596617 ||
+            ctx.Edx != 0x710874 || ctx.Eax != U(ctx.Esp + 4))
+            throw new InvalidDataException("Guest progression Exit release is not the exact original MainMenu replace virtual caller.");
+        uint limit = checked(_pageAddress + PageSize);
+        bool InPage(uint value) => value >= _pageAddress && value < limit;
+        if (_ordinaryReturn < _pageAddress || _ordinaryReturn >= limit ||
+            _trapAddress < _pageAddress || _trapAddress >= limit ||
+            _resultAddress != checked(_pageAddress + ResultOffset) || host.Breakpoints.Contains(_trapAddress) ||
+            new[] { full.Eip, full.Esp, full.Eax, full.Ebx, full.Ecx, full.Edx, full.Esi, full.Edi, full.Ebp,
+                caller, _resumeEip }.Any(InPage))
+            throw new InvalidDataException("Guest progression Exit still references or owns an unconsumed private completion page.");
+        if (!VirtualFreeEx(host.ProcessHandle, _page, UIntPtr.Zero, MemRelease))
+            throw new Win32Exception(Marshal.GetLastWin32Error(), "Completed Guest menu request page release before original Exit failed.");
+        uint freedAddress = _pageAddress;
+        _page = IntPtr.Zero; _pageAddress = 0; _retired = false; _retiredOrdinaryGuestMenu = false; ++_freedAtProgressionExit;
+        _log(new { @event = "native-call-page-released-before-guest-progression-exit", threadId,
+            page = Hex(freedAddress), originalExitEntry = Hex(entry), originalExitCaller = Hex(caller), level,
+            nativeMenuId = menuId, nativeMenuObject = Hex(menuObject),
+            completedFunction = Hex(_ordinaryFunction), completedArguments = _ordinaryArguments,
+            completedCallSequence = _completedCallSequence, completedDebugStop = _completedDebugStop,
+            actualLaterDebugStop = host.DebugStopSequence, atLaterWorldStop = false,
+            fullLegacyEntryContextMatched = true, currentInstructionAndGpRegistersOutsidePrivatePage = true,
+            privateCompletionProbeConsumed = true, ordinaryCallAlreadyReturned = true,
+            originalExitFirstInstructionNotExecuted = true, actualOriginalExitReturnNotClaimed = true,
+            nativeContextWrites = 0, otherThreadOrWholeHeapPointerScanClaimed = false });
     }
 
     private static Win32Native.X86Context VerifyWorldStop(DebuggerHost host, uint threadId, ref Win32Native.X86Context ctx)

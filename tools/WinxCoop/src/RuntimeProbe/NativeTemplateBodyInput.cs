@@ -270,13 +270,14 @@ internal sealed partial class NativeTemplateProbe
         Require((_bodyInputFixture || _networkInputFixture) && _host.IsAtDebugStop &&
             _stage == 6 && _idleActive && !_dependentInterval && _sharedBattleCaptured && !_sharedBattleUnloadStarted &&
             _healthBattleHolding && _healthBattleFastRouteStarted &&
-            _level == (_ordinaryNetwork ? 47u : 28u) && DescriptorCount == 8 &&
-            _sharedHealthAlias?.Active == true && _ownCommand != _command && _ownRoot != _localRoot,
+            _level == RetainedInputLevel && DescriptorCount == RetainedInputDescriptorCount &&
+            RetainedInputHealthAliasReady && _ownCommand != _command && _ownRoot != _localRoot,
             "Body input escaped its stopped retained live ownership interval.");
         byte[] instance = Read(_instance, 0x28), root = Read(_ownRoot, 0x40), character = Read(_character, 0x150),
             move = Read(_move, 0x164), machine = Read(_machine, 0x134), animator = Read(_animator, 0x12C), traits = Read(_traits, 0x190);
         static uint W(byte[] bytes, int offset) => BitConverter.ToUInt32(bytes, offset);
-        Require(W(instance, 0) == 0x710F80 && W(instance, 0x14) == _template && W(instance, 0x20) == 8 && W(instance, 0x24) == _ownRoot &&
+        Require(W(instance, 0) == 0x710F80 && W(instance, 0x14) == _template &&
+            W(instance, 0x20) == RetainedInputDescriptorCount && W(instance, 0x24) == _ownRoot &&
             W(root, 0) == VisualGraphReader.NodeVtable && W(root, 0x2C) == _parent && W(root, 0x3C) == _scene &&
             W(character, 0) == 0x6F6438 && W(character, 0x18) == _ownRoot && W(character, 0x24) == _instance &&
             W(character, 0x124) == _machine && W(character, 0x128) == _animator && W(character, 0x12C) == _move &&
@@ -285,7 +286,8 @@ internal sealed partial class NativeTemplateProbe
             W(machine, 0x124) == _character && W(machine, 0x128) == 0 && W(machine, 0x12C) == _ownCommand &&
             W(animator, 0) == 0x6F670C && W(animator, 0x124) == _character && W(animator, 0x128) == _ownActor &&
             W(traits, 0) == 0x6F6990 && W(traits, 0x24) == _instance && W(traits, 0x18C) == _character &&
-            U(_ownActor) == 0x703F80 && U(_projectileManager) == 0x6F73D8 &&
+            U(_ownActor) == 0x703F80 &&
+            (StoryNetworkOutcomeCohort ? _projectileManager == 0 : U(_projectileManager) == 0x6F73D8) &&
             U(0x765AD4) == _profile && U(_profile + 0x2B4) == _record && U(_localCharacter + 0x130) == _command &&
             U(_localCharacter + 0x138) == _playerTraitsPrimaryTraits && U(0x755294) == _flow && U(0x755298) == _sharedBattleTimer &&
             U(0x7552A0) == _input && U(_input + 0x18) == _command && U(_input + 0x1C) == _device &&

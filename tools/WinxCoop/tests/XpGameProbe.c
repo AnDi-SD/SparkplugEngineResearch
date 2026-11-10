@@ -21,6 +21,7 @@ void* __cdecl memset(void* output,int value,size_t size)
 { volatile unsigned char* to=(volatile unsigned char*)output;size_t i;for(i=0;i<size;++i)to[i]=(unsigned char)value;return output; }
 
 static char Game[MAX_PATH],Media[MAX_PATH],Report[MAX_PATH],Directory[MAX_PATH];
+static char NamedJob[96];
 static char Token[512],SidecarPath[MAX_PATH],Sidecar[1025],Command[MAX_PATH+3];
 static char D3DPath[MAX_PATH],LoadedD3DPath[MAX_PATH],Json[8192];
 static BYTE Previous[8192],Verified[8192];
@@ -36,6 +37,8 @@ static DWORD JobQueryCalls,JobInitialActive,JobLastActive,JobTotalAssigned,JobCl
 static DWORD ObservationLimitMs=40000;
 static int HaveGame,HaveMedia,HaveReport,SidecarUsed,VersionOK,SnapshotOK,PreviousExists;
 static int HaveObserve;
+static int ProcessLocalMediaRequested,HaveNamedJob,NamedJobFresh,NamedJobCollision,ExistingNamedHandleClosed;
+static int RegistryPrepareEntered,RegistryRestoreEntered;
 static int OverrideAttempted,OverrideOK,RestoreAttempted,RestoreVerified,CreatedProcess,TimedOut,Terminated,ChildStopped;
 static int JobCreated,JobConfigured,JobAssigned,JobTerminateAttempted,JobTerminated,JobActiveZero,JobClosed;
 static int JobInitialObserved,JobLastQuerySucceeded;
@@ -150,6 +153,35 @@ static int ParseObservationLimit(const char* text)
     if(value<1000||value>3700000)return Fail("observe-ms-range");
     ObservationLimitMs=value;return 1;
 }
+static int ProcessLocalArguments(void)
+{
+    static const char prefix[]="Local\\WinxCoop.E6.";
+    static const char sessionPrefix[]="Local\\WinxCoop.E7.";
+    DWORD i,n=Length(NamedJob),start=sizeof(prefix)-1;
+    int matchDiagnostic=1,matchSession=1;char c;
+    if(!ProcessLocalMediaRequested)
+    {if(HaveNamedJob)return Fail("job-name-requires-process-local-media");return 1;}
+    /* Refuse the global registry/lease broker before any such operation.
+       This mode relies on the child's separately qualified local resolver. */
+    if(OwnMediaLeaseRequested||HaveNextMedia)return Fail("process-local-media-rejects-lease-broker");
+    if(!HaveNamedJob)return Fail("process-local-media-requires-job-name");
+    if(n<=start||n>start+64)return Fail("process-local-job-name-bound");
+    /* E7 uses the same process-local resolver/owned Job contract with a
+       distinct namespace. Neither branch opens the registry lease broker. */
+    for(i=0;i<start;++i)
+    {
+        if(NamedJob[i]!=prefix[i])matchDiagnostic=0;
+        if(NamedJob[i]!=sessionPrefix[i])matchSession=0;
+    }
+    if(!matchDiagnostic&&!matchSession)return Fail("process-local-job-name-prefix");
+    for(i=start;i<n;++i)
+    {
+        c=NamedJob[i];
+        if(!((c>='A'&&c<='Z')||(c>='a'&&c<='z')||(c>='0'&&c<='9')||c=='_'||c=='-'||c=='.'))
+            return Fail("process-local-job-name-ascii");
+    }
+    return 1;
+}
 static int LoadSidecar(void)
 {
     HANDLE h;DWORD n,high=0,size,read=0,i;BOOL ok;
@@ -182,9 +214,12 @@ static int Arguments(void)
         else if(Equal(Token,"--observe-ms")){if(HaveObserve||Next(&p,Token,sizeof(Token))!=1||!ParseObservationLimit(Token))return Fail("observe-ms-argument");HaveObserve=1;}
         else if(Equal(Token,"--own-media-lease")){if(OwnMediaLeaseRequested)return Fail("duplicate-own-media-lease");OwnMediaLeaseRequested=1;}
         else if(Equal(Token,"--next-media")){if(HaveNextMedia||Next(&p,NextMedia,sizeof(NextMedia))!=1)return Fail("next-media-argument");HaveNextMedia=1;}
+        else if(Equal(Token,"--process-local-media")){if(ProcessLocalMediaRequested)return Fail("duplicate-process-local-media");ProcessLocalMediaRequested=1;}
+        else if(Equal(Token,"--job-name")){if(HaveNamedJob||Next(&p,NamedJob,sizeof(NamedJob))!=1)return Fail("job-name-argument");HaveNamedJob=1;}
         else return Fail("unknown-argument");next=Next(&p,Token,sizeof(Token));
     }
     if(next<0||!HaveGame||!HaveMedia||!HaveReport||!Absolute(Game)||!Absolute(Media)||!Absolute(Report))return Fail("absolute-ascii-arguments");
+    if(!ProcessLocalArguments())return 0;
     n=Length(Media);if(n<3||n+2>sizeof(Media))return Fail("media-bound");
     if(Media[n-1]!='\\'){Media[n++]='\\';Media[n]=0;}
     attributes=GetFileAttributesA(Game);if(attributes==INVALID_FILE_ATTRIBUTES||(attributes&FILE_ATTRIBUTE_DIRECTORY)){ArgumentError=GetLastError();return Fail("game-file");}
@@ -222,6 +257,7 @@ static void Graphics(void)
 static int PrepareRegistry(void)
 {
     LONG result;DWORD size;
+    RegistryPrepareEntered=1;
     result=RegCreateKeyExA(HKEY_LOCAL_MACHINE,"Software\\Konami",0,0,REG_OPTION_NON_VOLATILE,KEY_READ|KEY_WRITE,0,&ParentKey,&ParentDisposition);
     if(result!=ERROR_SUCCESS){RegistryOpenError=(DWORD)result;return Fail("registry-parent-open");}
     result=RegCreateKeyExA(ParentKey,"Winx Club",0,0,REG_OPTION_NON_VOLATILE,KEY_READ|KEY_WRITE,0,&GameKey,&GameDisposition);
@@ -253,6 +289,7 @@ static void RestoreRegistry(void)
     /* No registry mutation may precede positive owned-tree stop evidence.
        A failed job query is not evidence that no descendants remain. */
     int safe=!CreatedProcess||ProcessTreeStopped;
+    RegistryRestoreEntered=1;
     if(!safe){RestoreBlockedByProcessTree=1;Fail("registry-rollback-blocked-process-tree");}
     if(GameKey)
     {
@@ -306,11 +343,23 @@ static void ReleaseMediaLease(void)
 }
 static int PrepareChildJob(void)
 {
-    JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits;
-    ChildJob=CreateJobObjectA(0,0);
+    JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits;DWORD error;
+    SetLastError(ERROR_SUCCESS);
+    ChildJob=CreateJobObjectA(0,ProcessLocalMediaRequested?NamedJob:0);
+    error=GetLastError();
     if(!ChildJob){JobCreateError=GetLastError();return Fail("child-job-create");}
+    if(ProcessLocalMediaRequested&&error==ERROR_ALREADY_EXISTS)
+    {
+        /* The returned handle names someone else's existing object. Close
+           only our opened handle; never configure or terminate that job. */
+        NamedJobCollision=1;JobCreateError=error;
+        if(CloseHandle(ChildJob))ExistingNamedHandleClosed=1;else JobCloseError=GetLastError();
+        ChildJob=0;return Fail("child-job-name-already-exists");
+    }
+    NamedJobFresh=ProcessLocalMediaRequested;
     JobCreated=1;memset(&limits,0,sizeof(limits));
-    /* Unnamed, non-inheritable handle; neither breakaway flag is enabled.
+    /* The default remains unnamed. An explicitly named E6 job must be fresh;
+       the handle remains non-inheritable and neither breakaway flag is set.
        All descendants remain in this job, even if the direct child exits. */
     limits.BasicLimitInformation.LimitFlags=JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
     if(!SetInformationJobObject(ChildJob,JobObjectExtendedLimitInformation,&limits,sizeof(limits)))
@@ -603,11 +652,20 @@ static void Caps(const char* name,const D3DCAPS9* caps,int called,HRESULT hr)
     {N("deviceType",caps->DeviceType);N("devCaps",caps->DevCaps);N("vertexShaderVersion",caps->VertexShaderVersion);N("pixelShaderVersion",caps->PixelShaderVersion);N("maxTextureWidth",caps->MaxTextureWidth);N("maxTextureHeight",caps->MaxTextureHeight);N("maxSimultaneousTextures",caps->MaxSimultaneousTextures);}
     Append("}");
 }
+static int RegistryPolicySatisfied(void)
+{
+    if(!ProcessLocalMediaRequested)return RestoreVerified;
+    return !RegistryPrepareEntered&&!RegistryRestoreEntered&&!ParentKey&&!GameKey&&!RegistryOpenError&&
+        !SnapshotOK&&!OverrideAttempted&&!OverrideOK&&!RestoreAttempted&&!RestoreVerified&&!LanguageQueried&&
+        !OwnMediaLeaseRequested&&!MediaLease&&!MediaLeaseOwned&&!HaveNextMedia&&!BrokerStateWritten&&!BrokerSwitchAttempted&&
+        HaveNamedJob&&NamedJobFresh&&!NamedJobCollision;
+}
 static int WriteReport(void)
 {
-    DWORD written=0;BOOL ok;int completed=CreatedProcess&&ChildStopped&&ProcessTreeStopped&&RestoreVerified&&Equal(Failure,"none");
+    DWORD written=0;BOOL ok;int completed=CreatedProcess&&ChildStopped&&ProcessTreeStopped&&RegistryPolicySatisfied()&&Equal(Failure,"none");
     Append("{\"kind\":\"XP32-original-game-graphics-probe\",\"testOnly\":true,\"probeCompleted\":");Append(completed?"true":"false");
     S("failure",Failure);N("pid",GetCurrentProcessId());N("elapsedMs",(DWORD)(GetTickCount()-Began));B("sidecarUsed",SidecarUsed);N("argumentError",ArgumentError);S("game",Game);S("media",Media);
+    B("processLocalMedia",ProcessLocalMediaRequested);S("registryPolicy",ProcessLocalMediaRequested?"not-opened":"override-and-rollback");S("jobName",NamedJob);
     Append(",\"os\":{\"querySucceeded\":");Append(VersionOK?"true":"false");N("major",Version.dwMajorVersion);N("minor",Version.dwMinorVersion);N("build",Version.dwBuildNumber);N("servicePackMajor",Version.wServicePackMajor);Append("}");
     Append(",\"graphics\":{\"create9ReturnedInterface\":");Append(D3D?"true":"false");S("requestedModule",D3DPath);S("loadedModule",LoadedD3DPath);N("loadError",D3DError);N("modulePathError",ModulePathError);N("sdkVersion",D3D_SDK_VERSION);
     B("identifierCalled",IdentifierCalled);N("identifierHR",(DWORD)IdentifierHR);
@@ -616,8 +674,10 @@ static int WriteReport(void)
     Caps("HAL",&HalCaps,HalCapsCalled,HalCapsHR);Caps("REF",&RefCaps,RefCapsCalled,RefCapsHR);
     B("halWindowedCheckCalled",HalCheckCalled);N("halWindowedCheckHR",(DWORD)HalCheckHR);B("refWindowedCheckCalled",RefCheckCalled);N("refWindowedCheckHR",(DWORD)RefCheckHR);N("releasedReferenceCount",ReleasedRefs);N("freeLibraryError",FreeLibraryError);Append("}");
     Append(",\"registry\":{\"onlyValue\":");String("HKLM\\Software\\Konami\\Winx Club\\MediaPath");
+    B("preparationCalled",RegistryPrepareEntered);B("restorationCalled",RegistryRestoreEntered);
     N("parentDisposition",ParentDisposition);N("gameDisposition",GameDisposition);N("openError",RegistryOpenError);B("snapshotOK",SnapshotOK);B("previousValueExisted",PreviousExists);N("previousType",PreviousType);N("previousBytes",PreviousSize);N("snapshotError",SnapshotError);B("overrideAttempted",OverrideAttempted);B("overrideOK",OverrideOK);N("overrideError",OverrideError);B("restoreAttempted",RestoreAttempted);B("restoreVerified",RestoreVerified);B("restoreBlockedByProcessTree",RestoreBlockedByProcessTree);N("restoreError",RestoreError);N("verifyError",VerifyError);N("gameKeyDeleteError",GameDeleteError);N("parentKeyDeleteError",ParentDeleteError);N("closeError",RegistryCloseError);B("languageQueried",LanguageQueried);N("languageQueryStatus",LanguageStatus);N("languageType",LanguageType);N("languageBytes",LanguageBytes);N("languageValue",LanguageValue);Append("}");
     Append(",\"job\":{\"created\":");Append(JobCreated?"true":"false");B("configuredKillOnClose",JobConfigured);B("assignedBeforeResume",JobAssigned);B("resumeAttempted",ResumeAttempted);B("childResumed",ChildResumed);N("resumeResult",ResumeResult);N("resumeError",ResumeError);B("cleanupAttempted",ProcessCleanupAttempted);B("terminateAttempted",JobTerminateAttempted);B("terminateSucceeded",JobTerminated);N("queryCalls",JobQueryCalls);B("initialQuerySucceeded",JobInitialObserved);B("lastQuerySucceeded",JobLastQuerySucceeded);N("initialActiveProcesses",JobInitialActive);N("lastActiveProcesses",JobLastActive);N("totalAssignedProcesses",JobTotalAssigned);B("activeProcessesZeroVerified",JobActiveZero);B("ownedTreeStopped",ProcessTreeStopped);N("cleanupMs",JobCleanupMs);B("handleClosed",JobClosed);N("createError",JobCreateError);N("configureError",JobConfigureError);N("assignError",JobAssignError);N("terminateError",JobTerminateError);N("queryError",JobQueryError);N("closeError",JobCloseError);Append("}");
+    Append(",\"namedJob\":{\"requested\":");Append(HaveNamedJob?"true":"false");S("name",NamedJob);B("freshCreated",NamedJobFresh);B("existingNameRejected",NamedJobCollision);B("existingNameHandleClosed",ExistingNamedHandleClosed);Append("}");
     Append(",\"mediaLease\":{\"owned\":");Append(MediaLeaseOwned?"true":"false");B("requested",OwnMediaLeaseRequested);B("closed",MediaLeaseClosed);N("createError",MediaLeaseCreateError);N("closeError",MediaLeaseCloseError);Append("}");
     Append(",\"mediaBroker\":{\"enabled\":");Append(HaveNextMedia?"true":"false");
     B("pathsPreflighted",BrokerPathsReady);B("stateWrittenBeforeResume",BrokerStateWritten);B("initialHostReadback",BrokerHostReadback);
@@ -636,16 +696,18 @@ static int WriteReport(void)
 }
 __declspec(noreturn) void __cdecl ProbeEntry(void)
 {
-    int completed;
+    int completed,argumentsReady;
     Began=GetTickCount();Version.dwOSVersionInfoSize=sizeof(Version);VersionOK=GetVersionExA((OSVERSIONINFOA*)&Version)!=0;
     /* The P launcher already owns/inherits this event. Only a standalone
        supervisor explicitly asks to become the new lease owner. */
-    if(Arguments()&&(!OwnMediaLeaseRequested||AcquireMediaLease())){Graphics();if(PrepareRegistry())LaunchGame();}
-    RestoreRegistry();
+    argumentsReady=Arguments();
+    if(argumentsReady&&ProcessLocalMediaRequested){Graphics();LaunchGame();}
+    else if(argumentsReady&&(!OwnMediaLeaseRequested||AcquireMediaLease())){Graphics();if(PrepareRegistry())LaunchGame();}
+    if(!ProcessLocalMediaRequested)RestoreRegistry();
     if(D3D)ReleasedRefs=IDirect3D9_Release(D3D);
     if(D3DModule&&!FreeLibrary(D3DModule)){FreeLibraryError=GetLastError();Fail("d3d-library-close");}
-    ReleaseMediaLease();
-    completed=CreatedProcess&&ChildStopped&&ProcessTreeStopped&&RestoreVerified&&Equal(Failure,"none");
+    if(!ProcessLocalMediaRequested)ReleaseMediaLease();
+    completed=CreatedProcess&&ChildStopped&&ProcessTreeStopped&&RegistryPolicySatisfied()&&Equal(Failure,"none");
     if(!WriteReport())ExitProcess(3);
     ExitProcess(completed?0:4);
 }

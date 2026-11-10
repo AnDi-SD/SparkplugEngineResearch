@@ -17,7 +17,7 @@
   </StackPanel>
 
   <Border Grid.Row="1" Margin="0,16,0,10" Padding="10" Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1">
-   <TextBlock TextWrapping="Wrap" Text="Галочка означает: показывать внешние длинные волосы у игрового персонажа и у отдельной preview-модели в меню костюмов. Bloom X получает волосы обычным загрузчиком, но использует упрощённую логику без стандартной hair-физики. Только Winter является штатным исключением."/>
+   <TextBlock TextWrapping="Wrap" Text="Установите флажок, чтобы показать внешние волосы. Снимите флажок, чтобы скрыть их. Настройка действует на игрового персонажа и на модель в меню костюмов. У Winter внешние волосы штатно скрыты. Bloom X использует упрощённую физику волос."/>
   </Border>
 
   <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">

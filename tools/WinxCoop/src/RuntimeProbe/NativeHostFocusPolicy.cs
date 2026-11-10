@@ -5,9 +5,11 @@ using SmoNativeValidator.Core;
 namespace WinxCoop.RuntimeProbe;
 
 /// <summary>
-/// Explicit bounded Host-network-fixture policy at the original focus-pause
-/// calls and their matched focus-start call. The caller supplies a cached own-body readiness predicate and retires
-/// this policy before native unload. This is not a general background-play mode.
+/// Explicit bounded Host-network or quarantined Guest-presentation policy at
+/// the original focus-pause calls and their matched focus-start call. The caller
+/// supplies a cached readiness predicate and retires this policy before native
+/// unload. The Guest opt-in requires separately owned gameplay quarantine; it
+/// preserves native input-disable rather than enabling background gameplay.
 /// </summary>
 internal sealed class NativeHostFocusPolicy
 {
@@ -21,6 +23,7 @@ internal sealed class NativeHostFocusPolicy
     private readonly DebuggerHost _host;
     private readonly Action<object> _log;
     private readonly Func<bool> _cachedHostOwnBodyReady;
+    private readonly bool _quarantinedGuestPresentation;
     private readonly IntPtr _process;
     private readonly uint _pid, _thread;
     private readonly int _owner;
@@ -28,13 +31,14 @@ internal sealed class NativeHostFocusPolicy
     private bool _pollPending, _messagePending, _startPending, _qualifiedFocusPauseOutstanding;
     private uint _callbacks, _pollSkips, _messageSkips, _unreadyPassThrough, _pausedPassThrough, _retiredPassThrough;
     private uint _nonNeutralPassThrough;
+    private uint _guestNonNeutralPauseSkips;
     private uint _startSkips, _unpairedStartPassThrough, _unreadyStartPassThrough, _pausedStartPassThrough, _inactiveStartPassThrough;
     private uint _startDetailedLogs;
     private uint _detailedLogs, _lastStop, _timer, _input, _command;
     private string _failure = "";
 
     internal NativeHostFocusPolicy(DebuggerHost host, PEReader image, Action<object> log,
-        Func<bool> cachedHostOwnBodyReady)
+        Func<bool> cachedHostOwnBodyReady, bool quarantinedGuestPresentation = false)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(log); ArgumentNullException.ThrowIfNull(cachedHostOwnBodyReady);
@@ -56,18 +60,24 @@ internal sealed class NativeHostFocusPolicy
             Image(image, 0x450860, 22).SequenceEqual(Convert.FromHexString("A170F6750033D2F73550E07400C64618018946205EC3")),
             "Host focus start caller, ignored return value, timer slot or native time-base reset differs.");
         _host = host; _log = log; _cachedHostOwnBodyReady = cachedHostOwnBodyReady;
+        _quarantinedGuestPresentation = quarantinedGuestPresentation;
         _process = host.ProcessHandle; _pid = host.ProcessPid; _thread = host.MainThreadId;
         _owner = Environment.CurrentManagedThreadId;
     }
 
     internal object Summary => new
     {
-        enabledOnlyByExplicitHostFixtureComposition = true,
+        policyRole = PolicyRole,
+        enabledOnlyByExplicitHostFixtureComposition = !_quarantinedGuestPresentation,
+        enabledOnlyByExplicitQuarantinedGuestPresentation = _quarantinedGuestPresentation,
         installationAttempted = _installationAttempted, installed = _installed, retired = _retired,
         failed = _failed, failure = _failure, callbacks = _callbacks,
         getFocusPollPauseSkips = _pollSkips, killFocusMessagePauseSkips = _messageSkips,
         unreadyNativePassThrough = _unreadyPassThrough, alreadyPausedNativePassThrough = _pausedPassThrough,
         nonNeutralNativePassThrough = _nonNeutralPassThrough,
+        guestNonNeutralFocusPauseSkips = _guestNonNeutralPauseSkips,
+        primaryNeutralRequiredForHostSimulation = true,
+        guestNonNeutralAllowanceRequiresGameplayQuarantineAndNativeInputDisabled = _quarantinedGuestPresentation,
         qualifiedFocusPauseOutstanding = _qualifiedFocusPauseOutstanding,
         pairedFocusStartSkips = _startSkips, unpairedStartNativePassThrough = _unpairedStartPassThrough,
         unreadyStartNativePassThrough = _unreadyStartPassThrough, pausedStartNativePassThrough = _pausedStartPassThrough,
@@ -103,9 +113,12 @@ internal sealed class NativeHostFocusPolicy
             InstallRepeater(MessagePause, "HostFocus.WM_KILLFOCUS.pause");
             InstallRepeater(MessageStart, "HostFocus.WM_SETFOCUS.matched-start");
             _log(new { @event = "host-focus-policy-installed", poll = Hex(PollPause), message = Hex(MessagePause),
+                policyRole = PolicyRole,
                 matchedStart = Hex(MessageStart), originalStart = "FF5220",
                 original = "FF5224", processPid = _pid, mainThread = _thread,
-                onlyExplicitHostNetworkFixture = true, timerWrites = 0, inputEnableWrites = 0 });
+                onlyExplicitHostNetworkFixture = !_quarantinedGuestPresentation,
+                onlyExplicitQuarantinedGuestPresentation = _quarantinedGuestPresentation,
+                timerWrites = 0, inputEnableWrites = 0 });
         }
         catch (Exception error)
         {
@@ -123,6 +136,7 @@ internal sealed class NativeHostFocusPolicy
         // Each remaining one-shot callback returns normally on its next hit;
         // the existing breakpoint owner also restores it during session cleanup.
         _log(new { @event = "host-focus-policy-retired", pollSkips = _pollSkips,
+            policyRole = PolicyRole, guestNonNeutralFocusPauseSkips = _guestNonNeutralPauseSkips,
             messageSkips = _messageSkips, noRemoteReads = true,
             pendingPoll = _pollPending, pendingMessage = _messagePending, pendingStart = _startPending,
             pairedStartSkips = _startSkips, qualifiedFocusPauseOutstanding = false });
@@ -180,12 +194,14 @@ internal sealed class NativeHostFocusPolicy
         byte[] values = Read(command, 0x22); // Deliberately excludes dead-byte5F.
         Require(BitConverter.ToUInt32(values) == CommandTable,
             "Host focus primary command type changed.");
-        if (BitConverter.ToSingle(values, 4) != 0f || values[0x1A] != 0 || values[0x20] != 0 || values[0x21] != 0)
+        bool nonNeutral = BitConverter.ToSingle(values, 4) != 0f || values[0x1A] != 0 || values[0x20] != 0 || values[0x21] != 0;
+        if (nonNeutral && !_quarantinedGuestPresentation)
         {
             _qualifiedFocusPauseOutstanding = false;
             ++_nonNeutralPassThrough;
             if (_nonNeutralPassThrough <= MaximumDetailedLogs)
                 _log(new { @event = "host-focus-nonneutral-native-pause-passthrough", site = Hex(site),
+                    policyRole = PolicyRole,
                     primaryMagnitude = BitConverter.ToSingle(values, 4), primaryJump = values[0x1A],
                     primaryOrdinary = values[0x20], primaryCharged = values[0x21],
                     originalCallPreserved = true, contextWrites = 0, primaryCommandWrites = 0 });
@@ -193,6 +209,10 @@ internal sealed class NativeHostFocusPolicy
         }
         Require(Read(input + 0x20, 1)[0] == 0,
             "Host focus bypass must preserve the preceding native input-disable operation.");
+        // A quarantined Guest does not execute this command in local gameplay.
+        // The original input-disable above also makes NativeInputCapture reject
+        // the source tuple and discard/fence pending input through its normal
+        // availability path. Only its presentation timer remains running.
         Require(_timer == 0 || _timer == timer && _input == input && _command == command,
             "Host focus live timer/input/command owners changed inside this bounded policy.");
         _timer = timer; _input = input; _command = command; _lastStop = _host.DebugStopSequence;
@@ -200,15 +220,18 @@ internal sealed class NativeHostFocusPolicy
         // ESP/GP/flags/FP field, native timer byte or command byte is written.
         context.Eip = checked(site + 3);
         _qualifiedFocusPauseOutstanding = true;
+        if (nonNeutral) ++_guestNonNeutralPauseSkips;
         if (site == PollPause) ++_pollSkips; else ++_messageSkips;
         if (_detailedLogs < MaximumDetailedLogs)
         {
             ++_detailedLogs;
             _log(new { @event = "host-focus-native-pause-skipped", site = Hex(site), next = Hex(context.Eip),
+                policyRole = PolicyRole,
                 debugStop = _lastStop, timer = Hex(timer), input = Hex(input), command = Hex(command),
                 primaryMagnitude = BitConverter.ToSingle(values, 4), primaryJump = values[0x1A],
                 primaryOrdinary = values[0x20], primaryCharged = values[0x21],
                 originalEsp = Hex(context.Esp), onlyEipChangedByCallback = true,
+                nonNeutralCommandAllowedOnlyForQuarantinedGuest = nonNeutral && _quarantinedGuestPresentation,
                 nativeInputRemainsDisabled = true, timerWrites = 0, privateCommandWrites = 0 });
         }
     }
@@ -260,6 +283,7 @@ internal sealed class NativeHostFocusPolicy
         {
             ++_startDetailedLogs;
             _log(new { @event = "host-focus-matched-native-start-skipped", site = Hex(MessageStart), next = Hex(context.Eip),
+                policyRole = PolicyRole,
                 debugStop = _lastStop, timer = Hex(timer), input = Hex(input), command = Hex(command),
                 priorQualifiedFocusPauseSkipped = true, qualifiedFocusPauseOutstanding = false,
                 before = TimerState(before), after = TimerState(after), nativePaused40 = paused,
@@ -277,6 +301,8 @@ internal sealed class NativeHostFocusPolicy
         paused24 = BitConverter.ToUInt32(state, 12), delta28Bits = BitConverter.ToUInt32(state, 16).ToString("X8"),
         delta28FloatText = BitConverter.ToSingle(state, 16).ToString("R", System.Globalization.CultureInfo.InvariantCulture)
     };
+
+    private string PolicyRole => _quarantinedGuestPresentation ? "QuarantinedGuestPresentation" : "HostSimulation";
 
     private void SetPending(uint site, bool value)
     {

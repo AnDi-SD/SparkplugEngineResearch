@@ -91,12 +91,18 @@ internal static class SmoCompositeModelResolver
 
         if (names.Count == 0 && !string.IsNullOrWhiteSpace(entity.Name))
             names.Add(StripNumberedPartSuffix(entity.Name, out _));
+        int ownerIndex = entity.Id.SceneObjectIndex;
+        string? staticPlacementName = (uint)ownerIndex < (uint)workspace.Document.Objects.Count &&
+            workspace.Document.Objects[ownerIndex] is { TypeHash: SmoClassIds.StaticRenderObject } owner
+            ? owner.Name.TrimEnd('\0')
+            : null;
         return new ModelAtom(
             index,
             entity,
             names.ToArray(),
             renderableIndices.ToArray(),
             sourceIndices.ToArray(),
+            staticPlacementName,
             bounds);
     }
 
@@ -241,6 +247,16 @@ internal static class SmoCompositeModelResolver
             right.HasBakedGeometry && !right.HasPlacedGeometry;
         bool strictSpatialPair =
             !sameRenderable && !crossRepresentation && !separateBakedRepresentations;
+        // Repeated static placement roots can inherit an identical child Model
+        // name. A matching projection cannot make their distinct placements
+        // components of one object. Numbered siblings are resolved above.
+        if (strictSpatialPair && left.Atoms.Length == 1 && right.Atoms.Length == 1 &&
+            left.Atoms[0].StaticPlacementName is { Length: > 0 } leftPlacementName &&
+            leftPlacementName.Equals(right.Atoms[0].StaticPlacementName, StringComparison.OrdinalIgnoreCase) &&
+            left.Atoms[0].Entity.WorldTransform != right.Atoms[0].Entity.WorldTransform)
+        {
+            return null;
+        }
 
         float nameAffinity = left.Names.SelectMany(leftName =>
                 right.Names.Select(rightName =>
@@ -547,6 +563,7 @@ internal static class SmoCompositeModelResolver
         string[] Names,
         int[] PartitionRenderableIndices,
         int[] SourceObjectIndices,
+        string? StaticPlacementName,
         ModelBounds Bounds);
 
     private sealed record ModelCluster(

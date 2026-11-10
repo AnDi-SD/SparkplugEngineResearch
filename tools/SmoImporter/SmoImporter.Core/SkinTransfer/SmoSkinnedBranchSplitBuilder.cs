@@ -350,23 +350,24 @@ internal static class SmoSkinnedBranchSplitBuilder
     /// </summary>
     public static SmoSkinnedRenderableOpacityPlan ClassifyRenderables(
         IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
-        ImportedTexture texture,
-        SkinnedRenderableMaterialProfile? materialProfile = null)
+        ImportedTexture? texture,
+        SkinnedRenderableMaterialProfile? materialProfile = null,
+        IReadOnlySet<int>? untexturedAlphaMaterialKeys = null)
     {
         ArgumentNullException.ThrowIfNull(meshes);
-        ArgumentNullException.ThrowIfNull(texture);
         materialProfile ??= SkinnedRenderableMaterialProfile.Default;
-        using Image<Rgba32> image = Image.Load<Rgba32>(texture.Data);
-        if (image.Width != texture.Width || image.Height != texture.Height)
+        using Image<Rgba32>? image = texture is null ? null : Image.Load<Rgba32>(texture.Data);
+        if (image is not null && texture is not null && (image.Width != texture.Width || image.Height != texture.Height))
         {
             throw new InvalidDataException(
                 $"Texture {texture.Name} declares {texture.Width}x{texture.Height}, " +
                 $"but its image is {image.Width}x{image.Height}.");
         }
 
-        bool[,] alpha = new bool[image.Height, image.Width];
-        int[,] prefix = new int[image.Height + 1, image.Width + 1];
-        image.ProcessPixelRows(accessor =>
+        int width = image?.Width ?? 1, height = image?.Height ?? 1;
+        bool[,] alpha = new bool[height, width];
+        int[,] prefix = new int[height + 1, width + 1];
+        image?.ProcessPixelRows(accessor =>
         {
             for (int y = 0; y < accessor.Height; y++)
             {
@@ -384,13 +385,13 @@ internal static class SmoSkinnedBranchSplitBuilder
 
         var classifications = new Dictionary<
             int, SmoSkinnedRenderableMaterialFamily[]>();
-        bool textureHasAlpha = prefix[image.Height, image.Width] > 0;
+        bool textureHasAlpha = prefix[height, width] > 0;
         int opaqueBodyCount = 0;
         int opaqueOverlayCount = 0;
         int alphaCount = 0;
         foreach (SmoSkinnedBranchSourceMesh mesh in meshes.OrderBy(item => item.Key))
         {
-            if (mesh.TextureCoordinates.Length != mesh.Positions.Length)
+            if (texture is not null && mesh.TextureCoordinates.Length != mesh.Positions.Length)
                 throw new InvalidDataException(
                     $"Mesh {mesh.Name} has no complete TEXCOORD_0 stream.");
             if (mesh.TriangleIndices.Length % 3 != 0)
@@ -413,12 +414,17 @@ internal static class SmoSkinnedBranchSplitBuilder
                         mesh.TextureCoordinates[first],
                         mesh.TextureCoordinates[second],
                         mesh.TextureCoordinates[third],
-                        image.Width,
-                        image.Height,
+                        width,
+                        height,
                         alpha,
                         prefix,
                         mesh.Name,
                         triangle);
+                if (texture is null)
+                    triangleUsesAlpha[triangle] = untexturedAlphaMaterialKeys?.Contains(mesh.Key) == true ||
+                        mesh.DiffuseColorsArgb.Length == mesh.Positions.Length &&
+                        (mesh.DiffuseColorsArgb[first] >> 24 < 255 ||
+                         mesh.DiffuseColorsArgb[second] >> 24 < 255 || mesh.DiffuseColorsArgb[third] >> 24 < 255);
             }
             SmoSkinnedRenderableMaterialFamily[] values =
                 materialProfile.GetMode(mesh.Key) switch
@@ -593,7 +599,7 @@ internal static class SmoSkinnedBranchSplitBuilder
     public static SmoSkinnedBranchSplitResult InjectImportedTexture(
         SmoDocument target,
         uint textureTemplateObjectId,
-        ImportedTexture importedTexture,
+        ImportedTexture? importedTexture,
         IReadOnlyList<SmoSkinnedBranchSourceMesh> meshes,
         SmoSkinnedRenderableOpacityPlan opacity,
         IReadOnlyDictionary<string, string> boneRemap,
@@ -640,7 +646,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         var addedObjectFamilies =
             new Dictionary<uint, SmoSkinnedRenderableMaterialFamily>();
         BuiltObject? importedTextureObject = null;
-        uint materialTextureObjectId = textureObjectId;
+        bool untextured = importedTexture is null && includeOpaqueBody;
+        uint materialTextureObjectId = untextured ? 0 : textureObjectId;
         if (importedTexture is not null)
         {
             uint importedTextureId = allocator.Take();
@@ -705,7 +712,8 @@ internal static class SmoSkinnedBranchSplitBuilder
                 meshId,
                 $"{prefix}_x_{materialTextureObjectId:X8}_{branchIndex:D2}",
                 plan,
-                boneRemap);
+                boneRemap,
+                preserveSourceDiffuse: untextured);
             SmoObjectEntry skinTemplate = plan.StartsRenderable
                 ? context.PrimarySkin
                 : context.ContinuationSkin;
@@ -752,7 +760,9 @@ internal static class SmoSkinnedBranchSplitBuilder
             materialTextureObjectId,
             importedTexture,
             targetInverseBind,
-            materialRunIndex);
+            materialRunIndex,
+            untextured ? meshes.SelectMany(mesh => mesh.DiffuseColorsArgb.Length == mesh.Positions.Length
+                ? mesh.DiffuseColorsArgb : [0xFFFFFFFFu]).ToHashSet() : null);
         return result;
     }
 
@@ -989,6 +999,8 @@ internal static class SmoSkinnedBranchSplitBuilder
             document, context.OpaqueMaterial, context.Texture);
         using var stream = new MemoryStream();
         stream.Write(source[..ObjectSignatureSize]);
+        if (textureObjectId == 0)
+            stream.Write(SmoDataBlockWriter.BuildField(1, new byte[] { 1 }));
         var placements = new List<ObjectPlacement>
         {
             new(id, RawName(name), SmoClassIds.MaterialData, 0, 0)
@@ -1001,8 +1013,13 @@ internal static class SmoSkinnedBranchSplitBuilder
             {
                 if (inlineTexture is not null)
                     WriteResizedInlineField(stream, source, field, inlineTexture, placements);
-                else
+                else if (textureObjectId != 0)
                     WriteReferenceOnlyField(stream, source, field, textureObjectId);
+            }
+            else if (textureObjectId == 0 && field.FieldType == 1)
+            {
+                // Vertex alpha is emitted above even when the template omitted
+                // its default-false field. Do not duplicate a template field.
             }
             else
             {
@@ -1028,7 +1045,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         uint id,
         string name,
         PalettePlan plan,
-        IReadOnlyDictionary<string, string> boneRemap)
+        IReadOnlyDictionary<string, string> boneRemap,
+        bool preserveSourceDiffuse = false)
     {
         SmoMesh template = SmoMeshDecoder.Decode(document, templateEntry);
         if (template.Marker != SmoMeshDecoder.E1Marker ||
@@ -1071,7 +1089,8 @@ internal static class SmoSkinnedBranchSplitBuilder
                         layout,
                         plan.MaterialFamily,
                         palette,
-                        boneRemap);
+                        boneRemap,
+                        preserveSourceDiffuse);
                     targetVertex = checked((ushort)records.Count);
                     records.Add(record);
                     vertexMap.Add(key, targetVertex);
@@ -1106,7 +1125,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         SmoVertexLayout layout,
         SmoSkinnedRenderableMaterialFamily materialFamily,
         IReadOnlyDictionary<string, byte> palette,
-        IReadOnlyDictionary<string, string> boneRemap)
+        IReadOnlyDictionary<string, string> boneRemap,
+        bool preserveSourceDiffuse)
     {
         uint diffuse = layout.DiffuseArgbOffset.HasValue ? materialFamily switch
         {
@@ -1115,7 +1135,9 @@ internal static class SmoSkinnedBranchSplitBuilder
             SmoSkinnedRenderableMaterialFamily.AlphaBlend => SkinnedTransparentSurfaceVertexDiffuse,
             _ => throw new InvalidOperationException($"Unsupported generated material family {materialFamily}.")
         } : 0;
-        Vector2 uv = mesh.TextureCoordinates[vertex];
+        if (preserveSourceDiffuse && layout.DiffuseArgbOffset.HasValue)
+            diffuse = mesh.DiffuseColorsArgb.Length == mesh.Positions.Length ? mesh.DiffuseColorsArgb[vertex] : 0xFFFFFFFF;
+        Vector2 uv = mesh.TextureCoordinates.Length == mesh.Positions.Length ? mesh.TextureCoordinates[vertex] : Vector2.Zero;
         Vector2 uv1 = SmoSkinnedUvTransfer.SecondaryOrPrimary(
             mesh.TextureCoordinates,
             mesh.SecondaryTextureCoordinates,
@@ -1345,7 +1367,8 @@ internal static class SmoSkinnedBranchSplitBuilder
         uint materialTextureObjectId,
         ImportedTexture? importedTexture,
         IReadOnlyDictionary<string, Matrix4x4> targetInverseBind,
-        int expectedMaterialRunCount)
+        int expectedMaterialRunCount,
+        IReadOnlySet<uint>? allowedUntexturedDiffuse = null)
     {
         // Verification reads the fresh result before it is returned to callers;
         // this temporary document does not escape or mutate the result buffer.
@@ -1554,8 +1577,8 @@ internal static class SmoSkinnedBranchSplitBuilder
                 SmoSkinnedRenderableMaterialFamily.AlphaBlend
                     ? OpaqueOverlayVertexDiffuse
                     : SkinnedTransparentSurfaceVertexDiffuse;
-            if (!mesh.HasDiffuseColors ||
-                mesh.DiffuseColorsArgb.Any(color => color != expectedDiffuse))
+            if (!mesh.HasDiffuseColors || mesh.DiffuseColorsArgb.Any(color =>
+                    allowedUntexturedDiffuse is null ? color != expectedDiffuse : !allowedUntexturedDiffuse.Contains(color)))
                 errors.Add(
                     $"generated mesh ID {meshId} changed {family} " +
                     $"vertex diffuse {expectedDiffuse:X8}");
@@ -1568,10 +1591,12 @@ internal static class SmoSkinnedBranchSplitBuilder
                     ? OpaqueOverlayMaterialRenderStates
                     : SkinnedTransparentSurfaceMaterialRenderStates;
             if (!bindings.TryGetValue(meshEntry.Index, out SmoTextureBinding? binding) ||
-                binding.Issue is not null || binding.Texture is null ||
-                output.Objects[binding.Texture.ObjectIndex].Id != materialTextureObjectId ||
+                binding.Issue is not null ||
+                (materialTextureObjectId == 0 ? binding.Texture is not null : binding.Texture is null ||
+                    output.Objects[binding.Texture.ObjectIndex].Id != materialTextureObjectId) ||
                 binding.MaterialRenderState?.FinalBlendOperation !=
                     expectedBlend ||
+                materialTextureObjectId == 0 && binding.LoadedMaterial?.VertexAlpha != 1 ||
                 !binding.MaterialRenderState.MaterialRenderStates
                     .SequenceEqual(expectedRenderStates))
             {

@@ -4,6 +4,7 @@
 // This bounded CPU shadow preserves the observed filter4 wrap coefficients,
 // source-order float stores and the RGBA codec's final rounding mode.
 #include "Code/SparkplugDX/spDXTexture.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -39,13 +40,15 @@ namespace sparkplug::evidence::pc::texture_mips
         const auto biased=PositiveFloatTowardZero(double(scaled)+.5);
         return static_cast<std::byte>(static_cast<unsigned>(biased));
     }
-    inline bool GenerateNext(const Mip& source,Mip& destination)
+    inline bool GenerateNext(const Mip& source,Mip& destination,bool allowLargeBgraInspection=false)
     {
         const auto width=source.width,height=source.height;
+        using namespace sparkplug::host::pc_texture_storage;
+        const auto maximumSource=allowLargeBgraInspection?BgraBytes:DefaultBytes;
         if(!width||!height||(width&(width-1))||(height&(height-1))||width>65535||height>65535
             ||(width==1&&height==1)||source.rowBytes!=width*4||source.rows!=height
             ||source.packedBytes.size()!=std::uint64_t(width)*height*4
-            ||source.packedBytes.size()>16u*1024u*1024u)return false;
+            ||source.packedBytes.size()>maximumSource)return false;
         Mip generated;
         if(!reconstruction::spDXTexture::DescribeMipForAnalysis(std::max(1u,width/2),std::max(1u,height/2),3,generated))return false;
         std::vector<float> sums(static_cast<std::size_t>(generated.rowBytes)*generated.rows,0);

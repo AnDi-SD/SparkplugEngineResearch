@@ -35,7 +35,7 @@ internal sealed unsafe class WorldStateClient : IDisposable
         const string prefix = "Local\\WinxCoop.WorldState1.";
         Require(identity.MappingName is not null && identity.MappingName.StartsWith(prefix, StringComparison.Ordinal) &&
             identity.MappingName.Length > prefix.Length && identity.MappingName.Length <= 160 &&
-            identity.MappingName.Skip(prefix.Length).All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_') &&
+            identity.MappingName.Skip(prefix.Length).All(c => RuntimeFramework.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '_') &&
             identity.Role is WorldStateRole.Host or WorldStateRole.Guest && identity.OwnerPid != 0 &&
             identity.OwnerCreationFileTime != 0 && identity.Nonce != 0 && identity.SessionId != 0 && identity.ScenarioId != 0 &&
             identity.LevelEpoch != 0 && identity.Generation != 0, "WorldState1 mapping identity is invalid.");
@@ -126,7 +126,12 @@ internal sealed unsafe class WorldStateClient : IDisposable
             byte[] slot = new byte[WorldStateContract.SnapshotSlotBytes];
             var prefix = new WorldStateSnapshotPrefix { Bytes = (uint)payload.Length, Revision = snapshot.Revision,
                 NativeTick = snapshot.NativeTick, Flags = snapshot.Flags };
+#if NET6_0
+            WorldStateSnapshotPrefix compatibilityPrefix = prefix;
+            MemoryMarshal.Write(slot.AsSpan(0, 64), ref compatibilityPrefix); payload.CopyTo(slot, 64);
+#else
             MemoryMarshal.Write(slot.AsSpan(0, 64), in prefix); payload.CopyTo(slot, 64);
+#endif
             if (!ClaimOdd(WorldStateContract.SnapshotOffset, before)) return Fence(WorldStateTerminal.Identity);
             Thread.MemoryBarrier();
             fixed (byte* source = slot)

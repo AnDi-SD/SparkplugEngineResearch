@@ -4,6 +4,8 @@ param(
     [string]$OutputDirectory,
     [string]$PackageSource,
     [string]$NativeFbxManifest,
+    [ValidateRange(1, 4)][int]$BuildWorkers = 2,
+    [switch]$SkipSparkplugNativeBuild,
     [switch]$NoArchive
 )
 
@@ -87,8 +89,8 @@ if ($needsNativeFbx -and -not [string]::IsNullOrWhiteSpace($NativeFbxManifest)) 
 }
 elseif ($needsNativeFbx) {
     Write-Host 'Building bundled native FBX bridge...'
-    if ([string]::IsNullOrWhiteSpace($env:FBX_SDK_ROOT)) { & $nativeFbxBuild }
-    else { & $nativeFbxBuild -FbxSdkRoot $env:FBX_SDK_ROOT }
+    if ([string]::IsNullOrWhiteSpace($env:FBX_SDK_ROOT)) { & $nativeFbxBuild -BuildWorkers $BuildWorkers }
+    else { & $nativeFbxBuild -FbxSdkRoot $env:FBX_SDK_ROOT -BuildWorkers $BuildWorkers }
     if ($LASTEXITCODE -ne 0) { throw "Native FBX bridge build exited with code $LASTEXITCODE." }
 }
 
@@ -208,10 +210,12 @@ function Publish-Application($Application, [string]$Destination) {
             '-p:SatelliteResourceLanguages=ru',
             '-p:IncludeSourceRevisionInInformationalVersion=false',
             '-p:UseSharedCompilation=false',
-            '-p:NuGetAudit=false',
-            '-maxcpucount:2',
+            "-maxcpucount:$BuildWorkers",
             '-nodeReuse:false'
         )
+        if ($SkipSparkplugNativeBuild) {
+            $commonProperties += '-p:SkipSparkplugNativeBuild=true'
+        }
 
         $restoreArguments = @('restore', $projectPath, '-r', $runtimeIdentifier, '--ignore-failed-sources')
         if (-not [string]::IsNullOrWhiteSpace($PackageSource)) {

@@ -25,12 +25,12 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::unique_ptr<spBaseObject> vfunc_10(spCloneManager&) const override;
         [[nodiscard]] static std::uint32_t RuntimeFormatToCOMForAnalysis(std::uint32_t) noexcept;
         [[nodiscard]] static bool DescribeMipForAnalysis(std::uint32_t width,std::uint32_t height,
-            std::uint32_t runtimeFormat,MipForAnalysis&) noexcept;
+            std::uint32_t runtimeFormat,MipForAnalysis&,bool allowLargeBgraInspection=false) noexcept;
         [[nodiscard]] static std::uint32_t FullMipCountForAnalysis(std::uint32_t width,std::uint32_t height) noexcept;
         [[nodiscard]] bool InitializeRuntimeMipShadowForAnalysis(std::uint32_t width,std::uint32_t height,
             std::uint32_t runtimeFormat,std::vector<MipForAnalysis>);
         [[nodiscard]] bool InitializeNativeMipShadowForAnalysis(std::uint32_t width,std::uint32_t height,
-            std::uint32_t nativeFlags,std::uint8_t field1C,std::vector<MipForAnalysis>);
+            std::uint32_t nativeFlags,std::uint8_t field1C,std::vector<MipForAnalysis>,bool allowLargeBgraInspection=false);
         [[nodiscard]] bool InitializeCrossMipShadowForAnalysis(std::uint32_t sourceWidth,std::uint32_t sourceHeight,
             std::uint32_t pixelFormat,std::vector<MipForAnalysis>);
         [[nodiscard]] bool HasInitializedRuntimeFormatForAnalysis() const noexcept{return formatInitialized_;}
@@ -79,6 +79,8 @@ namespace sparkplug::reconstruction
             DXPalettePoolForAnalysis&, DXResourceHandleForAnalysis rendererDevice,
             const DXTextureResourceAPIForAnalysis&);
     private:
+        [[nodiscard]] bool InitializeMipShadow(std::uint32_t width,std::uint32_t height,
+            std::uint32_t runtimeFormat,std::vector<MipForAnalysis>,bool allowLargeBgraInspection);
         // Native ctor does not write44. Zero host storage is NOT native default.
         std::uint32_t runtimeFormat_=0,byteCount_=0;
         std::uint32_t surfaceFormat_=0; // analytical COM-surface descriptor, NOT native field44

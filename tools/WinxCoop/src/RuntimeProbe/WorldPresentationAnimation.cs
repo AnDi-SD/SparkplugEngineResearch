@@ -8,7 +8,8 @@ namespace WinxCoop.RuntimeProbe;
 /// original resource manager and Actor API; never drives a wx state machine.
 /// </summary>
 internal sealed class WorldPresentationAnimation(DebuggerHost host, PEReader image,
-    Func<bool> nativeGameplaySuppressed, Action<object> log, WorldPresentationBinding binding)
+    Func<bool> nativeGameplaySuppressed, Action<object> log, WorldPresentationBinding binding,
+    bool fullKeyboardMovingUsesRun = false)
 {
     private readonly int _ownerThread = Environment.CurrentManagedThreadId;
     private readonly Dictionary<string, uint> _clips = [];
@@ -20,7 +21,8 @@ internal sealed class WorldPresentationAnimation(DebuggerHost host, PEReader ima
     internal bool IsApplied(uint semantic) => !_retired && _stage == 0 && _current == semantic;
     internal object Summary => new { binding.StableId, binding.TypeId, retired = _retired, stage = _stage,
         currentSemantic = _current, desiredSemantic = _desired, nativeStarts = _starts,
-        otherSemanticIdleFallbacks = _fallbacks, fsmOrCommandWrites = 0, syntheticTags = 0, data = _data?.Summary };
+        otherSemanticIdleFallbacks = _fallbacks, fsmOrCommandWrites = 0, syntheticTags = 0,
+        fullKeyboardMovingUsesRun, analogWalkRunDistinguished = false, data = _data?.Summary };
 
     internal bool StepAtWorld(uint tid, ref Win32Native.X86Context context, uint semantic,
         NativeCallDispatcher calls, Action resume)
@@ -37,7 +39,7 @@ internal sealed class WorldPresentationAnimation(DebuggerHost host, PEReader ima
             Require(U(_manager) == 0x703470 && U(0x765ADC) == _manager,
                 "Semantic animation lost its original resource manager.");
         }
-        (string name, uint set, uint mode) = Clip(binding.TypeId, _desired);
+        (string name, uint set, uint mode) = Clip(binding.TypeId, _desired, fullKeyboardMovingUsesRun);
         switch (_stage)
         {
             case 1:
@@ -77,14 +79,14 @@ internal sealed class WorldPresentationAnimation(DebuggerHost host, PEReader ima
         // actor cleanup must precede that manager's stock cache release.
         _clips.Clear(); _selectedClip = 0;
     }
-    private static (string, uint, uint) Clip(uint type, uint semantic)
+    private static (string, uint, uint) Clip(uint type, uint semantic, bool fullKeyboardRun)
     {
         if (type == WorldPresentationActorState.MosquitoType)
             return semantic switch { 3 => ("mcatst.san", 12, 0), 4 => ("mchuko.san", 12, 0), _ => ("mcho.san", 12, 1) };
         Require(type == WorldPresentationActorState.BloomType, "No semantic clip family for this actor type.");
         return semantic switch
         {
-            1 => ("blwa.san", 0, 1), 2 => ("bljusm.san", 0, 0),
+            1 => (fullKeyboardRun ? "blru.san" : "blwa.san", 0, 1), 2 => ("bljusm.san", 0, 0),
             3 => ("bloid1.san", 0, 0), 4 => ("blidhuko.san", 0, 0), _ => ("blidsh.san", 0, 1)
         };
     }

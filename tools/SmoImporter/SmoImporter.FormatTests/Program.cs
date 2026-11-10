@@ -1,5 +1,44 @@
 using SmoImporter.Core;
 
+try
+{
+if (args is ["--untextured-wing-attachment", string untexturedWingTarget, string untexturedWinglessTarget, string untexturedWingOutput])
+{
+    try { return WingAttachmentRegression.RunUntextured(untexturedWingTarget, untexturedWinglessTarget, untexturedWingOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args is ["--recovered-appearance-writer", string appearanceStaticTarget, string appearanceHumanoidTarget,
+    string appearanceObj, string appearanceGlb, string appearanceOutput])
+{
+    try { return RecoveredAppearanceWriterRegression.Run(appearanceStaticTarget, appearanceHumanoidTarget, appearanceObj, appearanceGlb, appearanceOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args is ["--import-texture-recovery-regression", string textureRecoveryOutput])
+{
+    try { return ImportTextureRecoveryRegression.Run(textureRecoveryOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args is ["--adversarial-fixtures", string fixtureRepository, string fixtureOutput])
+{
+    try { return AdversarialFixtureFactory.Emit(fixtureRepository, fixtureOutput); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args.Length is 3 or 4 && args[0] == "--adversarial-reader-case")
+{
+    try { return AdversarialFixtureFactory.RunReaderCase(args[1], args[2], args.Length == 4 && args[3] == "geometry"); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
+if (args is ["--wing-attachment", string nativeWingTarget, string winglessTarget, string wingOutputDirectory])
+{
+    try { return WingAttachmentRegression.Run(nativeWingTarget, winglessTarget, wingOutputDirectory); }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+}
+
 if (args is ["--native-material-transfer", string materialTarget, string materialDonor, string materialTransferOutput])
 {
     try { return NativeMaterialTransferRegression.Run(materialTarget, materialDonor, materialTransferOutput); }
@@ -173,14 +212,14 @@ if (args.Length == 2 && args[0] == "--static-multi-template-regression")
 
 if (args.Length == 4 && args[0] == "--porting-mode-pair")
 {
-    PortingModePairRegression.Run(args[1], args[2], args[3]);
-    return 0;
+    try { PortingModePairRegression.Run(args[1], args[2], args[3]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 5 && args[0] == "--porting-mode-pair")
 {
-    PortingModePairRegression.Run(args[1], args[2], args[3], args[4]);
-    return 0;
+    try { PortingModePairRegression.Run(args[1], args[2], args[3], args[4]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 3 && args[0] == "--generated-weight-audit")
@@ -213,8 +252,8 @@ if (args.Length == 4 && args[0] == "--generated-weight-audit-sequence")
 
 if (args.Length == 5 && args[0] == "--porting-mode-write")
 {
-    PortingModePairRegression.Run(args[1], args[2], args[3], args[4]);
-    return 0;
+    try { PortingModePairRegression.Run(args[1], args[2], args[3], args[4]); return 0; }
+    catch (Exception error) { Console.Error.WriteLine(error); return 1; }
 }
 
 if (args.Length == 2 && args[0] == "--model-import-smoke")
@@ -298,9 +337,9 @@ if (args.Length == 3 && args[0] == "--generated-skinning-degenerate-fbx-regressi
     return 0;
 }
 
-if (args.Length == 2 && args[0] == "--generated-topology-normalization-regression")
+if (args.Length is 2 or 3 && args[0] == "--generated-topology-normalization-regression")
 {
-    GeneratedTopologyNormalizationRegression.Run(args[1]);
+    GeneratedTopologyNormalizationRegression.Run(args[1], args.Length == 3 ? args[2] : null);
     return 0;
 }
 
@@ -371,3 +410,10 @@ if (args.Length == 4 && args[0] == "--material-group-native-integration")
 Console.Error.WriteLine(
     "Unknown or incomplete regression command.");
 return 2;
+}
+catch (Exception error)
+{
+    // A failed regression must terminate normally, without waiting for a Windows crash dialog.
+    Console.Error.WriteLine(error);
+    return 1;
+}

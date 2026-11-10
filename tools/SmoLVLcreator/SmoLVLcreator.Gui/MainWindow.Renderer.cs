@@ -92,6 +92,7 @@ public partial class MainWindow
     private SmoSceneRenderMode _sceneRenderMode = SmoSceneRenderMode.Lit;
     private readonly Dictionary<int, int> _collisionRegionByInfo = [];
     private SmoPreparedScene? _renderPreparedScene;
+    private SelectionBoundsSnapshot? _selectionBounds;
     private string? _renderedModelResourceSignature;
     private DateTime _viewportActionStatusUntilUtc;
 
@@ -378,6 +379,7 @@ public partial class MainWindow
         _cameraVelocity = default;
         _cameraDesiredDistance = _cameraDistance;
         _renderPreparedScene = null;
+        _selectionBounds = null;
         _renderedModelResourceSignature = null;
         if (ViewportPlaceholder is not null)
             ViewportPlaceholder.Visibility = Visibility.Visible;
@@ -401,6 +403,7 @@ public partial class MainWindow
             _collisionRegionByInfo.Clear();
         }
         _renderPreparedScene = scene;
+        _selectionBounds = null;
         UpdateScenePickIndex(scene.Meshes);
 
         int index = 0;
@@ -1065,13 +1068,17 @@ public partial class MainWindow
         return null;
     }
 
-    private void ActivateFirstSelectedEntity()
+    private void ActivateFirstSelectedEntity(SmoLevelEntityId? preferred = null)
     {
         _activeSelectionKey = null;
         _activeCollisionEntityIndex = null;
         if (_document is null)
             return;
-        foreach (SmoLevelEntityId id in _selectedEntities)
+        IEnumerable<SmoLevelEntityId> candidates =
+            preferred is SmoLevelEntityId active && _selectedEntities.Contains(active)
+                ? _selectedEntities.Prepend(active)
+                : _selectedEntities;
+        foreach (SmoLevelEntityId id in candidates)
         {
             SmoLevelEntity entity = _document.GetEntity(id);
             if (entity.Parts.FirstOrDefault() is SmoEditablePlacement placement)
@@ -1100,55 +1107,7 @@ public partial class MainWindow
             return false;
         }
 
-        SmoSceneMesh[] selectedMeshes = _selectedPendingPlacement is
-            PendingPlacementSelection pending
-            ? (_renderPreparedScene ?? _workspace.PreparedScene).Meshes
-                .Where(mesh =>
-                    _pendingPlacementByScene.TryGetValue(
-                        mesh.SceneObjectIndex,
-                        out PendingPlacementSelection? candidate) &&
-                    candidate.Id == pending.Id &&
-                    candidate.External == pending.External)
-                .Select(ApplyPendingPlacementTransform)
-                .ToArray()
-            : (_renderPreparedScene ?? _workspace.PreparedScene).Meshes
-                .Where(mesh =>
-                {
-                    var placementId = new SmoPlacementId(
-                        mesh.Mesh.ObjectIndex,
-                        mesh.SceneObjectIndex, mesh.OccurrenceKey);
-                    return _document.TryGetPlacement(
-                               placementId,
-                               out SmoEditablePlacement? placement) &&
-                           _selectedEntities.Contains(placement!.Entity.Id);
-                })
-                .Select(mesh =>
-                {
-                    var placementId = new SmoPlacementId(
-                        mesh.Mesh.ObjectIndex,
-                        mesh.SceneObjectIndex, mesh.OccurrenceKey);
-                    return _document.TryGetPlacement(
-                        placementId,
-                        out SmoEditablePlacement? placement)
-                        ? mesh with { WorldTransform = placement!.WorldTransform }
-                        : mesh;
-                })
-                .ToArray();
-        bool hasBounds = TryCalculateBounds(selectedMeshes, out CameraBounds bounds);
-        foreach (SmoEditableCollision collision in _document.Collisions.Where(collision =>
-                     _selectedEntities.Contains(collision.Entity.Id)))
-        {
-            foreach (Vector3 position in collision.Source.Positions)
-            {
-                Vector3 world = Vector3.Transform(position, collision.WorldTransform);
-                world.Z = -world.Z;
-                bounds = hasBounds
-                    ? bounds.Include(world)
-                    : new CameraBounds(world, world);
-                hasBounds = true;
-            }
-        }
-        if (!hasBounds)
+        if (!TryCalculateSelectionBounds(out CameraBounds bounds))
             return false;
         pivot = bounds.Center;
         return true;
@@ -1510,12 +1469,28 @@ public partial class MainWindow
     private bool TryCalculateSelectionBounds(out CameraBounds bounds)
     {
         bounds = default;
-        if (_workspace is null || _document is null)
+        if (_workspace is null || _document is null ||
+            (_selectedEntities.Count == 0 && _selectedPendingPlacement is null))
+        {
+            _selectionBounds = null;
             return false;
+        }
+
+        SmoPreparedScene scene = _renderPreparedScene ?? _workspace.PreparedScene;
+        if (_selectionBounds is { } cached &&
+            ReferenceEquals(cached.Document, _document) &&
+            ReferenceEquals(cached.Scene, scene) &&
+            cached.Revision == _document.Revision &&
+            cached.Pending == _selectedPendingPlacement &&
+            cached.Entities.SetEquals(_selectedEntities))
+        {
+            bounds = cached.Bounds.GetValueOrDefault();
+            return cached.Bounds.HasValue;
+        }
 
         SmoSceneMesh[] selectedMeshes = _selectedPendingPlacement is
             PendingPlacementSelection pending
-            ? (_renderPreparedScene ?? _workspace.PreparedScene).Meshes
+            ? scene.Meshes
                 .Where(mesh =>
                     _pendingPlacementByScene.TryGetValue(
                         mesh.SceneObjectIndex,
@@ -1524,7 +1499,7 @@ public partial class MainWindow
                     candidate.External == pending.External)
                 .Select(ApplyPendingPlacementTransform)
                 .ToArray()
-            : (_renderPreparedScene ?? _workspace.PreparedScene).Meshes
+            : scene.Meshes
                 .Where(mesh =>
                 {
                     var placementId = new SmoPlacementId(
@@ -1561,6 +1536,10 @@ public partial class MainWindow
                 hasBounds = true;
             }
         }
+        _selectionBounds = new SelectionBoundsSnapshot(
+            _document, scene, _document.Revision, _selectedPendingPlacement,
+            new HashSet<SmoLevelEntityId>(_selectedEntities),
+            hasBounds ? bounds : null);
         return hasBounds;
     }
 
@@ -3895,6 +3874,14 @@ public partial class MainWindow
         int MeshObjectIndex,
         int SceneObjectIndex,
         SmoRenderOccurrenceKey? OccurrenceKey = null);
+
+    private sealed record SelectionBoundsSnapshot(
+        SmoLevelDocument Document,
+        SmoPreparedScene Scene,
+        long Revision,
+        PendingPlacementSelection? Pending,
+        HashSet<SmoLevelEntityId> Entities,
+        CameraBounds? Bounds);
 
     private sealed record PendingPlacementSelection(
         Guid Id,

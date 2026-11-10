@@ -7,6 +7,12 @@ namespace SmoViewer.Core;
 /// scene material views. It never parses fields or evaluates controllers.</summary>
 internal sealed unsafe class SparkplugMaterialView
 {
+    private const uint DefaultMipBytes = 16u * 1024u * 1024u;
+    private const long DefaultMipChainBytes = 32L * 1024 * 1024;
+    // Keep the PC native host budget in sync with PcTextureStorageBudget.h.
+    private const uint PcNativeBgraBytes = 3000u * 3000u * 4u;
+    private const long PcNativeBgraChainBytes = PcNativeBgraBytes * 4u / 3u;
+
     private readonly GraphHandle graph;
     private readonly IReadOnlyDictionary<uint, SmoObjectEntry> entries;
     private readonly Dictionary<uint, SmoLoadedTexture> textures = [];
@@ -27,17 +33,23 @@ internal sealed unsafe class SparkplugMaterialView
         if (id == 0) return null;
         if (textures.TryGetValue(id, out var cached)) return cached;
         var entry = Entry(id);
+        bool usesHostCompatibility = legacyTextures.Contains(id);
         SmoLoadedTexture value;
         try
         {
             NativeMethods.Check(NativeMethods.spv_graph_texture(graph, id, out var info));
             if(info.Mips is <1 or >16)throw new InvalidDataException("Runtime texture mip count exceeds the host bound.");
+            bool largePcNativeBgra = false;
             var mips=new SmoTextureMip[checked((int)info.Mips)];byte[]? pixels=null;long totalBytes=0;
             for(uint level=0;level<info.Mips;++level)
             {
                 NativeMethods.Check(NativeMethods.spv_graph_texture_mip_info(graph,id,level,out var mip));
+                if (level == 0)
+                    largePcNativeBgra = info.SurfaceFormat == 3 && !usesHostCompatibility && mip.Bytes > DefaultMipBytes;
                 totalBytes+=mip.Bytes;
-                if(mip.Bytes>16u*1024u*1024u||totalBytes>32L*1024*1024||mip.Bytes!=(ulong)mip.Width*mip.Height*4)
+                if (mip.Bytes > (largePcNativeBgra ? PcNativeBgraBytes : DefaultMipBytes) ||
+                    totalBytes > (largePcNativeBgra ? PcNativeBgraChainBytes : DefaultMipChainBytes) ||
+                    mip.Bytes != (ulong)mip.Width * mip.Height * 4)
                     throw new InvalidDataException("Runtime texture pixels exceed the bounded mip chain.");
                 var bytes=new byte[checked((int)mip.Bytes)];
                 fixed(byte* output=bytes)NativeMethods.Check(NativeMethods.spv_graph_texture_mip_bgra(graph,id,level,output,mip.Bytes));
@@ -50,7 +62,7 @@ internal sealed unsafe class SparkplugMaterialView
         }
         catch (InvalidDataException exception)
         { value = new(id, entry.Index, null, $"RUNTIME_TEXTURE_UPLOAD: [{entry.Index}] {entry.Name}: {exception.Message}"); }
-        value=value with {UsesHostCompatibility=legacyTextures.Contains(id)};
+        value=value with {UsesHostCompatibility=usesHostCompatibility};
         textures.Add(id, value);
         return value;
     }

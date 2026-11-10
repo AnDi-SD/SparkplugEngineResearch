@@ -158,6 +158,11 @@ namespace sparkplug::reconstruction
         using PCTexturePitchForAnalysis=std::uint32_t (*)(void*,std::uint32_t level,std::uint32_t packedRowBytes) noexcept;
         PCTexturePitchForAnalysis pcTexturePitchForAnalysis=nullptr; // explicit CPU shadow storage policy; default tightly packed, NOT device pitch
         void* pcTexturePitchContext=nullptr;
+        // The bounded PC tool graph and metadata inspectors may enclose a large BGRA leaf.
+        // Default reconstruction readers retain their ordinary section bounds.
+        std::uint32_t maximumToolStructuralSectionBytesForAnalysis=0;
+        [[nodiscard]] std::uint32_t GetStructuralSectionLimitForAnalysis() const noexcept
+        { return maximumToolStructuralSectionBytesForAnalysis?maximumToolStructuralSectionBytesForAnalysis:16u*1024u*1024u; }
         // PC42EA50 constructs6BD580 for external texture source field4.
         // Host supplies the owned stream backend explicitly; no implicit I/O.
         using TextureSourceStreamFactoryForAnalysis=std::unique_ptr<spStream> (*)(void*);

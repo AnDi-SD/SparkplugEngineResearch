@@ -1,4 +1,5 @@
 #include "spMaterialSerializer.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 #include "spMaterialData.h"
 #include "../SparkplugDX/spDXMaterial.h"
 #include "spMaterialPassLayer.h"
@@ -81,6 +82,8 @@ namespace sparkplug::reconstruction
     {
         spSerializerManager manager;spResourceManager resources;
         spSerializerReadContextForAnalysis context(manager,resources);observation={};
+        if(size<=sparkplug::host::pc_texture_storage::ToolResourceGraphBytes)
+            context.maximumToolStructuralSectionBytesForAnalysis=size;
         return ReadMaterialFieldsForAnalysis(context,source,size,object,error,&observation);
     }
 
@@ -89,7 +92,7 @@ namespace sparkplug::reconstruction
         InspectionForAnalysis* observation) const
     {
         using sparkplug::evidence::pc::serialization::SectionCursor;
-        if(error)error->clear();SectionCursor cursor(context,source,size,true,error);
+        if(error)error->clear();SectionCursor cursor(context,source,size,true,error,context.GetStructuralSectionLimitForAnalysis());
         std::uint32_t sectionStart=0;
         if(observation&&!source.GetCurrentPosition(sectionStart))return cursor.Fail("Cannot locate material inspection payload");
         auto* material=dynamic_cast<spMaterial*>(&object);

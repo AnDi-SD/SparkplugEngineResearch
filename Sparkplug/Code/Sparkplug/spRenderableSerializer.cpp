@@ -61,7 +61,7 @@ namespace sparkplug::reconstruction
     bool spRenderableSerializer::ReadRenderableFieldsForAnalysis(spSerializerReadContextForAnalysis& context,
         spStream& stream,std::uint32_t size,spRenderable& object,bool exact,std::string* error,InspectionForAnalysis* observation) const
     {
-        evidence::pc::serialization::SectionCursor cursor(context,stream,size,exact,error);
+        evidence::pc::serialization::SectionCursor cursor(context,stream,size,exact,error,context.GetStructuralSectionLimitForAnalysis());
         std::uint32_t sectionStart=0;
         if(observation&&!stream.GetCurrentPosition(sectionStart))return cursor.Fail("Cannot locate Renderable inspection section");
         while(const auto* header=cursor.Next())

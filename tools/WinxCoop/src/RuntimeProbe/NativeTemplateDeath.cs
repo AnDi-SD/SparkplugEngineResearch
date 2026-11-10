@@ -9,9 +9,16 @@ internal sealed partial class NativeTemplateProbe
     private readonly int _sharedBattleDurationSeconds;
     private SharedDeathCommandAlias? _sharedDeathCommand;
     private NativeGameOverObservation? _storyGameOver;
+    // Latched only by the existing typed native Entry/RET4/settled-Flow observer.
+    internal bool ProgressionGameOverSettled => StoryNetworkOutcomeCohort &&
+        _storyGameOver?.StoryGameOverObserved == true;
+    private bool StoryNetworkNativeDeathGoalPassed => StoryNetworkOutcomeCohort &&
+        ProgressionNativeOutcomeWaiting && _sharedDeathCommand?.CompletedPublications == 1 &&
+        _sharedHealthAlias?.BoundedDeathCycleObserved == true;
     private bool SharedStoryOutcomePassed => !_sharedPlayerProfile.Story || !_deathBattleFixture ||
         _storyGameOver?.StoryGameOverObserved == true && _storyGameOver.StoryGameOverExitReturned;
-    private bool SharedBattleGameplayGoalPassed => _bodyInputFixture ? BodyInputFixtureGoalPassed :
+    private bool SharedBattleGameplayGoalPassed => StoryNetworkOutcomeCohort ? StoryNetworkNativeDeathGoalPassed :
+        _bodyInputFixture ? BodyInputFixtureGoalPassed :
         _networkInputFixture ? NetworkInputFixtureGoalPassed :
         _ordinaryAttackFixture ? OrdinaryAttackFixtureGoalPassed : _deathBattleFixture ?
         _sharedDeathCommand?.CompletedPublications == 1 && _sharedHealthAlias?.BoundedDeathCycleObserved == true :
@@ -24,7 +31,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void ObserveStoryGameOverAtWorld(uint tid, ref Win32Native.X86Context context)
     {
-        if (!_sharedPlayerProfile.Story || _bodyInputFixture || _networkInputFixture) return;
+        if (!_sharedPlayerProfile.Story || _bodyInputFixture || _networkInputFixture && !StoryNetworkOutcomeCohort) return;
         if (_storyGameOver is null)
         {
             _storyGameOver = new(_host, _image, _log);

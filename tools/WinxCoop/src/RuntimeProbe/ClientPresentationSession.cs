@@ -39,8 +39,10 @@ internal sealed class ClientPresentationSession
     private byte[] _rootPosition = [], _previousCameraPose = [];
     private string? _initialCameraPoseHash, _lastCameraPoseHash;
     private readonly uint _level, _playingTable, _exitEntry;
-    private byte[]? _authoritativeLocalPose;
-    private uint _authoritativeApplications;
+    private byte[]? _canonicalLocalPose, _displayExpectedLocalPose;
+    private uint _authoritativeApplications, _displayedRootApplications;
+    private bool _generationResourcesRetired;
+    private uint _generationRetirementStop;
 
     internal ClientPresentationSession(ProbeConfiguration config, DebuggerHost host, PEReader image, Action<object> log)
     {
@@ -51,7 +53,12 @@ internal sealed class ClientPresentationSession
         _config = config; _host = host; _image = image; _log = log;
         _process = host.ProcessHandle; _pid = host.ProcessPid; _ownerThread = Environment.CurrentManagedThreadId;
         _live = config.Mode == "client-presentation-live";
-        _level = config.WorldBattlePresentation ? 47u : 28u;
+        bool story3 = config.ProgressionControl is not null && config.ProgressionSceneLevel == 3;
+        Require(!story3 || !config.WorldBattlePresentation && config.EnableProgressionAuthority &&
+            config.EnableWorldEntry && config.DiagnosticGuestCaptureFixture &&
+            config.DiagnosticWorldState is { Role: WorldStateRole.Guest },
+            "Gardenia03 presentation requires the closed Guest progression entry/capture cohort.");
+        _level = story3 ? 3u : config.WorldBattlePresentation ? 47u : 28u;
         _playingTable = config.WorldBattlePresentation ? 0x7105C8u : 0x710874u;
         _exitEntry = config.WorldBattlePresentation ? 0x5F2300u : 0x5F86C0u;
         _deadline = checked(Environment.TickCount64 + (long)config.DurationSeconds * 1000);
@@ -59,15 +66,45 @@ internal sealed class ClientPresentationSession
 
     internal bool Started => _started;
     internal bool AfterUnload => _afterUnload;
+    // Separate E6 resource receipt. The legacy pause/input/MainMenu30s
+    // acceptance below is deliberately unchanged and is not implied by this.
+    internal bool NativeResourcesRetired => _generationResourcesRetired && _afterUnload &&
+        _gate is { Restored: true, Released: true } &&
+        (!_config.DiagnosticGuestCaptureFixture || _guestCaptureRetiredBeforeUnload);
     internal bool WorldQuarantineActive => InputCaptureReady;
     internal void AcceptAuthoritativeRootAtWorld(uint tid, ref Win32Native.X86Context context)
     {
         EnsureStop(tid);
         Require(_config.DiagnosticWorldState?.Role == WorldStateRole.Guest && WorldQuarantineActive &&
             context.Eip == NativeCallDispatcher.WorldReturn, "Authoritative pose requires the explicit WorldState Guest quarantine.");
-        _authoritativeLocalPose = Read(_root + 0x20, 12).Concat(Read(_root + 0x30, 12)).Concat(Read(_root + 0x40, 36)).ToArray();
+        _canonicalLocalPose = ReadLocalPose();
+        _displayExpectedLocalPose = null;
         ++_authoritativeApplications;
     }
+    internal void AcceptDisplayedRootAtWorld(uint tid, ref Win32Native.X86Context context, uint epoch,
+        WorldPresentationActorState state)
+    {
+        EnsureStop(tid); state.Validate();
+        Require(_config.DiagnosticWorldState is { Role: WorldStateRole.Guest } identity &&
+            identity.LevelEpoch == epoch && WorldQuarantineActive && _canonicalLocalPose is { Length: 60 } &&
+            context.Eip == NativeCallDispatcher.WorldReturn && state.StableId == 2 &&
+            state.TypeId == WorldPresentationActorState.BloomType &&
+            (state.Flags & WorldPresentationActorState.Present) != 0,
+            "Displayed local pose requires the canonical current-epoch Guest Bloom receipt and active quarantine.");
+        Require(U(_profile) == 0x6F5A44 && U(_profile + 0x2B4) == _record && U(_record) == 0x710F80 &&
+            U(_record + 0x24) == _root && U(_root) == VisualGraphReader.NodeVtable &&
+            U(_root + 0x2C) == _rootParent && U(_root + 0x3C) == _scene && U(_scene) == 0x6E7358,
+            "Displayed local pose lost its captured original profile/body/root/scene ownership.");
+        // The stock local rig has no passive-wrapper half turn. Accept only
+        // the exact PRS explicitly supplied by the display owner after its
+        // write/readback, never whichever native pose happens to be present.
+        byte[] expected = state.Position.Concat(state.Scale).Concat(state.Rotation).SelectMany(BitConverter.GetBytes).ToArray();
+        Require(ReadLocalPose().SequenceEqual(expected), "Displayed local pose receipt differs from native PRS readback.");
+        _displayExpectedLocalPose = expected;
+        ++_displayedRootApplications;
+    }
+    private byte[] ReadLocalPose() => Read(_root + 0x20, 12).Concat(Read(_root + 0x30, 12))
+        .Concat(Read(_root + 0x40, 36)).ToArray();
     internal bool ModeCompleted => _completed;
     // This is only a cached lifetime allowance. NativeInputCapture still
     // validates its actual ready tuple on every original UserInput return.
@@ -97,11 +134,15 @@ internal sealed class ClientPresentationSession
         continuousQualifiedMainMenuMilliseconds = _menuHeld, requiredMainMenuMilliseconds = 30000,
         clientRootRemainsAtCapturedPosition = _config.DiagnosticWorldState is null,
         networkStateApplied = _authoritativeApplications > 0, authoritativeApplications = _authoritativeApplications,
+        displayedRootApplications = _displayedRootApplications, displayPoseExpected = _displayExpectedLocalPose is not null,
+        displayReceiptIsCanonicalStateOrAck = false,
         visualAcceptanceRequiredSeparately = true, rootOrCommandWrites = 0,
         localEntityReadAfterUnload = false,
         diagnosticGuestCaptureFixture = _config.DiagnosticGuestCaptureFixture,
         inputCaptureLifetimeAllowed = InputCaptureReady,
         guestCaptureRetiredBeforeUnload = _guestCaptureRetiredBeforeUnload,
+        nativeResourcesRetired = NativeResourcesRetired,
+        generationRetirementStop = _generationRetirementStop,
         counters = new Dictionary<string, uint>(_lastCounters), policy = _policy?.Summary, gate = _gate?.Summary,
         worldFlow = _worldFlow?.Summary
     };
@@ -128,9 +169,10 @@ internal sealed class ClientPresentationSession
         {
             if (!mediaVerified || !ReadyAlfea()) return;
             CaptureOwners();
-            _policy = new ClientScenePolicy(_host, _image, _log);
+            _policy = new ClientScenePolicy(_host, _image, _log, _level == 3 ? _config : null);
             _policy.Capture();
-            _gate = new ClientNativeGate(_host, _image, _log, _config.WorldBattlePresentation);
+            _gate = new ClientNativeGate(_host, _image, _log, _config.WorldBattlePresentation,
+                _level == 3 ? _config : null);
             _policy.Configure(_gate, _config.DiagnosticGuestCaptureFixture, _config.WorldBattlePresentation);
             if (_config.WorldBattlePresentation && _config.DiagnosticWorldState?.Role == WorldStateRole.Guest)
             {
@@ -205,6 +247,7 @@ internal sealed class ClientPresentationSession
         if (gate.Enabled) gate.RestoreAtUnload(thread, ref context, entry);
         Require(gate.Restored, "Client presentation reached unload without restoring its patches.");
         _afterUnload = true;
+        _canonicalLocalPose = null; _displayExpectedLocalPose = null;
         _unloadQualified = _live;
         _log(new { @event = "client-presentation-unload-begin", entry = Hex(entry), receiver = Hex(context.Ecx),
             actualNativeUnload = true, liveAcceptanceMode = _live,
@@ -276,10 +319,11 @@ internal sealed class ClientPresentationSession
             U(_character + 0x12C) == _move && U(_character + 0x130) == _command &&
             U(_move + 0x160) == _character && U(_machine + 0x124) == _character && U(_machine + 0x12C) == _command,
             "Client presentation command/controller relationships changed.");
-        Require(_authoritativeLocalPose is { } pose ?
-            Read(_root + 0x20, 12).Concat(Read(_root + 0x30, 12)).Concat(Read(_root + 0x40, 36)).SequenceEqual(pose) :
+        byte[]? expectedPose = _displayExpectedLocalPose ?? _canonicalLocalPose;
+        Require(expectedPose is { } pose ?
+            ReadLocalPose().SequenceEqual(pose) :
             Read(_root + 0x74, 12).SequenceEqual(_rootPosition),
-            "Client policy allowed local player translation without a server state application.");
+            "Client policy allowed local player translation without its exact canonical or displayed pose receipt.");
         uint stack = U(_flow + 0x1AC); Require(stack <= 20, "Client presentation flow stack exceeded its bound.");
         bool retained = false; uint top = 0;
         for (uint index = 0; index <= stack; ++index)
@@ -439,6 +483,34 @@ internal sealed class ClientPresentationSession
             cameraChangesAfterBothInputKinds = _cameraChangesAfterInput,
             nativeUnloadQualified = _unloadQualified, restored = gate.Restored, released = gate.Released,
             visualAcceptanceRequiredSeparately = true });
+    }
+
+    // Called only by the explicit generation owner after its original Exit
+    // return and aggregate native visual cleanup witnesses. It may release
+    // only the restored policy's own RX/RW leases; no historical graph is read.
+    internal bool TryQualifyNativeRetirementAtWorld(uint thread, ref Win32Native.X86Context context,
+        bool actualOriginalExitReturned, bool aggregateNativeActorCleanupComplete)
+    {
+        EnsureStop(thread);
+        Require(_config.DiagnosticWorldState?.Role == WorldStateRole.Guest && _live &&
+            context.Eip == NativeCallDispatcher.WorldReturn,
+            "Guest generation retirement requires its explicit live role and actual WorldRET.");
+        if (NativeResourcesRetired) return true;
+        if (!_afterUnload || !actualOriginalExitReturned || !aggregateNativeActorCleanupComplete) return false;
+        ClientNativeGate gate = _gate ?? throw new InvalidDataException("Guest generation retirement lost its restored native gate.");
+        Require(gate.Restored && (!_config.DiagnosticGuestCaptureFixture || _guestCaptureRetiredBeforeUnload),
+            "Guest generation retirement precedes input retirement or native patch restoration.");
+        if (!gate.Released)
+        {
+            CaptureCounters();
+            if (!gate.ReleaseAtLaterWorld(thread, ref context)) return false;
+        }
+        _generationResourcesRetired = true; _generationRetirementStop = _host.DebugStopSequence;
+        _log(new { @event = "client-presentation-generation-resources-retired", actualOriginalExitReturned = true,
+            aggregateNativeActorCleanupComplete = true, originalPatchesRestored = true,
+            ownedPolicyPagesReleasedAtLaterWorld = true, nativeResourcesRetired = NativeResourcesRetired,
+            legacyMainMenu30OrModeSucceededClaimed = false, oldPlayerOrSceneReads = 0 });
+        return true;
     }
 
     private void CaptureCounters()

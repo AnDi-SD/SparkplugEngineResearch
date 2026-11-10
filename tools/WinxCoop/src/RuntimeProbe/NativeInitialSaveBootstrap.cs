@@ -14,17 +14,22 @@ internal sealed class NativeInitialSaveBootstrap
     private readonly string _savedFile, _expectedHash;
     private readonly long _deadline;
     private readonly byte[] _entryPin, _returnPin;
+    private readonly bool _e6HostContinuation;
     private uint _stage, _profile, _originalPlaying, _originalRoot, _worlds;
     private bool _complete;
 
     internal NativeInitialSaveBootstrap(ProbeConfiguration config, DebuggerHost host, PEReader image, Action<object> log)
     {
+        bool e6Continuation = config.ProgressionHostContinuationSeed && config.ProgressionControl is not null &&
+            config.WorldEntrySeed is not null;
         if (config.InitialSaveSha256 is not { Length: 64 } hash || !hash.All(Uri.IsHexDigit) ||
             config.DiagnosticWorldState?.Role != WorldStateRole.Host ||
             config.TemplateSharedPlayerProfile != "alfea-28-network-input" || !config.EnableWorldEntry ||
-            config.WorldEntryCaptureOrdinal != 2 || config.WorldEntrySeed is not null)
+            config.WorldEntryCaptureOrdinal != 2 ||
+            (config.WorldEntrySeed is not null && !e6Continuation) ||
+            (config.ProgressionHostContinuationSeed && !e6Continuation))
             throw new InvalidDataException("Initial save bootstrap requires the explicit Host Alfea28 second-entry cohort.");
-        _host = host; _log = log; _expectedHash = hash;
+        _host = host; _log = log; _expectedHash = hash; _e6HostContinuation = e6Continuation;
         _savedFile = Path.GetFullPath(Path.Combine(config.MediaDirectory, "Saved", "Saved00.wxs"));
         _deadline = checked(Environment.TickCount64 + config.DurationSeconds * 1000L);
         _entryPin = image.GetSectionData(checked((int)(LoadSave - 0x400000))).GetContent(0, 7).ToArray();
@@ -39,7 +44,10 @@ internal sealed class NativeInitialSaveBootstrap
     internal object Summary => new { complete = _complete, stage = _stage, worlds = _worlds,
         originalSaveFileSha256 = _expectedHash, nativeSaveSlot = 0,
         nativeLoadCalls = _stage == 0 ? 0 : 1, recurringLoadSaveSetter = false,
-        ownBodiesCreatedBeforeLoad = 0, gameSaveFileProducedByAdapter = false };
+        ownBodiesCreatedBeforeLoad = 0, gameSaveFileProducedByAdapter = false,
+        e6HostContinuation = _e6HostContinuation,
+        nativeSavedStateAndHealthLoadBeforeAuthoritativeSecondEntryRequested = _e6HostContinuation,
+        nativeHealthWritesByAdapter = 0 };
 
     // true means the original startup is still being observed; no template or
     // world snapshot may be started by the caller during this interval.
@@ -74,6 +82,7 @@ internal sealed class NativeInitialSaveBootstrap
             calls.Begin(_host, tid, ref context, LoadSave, profile, [0], false, value =>
             {
                 Require((value & 0xFF) == 1, "Original initial LoadSave returned false.");
+                if (_e6HostContinuation) VerifyFile();
                 _stage = 2;
                 _log(new { @event = "world-initial-native-save-load-returned", nativeResult = value,
                     originalSaveRestorationRan = true, awaitingFreshScene = true });
@@ -85,6 +94,7 @@ internal sealed class NativeInitialSaveBootstrap
         // The allocator may reuse both addresses. The separate original-loader
         // observer proves ordinal2, the real return, spawn and accepted cohort.
         if (!originalSecondEntryQualified) return true;
+        if (_e6HostContinuation) VerifyFile();
         _complete = true; _stage = 3;
         _log(new { @event = "world-initial-native-save-bootstrap-complete", nativeLevel = 28,
             originalSecondEntryQualified = true, playingAddressReused = playing == _originalPlaying,

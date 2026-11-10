@@ -13,6 +13,10 @@ internal sealed partial class NativeTemplateProbe
     private const long SharedBattleEmptyFlowMilliseconds = 10000;
     private bool _sharedBattleCaptured, _sharedBattlePaused, _sharedBattleUnloadStarted;
     private bool _sharedBattleBatchCompleted, _sharedBattleResourcesReleased, _sharedBattleGoalAtUnload;
+    private bool _sharedBattleProgressionExitReturned;
+    private bool _progressionSavedReloadPrepared, _progressionSavedReloadInputRetirementAtEntry;
+    private uint _progressionSavedReloadPrepareStop, _progressionSavedReloadInputRetirements;
+    private uint _progressionSavedReloadHeldPermissionChanges, _progressionSavedReloadHeldNeutralStop;
     private bool _sharedBattleTemplateOwnerHeld, _sharedBattleNativePauseObserved;
     private uint _sharedBattleAnimationManager, _sharedBattleTimer, _sharedBattleWorlds, _sharedBattlePostWorlds;
     private uint _sharedBattleMenuWorlds, _sharedBattleUnloadEntry, _sharedBattleReferenceWrites;
@@ -34,13 +38,24 @@ internal sealed partial class NativeTemplateProbe
     private object? _sharedBattleUnloadWitness;
 
     internal bool SharedBattleLifetimeCaptured => _sharedBattleCaptured;
+    internal bool ProgressionSavedReloadPrepared => _progressionSavedReloadCohort && _progressionSavedReloadPrepared &&
+        _sharedHealthAlias is { Retired: true, Active: false };
     internal bool SharedBattleUnloadStarted => _sharedBattleUnloadStarted;
+    // Cached proof only. A progression observer must not enter the post-Exit
+    // resource route while the pre-unload native deletion batch is in flight.
+    internal bool SharedBattleNativeDeleteBatchCompleted => _sharedBattleUnloadStarted && _sharedBattleBatchCompleted;
     internal bool SharedBattleLifetimePaused => _sharedBattlePaused;
     internal bool SharedBattleLifetimeCompleted => _sharedBattleLifetimeEnabled &&
         _sharedBattleBatchCompleted && _sharedBattleResourcesReleased && _sharedBattleMenuWorlds >= 2 &&
         _cleaned && !_sharedBattleTemplateOwnerHeld && _sharedBattleReferenceWrites == 2 &&
         (_mosquitoPlayerTargets is null || !_mosquitoPlayerTargets.HasLiveOwnership);
     internal bool SharedBattleLifetimeSucceeded => SharedBattleLifetimeCompleted && _sharedBattleGoalAtUnload && SharedStoryOutcomePassed;
+    // A separate opt-in progression boundary. It neither fabricates the legacy
+    // MainMenu observations nor makes its E5 ModeSucceeded predicate true.
+    internal bool NativeResourcesRetired => _sharedBattleLifetimeEnabled && _sharedBattleUnloadStarted &&
+        _sharedBattleBatchCompleted && _sharedBattleResourcesReleased && _sharedBattleProgressionExitReturned &&
+        !HasLiveOwnership && !_sharedBattleTemplateOwnerHeld && _sharedBattleReferenceWrites == 2 &&
+        (_mosquitoPlayerTargets is null || !_mosquitoPlayerTargets.HasLiveOwnership);
     internal object SharedBattleLifetimeSummary => new
     {
         enabled = _sharedBattleLifetimeEnabled, captured = _sharedBattleCaptured, paused = _sharedBattlePaused,
@@ -61,11 +76,91 @@ internal sealed partial class NativeTemplateProbe
         emptyPostUnloadFlowWorlds = _sharedBattleEmptyFlowWorlds,
         gameplayGoalObservedBeforeUnload = _sharedBattleGoalAtUnload, completed = SharedBattleLifetimeCompleted, succeeded = SharedBattleLifetimeSucceeded,
         storyOutcomeObservedAfterUnload = SharedStoryOutcomePassed,
+        progressionNativeResourcesRetired = NativeResourcesRetired,
+        progressionOriginalExitReturnSuppliedByExternalWitness = _sharedBattleProgressionExitReturned,
+        progressionSavedReloadPrepared = ProgressionSavedReloadPrepared,
+        progressionSavedReloadPrepareStop = _progressionSavedReloadPrepareStop,
+        progressionSavedReloadInputRetirementAtEntry = _progressionSavedReloadInputRetirementAtEntry,
+        progressionSavedReloadInputRetirements = _progressionSavedReloadInputRetirements,
+        progressionSavedReloadHeldPermissionChanges = _progressionSavedReloadHeldPermissionChanges,
+        progressionSavedReloadHeldNeutralStop = _progressionSavedReloadHeldNeutralStop,
+        preWaitingReloadPreparation = PreWaitingReloadPreparationSummary,
         witness = _sharedBattleUnloadWitness, oldPlayerOrOwnObjectReadsAfterUnload = false,
         bodyLiveE1StateReused = false, nativePauseOrFlowWrites = 0,
         privateInputWrites = _bodyInputFixture || _ordinaryAttackFixture || _networkInputFixture ? (int?)null : 0,
         privateInputAdapterEnabled = _bodyInputFixture || _ordinaryAttackFixture || _networkInputFixture, fullE3Complete = false
     };
+
+    /// <summary>
+    /// Caller has already ruled out a pending native dispatcher call/page.
+    /// Close only the bounded shared-HP alias before the whole original LoadSave
+    /// invokes native health setters. No health value or input endpoint changes.
+    /// </summary>
+    internal void PrepareProgressionSavedReloadAtWorld(uint tid, ref Win32Native.X86Context context,
+        NativeProgressionSavedState? completedSave = null, ulong preWaitingOperation = 0)
+    {
+        SharedBattleWorld(tid, ref context);
+        Require(_progressionSavedReloadCohort && _sharedBattleCaptured && !_sharedBattleUnloadStarted &&
+            _stage == 6 && _idleActive && !_dependentInterval && _healthBattleHolding && _healthBattleFastRouteStarted &&
+            _level == 28 && _sharedPlayerProfile.Level == 28 && _sharedPlayerProfile.Story &&
+            !_deathBattleFixture && _mosquitoPlayerTargets is null && !HairHasLiveOwnership && HairModeSucceeded &&
+            _commandMovement is null && Environment.TickCount64 <= _sharedBattleDeadline,
+            "Saved reload preparation requires its explicit live Alfea28 progression World.");
+        if (_progressionSavedReloadPrepared)
+        {
+            Require(_sharedHealthAlias is { Retired: true, Active: false },
+                "Saved reload preparation lost its already-retired shared-HP proof.");
+            return;
+        }
+        bool ready = ReadSharedBattleFlow(out uint top, out uint depth, out uint current, out uint pending, out _);
+        bool savedOverlay = !ready && completedSave is not null &&
+            completedSave.IsOwnedCompletedAtWorld(_host, tid, context) && current is 69 or 72 && pending == 0;
+        bool preWaiting = ready && HasPreWaitingReloadPreparation(preWaitingOperation) &&
+            !_networkInputRetired && !_networkInputDisconnected && _networkInputFailure.Length == 0;
+        Require(WorldStateBodyReady && !ProgressionInputAllowed && _networkInputLastAppliedNeutral &&
+            _sharedHealthAlias?.Active == true && (ready && ProgressionNeutralNativeApplied || savedOverlay || preWaiting),
+            "Saved reload requires a genuinely ready held body or its completed same-process original save overlay.");
+        if (savedOverlay)
+        {
+            Require(depth < 20 && _progressionSavedReloadHeldNeutralStop != 0 &&
+                _progressionSavedReloadHeldNeutralStop <= completedSave!.AuthorizationStartStop &&
+                _progressionSavedReloadHeldPermissionChanges == _progressionInputChanges &&
+                !_networkInputRetired && !_networkInputDisconnected && _networkInputFailure.Length == 0,
+                "Save overlay lost the actual pre-save neutral interval or reopened its held input generation.");
+            NativeProgressionFlowRequest.VerifyOriginalSaveOverlayAtStop(_host, _image, top, current);
+            uint retained = 0;
+            for (uint index = 0; index <= depth; ++index)
+            {
+                uint state = Pointer(_flow + 0x15C + index * 4);
+                if (U(state) != 0x710874 || U(state + 0x10) != 28) continue;
+                Require(retained == 0 && state == _active,
+                    "Save overlay does not retain exactly the captured Alfea28 playing owner.");
+                retained = state;
+            }
+            Require(retained == _active && top != retained,
+                "Save overlay lost its original captured Alfea28 playing state.");
+        }
+        VerifySharedBattleBorrowedOwners(fullLocal: true); VerifySharedBattleOwnGraph();
+        VerifySharedBattleTemplateOwner(true); VerifyRetainedInputBodyOwners(); NetworkInputNeutralReadback();
+        // This existing API proves typed live owners, equal HP views and zero
+        // pending health pairs before making its native callbacks dormant.
+        _sharedHealthAlias!.RetireBeforeOwnUnload(tid, ref context);
+        Require(_sharedHealthAlias is { Retired: true, Active: false },
+            "Shared-HP alias did not retire at its verified pre-LoadSave World.");
+        _progressionSavedReloadPrepared = true; _progressionSavedReloadPrepareStop = _host.DebugStopSequence;
+        if (preWaiting) { _preWaitingReloadActive = false; ++_preWaitingReloadConsumptions; }
+        _log(new { @event = "template-progression-saved-reload-prepared", actualWorldStop = _progressionSavedReloadPrepareStop,
+            sharedHealthAliasRetiredBeforeOriginalLoadSaveSetters = true, equalViewsRequiredByExistingAlias = true,
+            pendingHealthPairsRequiredZero = true, actualReadyGameplayWorld = ready,
+            completedOriginalRetainedSaveOverlay = savedOverlay,
+            verifiedPreWaitingOperation = preWaiting ? preWaitingOperation : 0,
+            actualPreWaitingNeutralStop = preWaiting ? _preWaitingReloadStop : 0,
+            currentReadyOrPreSaveActualPrivateNeutralRequired = true,
+            heldInputNeverReopenedSincePreSaveProof = savedOverlay,
+            nativeMaximumAndCurrentHealthSettersPreserved = true, inputControllerAndEndpointStillOwned = true,
+            noPendingDispatcherCallAndPageMustBeVerifiedByCaller = true,
+            healthOrProfileWritesByPreparation = 0, nativeLoadSaveCalledByPreparation = false });
+    }
 
     private void CaptureSharedBattleLifetimeAtWorld(uint tid, ref Win32Native.X86Context context, int durationSeconds)
     {
@@ -138,6 +233,11 @@ internal sealed partial class NativeTemplateProbe
         StepBodyInputFixtureAtWorld(tid, ref context, ready);
         StepOrdinaryAttackAtWorld(tid, ref context, ready);
         StepNetworkInputAtWorld(tid, ref context, ready);
+        if (_progressionSavedReloadCohort && ProgressionNeutralNativeApplied)
+        {
+            _progressionSavedReloadHeldPermissionChanges = _progressionInputChanges;
+            _progressionSavedReloadHeldNeutralStop = _host.DebugStopSequence;
+        }
         if (_sharedBattleWorlds <= 2 || _sharedBattleWorlds % 120 == 0)
             _log(new { @event = "template-shared-battle-lifetime-world", world = _sharedBattleWorlds, ready,
                 elapsedMs = Math.Max(0, Environment.TickCount64 - _sharedBattleStarted), nativePaused = _sharedBattleLastNativePaused,
@@ -258,7 +358,22 @@ internal sealed partial class NativeTemplateProbe
             VerifySharedBattleBorrowedOwners(fullLocal: true); VerifySharedBattleOwnGraph(); VerifySharedBattleTemplateOwner(true);
         }
         RetireBodyInputFixtureBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
-        RetireNetworkInputBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
+        if (_progressionSavedReloadPrepared)
+        {
+            Require(_progressionSavedReloadCohort && ProgressionSavedReloadPrepared &&
+                _sharedHealthAlias is { Retired: true, Active: false } &&
+                !_progressionSavedReloadInputRetirementAtEntry,
+                "Saved reload input retirement lost its exclusive pre-retired HP phase.");
+            _progressionSavedReloadInputRetirementAtEntry = true;
+            try
+            {
+                RetireNetworkInputBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
+                Require(NetworkInputFixtureRetired && ++_progressionSavedReloadInputRetirements == 1,
+                    "Saved reload input retirement did not close its exact controller once.");
+            }
+            finally { _progressionSavedReloadInputRetirementAtEntry = false; }
+        }
+        else RetireNetworkInputBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
         RetireOrdinaryAttackBeforeUnload(tid, ref context, entry, VerifyInputUnloadBoundary);
         PrepareProjectileManagerRetainedDeleteBaseline();
 
@@ -275,6 +390,9 @@ internal sealed partial class NativeTemplateProbe
         PreparePlayerTraitsRetainedDelete(); CaptureTargetRegionRetainedDeleteBaseline();
         // Root must retire every optional peer with this original entry context,
         // award observer before eligibility. No fabricated WorldRET is allowed.
+        if (_progressionSavedReloadPrepared)
+            Require(_progressionSavedReloadCohort && _sharedHealthAlias is { Retired: true, Active: false },
+                "Saved reload must skip only its specifically pre-retired shared-HP alias.");
         RetireSharedBattleAdaptersAtEntry(tid, ref context);
         ushort previous = Refs(_template), remaining = checked((ushort)(previous - 1));
         WriteSharedBattleTemplateReferences(remaining); _sharedBattleTemplateOwnerHeld = false;
@@ -321,17 +439,7 @@ internal sealed partial class NativeTemplateProbe
             ReferenceEquals(host, _host) && !calls.Pending && Environment.TickCount64 <= _sharedBattleDeadline &&
             ++_sharedBattlePostWorlds <= (_sharedPlayerProfile.Story && _deathBattleFixture ? 360000 : SharedBattlePostWorldLimit),
             "Shared Battle post-unload requires a later real WorldRET after its completed native entry batch.");
-        calls.ReleaseRetiredAtWorldStop(host, tid, ref context);
-        _mosquitoPlayerTargets?.ReleaseRetiredPagesAtWorld(tid, ref context);
-        Require(!HasLiveOwnership && _instance == 0 && _traits == 0 && _template == 0 && _stream == 0 &&
-            U(0x765ACC) == _gameManager && Memberships(_sharedBattleDeletedEntities).Matches.Length == 0,
-            "Shared Battle post-unload still owns or reobserved a deleted graph in the current manager.");
-        if (!_sharedBattleResourcesReleased)
-        {
-            releaseOwnedResources(); Require(!HairHasLiveOwnership, "Shared Battle still owns appearance data after native borrows ended.");
-            _sharedBattleResourcesReleased = true;
-            _log(new { @event = "template-shared-battle-post-unload-resources-released", atLaterWorld = true, oldPlayerRead = false });
-        }
+        ReleaseSharedBattleResourcesAtWorld(host, tid, ref context, calls, releaseOwnedResources, legacyMembershipCheck: true);
         // Only fresh Flow/type data is read here; no captured Profile, Instance,
         // old scene, animation resources, or body graph is dereferenced.
         uint flow = Pointer(0x755294), stack = U(flow + 0x1AC), pending = U(flow + 0x1B8);
@@ -391,6 +499,56 @@ internal sealed partial class NativeTemplateProbe
                     gameplayGoalBeforeUnload = _sharedBattleGoalAtUnload, passed = SharedBattleLifetimeSucceeded,
                     nativePauseObserved = _sharedBattleNativePauseObserved, resumeTransitions = _sharedBattleResumeTransitions,
                     resumedNativePauseMilliseconds = _sharedBattleLongestResumedNativePauseMilliseconds, oldPlayerRead = false });
+        }
+    }
+
+    /// <summary>
+    /// Separate progression-only resource boundary after an externally paired
+    /// original Exit return. A new scene may already exist at this WorldRET;
+    /// its allocator may reuse old addresses, so only the pre-Exit destructor
+    /// witnesses and cached zero ownership are used for the old graph here.
+    /// </summary>
+    internal bool ObserveSharedBattleResourcesRetiredAtWorld(DebuggerHost host, uint tid,
+        ref Win32Native.X86Context context, NativeCallDispatcher calls, bool actualOriginalExitReturned)
+    {
+        SharedBattleWorld(tid, ref context);
+        Require(actualOriginalExitReturned && _sharedBattleLifetimeEnabled && _sharedBattleUnloadStarted &&
+            _sharedBattleBatchCompleted && ReferenceEquals(host, _host) && !calls.Pending &&
+            !_deathBattleFixture && _mosquitoPlayerTargets is null &&
+            Environment.TickCount64 <= _sharedBattleDeadline && ++_sharedBattlePostWorlds <= SharedBattlePostWorldLimit,
+            "Progression resource retirement requires its paired original Exit, later World and bounded non-death/non-target scope.");
+        ReleaseSharedBattleResourcesAtWorld(host, tid, ref context, calls,
+            () => Require(!HairHasLiveOwnership && _commandMovement is null,
+                "Progression resource retirement retains unfinished appearance or command buffers."),
+            legacyMembershipCheck: false);
+        Require(!calls.HasRetiredPage && !HasLiveOwnership && !HairHasLiveOwnership,
+            "Progression resource retirement still owns a dispatcher page or native borrower.");
+        if (!_sharedBattleProgressionExitReturned)
+        {
+            _sharedBattleProgressionExitReturned = true;
+            _log(new { @event = "template-shared-progression-native-resources-retired", atLaterWorld = true,
+                actualOriginalExitReturnedSuppliedByExternalWitness = true, oldNativeDeleteBatchCompleted = true,
+                oldOwnerAddressesReobserved = false, globalEmptySceneRequired = false,
+                legacyMainMenuOrModeSuccessClaimed = false, nativeResourcesRetired = NativeResourcesRetired });
+        }
+        return NativeResourcesRetired;
+    }
+
+    private void ReleaseSharedBattleResourcesAtWorld(DebuggerHost host, uint tid,
+        ref Win32Native.X86Context context, NativeCallDispatcher calls, Action releaseOwnedResources,
+        bool legacyMembershipCheck)
+    {
+        calls.ReleaseRetiredAtWorldStop(host, tid, ref context);
+        if (legacyMembershipCheck) _mosquitoPlayerTargets?.ReleaseRetiredPagesAtWorld(tid, ref context);
+        Require(!HasLiveOwnership && _instance == 0 && _traits == 0 && _template == 0 && _stream == 0 &&
+            U(0x765ACC) == _gameManager && (!legacyMembershipCheck || Memberships(_sharedBattleDeletedEntities).Matches.Length == 0),
+            "Shared Battle post-unload still owns or reobserved a deleted graph in the current manager.");
+        if (!_sharedBattleResourcesReleased)
+        {
+            releaseOwnedResources(); Require(!HairHasLiveOwnership, "Shared Battle still owns appearance data after native borrows ended.");
+            _sharedBattleResourcesReleased = true;
+            _log(new { @event = "template-shared-battle-post-unload-resources-released", atLaterWorld = true,
+                oldPlayerRead = false, legacyDeletedAddressMembershipCheck = legacyMembershipCheck });
         }
     }
 

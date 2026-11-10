@@ -243,7 +243,7 @@ internal static class Program
             ValidatePickingMath();
             ValidateEulerAngles();
             ValidateImportContract();
-            ValidateObjAdjacentTextureImport();
+            ValidateObjAuthoredTextureImport();
             ValidateCollisionHullGenerator();
             ValidateSaveDiagnostics();
             string repository = Path.GetFullPath(Path.Combine(
@@ -2472,7 +2472,7 @@ internal static class Program
             "level import preserves decoder warnings and reports MASK conversion");
     }
 
-    private static void ValidateObjAdjacentTextureImport()
+    private static void ValidateObjAuthoredTextureImport()
     {
         string root = Path.Combine(
             Path.GetTempPath(),
@@ -2507,9 +2507,37 @@ internal static class Program
             File.WriteAllText(namedObj, TriangleObj(null, "usemtl skin"));
             WriteTexture(Path.Combine(namedDirectory, "skin.png"), transparent: false);
             ImportedScene named = ObjModelReader.Read(namedObj);
-            True(named.Textures.Count == 1 &&
-                 named.Materials[named.Meshes[0].MaterialIndex].BaseColorTextureIndex == 0,
-                "OBJ without MTL matches an adjacent texture by material name");
+            True(named.Textures.Count == 0 &&
+                 named.Meshes[0].MaterialIndex >= 0 &&
+                 named.Materials[named.Meshes[0].MaterialIndex].Name == "skin" &&
+                 named.Materials[named.Meshes[0].MaterialIndex].BaseColorTextureIndex == -1 &&
+                 named.ImportWarnings.Any(warning => warning.Contains(
+                     "TEXTURE_UNBOUND", StringComparison.Ordinal)),
+                "OBJ without an authored map preserves the material and warns instead of guessing a same-name image");
+
+            string selectedMtl = Path.Combine(namedDirectory, "selected library.mtl");
+            File.WriteAllText(selectedMtl, "newmtl skin\nmap_Kd skin.png\n");
+            ImportedScene explicitlyBound = ObjModelReader.ReadWithMaterialLibrary(
+                namedObj, selectedMtl);
+            True(explicitlyBound.Textures.Count == 1 &&
+                 explicitlyBound.Materials.Count == 1 &&
+                 explicitlyBound.Meshes[0].MaterialIndex == 0 &&
+                 explicitlyBound.Materials[0].BaseColorTextureIndex == 0 &&
+                 explicitlyBound.ObjMaterialLibraryPaths.SequenceEqual([selectedMtl]),
+                "an explicitly selected MTL binds its authored image even without an OBJ mtllib declaration");
+
+            string missingMtl = Path.Combine(namedDirectory, "missing image.mtl");
+            File.WriteAllText(missingMtl, "newmtl skin\nmap_Kd missing.png\n");
+            ImportedScene missingAuthoredImage = ObjModelReader.ReadWithMaterialLibrary(
+                namedObj, missingMtl);
+            True(missingAuthoredImage.Textures.Count == 0 &&
+                 missingAuthoredImage.Meshes[0].MaterialIndex == 0 &&
+                 missingAuthoredImage.Materials[0].BaseColorTextureIndex == -1 &&
+                 missingAuthoredImage.Materials[0].BaseColorTextureName == "missing.png" &&
+                 missingAuthoredImage.ImportWarnings.Any(warning =>
+                     warning.Contains("TEXTURE_MISSING", StringComparison.Ordinal) &&
+                     warning.Contains("missing.png", StringComparison.Ordinal)),
+                "a missing authored MTL image keeps its logical name and warns instead of substituting the nearby same-name material image");
 
             string fallbackDirectory = Path.Combine(root, "without-mtl-fallback");
             Directory.CreateDirectory(fallbackDirectory);
@@ -2520,12 +2548,12 @@ internal static class Program
                 Path.Combine(fallbackDirectory, "only-image_NOMR.png"),
                 transparent: false);
             ImportedScene fallback = ObjModelReader.Read(fallbackObj);
-            True(fallback.Textures.Count == 1 &&
-                 fallback.Meshes[0].MaterialIndex >= 0 &&
+            True(fallback.Textures.Count == 0 &&
+                 fallback.Materials.Count == 0 &&
+                 fallback.Meshes[0].MaterialIndex == -1 &&
                  fallback.ImportWarnings.Any(warning => warning.Contains(
-                     "fallback",
-                     StringComparison.OrdinalIgnoreCase)),
-                "OBJ without MTL uses the sole adjacent texture as an unambiguous fallback");
+                     "TEXTURE_UNBOUND", StringComparison.Ordinal)),
+                "OBJ without an authored material remains untextured and warns even when one adjacent base-color candidate exists");
 
             string ambiguousDirectory = Path.Combine(root, "ambiguous");
             Directory.CreateDirectory(ambiguousDirectory);
@@ -2535,9 +2563,11 @@ internal static class Program
             WriteTexture(Path.Combine(ambiguousDirectory, "second.png"), transparent: false);
             ImportedScene ambiguous = ObjModelReader.Read(ambiguousObj);
             True(ambiguous.Textures.Count == 0 &&
+                 ambiguous.Materials.Count == 0 &&
                  ambiguous.Meshes[0].MaterialIndex == -1 &&
-                 ambiguous.ImportWarnings.Count > 0,
-                "OBJ adjacent texture discovery does not guess between ambiguous images");
+                 ambiguous.ImportWarnings.Any(warning => warning.Contains(
+                     "TEXTURE_UNBOUND", StringComparison.Ordinal)),
+                "OBJ without an authored material does not guess between multiple adjacent images");
         }
         finally
         {
@@ -3030,11 +3060,14 @@ internal static class Program
             bed.Parts.Select(part => part.Asset.ObjectIndex)
                 .SequenceEqual([1691, 1694, 1697, 1706, 1709]),
             "baked Muza bed combines frame, linen, pillow and roof meshes");
+        SmoEditablePlacement muzaBakedPart = document.Placements.Single(part =>
+            part.Asset.ObjectIndex == 1706);
         True(
-            document.ExpandCompositeEntities([new SmoLevelEntityId(1706)])
-                .Select(id => id.SceneObjectIndex).Order()
+            document.ExpandCompositeEntities([muzaBakedPart.Entity.Id])
+                .SelectMany(id => document.GetEntity(id).Parts)
+                .Select(part => part.Asset.ObjectIndex).Order()
                 .SequenceEqual([1691, 1694, 1697, 1706, 1709]),
-            "selecting mesh 1706 expands to the complete baked Muza bed");
+            "selecting mesh 1706 through its placement entity expands to the complete baked Muza bed");
 
         SmoCompositeModel tree = document.CompositeModels.Single(model =>
             model.Name.Equals("tree01", StringComparison.OrdinalIgnoreCase) &&
@@ -3200,14 +3233,52 @@ internal static class Program
                 sourceMesh.WorldTransform,
                 previewAdjustment);
         Matrix4x4 rendererReflection = Matrix4x4.CreateScale(1, 1, -1);
-        Vector3 previewPosition = Vector3.Transform(
-            memoryPreview.Positions[0],
-            previewModel * rendererReflection);
-        Vector3 savedVisiblePosition = Vector3.Transform(
-            importedMesh.Positions[0],
-            previewAdjustment.Matrix);
-        True(Vector3.Distance(previewPosition, savedVisiblePosition) < 0.001f,
-            "GPU fitting matrix matches the geometry that save will pack");
+        Matrix4x4 conditionedReferenceWorld =
+            Matrix4x4.CreateScale(0.8f, 1.2f, 1.1f) *
+            Matrix4x4.CreateFromYawPitchRoll(0.3f, -0.15f, 0.27f) *
+            Matrix4x4.CreateTranslation(5, -3, 2);
+        SmoMesh conditionedPreview = SmoMeshResourceReplacer.CreatePreviewMesh(
+            document.Workspace.Document,
+            targetMeshIndex,
+            importedScene,
+            ReplacementTransform.Identity,
+            referenceWorldTransform: conditionedReferenceWorld);
+        Matrix4x4 conditionedPreviewModel =
+            SmoMeshResourceReplacer.CreatePreviewModelTransform(
+                conditionedReferenceWorld,
+                previewAdjustment);
+        for (int vertex = 0; vertex < importedMesh.Positions.Length; vertex++)
+        {
+            Vector3 savedVisiblePosition = Vector3.Transform(
+                importedMesh.Positions[vertex],
+                previewAdjustment.Matrix);
+            Vector3 conditionedPreviewPosition = Vector3.Transform(
+                conditionedPreview.Positions[vertex],
+                conditionedPreviewModel * rendererReflection);
+            True(Vector3.Distance(conditionedPreviewPosition, savedVisiblePosition) < 0.001f,
+                $"GPU fitting matrix preserves axes and transform order at vertex {vertex}");
+
+            Vector3 previewPosition = Vector3.Transform(
+                memoryPreview.Positions[vertex],
+                previewModel * rendererReflection);
+            // This level places the template thousands of units from the origin.
+            // Local packing followed by a composed model matrix cancels large
+            // Float32 terms. Keep the absolute check above, and bound this real
+            // placement by four source-coordinate ULPs amplified by the fit scale.
+            Vector3 localPosition = Vector3.Abs(memoryPreview.Positions[vertex]);
+            Vector3 worldTranslation = Vector3.Abs(sourceMesh.WorldTransform.Translation);
+            float coordinateMagnitude = new[]
+            {
+                localPosition.X, localPosition.Y, localPosition.Z,
+                worldTranslation.X, worldTranslation.Y, worldTranslation.Z
+            }.Max();
+            float coordinateUlp = MathF.BitIncrement(coordinateMagnitude) - coordinateMagnitude;
+            float tolerance = MathF.Max(0.001f,
+                4 * coordinateUlp * MathF.Max(1, MathF.Abs(previewAdjustment.Scale)));
+            float error = Vector3.Distance(previewPosition, savedVisiblePosition);
+            True(error < tolerance, FormattableString.Invariant(
+                $"GPU fitting matrix matches packed geometry at vertex {vertex}: error={error:G9}, limit={tolerance:G9}"));
+        }
         True(document.ReplaceModel(
                 targetMeshIndex,
                 importedScene,
@@ -3936,6 +4007,14 @@ internal static class Program
         HashSet<uint> replacedMeshIds = plan.Components
             .Select(component => component.MeshObjectId)
             .ToHashSet();
+        SmoSceneMesh[] originalOccurrences = SmoViewer.Scene.SmoSceneBuilder.Build(source).Meshes
+            .Where(mesh => replacedMeshIds.Contains(source.Objects[mesh.Mesh.ObjectIndex].Id))
+            .ToArray();
+        (uint Container, int Slot) SlotIdentity(SmoDocument document, SmoSceneMesh mesh) =>
+            mesh.OccurrenceKey is { } key
+                ? (document.Objects[key.ContainerObjectIndex].Id, key.MemberSlot)
+                : throw new InvalidOperationException("Compound placement lacks its native support slot.");
+        var originalBySlot = originalOccurrences.ToDictionary(mesh => SlotIdentity(source, mesh));
         SmoObjectEntry sharedOldTexture = source.Objects.Single(entry => entry.Id == 98);
         byte[] sharedOldTextureBytes = source.Data.Span.Slice(
             checked((int)sharedOldTexture.PhysicalOffset),
@@ -3968,16 +4047,47 @@ internal static class Program
             newMeshIds.Contains(replaced.Objects[mesh.Mesh.ObjectIndex].Id)).ToArray();
         SmoSceneMesh[] oldOccurrences = scene.Meshes.Where(mesh =>
             oldMeshIds.Contains(replaced.Objects[mesh.Mesh.ObjectIndex].Id)).ToArray();
+        var newBySlot = newOccurrences.ToDictionary(mesh => SlotIdentity(replaced, mesh));
         True(oldOccurrences.Length == 0 &&
-             newOccurrences.Length == 6,
-            "primary model and all four references use only the new meshes");
+             newOccurrences.Length == originalOccurrences.Length &&
+             originalBySlot.Keys.ToHashSet().SetEquals(newBySlot.Keys),
+            "compound replacement preserves every native placement slot and removes all old mesh occurrences");
+        foreach (var (slot, original) in originalBySlot)
+        {
+            SmoSceneMesh current = newBySlot[slot];
+            uint oldModelId = source.Objects[original.RenderableObjectIndex!.Value].Id;
+            True(replaced.Objects[current.Mesh.ObjectIndex].Id ==
+                     result.MeshObjectIds[source.Objects[original.Mesh.ObjectIndex].Id] &&
+                 replaced.Objects[current.RenderableObjectIndex!.Value].Id ==
+                     result.PrimaryModelObjectIds.GetValueOrDefault(oldModelId, oldModelId) &&
+                 MatrixDistance(current.WorldTransform, original.WorldTransform) < 0.0001f,
+                "each compound support slot keeps its mapped model, mesh and exact placement transform");
+        }
         True(newOccurrences.All(mesh => mesh.Texture?.Name == "compound-texture_lvl"),
             "all new compound-model parts use the newly added shared texture");
-        True(newOccurrences.All(mesh =>
-                mesh.MaterialRenderState?.BlendMode ==
-                    SmoMaterialBlendMode.RigidTextureAlphaSurfaceFinalBlend2 &&
-                mesh.RequiresTransparentOrdering),
-            "GLB BLEND/MASK materials keep texture alpha on every replacement placement");
+        foreach (SmoSceneMesh mesh in newOccurrences)
+        {
+            SmoMaterialDrawPass? pass = mesh.MaterialDraw?.Passes.SingleOrDefault();
+            True(pass is not null && pass.Raster.BlendEnable == 1 &&
+                 pass.Raster.SourceBlend == 5 && pass.Raster.DestinationBlend == 6 &&
+                 pass.Raster.DepthWrite == 0 && pass.Raster.AlphaTest == 1 &&
+                 pass.Stages[0].AlphaOperation is 2 or 4 &&
+                 pass.Stages[0].Texture?.ObjectId == result.TextureObjectIds.Values.Distinct().Single() &&
+                 mesh.Texture is { Width: 8, Height: 8 } texture &&
+                 texture.Bgra32Pixels.ToArray().Chunk(4).All(pixel =>
+                     pixel.SequenceEqual(new byte[] { 230, 170, 40, 128 })),
+                "BLEND/MASK replacement preserves pixel alpha and the native texture-alpha draw states");
+            bool isBlend = replaced.Objects[mesh.Mesh.ObjectIndex].Id ==
+                result.MeshObjectIds[plan.Components[0].MeshObjectId];
+            // The common native draw is authoritative; its raw legacy blend enum
+            // is not the renderer policy. BLEND enables sorting, while MASK
+            // retains the source's authored AlphaSortEnable compatibility state.
+            True(isBlend
+                    ? mesh.SourceAlphaSort == true && mesh.AlphaSortData?.RequiresQueue == true
+                    : mesh.SourceAlphaSort == originalBySlot[SlotIdentity(replaced, mesh)].SourceAlphaSort &&
+                      mesh.AlphaSortData?.RequiresQueue == mesh.SourceAlphaSort,
+                "BLEND queues every placement and MASK preserves its authored native sorting flag");
+        }
     }
 
     private static void ValidateMultiSelectionExport(string sourcePath)

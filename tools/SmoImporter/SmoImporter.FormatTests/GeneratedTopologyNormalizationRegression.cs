@@ -5,10 +5,12 @@ using SmoViewer.Core;
 
 internal static class GeneratedTopologyNormalizationRegression
 {
-    public static void Run(string targetPath)
+    public static void Run(string targetPath, string? donorPath = null)
     {
         targetPath = Path.GetFullPath(targetPath);
+        donorPath = donorPath is null ? null : Path.GetFullPath(donorPath);
         byte[] targetBefore = File.ReadAllBytes(targetPath);
+        byte[]? donorBefore = donorPath is null ? null : File.ReadAllBytes(donorPath);
         SmoDocument target = SmoDocument.Load(targetPath);
         SmoExportScene targetScene = SmoSceneBuilder.Build(
             target,
@@ -17,9 +19,17 @@ internal static class GeneratedTopologyNormalizationRegression
                 AnimationPaths: null,
                 Resources: SmoExportResourceTypes.Meshes |
                            SmoExportResourceTypes.Skeleton));
-        ImportedScene clean = BuildUnskinnedTargetSurface(targetScene);
+        // The source-derived fixture must satisfy the current protection
+        // contract in its own right. A separate, known-valid character donor
+        // can isolate topology equivalence when the source-derived surface
+        // cannot produce a validated rigid Head region.
+        ImportedScene clean = donorPath is null ? BuildUnskinnedTargetSurface(targetScene) :
+            ImportedModelReader.ReadGeometryOnly(donorPath);
         TargetRigDefinition rig = TargetRigDefinition.FromSmoDocument(target);
-        var alignment = new ReplacementTransform(1, Vector3.Zero, Vector3.Zero);
+        ReplacementTransform alignment = donorPath is null ? ReplacementTransform.Identity :
+            ReplacementTransformFitter.FitByHeightAndCenter(
+                targetScene.Meshes.SelectMany(mesh => mesh.Positions),
+                clean.Meshes.SelectMany(mesh => mesh.Positions));
         TargetRigFittingPoseSnapshot neutral = TargetRigBodyPoseMapper.CreateSnapshot(
             rig, TargetRigBodyPoseParameters.Neutral);
 
@@ -70,36 +80,32 @@ internal static class GeneratedTopologyNormalizationRegression
             WithNonFinitePosition(clean, augmentedMeshIndex),
             "non-finite position");
 
-        if (!File.ReadAllBytes(targetPath).SequenceEqual(targetBefore))
+        if (!File.ReadAllBytes(targetPath).SequenceEqual(targetBefore) ||
+            donorPath is not null && !File.ReadAllBytes(donorPath).SequenceEqual(donorBefore!))
             throw new InvalidOperationException(
-                "Synthetic topology normalization regression modified the target SMO.");
+                "Synthetic topology normalization regression modified an input model.");
         Console.WriteLine(
             "GENERATED TOPOLOGY NORMALIZATION PASS: " +
             "one unused vertex and one three-vertex degenerate face were ignored; " +
-            "visible membership/weights stayed identical; malformed topology was rejected.");
+            "visible membership/weights stayed identical; malformed topology was rejected; " +
+            (donorPath is null ? "source-derived fixture." : "separate geometry-only donor fixture."));
     }
 
     private static ImportedScene BuildUnskinnedTargetSurface(SmoExportScene scene)
     {
-        ImportedMesh[] meshes = scene.Meshes
-            .Where(mesh => mesh.SkinObjectIndex is not null &&
-                           mesh.Positions.Length > 0 &&
-                           mesh.TriangleIndices.Length > 0)
-            .Select(mesh => new ImportedMesh(
-                mesh.Name,
-                mesh.Positions.ToArray(),
-                mesh.Normals.Length == mesh.Positions.Length
-                    ? mesh.Normals.ToArray()
-                    : [],
-                mesh.TextureCoordinates0.Length == mesh.Positions.Length
-                    ? mesh.TextureCoordinates0.ToArray()
-                    : [],
-                mesh.TriangleIndices.ToArray()))
+        // A complete character can include rigid Head placements. Omitting
+        // them creates a body-only fixture which correctly fails the enabled
+        // Head-plane guard before topology equivalence can be tested. Use the
+        // common occurrence projection, including its rigid world transforms.
+        ImportedScene imported = SmoModelReader.ReadNativeTransferGeometryPreview(scene.SourcePath);
+        ImportedMesh[] meshes = imported.Meshes
+            .Where(mesh => mesh.Positions.Length > 0 && mesh.TriangleIndices.Length > 0)
+            .Select(mesh => mesh with { Skinning = null })
             .ToArray();
         if (meshes.Length == 0)
             throw new InvalidOperationException(
-                "Synthetic topology regression target has no skinned surface meshes.");
-        return new ImportedScene(Array.AsReadOnly(meshes));
+                "Synthetic topology regression target has no renderable surface meshes.");
+        return imported with { Meshes = Array.AsReadOnly(meshes) };
     }
 
     private static ImportedScene AddSyntheticNonSurfaceVertices(

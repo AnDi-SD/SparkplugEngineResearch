@@ -14,6 +14,9 @@ internal sealed record NativeSharedPlayerProfile(string Name, uint Level, uint P
             new("alfea-28-input", 28, 0x710874, 0x5F5450, 0x5F86C0, true, true),
         "alfea-28-network-input" when config.TemplateNetworkInputFixture =>
             new("alfea-28-network-input", 28, 0x710874, 0x5F5450, 0x5F86C0, true, true),
+        "gardenia-03-network-input" when config.TemplateNetworkInputFixture &&
+            config.ProgressionControl is not null && config.ProgressionSceneLevel == 3 && config.TemplateStoryDeathFixture =>
+            new("gardenia-03-network-input", 3, 0x710874, 0x5F5450, 0x5F86C0, true, true),
         "battle-01-network-input" when config.TemplateNetworkInputFixture && config.TemplateNetworkOrdinaryAttackFixture =>
             new("battle-01-network-input", 47, 0x7105C8, 0x5F2080, 0x5F2300, true, false),
         "battle-01-ordinary-attack" when config.TemplateOrdinaryAttackFixture =>

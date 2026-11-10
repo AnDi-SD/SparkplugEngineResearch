@@ -41,21 +41,63 @@ internal sealed partial class NativeTemplateProbe
     private uint _networkInputTransportAttempt = 1, _networkInputRebindAppliedBaseline;
     private bool _networkInputRebindAwaitWorld, _networkInputRebindMoved;
     private object? _networkInputPreviousTransport;
+    private bool _progressionInputEnabled, _progressionInputAllowed = true, _progressionInputFencePending;
+    private bool _progressionNeutralNativeApplied;
+    private bool _progressionNativeOutcomeWaiting;
+    private uint _progressionOutcomeWorlds, _progressionOutcomeSuppressed;
+    private uint _progressionInputChanges, _progressionInputFences, _progressionInputSuppressed, _progressionFenceSuppressed;
+    private uint _progressionNeutralNativeIntervals, _progressionNeutralNativeWorld;
     private sealed record NetworkInputMap(DiagnosticInputRecord Record, uint DestinationSequence);
     private sealed record NetworkInputPose(float[] Position, uint State, float Vertical);
+    private bool StoryNetworkOutcomeCohort => _networkInputFixture &&
+        _sharedPlayerProfile.Name == "gardenia-03-network-input";
+    private uint RetainedInputLevel => StoryNetworkOutcomeCohort ? 3u : _ordinaryNetwork ? 47u : 28u;
+    private uint RetainedInputDescriptorCount => StoryNetworkOutcomeCohort ? 7u : 8u;
+    // A cached actual native outcome, not a transport failure or an invented
+    // GameOver. Root keeps WCS1 Waiting heartbeats alive until original Exit.
+    internal bool ProgressionNativeOutcomeWaiting => StoryNetworkOutcomeCohort &&
+        _progressionNativeOutcomeWaiting && _networkInputFailure.Length == 0;
 
     internal bool NetworkInputFixtureRetired => !_networkInputFixture || _networkInputRetired;
     internal bool NetworkInputFixtureGoalPassed => _networkInputFixture && _networkInputGoal && _networkInputFailure.Length == 0 &&
         (!_networkInputDrainHoldRequested || _networkInputDrainHoldCompleted || _networkInputDrainHoldQualifiedEarlyTimeout) &&
         (!_ordinaryNetwork || NetworkOrdinaryFixtureGoalPassed);
     internal bool NetworkInputCaptureReady => _networkInputFixture && _networkInputStarted && !_networkInputRetired &&
-        !_sharedBattleUnloadStarted && _networkInputFailure.Length == 0;
+        !_sharedBattleUnloadStarted && !_progressionNativeOutcomeWaiting && _networkInputFailure.Length == 0;
     internal bool NetworkInputDetachedForReconnect => _networkInputTransportAttempt == 1 &&
         _networkInputFixture && _networkInputStarted && !_networkInputRetired && _networkInputDisconnected &&
         _networkInputExpectedPeerRetirement && _networkInputFailure.Length == 0 &&
         _networkInputClient?.Terminal == DiagnosticInputTerminal.ActorClosed;
     internal bool ReboundInputNativeApplied => _networkInputTransportAttempt == 2 && !_networkInputRebindAwaitWorld &&
         _networkInputAppliedCount > _networkInputRebindAppliedBaseline && _networkInputRebindMoved && _networkInputFailure.Length == 0;
+    internal bool ProgressionInputAllowed => !_progressionInputEnabled ||
+        _progressionInputAllowed && !_progressionNativeOutcomeWaiting;
+    internal bool ProgressionNeutralNativeApplied => _progressionInputEnabled && !_progressionInputAllowed &&
+        !_progressionInputFencePending && _progressionNeutralNativeApplied && _networkInputStarted &&
+        !_networkInputRetired && !_networkInputDisconnected &&
+        _networkInputFailure.Length == 0;
+
+    // Coordinator state only. Native command writes and ledger retirement occur
+    // later, inside the existing verified ready WorldRET path.
+    internal void SetProgressionInputAllowed(bool allowed)
+    {
+        if (!_progressionInputEnabled) return;
+        Require(Environment.CurrentManagedThreadId == _ownerThread &&
+            _networkInputFailure.Length == 0, "Progression input permission changed outside its live owner thread.");
+        if (_progressionNativeOutcomeWaiting) return; // This dead native generation never reopens.
+        if (_networkInputRetired)
+        {
+            Require(!allowed, "A retired progression input generation cannot reopen its controller.");
+            return;
+        }
+        if (_progressionInputAllowed == allowed) return;
+        Require(++_progressionInputChanges <= 64, "Progression input permission exceeded its bounded transition count.");
+        _progressionInputAllowed = allowed; _progressionNeutralNativeApplied = false;
+        if (!allowed) _progressionInputFencePending = true;
+        _log(new { @event = "template-progression-input-permission", allowed,
+            pendingVerifiedWorldFence = _progressionInputFencePending, nativeWritesAtSetter = 0,
+            neutralNativeIntervalRequiredAgain = !allowed });
+    }
     private object NetworkInputFixtureSummary => new
     {
         enabled = _networkInputFixture, started = _networkInputStarted, retired = _networkInputRetired,
@@ -63,6 +105,24 @@ internal sealed partial class NativeTemplateProbe
         transportAttempt = _networkInputTransportAttempt, reboundWaitingForNativeWorld = _networkInputRebindAwaitWorld,
         reboundActualNativeApplication = ReboundInputNativeApplied, previousTransport = _networkInputPreviousTransport,
         reboundNativeMovementObserved = _networkInputRebindMoved,
+        progressionBarrier = new
+        {
+            enabled = _progressionInputEnabled, inputAllowed = ProgressionInputAllowed,
+            verifiedWorldFencePending = _progressionInputFencePending, permissionChanges = _progressionInputChanges,
+            verifiedWorldFences = _progressionInputFences, oldLedgerSuppressedAtFence = _progressionFenceSuppressed,
+            nonneutralSourceRecordsSuppressed = _progressionInputSuppressed,
+            neutralNativeApplied = ProgressionNeutralNativeApplied,
+            actualNeutralNativeIntervals = _progressionNeutralNativeIntervals, lastNeutralNativeWorld = _progressionNeutralNativeWorld,
+            sourceCreditAcknowledgesSuppressionSeparately = true, suppressedRecordsCalledNativeApplied = false,
+            localNeutralCommandAloneCompletesBarrier = false
+        },
+        nativeStoryOutcome = new
+        {
+            enabled = StoryNetworkOutcomeCohort, waiting = ProgressionNativeOutcomeWaiting,
+            observedWorlds = _progressionOutcomeWorlds, ledgerRecordsDiscardedWithoutNativeAck = _progressionOutcomeSuppressed,
+            inputMappingRetiredEarly = false, gameOverClaimedByZeroHp = false,
+            originalDeadCommandPreserved = true, ghoulieWorldPresentationClaimed = false
+        },
         source = "Host-IPC5-real-bridge-delivery", epoch = _networkInputEpoch, globalDestinationSequence = _networkInputDestinationSequence,
         accepted = _networkInputAcceptedCount, actualReadyNativeWorldApplied = _networkInputAppliedCount,
         explicitlySuppressed = _networkInputSuppressed, nativeAcknowledgments = _networkInputNativeAckCount,
@@ -111,7 +171,9 @@ internal sealed partial class NativeTemplateProbe
              config.DiagnosticGuestInput?.Role == DiagnosticInputRole.Guest && config.DiagnosticInputHeartbeatMilliseconds == 50),
             "Extended drain diagnostic requires explicit same-game Guest heartbeat50; default remains300ms.");
         _networkInputIdentity = config.DiagnosticHostInput;
-        Require(_networkInputIdentity is { Role: DiagnosticInputRole.Host } &&
+        if (StoryNetworkOutcomeCohort)
+            ConfigureStoryNetworkOutcomeFixture(config);
+        else Require(_networkInputIdentity is { Role: DiagnosticInputRole.Host } &&
             config.TemplateSharedPlayerProfile == (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "alfea-28-network-input") &&
             config.Mode == "template-bloom-body-hair-idle" &&
             config.TemplateProjectileManagerFixture && config.TemplatePlayerTraitsFixture && config.TemplatePlayerTraitsPickupFx &&
@@ -125,6 +187,35 @@ internal sealed partial class NativeTemplateProbe
             (!config.TemplateStingerSecondaryRole || config.TemplateNetworkOrdinaryAttackFixture) && !config.TemplateStarSecondaryEligibility &&
             !config.TemplateStarPlacementFixture && !config.TemplateSharedMagicEnergyAlias,
             "Network input requires its separate Alfea28 Host mapping/retained8-component movement-jump fixture.");
+        _progressionInputEnabled = config.ProgressionControl is not null;
+        if (_progressionInputEnabled)
+        {
+            Require((StoryNetworkOutcomeCohort || config.TemplateSharedPlayerProfile == "alfea-28-network-input") &&
+                !config.TemplateNetworkOrdinaryAttackFixture && config.DiagnosticGuestInput is null &&
+                config.DiagnosticWorldState is { Role: WorldStateRole.Host } && config.EnableProgressionAuthority,
+                "Progression input barrier requires the explicit Alfea28 Host progression cohort.");
+            _progressionInputAllowed = false; _progressionInputFencePending = true;
+        }
+    }
+
+    private void ConfigureStoryNetworkOutcomeFixture(ProbeConfiguration config)
+    {
+        Require(config.ProgressionControl is not null && config.ProgressionSceneLevel == 3 &&
+            config.EnableProgressionAuthority && config.TemplateStoryDeathFixture &&
+            _networkInputIdentity is { Role: DiagnosticInputRole.Host } &&
+            config.DiagnosticWorldState is { Role: WorldStateRole.Host } && config.DiagnosticGuestInput is null &&
+            config.Mode == "template-bloom-body-hair-idle" && config.TemplatePlayerTraitsFixture &&
+            config.TemplatePlayerTraitsPickupFx && config.TemplateTargetRegionFixture &&
+            config.TemplateConfigureTargetRegion && config.TemplateSharedHealthAlias &&
+            !config.TemplateProjectileManagerFixture && !config.TemplateNetworkOrdinaryAttackFixture &&
+            !config.TemplateBodyInputFixture && !config.TemplateOrdinaryAttackFixture &&
+            !config.TemplateHealthBattleFixture && !config.TemplateSharedBattleLifetime &&
+            !config.TemplateBattleCombatFixture && !config.PrepareFirstMagicStage &&
+            !config.TemplateSecondAttackDegreeFixture && !config.TemplateDeathBattleFixture &&
+            !config.TemplateStingerSecondaryRole && !config.TemplateMosquitoPlayerTargets &&
+            !config.TemplateStarSecondaryEligibility && !config.TemplateStarPlacementFixture &&
+            !config.TemplateSharedMagicEnergyAlias && !config.TemplateNetworkInputBackpressureFixture,
+            "Story network outcome requires its separate seven-component Gardenia03 progression/death cohort without projectile, reward or combat fixtures.");
     }
 
     private void BeginNetworkInputAtWorld(uint tid, ref Win32Native.X86Context context)
@@ -133,7 +224,7 @@ internal sealed partial class NativeTemplateProbe
         NetworkInputWorld(tid, context);
         Require(!_networkInputStarted && _networkInputClient is null && _sharedBattleCaptured && _healthBattleHolding &&
             _healthBattleFastRouteStarted && _idleWorldStops == 2 && _ownCharacterTicks == 2 && _ownMoveUpdates == 2 &&
-            _ownBloomUpdates == 2 && _level == (_ordinaryNetwork ? 47u : 28u) && DescriptorCount == 8 &&
+            _ownBloomUpdates == 2 && _level == RetainedInputLevel && DescriptorCount == RetainedInputDescriptorCount &&
             ReadSharedBattleFlow(out _, out _, out _, out _, out _), "Network input starts after two qualified retained native worlds.");
         VerifyRetainedInputBodyOwners();
         DiagnosticInputIdentity identity = _networkInputIdentity ?? throw new InvalidDataException("Missing Host input identity.");
@@ -158,6 +249,12 @@ internal sealed partial class NativeTemplateProbe
         Require(++_networkInputWorlds <= NativeObservationBudget.WorldLimit, "Network input exceeded its retained native-world budget.");
         DiagnosticInputClient client = _networkInputClient!; NativeBodyInputController controller = _networkInputController!;
         bool dead = U(_traits + 0x124) == 0 || U(_playerTraitsPrimaryTraits + 0x124) == 0 || Read(_ownCommand + 0x5F, 1)[0] != 0;
+        if (StoryNetworkOutcomeCohort && (dead || _progressionNativeOutcomeWaiting ||
+                _sharedDeathCommand?.CompletedPublications == 1))
+        {
+            StepStoryNetworkOutcomeAtWorld(tid, ref context, client, controller);
+            return;
+        }
         if (dead) { NetworkInputFail("Shared player died during the movement/jump delivery fixture.", DiagnosticInputTerminal.NativeSource); }
         if (_networkInputRebindAwaitWorld)
         {
@@ -204,6 +301,18 @@ internal sealed partial class NativeTemplateProbe
                 privateControllerPausedOnly = true, actorReadinessRevisionChangedByEpoch = false });
             return;
         }
+        if (_progressionInputEnabled && _progressionInputFencePending)
+        {
+            uint suppressedBefore = _networkInputSuppressed;
+            NetworkInputPrivateFence(tid, ref context, acknowledgeSuppression: true);
+            _progressionFenceSuppressed += _networkInputSuppressed - suppressedBefore;
+            _progressionInputFencePending = false; ++_progressionInputFences;
+            _log(new { @event = "template-progression-input-world-fenced", actualWorld = _networkInputWorlds,
+                oldLedgerRecordsSuppressed = _networkInputSuppressed - suppressedBefore,
+                sourceCreditPreserved = true, oldRecordsCalledNativeApplied = false,
+                realNeutralGuestRecordStillRequired = !_progressionInputAllowed });
+            return;
+        }
         if (_networkInputBarrier == NetworkInputBarrier.AwaitReady)
         {
             _networkInputLastStep = controller.StepAtWorldReturn(tid, ref context, NativeBodyInputAvailability.Ready);
@@ -248,6 +357,7 @@ internal sealed partial class NativeTemplateProbe
         }
         else if (_networkInputLastStep == NativeBodyInputStep.TimedOut)
         {
+            if (_progressionInputEnabled) _progressionNeutralNativeApplied = false;
             CancelNetworkInputDrainHold("controller-timeout");
             NetworkInputSuppressLedger(tid, context, acknowledge: true); NetworkInputNeutralReadback();
             _networkInputTimeoutNeutral = true; ++_networkInputTimeouts;
@@ -259,6 +369,47 @@ internal sealed partial class NativeTemplateProbe
         { NetworkInputFail("Native controller became terminal: " + _networkInputLastStep, DiagnosticInputTerminal.NativeSource); NetworkInputDisconnectAtWorld(tid, ref context); }
         _networkInputGoal |= _networkInputAcceptedCount != 0 && _networkInputAppliedCount != 0 &&
             _networkInputMoved && _networkInputSemanticJumpQualified && _networkInputRise;
+    }
+
+    private void StepStoryNetworkOutcomeAtWorld(uint tid, ref Win32Native.X86Context context,
+        DiagnosticInputClient client, NativeBodyInputController controller)
+    {
+        Require(StoryNetworkOutcomeCohort && _deathBattleFixture && _sharedHealthAlias?.Active == true &&
+            _sharedDeathCommand?.CompletedPublications == 1 && _networkInputFailure.Length == 0,
+            "Story input outcome requires the paired actual native lethal producer publication.");
+        byte deadBefore = Read(_ownCommand + 0x5F, 1)[0];
+        _networkInputLastStep = controller.StepAtWorldReturn(tid, ref context, NativeBodyInputAvailability.Dead);
+        Require(_networkInputLastStep == NativeBodyInputStep.Dead && Read(_ownCommand + 0x5F, 1)[0] == deadBefore,
+            "Story input fence changed the actual native death command or did not become terminally dead.");
+        uint suppressedBefore = _networkInputSuppressed;
+        NetworkInputSuppressLedger(tid, context, acknowledge: false);
+        _progressionOutcomeSuppressed = checked(_progressionOutcomeSuppressed + _networkInputSuppressed - suppressedBefore);
+        NetworkInputNeutralReadback();
+        if (!_progressionNativeOutcomeWaiting)
+        {
+            CancelNetworkInputDrainHold("actual-native-story-death");
+            _progressionNativeOutcomeWaiting = true; _progressionInputAllowed = false;
+            _progressionInputFencePending = false; _progressionNeutralNativeApplied = false;
+            _log(new { @event = "template-progression-native-outcome-waiting", level = _level,
+                actualLethalProducerPublications = _sharedDeathCommand!.CompletedPublications,
+                ownNativeDeadByte = deadBefore, privateControllerDead = true,
+                discardedLedgerRecords = _progressionOutcomeSuppressed, nativeAppliedAcksAdded = 0,
+                inputMappingRetired = false, worldWaitingHeartbeatRequiredFromOwner = true,
+                originalDyingAndGameOverRemainNative = true, gameOverAlreadyClaimed = false });
+        }
+        ++_progressionOutcomeWorlds;
+        if (client.TerminalOrRetired)
+        {
+            // The coordinator may now retire the Guest's input owner normally.
+            // Preserve that terminal channel; never reopen or replace it here.
+            Require(client.Terminal == DiagnosticInputTerminal.ActorClosed,
+                "Story outcome input ended without the coordinated Guest owner retirement.");
+            _networkInputExpectedPeerRetirement = true;
+            return;
+        }
+        Require(client.SetAvailability(DiagnosticInputAvailability.Paused),
+            "Story outcome could not maintain its paused native input-owner lease.");
+        NetworkInputDiscardUnavailable(8);
     }
 
     // Explicit test-only hold of IPC drain; native worlds, command consumption,
@@ -353,6 +504,10 @@ internal sealed partial class NativeTemplateProbe
     private void DrainNetworkInputAtWorld(uint tid, in Win32Native.X86Context context, int maximum)
     {
         DiagnosticInputClient client = _networkInputClient!; NativeBodyInputController controller = _networkInputController!;
+        bool progressionHeld = _progressionInputEnabled && !_progressionInputAllowed;
+        // Suppression ACKs must never overtake an earlier accepted neutral's
+        // actual native interval. The held path permits one such ledger item.
+        if (progressionHeld && (_networkInputInFlight is not null || _networkInputAccepted.Count != 0)) return;
         for (int i = 0; i < maximum && client.TryPeekDelivery(out DiagnosticInputDelivery ticket); ++i)
         {
             // TryPeek itself refreshes control even when it returns a retained
@@ -366,6 +521,18 @@ internal sealed partial class NativeTemplateProbe
                 record.CaptureOrdinal <= _networkInputLastCaptureOrdinal || record.HostIngressMilliseconds < _networkInputLastIngress ||
                 _networkInputDestinationSequence == uint.MaxValue)
             { NetworkInputFail("Delivery source epoch/sequence/ordinal/ingress order is invalid.", DiagnosticInputTerminal.Sequence); return; }
+            if (progressionHeld && !NetworkInputRecordIsNeutral(record))
+            {
+                if (!client.CommitDelivery(ticket, DiagnosticDeliveryDisposition.Suppressed))
+                { NetworkInputFail("Progression-suppressed IPC ticket could not be committed.", DiagnosticInputTerminal.Identity); return; }
+                ++_networkInputNextSource; _networkInputLastCaptureOrdinal = record.CaptureOrdinal;
+                _networkInputLastIngress = record.HostIngressMilliseconds;
+                ++_networkInputSuppressed; ++_progressionInputSuppressed;
+                // No controller sequence was consumed: zero denotes no native
+                // destination, not a fabricated neutral controller enqueue.
+                AcknowledgeNetworkInputAtWorld(tid, context, new(record, 0), "progression-held-nonneutral-suppressed");
+                continue;
+            }
             uint destination = _networkInputDestinationSequence + 1;
             NativeBodyInputEnqueueResult accepted = controller.Enqueue(client.DestinationIntent(record, destination));
             if (accepted == NativeBodyInputEnqueueResult.Full) { ++_networkInputFullRetries; return; }
@@ -379,6 +546,7 @@ internal sealed partial class NativeTemplateProbe
             NetworkInputMap map = new(record, destination);
             if (suppressed) { ++_networkInputSuppressed; AcknowledgeNetworkInputAtWorld(tid, context, map, "fresh-barrier-suppressed"); }
             else { Require(_networkInputAccepted.Count < 4, "Native source ledger exceeded the controller capacity."); _networkInputAccepted.Enqueue(map); ++_networkInputAcceptedCount; }
+            if (progressionHeld && !suppressed) return;
         }
     }
     private bool NetworkInputControlStillCurrent()
@@ -407,7 +575,21 @@ internal sealed partial class NativeTemplateProbe
         if (map.Record.JumpHeld && _networkInputJumpBaseline is null) _networkInputJumpBaseline = before.Position[1];
         ObserveNetworkInputTypedJump(tid, context, map, pose);
         _networkInputLastAppliedNeutral = map.Record.Magnitude == 0 && !map.Record.JumpHeld && !map.Record.OrdinaryAttackHeld;
+        uint nativeAckBefore = _progressionInputEnabled ? _networkInputNativeAckCount : 0;
         ++_networkInputAppliedCount; AcknowledgeNetworkInputAtWorld(tid, context, map, "actual-ready-native-world");
+        if (_progressionInputEnabled && !_progressionInputAllowed && !_progressionInputFencePending &&
+            _networkInputLastAppliedNeutral && _networkInputNativeAckCount != nativeAckBefore)
+        {
+            NetworkInputNeutralReadback(); ++_progressionNeutralNativeIntervals;
+            _progressionNeutralNativeWorld = _networkInputWorlds;
+            if (!_progressionNeutralNativeApplied)
+                _log(new { @event = "template-progression-neutral-native-applied", epoch = map.Record.InputEpoch,
+                    sourceSequence = map.Record.SourceSequence, destinationSequence = map.DestinationSequence,
+                    actualWorld = _networkInputWorlds, actualElapsedNativeTimerInterval = true,
+                    sourceAcknowledgmentPublished = true, synthesizedInputRecord = false,
+                    localFenceAloneWasNotNativeApplication = true });
+            _progressionNeutralNativeApplied = true;
+        }
         _networkInputInFlight = null; _networkInputBeforeFlight = null;
         _log(new { @event = "template-network-input-native-applied", epoch = map.Record.InputEpoch,
             sourceSequence = map.Record.SourceSequence, captureOrdinal = map.Record.CaptureOrdinal,
@@ -427,6 +609,7 @@ internal sealed partial class NativeTemplateProbe
     }
     private void NetworkInputPrivateFence(uint tid, ref Win32Native.X86Context context, bool acknowledgeSuppression)
     {
+        if (_progressionInputEnabled) _progressionNeutralNativeApplied = false;
         CancelNetworkInputDrainHold("native-unready-pause-or-epoch-fence");
         _networkInputLastStep = _networkInputController!.StepAtWorldReturn(tid, ref context, NativeBodyInputAvailability.Paused);
         NetworkInputNeutralReadback(); NetworkInputSuppressLedger(tid, context, acknowledgeSuppression);
@@ -611,6 +794,8 @@ internal sealed partial class NativeTemplateProbe
         _log(new { @event = "template-network-input-native-jump-qualified", data = _networkInputSemanticJumpWitness });
     }
     private static double NetworkInputHorizontalDistance(float[] a, float[] b) => Math.Sqrt(Math.Pow((double)a[0] - b[0], 2) + Math.Pow((double)a[2] - b[2], 2));
+    private static bool NetworkInputRecordIsNeutral(in DiagnosticInputRecord record) =>
+        record.Magnitude == 0 && !record.JumpHeld && !record.OrdinaryAttackHeld;
     private void NetworkInputWorld(uint tid, in Win32Native.X86Context context) => Require(_host.IsAtDebugStop &&
         tid == _host.MainThreadId && context.Eip == NativeCallDispatcher.WorldReturn, "Network input requires an actual owned main-thread WorldRET.");
 }

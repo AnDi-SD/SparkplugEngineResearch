@@ -201,7 +201,7 @@ namespace sparkplug::reconstruction
         if(error)error->clear();
         const auto fail=[&](const char* message){context.failed=true;if(error)*error=message;return false;};
         std::uint32_t start=0,size=0;
-        if(context.failed||!byteCount||byteCount>16u*1024u*1024u||!source.GetCurrentPosition(start)
+        if(context.failed||!byteCount||byteCount>context.GetStructuralSectionLimitForAnalysis()||!source.GetCurrentPosition(start)
             ||!source.GetSize(&size)||source.GetLogicalOriginForAnalysis()>size)
             return fail("Invalid bounded Node section");
         size-=source.GetLogicalOriginForAnalysis();

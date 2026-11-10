@@ -140,13 +140,18 @@ public static class SmoExternalLevelModelAppender
         IReadOnlyDictionary<int, uint> reusableImportedTextureObjectIds)
     {
         string? sourcePath = current.SourcePath;
+        ImportedMesh importedMesh = importedScene.Meshes[partIndex];
+        uint? targetPartitionId = worldTransforms.Count == 1
+            ? ResolveBspLeaf(current, importedMesh, worldTransforms[0])
+            : null;
         int currentTemplateIndex = current.Objects.Single(entry =>
             entry.Id == templateMeshId).Index;
         SmoSharedPlacementCloneResult host = SmoSharedPlacementCloner.Clone(
             current,
             currentTemplateIndex,
             worldTransforms[0],
-            $"{safeName}_{partIndex + 1}");
+            $"{safeName}_{partIndex + 1}",
+            targetPartitionId);
         int hostModelObjectIndex = host.ModelObjectIndex;
         byte[] output = host.Data;
         host = null!;
@@ -180,7 +185,8 @@ public static class SmoExternalLevelModelAppender
             current,
             currentTemplateIndex,
             worldTransforms[0],
-            $"{safeName}_{partIndex + 1}_resource_helper");
+            $"{safeName}_{partIndex + 1}_resource_helper",
+            targetPartitionId);
         int helperStaticObjectIndex = helper.StaticObjectIndex;
         int helperModelObjectIndex = helper.ModelObjectIndex;
         output = helper.Data;
@@ -201,7 +207,6 @@ public static class SmoExternalLevelModelAppender
         current = null!;
         SmoLargeContainerMemory.ReleaseIntermediates(output.Length);
 
-        ImportedMesh importedMesh = importedScene.Meshes[partIndex];
         var onePart = new ImportedScene(
             [importedMesh],
             importedScene.Textures,
@@ -257,6 +262,61 @@ public static class SmoExternalLevelModelAppender
             output,
             generatedMeshId,
             importedTextureObjectIds);
+    }
+
+    private static uint? ResolveBspLeaf(SmoDocument document, ImportedMesh mesh, Matrix4x4 world)
+    {
+        if ((document.Header.PlatformMask & 2) == 0 ||
+            !document.Objects.Any(entry => entry.TypeHash == SmoClassIds.BspNode))
+            return null;
+        SmoObjectEntry[] systems = document.Objects.Where(entry =>
+            entry.TypeHash == SmoClassIds.PartitionSystem).Take(2).ToArray();
+        if (systems.Length != 1 ||
+            !SmoPartitionSystemDecoder.TryDecode(document, systems[0], out var system, out _) ||
+            system.PartitionRoot.Target is not { TypeHash: SmoClassIds.BspNode } node)
+            return null;
+
+        Vector3 minimum = new(float.PositiveInfinity);
+        Vector3 maximum = new(float.NegativeInfinity);
+        foreach (Vector3 position in mesh.Positions)
+        {
+            // Match the rigid writer's handedness conversion before placement.
+            Vector3 point = Vector3.Transform(new Vector3(position.X, position.Y, -position.Z), world);
+            minimum = Vector3.Min(minimum, point);
+            maximum = Vector3.Max(maximum, point);
+        }
+        Vector3 halfExtents = (maximum - minimum) * .5f;
+        Vector3 center = minimum + halfExtents;
+        float radius = halfExtents.Length();
+        if (!float.IsFinite(radius))
+            return null;
+
+        // The native BSP uses positive plane distance for slot 0. Only
+        // select a leaf when the full replacement fits on one side at every
+        // split. Straddling and unsupported trees keep the existing placement.
+        var visited = new HashSet<uint>();
+        while (node.TypeHash == SmoClassIds.BspNode && visited.Add(node.Id))
+        {
+            if (!SmoBspNodeDecoder.TryDecode(document, node, out var bsp, out _) || bsp.Plane is null)
+                return null;
+            Vector3 normal = bsp.Plane.Normal;
+            double normalLength = Math.Sqrt((double)normal.X * normal.X +
+                (double)normal.Y * normal.Y + (double)normal.Z * normal.Z);
+            if (!double.IsFinite(normalLength) || normalLength == 0)
+                return null;
+            double distance = ((double)normal.Z * center.Z + (double)normal.Y * center.Y) +
+                (double)normal.X * center.X - bsp.Plane.Constant;
+            // The reader preserves unnormalized coefficients. Respect both
+            // the geometric sphere extent and the native unscaled-radius test.
+            if (!double.IsFinite(distance) || Math.Abs(distance) <= radius * Math.Max(1, normalLength))
+                return null;
+            uint slot = distance > 0 ? 0u : 1u;
+            if (bsp.PartitionNode.Children.SingleOrDefault(child => child.SlotIndex == slot)
+                    ?.Relationship.Target is not SmoObjectEntry next)
+                return null;
+            node = next;
+        }
+        return node.TypeHash == SmoClassIds.PartitionNode ? node.Id : null;
     }
 
     private sealed record PartAppendResult(

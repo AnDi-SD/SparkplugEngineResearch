@@ -37,6 +37,7 @@ public partial class MainWindow : Window
 
     private void LoadExe(string path, bool showErrorDialog)
     {
+        StatusText.Text = string.Empty;
         try
         {
             string fullPath = Path.GetFullPath(path);
@@ -64,26 +65,36 @@ public partial class MainWindow : Window
 
     private void Patch_Click(object sender, RoutedEventArgs e)
     {
-        if (_exePath is null) return;
+        if (_exePath is not string exePath) return;
         ushort disabledMask = 0;
         foreach (FashionItem item in _items)
             if (!item.KeepHair) disabledMask |= checked((ushort)(1 << item.Id));
 
+        string hiddenFashions = string.Join(", ", _items.Where(item => !item.KeepHair).Select(item => item.Name));
         MessageBoxResult confirmation = MessageBox.Show(this,
-            "Будет изменён основной WinxClub.exe. Рядом с ним автоматически сохранится резервная копия. Продолжить?",
+            $"Файл игры\n{exePath}\n\nКостюмы со скрытыми внешними волосами\n{hiddenFashions}\n\n" +
+            "Рядом с файлом будет создана резервная копия. Продолжить?",
             "Подтверждение EXE-патча", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (confirmation != MessageBoxResult.Yes) return;
 
         try
         {
-            WinxExePatchResult result = WinxExeHairPatcher.PatchFile(_exePath, disabledMask);
-            StatusText.Text = $"Патч для игры и меню костюмов применён. Резервная копия: {result.BackupPath}";
+            WinxExePatchResult result = WinxExeHairPatcher.PatchFile(exePath, disabledMask);
+            string summary = result.BytesChanged
+                ? "Настройки волос записаны и проверены в файле игры."
+                : "Выбранные настройки волос уже были в файле игры. Байты не изменились.";
+            StatusText.Text = $"{summary}\nРезервная копия\n{result.BackupPath}";
             ExeStateText.Text = "EXE содержит совместимый hair-патч для игрового режима и меню костюмов.";
             MessageBox.Show(this,
-                $"Готово. Волосы настроены и в игре, и в меню костюмов.\n\nРезервная копия:\n{result.BackupPath}",
-                "WinxClub.exe обновлён", MessageBoxButton.OK, MessageBoxImage.Information);
+                $"{summary}\n\nФайл игры\n{result.ExePath}\n\nРезервная копия\n{result.BackupPath}",
+                "Проверка WinxClub.exe", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        catch (Exception exception) { ShowError(exception); }
+        catch (Exception exception)
+        {
+            StatusText.Text = "Ошибка: " + exception.Message;
+            MessageBox.Show(this, $"Файл игры\n{exePath}\n\n{exception.Message}",
+                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void LoadItems(ushort disabledMask)
@@ -97,12 +108,6 @@ public partial class MainWindow : Window
                 fashion.CanEnableExternalHair ? "" :
                     "Внешние волосы отключены патчем. Включение заблокировано как небезопасное."));
         }
-    }
-
-    private void ShowError(Exception exception)
-    {
-        StatusText.Text = "Ошибка: " + exception.Message;
-        MessageBox.Show(this, exception.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     private sealed class FashionItem : INotifyPropertyChanged

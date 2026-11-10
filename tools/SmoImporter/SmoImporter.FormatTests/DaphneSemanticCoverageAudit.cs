@@ -23,6 +23,7 @@ internal static class DaphneSemanticCoverageAudit
     private const int MinimumHighConfidenceHeadUniquePositions = 138;
     private const float WeightEpsilon = 0.000001f;
     private const float WeightSumTolerance = 0.00001f;
+    private const float MaximumHandFingerWeight = 0.65f;
     private const float HighConfidenceEnvelope = 0.98f;
     private const float StrictFaceWitnessAxialFloor = -0.5f;
     private const float StrictFaceWitnessEnvelope = 0.90f;
@@ -880,7 +881,7 @@ internal static class DaphneSemanticCoverageAudit
         if (hand.CoarseMotionVertexCount <= 0 ||
             !float.IsFinite(hand.MaximumMotionProxyWeight) ||
             hand.MaximumMotionProxyWeight <= 0 ||
-            hand.MaximumMotionProxyWeight > 1f)
+            hand.MaximumMotionProxyWeight > MaximumHandFingerWeight + WeightSumTolerance)
         {
             throw new InvalidOperationException(
                 $"Daphne {region} reports invalid coarse motion diagnostics: " +
@@ -951,16 +952,24 @@ internal static class DaphneSemanticCoverageAudit
                 scene,
                 vertex);
             AssertNormalizedWeights(influences, vertex, context);
-            int[] joints = influences
+            float anchorWeight = influences
+                .Where(value => value.Bone == hand.AnchorBoneName)
+                .Sum(value => value.Weight);
+            int[] fingerJoints = influences
+                .Where(value => value.Bone != hand.AnchorBoneName)
                 .Select(value => FindJoint(skeleton, value.Bone))
                 .ToArray();
-            if (influences.Length is < 1 or > 2 || joints.Any(joint =>
+            if (influences.Length is < 1 or > 3 ||
+                influences.Select(value => value.Bone).Distinct().Count() != influences.Length ||
+                anchorWeight < 1f - MaximumHandFingerWeight - WeightSumTolerance ||
+                fingerJoints.Any(joint =>
                     !IsDescendantOf(skeleton, joint, hand.AnchorSkeletonJointIndex)) ||
-                (joints.Length == 2 && !AreAdjacent(skeleton, joints[0], joints[1])))
+                (fingerJoints.Length == 2 &&
+                 !AreAdjacent(skeleton, fingerJoints[0], fingerJoints[1])))
             {
                 throw new InvalidOperationException(
-                    $"{context} core {Describe(vertex)} is not a one/two-joint " +
-                    $"adjacent approximate finger-chain weight: {Describe(influences)}.");
+                    $"{context} core {Describe(vertex)} does not retain Hand weight " +
+                    $"plus at most two adjacent finger joints: {Describe(influences)}.");
             }
             foreach ((string bone, _) in influences)
                 activeBones.Add(bone);

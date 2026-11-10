@@ -6,17 +6,25 @@ namespace SmoImporter.Core;
 
 /// <summary>
 /// Decodes a model SMO into the immutable intermediate scene used by the
-/// preview and geometry-analysis tools. Native SMO-to-SMO replacement does not
-/// use this representation: it transfers the donor render forest directly.
+/// preview, geometry analysis and static conversion. Direct native SMO-to-SMO
+/// replacement transfers the donor render forest without this projection.
 /// </summary>
 public static class SmoModelReader
 {
     private const float WeightEpsilon = 0.000001f;
 
+    public sealed record NativePreviewMaterial(SmoLoadedMaterial? Material, SmoMaterialDraw? Draw);
+
     public static ImportedScene Read(
         string path,
         CancellationToken cancellationToken = default)
-        => ReadCore(path, cancellationToken, includeMaterials: true);
+        => ReadCore(path, cancellationToken, includeMaterials: true, capturePreviewMaterials: false, out _, out _);
+
+    /// <summary>Projects the current donor snapshot, including any texture edits.</summary>
+    public static ImportedScene Read(
+        SmoDocument document,
+        CancellationToken cancellationToken = default)
+        => ReadCore(document, cancellationToken, includeMaterials: true, capturePreviewMaterials: false, out _);
 
     /// <summary>
     /// Geometry-only input for the native forest transfer window. Its writer
@@ -26,12 +34,30 @@ public static class SmoModelReader
     public static ImportedScene ReadNativeTransferGeometryPreview(
         string path,
         CancellationToken cancellationToken = default)
-        => ReadCore(path, cancellationToken, includeMaterials: false);
+        => ReadCore(path, cancellationToken, includeMaterials: false, capturePreviewMaterials: false, out _, out _);
+
+    /// <summary>Captures material bindings for display, alongside unchanged transfer geometry.</summary>
+    public static ImportedScene ReadNativeTransferGeometryPreview(
+        string path,
+        out IReadOnlyList<NativePreviewMaterial> previewMaterials,
+        CancellationToken cancellationToken = default)
+        => ReadNativeTransferGeometryPreview(path, out previewMaterials, out _, cancellationToken);
+
+    /// <summary>Returns the exact loaded donor snapshot used for the transfer preview.</summary>
+    public static ImportedScene ReadNativeTransferGeometryPreview(
+        string path,
+        out IReadOnlyList<NativePreviewMaterial> previewMaterials,
+        out SmoDocument document,
+        CancellationToken cancellationToken = default)
+        => ReadCore(path, cancellationToken, includeMaterials: false, capturePreviewMaterials: true, out previewMaterials, out document);
 
     private static ImportedScene ReadCore(
         string path,
         CancellationToken cancellationToken,
-        bool includeMaterials)
+        bool includeMaterials,
+        bool capturePreviewMaterials,
+        out IReadOnlyList<NativePreviewMaterial> previewMaterials,
+        out SmoDocument document)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         cancellationToken.ThrowIfCancellationRequested();
@@ -42,7 +68,18 @@ public static class SmoModelReader
             throw new InvalidDataException("SmoModelReader accepts only .smo files.");
         }
 
-        SmoDocument document = SmoDocument.Load(fullPath);
+        document = SmoDocument.Load(fullPath);
+        return ReadCore(document, cancellationToken, includeMaterials, capturePreviewMaterials, out previewMaterials);
+    }
+
+    private static ImportedScene ReadCore(
+        SmoDocument document,
+        CancellationToken cancellationToken,
+        bool includeMaterials,
+        bool capturePreviewMaterials,
+        out IReadOnlyList<NativePreviewMaterial> previewMaterials)
+    {
+        ArgumentNullException.ThrowIfNull(document);
         if (document.HasErrors)
         {
             throw new InvalidDataException(
@@ -69,12 +106,22 @@ public static class SmoModelReader
                 AnimationPaths: null,
                 Resources: SmoExportResourceTypes.Meshes |
                            SmoExportResourceTypes.Skeleton |
-                           (includeMaterials ? SmoExportResourceTypes.Materials |
-                            SmoExportResourceTypes.Textures : default),
+                           (includeMaterials || capturePreviewMaterials ? SmoExportResourceTypes.Materials : default) |
+                           (includeMaterials ? SmoExportResourceTypes.Textures : default),
                 SceneMode: SmoExportSceneMode.SeparateMeshes,
                 SelectedMeshObjectIndices: activeMeshIndices));
         cancellationToken.ThrowIfCancellationRequested();
-        return Convert(source, cancellationToken, includeMaterials);
+        ImportedScene scene = ConvertCore(source, cancellationToken, includeMaterials, out SmoExportMesh[] renderMeshes);
+        previewMaterials = [];
+        if (capturePreviewMaterials)
+        {
+            var draws = SmoLoadedResources.Get(document).PreviewMaterialDraws;
+            previewMaterials = renderMeshes.Select(mesh => new NativePreviewMaterial(
+                mesh.LoadedMaterial, mesh.LoadedMaterial is { } material
+                    ? draws.GetValueOrDefault(material.ObjectIndex)
+                    : null)).ToArray();
+        }
+        return scene;
     }
 
     public static ImportedScene ReadGeometryOnly(
@@ -94,6 +141,13 @@ public static class SmoModelReader
         SmoExportScene source,
         CancellationToken cancellationToken = default,
         bool includeMaterials = true)
+        => ConvertCore(source, cancellationToken, includeMaterials, out _);
+
+    private static ImportedScene ConvertCore(
+        SmoExportScene source,
+        CancellationToken cancellationToken,
+        bool includeMaterials,
+        out SmoExportMesh[] meshes)
     {
         ArgumentNullException.ThrowIfNull(source);
         cancellationToken.ThrowIfCancellationRequested();
@@ -105,7 +159,7 @@ public static class SmoModelReader
         // ImportedScene stores flattened occurrences. The shared source scene
         // keeps geometry variants separately from actual support reference slots.
         var variants = source.Meshes.ToDictionary(mesh => mesh.VariantKey);
-        SmoExportMesh[] meshes = source.MeshPlacements.Select(placement =>
+        meshes = source.MeshPlacements.Select(placement =>
             {
                 if (!variants.TryGetValue(placement.EffectiveMeshKey, out var mesh))
                     throw new InvalidDataException(

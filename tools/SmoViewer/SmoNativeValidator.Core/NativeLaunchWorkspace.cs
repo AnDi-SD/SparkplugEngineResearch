@@ -40,7 +40,7 @@ internal sealed class NativeLaunchWorkspace : IDisposable
         string? shaderSearchDirectory,
         int? startLevel)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(executablePath);
         string executable = Path.GetFullPath(executablePath);
         if (!File.Exists(executable))
             throw new FileNotFoundException("WinxClub.exe was not found.", executable);

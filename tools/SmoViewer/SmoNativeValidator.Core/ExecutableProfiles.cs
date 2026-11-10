@@ -67,7 +67,7 @@ public sealed class ExecutableBytePattern
 
     public static ExecutableBytePattern Parse(string text)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(text);
         string[] tokens = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (tokens.Length == 0)
             throw new FormatException("An executable signature cannot be empty.");
@@ -302,7 +302,7 @@ public static class ExecutableProfileCatalog
         string executablePath,
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(executablePath);
         string fullPath = Path.GetFullPath(executablePath);
         if (!File.Exists(fullPath))
             return Failed(fullPath, "Executable file does not exist.");

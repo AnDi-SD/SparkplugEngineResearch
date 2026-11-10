@@ -52,7 +52,7 @@ Winx Club на PC и PlayStation 2. Спасибо за дальнейшее и�
 дизассемблер VU microinstructions. Отдельный инструмент ResearchWorkbench
 использует его закреплённые таблицы и функции декодирования; происхождение,
 лицензия GPL-3.0-or-later и локальные изменения указаны в
-[манифесте](tools/ResearchWorkbench/ps2_vu_decoder_source.json).
+[манифесте](https://github.com/AnDi-SD/SparkplugEngineResearch/blob/main/tools/ResearchWorkbench/ps2_vu_decoder_source.json).
 Инструмент не связан с engine-библиотекой проекта.
 
 ## Butermix

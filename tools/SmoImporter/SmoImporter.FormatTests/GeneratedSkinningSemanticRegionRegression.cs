@@ -7,6 +7,7 @@ using SmoViewer.Core;
 internal static class GeneratedSkinningSemanticRegionRegression
 {
     private const float DaphneScale = 84.5f;
+    private const float MinimumHandAnchorWeight = 1f - 0.65f;
     private static readonly Vector3 DaphneTranslation = new(0, 12, -3);
     private const int BoundedHeadMaximumVertices = 112;
     private const int BoundedHeadMaximumTriangles = 170;
@@ -2323,19 +2324,27 @@ internal static class GeneratedSkinningSemanticRegionRegression
             IReadOnlyList<int> parents = skin.Skeleton.ParentJointIndices ??
                 throw new InvalidOperationException(
                     $"{context}: generated Hand skeleton has no hierarchy.");
-            bool adjacent = active.Length < 2 ||
-                parents[active[0].Joint] == active[1].Joint ||
-                parents[active[1].Joint] == active[0].Joint;
-            if (active.Length is < 1 or > 2 ||
+            float anchorWeight = active
+                .Where(value => value.Joint == region.AnchorSkeletonJointIndex)
+                .Sum(value => value.Weight);
+            int[] fingerJoints = active
+                .Where(value => value.Joint != region.AnchorSkeletonJointIndex)
+                .Select(value => value.Joint)
+                .ToArray();
+            if (active.Length is < 1 or > 3 ||
+                active.Select(value => value.Joint).Distinct().Count() != active.Length ||
+                anchorWeight < MinimumHandAnchorWeight - 0.00001f ||
                 !float.IsFinite(total) || MathF.Abs(total - 1) > 0.00001f ||
                 active.Any(value => !float.IsFinite(value.Weight) ||
                     value.Weight < 0 ||
                     !handSubtree.Contains(value.Joint)) ||
-                !adjacent)
+                (fingerJoints.Length == 2 &&
+                 parents[fingerJoints[0]] != fingerJoints[1] &&
+                 parents[fingerJoints[1]] != fingerJoints[0]))
             {
                 throw new InvalidOperationException(
                     $"{context}: {region.Region} core [{mesh.Name}:{vertex}] " +
-                    "is not a bounded adjacent Hand/finger-chain profile.");
+                    "does not retain Hand weight plus at most two adjacent finger joints.");
             }
         }
     }

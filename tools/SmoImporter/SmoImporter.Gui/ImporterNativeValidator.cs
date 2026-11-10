@@ -38,6 +38,36 @@ internal sealed class ImporterNativeValidator
 
     public string? SavedExecutablePath => _settings.ManualExecutablePath;
 
+    public Task<string?> LocateInstalledExecutableAsync(
+        CancellationToken cancellationToken = default) => Task.Run(() =>
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        WinxClubLocationResult registered = WinxClubLocator.Locate(
+            new WinxClubLocatorOptions
+            {
+                IncludeEnvironmentVariable = false,
+                IncludeCommonDirectories = false
+            });
+        cancellationToken.ThrowIfCancellationRequested();
+        if (registered.SelectedPath is { } installed)
+            return installed;
+
+        string? saved = _settings.ManualExecutablePath;
+        if (string.IsNullOrWhiteSpace(saved))
+            return null;
+        try
+        {
+            string fullPath = Path.GetFullPath(saved.Trim().Trim('"'));
+            return Path.GetExtension(fullPath).Equals(".exe", StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(fullPath) ? fullPath : null;
+        }
+        catch (Exception exception) when (
+            exception is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            return null;
+        }
+    }, cancellationToken);
+
     public Task<string?> LocateExecutableAsync(
         string? sourceModelPath,
         CancellationToken cancellationToken = default) => Task.Run(() =>
@@ -78,6 +108,77 @@ internal sealed class ImporterNativeValidator
         {
             // A read-only profile must not block model creation or validation.
         }
+    }
+
+    public async Task<ImporterNativeValidationResult> ValidateLoadAsync(
+        string executablePath,
+        string assetPath,
+        string logicalGameAssetPath,
+        CancellationToken cancellationToken = default)
+    {
+        NativeValidationReport report = await _validator.ValidateAsync(
+            CreateLoadRequest(executablePath, assetPath, logicalGameAssetPath),
+            progress: null,
+            cancellationToken).ConfigureAwait(false);
+        return SummarizeLoadReport(report);
+    }
+
+    internal static NativeValidationRequest CreateLoadRequest(
+        string executablePath, string assetPath, string logicalGameAssetPath) => new()
+    {
+        ExecutablePath = executablePath,
+        AssetPath = assetPath,
+        LogicalGameAssetPath = logicalGameAssetPath,
+        Route = NativeValidationRoute.FastGeneric,
+        StartLevel = null,
+        RequireSceneReady = false,
+        IncludeBloomCheckpoints = false,
+        UseIsolatedLaunchWorkspace = true,
+        StageAsset = true,
+        OverallTimeout = TimeSpan.FromSeconds(60),
+        NoProgressTimeout = TimeSpan.FromSeconds(15),
+        SurvivalWindow = TimeSpan.FromSeconds(2),
+        CollectFirstChanceExceptions = false
+    };
+
+    internal static ImporterNativeValidationResult SummarizeLoadReport(NativeValidationReport report)
+    {
+        bool targetRejected = report.Status == NativeValidationStatus.EngineRejected &&
+            report.Events.Any(validationEvent => validationEvent.Kind == NativeValidationEventKind.CheckpointReturn &&
+                validationEvent.Checkpoint == "CP03.return" &&
+                validationEvent.Data.TryGetValue("target", out string? target) &&
+                string.Equals(target, "true", StringComparison.OrdinalIgnoreCase) &&
+                validationEvent.Data.TryGetValue("accepted", out string? accepted) &&
+                string.Equals(accepted, "false", StringComparison.OrdinalIgnoreCase));
+        if (targetRejected)
+            return new(ImporterNativeVerdict.Unsuitable, "✕ Загрузчик игры отклонил SMO.");
+        if (report.Status == NativeValidationStatus.Crash &&
+            report.CrashAttributionConfidence == NativeCrashAttributionConfidence.Direct)
+            return new(ImporterNativeVerdict.Unsuitable, "✕ Игра упала при загрузке SMO.");
+
+        // Core's Passed requires target-scoped FFPS acceptance, a non-null
+        // ResourceLoad return and survival of the bounded observation window.
+        return report.Status switch
+        {
+            NativeValidationStatus.Passed => new(ImporterNativeVerdict.Suitable,
+                "✓ SMO принят загрузчиком игры. Просмотр и анимации не проверялись."),
+            NativeValidationStatus.Cancelled => new(ImporterNativeVerdict.Indeterminate, "Проверка загрузки отменена."),
+            NativeValidationStatus.InstrumentationUnavailable => new(ImporterNativeVerdict.Indeterminate,
+                "Проверка не выполнена — загрузчик этой версии игры пока не распознан."),
+            NativeValidationStatus.LaunchFailed => new(ImporterNativeVerdict.Indeterminate,
+                "Проверка не выполнена — WinxClub.exe не удалось запустить."),
+            NativeValidationStatus.PathError => new(ImporterNativeVerdict.Indeterminate,
+                "Проверка не выполнена — не удалось подготовить SMO для игры."),
+            NativeValidationStatus.TargetNotRequested => new(ImporterNativeVerdict.Indeterminate,
+                "Игра завершилась до запроса проверяемого SMO."),
+            NativeValidationStatus.Timeout when report.RedirectCount == 0 => new(ImporterNativeVerdict.Indeterminate,
+                "Проверка не выполнена — игра не дошла до загрузки SMO. Проверьте выбранный EXE и установку игры."),
+            NativeValidationStatus.Timeout => new(ImporterNativeVerdict.Indeterminate,
+                "Проверка остановлена по тайм-ауту до подтверждения загрузки."),
+            NativeValidationStatus.Crash or NativeValidationStatus.EngineRejected => new(ImporterNativeVerdict.Indeterminate,
+                "Загрузка не подтверждена — сбой не удалось напрямую связать с моделью."),
+            _ => new(ImporterNativeVerdict.Indeterminate, "Загрузку SMO подтвердить не удалось.")
+        };
     }
 
     public async Task<ImporterNativeValidationResult> ValidateAsync(

@@ -1,3 +1,4 @@
+#include "Analysis/Host/PcTextureStorageBudget.h"
 #include "ViewerBridge.h"
 #include "ResourceGraph.h"
 #include "BorrowedInput.h"
@@ -171,7 +172,8 @@ struct TextureSectionView {
     std::vector<SpvTextureMip> mips;
     std::vector<std::byte> xrgb;
     TextureSectionView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
-        require(bytes&&size&&size<=16u*1024u*1024u&&kind<=1,"Invalid bounded texture section");
+        using namespace sparkplug::host::pc_texture_storage;
+        require(bytes&&size&&size<=(kind==1?BgraSectionBytes:DefaultBytes)&&kind<=1,"Invalid bounded texture section");
         BorrowedInput input(bytes,size);spSerializerManager manager;spResourceManager resources;
         spSerializerReadContextForAnalysis context(manager,resources);std::string error;
         if(kind==0) {
@@ -187,7 +189,7 @@ struct TextureSectionView {
             require(initialized,"Cross texture has no pixel field");
         } else {
             spDXTextureDataSerializer::NativeReadForAnalysis observed;
-            if(!spDXTextureDataSerializer::ReadNativeSectionForAnalysis(context,input,size,observed,&error))throw std::runtime_error(error);
+            if(!spDXTextureDataSerializer::ReadNativeSectionForAnalysis(context,input,size,observed,&error,true))throw std::runtime_error(error);
             field1C=observed.field1C;
             info={1,observed.width,observed.height,observed.flags,0,observed.flags==0?32u:observed.flags==1?4u:8u,
                 observed.field1C!=0,static_cast<std::uint32_t>(observed.mips.size())};
@@ -205,7 +207,7 @@ struct TextureSourceView {
     std::vector<SpvTextureSourceRepresentation> representations;
     std::vector<SpvTextureMip> mips;
     TextureSourceView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t platformMask) {
-        require(bytes&&size&&size<=16u*1024u*1024u&&(platformMask&spSerializerManager::PlatformPC),"Invalid bounded PC texture source");
+        require(bytes&&size&&size<=sparkplug::host::pc_texture_storage::BgraSectionBytes&&(platformMask&spSerializerManager::PlatformPC),"Invalid bounded PC texture source");
         BorrowedInput input(bytes,size);spSerializerManager manager;spResourceManager resources;
         manager.SetDispatchContextForAnalysis(platformMask,1);
         spSerializerReadContextForAnalysis context(manager,resources);spDXTexture texture;
@@ -270,7 +272,7 @@ struct MaterialView {
     std::vector<SpvMaterialLayer> layers;
     std::vector<SpvMaterialPass> passes;
     MaterialView(const std::uint8_t* bytes,std::uint32_t size) {
-        require(bytes&&size&&size<=16u*1024u*1024u,"Invalid bounded material field stream");
+        require(bytes&&size&&size<=sparkplug::host::pc_texture_storage::ToolResourceGraphBytes,"Invalid bounded material field stream");
         BorrowedInput input(bytes,size);spDXMaterial material;
         spMaterialSerializer::InspectionForAnalysis observed;std::string error;
         if(!spMaterialDataSerializer{}.InspectPayloadForAnalysis(input,size,material,observed,&error))throw std::runtime_error(error);
@@ -312,7 +314,7 @@ struct ModelView {
     std::vector<SpvSkinBone> bones;
     std::vector<SpvSkinPaletteField> paletteFields;
     ModelView(const std::uint8_t* bytes,std::uint32_t size,std::uint32_t kind) {
-        require(bytes&&size&&size<=16u*1024u*1024u&&kind<=1,"Invalid bounded Model/Skin field stream");
+        require(bytes&&size&&size<=sparkplug::host::pc_texture_storage::ToolResourceGraphBytes&&kind<=1,"Invalid bounded Model/Skin field stream");
         BorrowedInput input(bytes,size);std::string error;
         std::unique_ptr<spModel> partial;spModelSerializer::InspectionForAnalysis observed;
         if(kind==0) {
@@ -605,7 +607,7 @@ SPV_API void* spv_texture_write_bgra(const std::uint8_t* pixels,std::uint32_t co
     std::unique_ptr<SerializedBytes> result;
     if(!guarded([&]{
         require(pixels&&width&&height&&width<=16384&&height<=16384&&std::uint64_t(width)*height*4==count
-            &&count<=16u*1024u*1024u&&field1C<=255&&kind<=1,"Invalid bounded BGRA writer input");
+            &&count<=sparkplug::host::pc_texture_storage::BgraBytes&&field1C<=255&&kind<=1,"Invalid bounded BGRA writer input");
         spTextureData texture;spTextureData::NativeMipForAnalysis mip;
         mip.width=width;mip.rows=height;mip.rowStride=width*4;
         const auto* bytes=reinterpret_cast<const std::byte*>(pixels);mip.bytes.assign(bytes,bytes+count);
@@ -1208,7 +1210,10 @@ const spDXTexture::MipForAnalysis& graphTextureMip(const spDXTexture& texture,st
     const auto& mip=texture.GetMipsForAnalysis()[level];const auto format=texture.GetSurfaceFormatForAnalysis();
     require(format==3||format==4,"Runtime texture surface format is not exposed by the BGRA upload adapter");
     const auto bytes=std::uint64_t(mip.width)*mip.height*4;
-    require(bytes>0&&bytes<=16u*1024u*1024u,"Runtime texture mip exceeds the bounded BGRA upload");
+    using namespace sparkplug::host::pc_texture_storage;
+    // Large linear BGRA is only available on the validated PC native shadow.
+    const auto maximumBytes=format==3&&!texture.HasInitializedRuntimeFormatForAnalysis()?BgraBytes:DefaultBytes;
+    require(bytes>0&&bytes<=maximumBytes,"Runtime texture mip exceeds the bounded BGRA upload");
     require(mip.rowBytes==mip.width*4&&mip.rows==mip.height&&mip.packedBytes.size()==bytes,"Runtime BGRA mip layout mismatch");
     return mip;
 }

@@ -104,7 +104,9 @@ internal sealed class NativeWorldEntrySeed
     private readonly PEReader _image;
     private readonly Action<object> _log;
     private readonly WorldStateRole _role;
-    private readonly uint _level, _epoch, _generation, _captureOrdinal, _thread, _pid;
+    private readonly uint _level, _epoch, _generation, _captureOrdinal, _thread, _pid, _nativeOrdinalBase;
+    private readonly NativeWorldEntryRouter? _router;
+    private readonly bool _hostContinuation;
     private readonly IntPtr _process;
     private readonly int _owner;
     private readonly List<string> _semanticPaths = [];
@@ -117,24 +119,39 @@ internal sealed class NativeWorldEntrySeed
     private uint _placementArgument44, _guardMismatches;
     private bool _installed, _active, _placementActive, _placementReturned, _spawnObserved;
     private bool _loadReturned, _worldQualified, _retired, _failed;
+    private readonly bool _storyLevel3Authorized;
     private byte[]? _witness;
 
     internal NativeWorldEntrySeed(DebuggerHost host, PEReader image, Action<object> log,
         WorldStateRole role, uint level, uint levelEpoch, uint generation,
-        byte[]? guestSeed = null, uint captureEntryOrdinal = 1)
+        byte[]? guestSeed = null, uint captureEntryOrdinal = 1, uint nativeOrdinalBase = 0,
+        NativeWorldEntryRouter? router = null, bool authoritativeHostContinuation = false,
+        ProgressionControlPermit? storyProgression = null)
     {
         Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ImageBase == 0x400000 &&
-            role is WorldStateRole.Host or WorldStateRole.Guest && level is 28 or 47 &&
-            levelEpoch != 0 && generation != 0 && captureEntryOrdinal is > 0 and <= 8,
+            role is WorldStateRole.Host or WorldStateRole.Guest && level is 3 or 28 or 47 &&
+            levelEpoch != 0 && generation != 0 && captureEntryOrdinal is > 0 and <= 8 &&
+            nativeOrdinalBase < captureEntryOrdinal,
             "Entry observer requires an explicit owned Alfea28/Battle47 initial epoch.");
-        Require(Convert.ToHexString(SHA256.HashData(image.GetEntireImage().GetContent().ToArray())) ==
-            "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
-            "Entry observer requires the pinned original PC image.");
+        _storyLevel3Authorized = level == 3 && router is not null &&
+            storyProgression is { OwnerPid: > 0, OwnerCreationFileTime: > 0 };
+        Require(level != 3 || _storyLevel3Authorized,
+            "Gardenia03 entry requires its routed process scope and explicit progression owner permit.");
+        if (router is null)
+        {
+            Require(nativeOrdinalBase == 0 && Convert.ToHexString(SHA256.HashData(image.GetEntireImage().GetContent().ToArray())) ==
+                "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
+                "Legacy entry observer requires ordinal zero and the pinned original PC image.");
+        }
+        else router.VerifyScopeConstruction(host, image, role, nativeOrdinalBase);
         _host = host; _image = image; _log = log; _role = role; _level = level;
         _epoch = levelEpoch; _generation = generation; _captureOrdinal = captureEntryOrdinal;
+        _nativeOrdinalBase = nativeOrdinalBase; _nativeOrdinal = nativeOrdinalBase; _router = router;
+        _hostContinuation = authoritativeHostContinuation;
         _thread = host.MainThreadId; _pid = host.ProcessPid; _process = host.ProcessHandle;
         _owner = Environment.CurrentManagedThreadId;
-        Require(role == WorldStateRole.Host ? guestSeed is null : guestSeed is not null,
+        Require(role == WorldStateRole.Host ? guestSeed is null && !authoritativeHostContinuation ||
+                guestSeed is not null && authoritativeHostContinuation : guestSeed is not null && !authoritativeHostContinuation,
             "Only Guest entry has an authoritative pre-init seed payload.");
         if (guestSeed is not null)
         {
@@ -148,11 +165,18 @@ internal sealed class NativeWorldEntrySeed
     internal bool LoadReturned => _loadReturned && !_failed;
     internal uint NativeLocalEntryOrdinal => _nativeOrdinal;
     internal bool WorldQualified => _worldQualified && !_failed;
+    internal bool Retired => _retired;
+    internal bool Failed => _failed;
+    internal bool HasPendingOriginalEntry => _active || _placementActive;
+    internal uint Level => _level;
+    internal bool StoryLevel3Authorized => _storyLevel3Authorized;
     internal byte[] GetSeed() => EntryCompleted && _seed is not null ? _seed.Pack() :
         throw new InvalidDataException("Native entry seed was requested before actual original entry completion.");
     internal byte[] GetWitness() => WorldQualified && _witness is not null ? (byte[])_witness.Clone() :
         throw new InvalidDataException("Native entry witness was requested before its post-init World qualification.");
     internal object Summary => new { role = _role.ToString(), installed = _installed, retired = _retired,
+        routedProcessSites = _router is not null, nativeOrdinalBase = _nativeOrdinalBase,
+        authoritativeHostContinuationSeed = _hostContinuation,
         failed = _failed, nativeLocalEntryOrdinal = _nativeOrdinal, targetLocalOrdinal = _captureOrdinal,
         hostEntryOrdinal = _seed?.HostEntryOrdinal, entryCompleted = EntryCompleted, worldQualified = WorldQualified,
         placementReturned = _placementReturned, selectedCohortCalls = _selectedGroups, authoredSubgroupCalls = _partGroups,
@@ -169,7 +193,8 @@ internal sealed class NativeWorldEntrySeed
 
     internal void InstallStopped()
     {
-        Ensure(_thread); Require(!_installed && !_retired, "Entry observer installation is single-use.");
+        Ensure(_thread); Require(!_installed && !_retired && _router is null,
+            "Legacy entry observer installation is single-use and cannot publish routed process sites.");
         foreach (uint site in new[] { NativeWorldEntryFrame.LoadEntry, PlaceEntry, SelectGroup, PlaceGroup, AcceptPlacement,
                      SavedSpawnCall, DefaultSpawnCall })
             Require(Read(site, 8).SequenceEqual(Image(site, 8)), "Original entry observation site changed before installation.");
@@ -186,6 +211,41 @@ internal sealed class NativeWorldEntrySeed
         Repeat(AcceptPlacement, "Entry.AcceptedPlacementSlot", OnAcceptedPlacement);
         Repeat(SavedSpawnCall, "Entry.SavedSpawnCall", OnSpawn);
         Repeat(DefaultSpawnCall, "Entry.DefaultSpawnCall", OnSpawn);
+    }
+
+    internal void AttachRoutedScope(NativeWorldEntryRouter router, uint processOrdinal, bool firstScope)
+    {
+        Ensure(_thread);
+        Require(ReferenceEquals(_router, router) && !_installed && !_active && !_loadReturned &&
+            _nativeOrdinalBase == processOrdinal && _nativeOrdinal == processOrdinal &&
+            (firstScope || _captureOrdinal == checked(processOrdinal + 1)),
+            "Routed entry scope is already installed, has another process ordinal or skips a replacement entry.");
+        _installed = true;
+        _log(new { @event = "world-entry-routed-scope-attached", role = _role.ToString(), level = _level,
+            levelEpoch = _epoch, generation = _generation, nativeOrdinalBase = processOrdinal,
+            targetLocalOrdinal = _captureOrdinal, hookSitesPublishedByScope = 0,
+            legacyInstallPathUsed = false, immutablePayloadOwner = true });
+    }
+
+    internal void DispatchRoutedSite(NativeWorldEntryRouter router, uint site, uint tid,
+        ref Win32Native.X86Context context, uint processOrdinal)
+    {
+        Require(ReferenceEquals(_router, router) && _installed && !_retired && !_failed,
+            "Routed entry callback belongs to another or retired scene scope.");
+        try
+        {
+            switch (site)
+            {
+                case NativeWorldEntryFrame.LoadEntry: OnLoadEntryCore(tid, site, ref context, processOrdinal); break;
+                case PlaceEntry: OnPlacementEntry(tid, site, ref context); break;
+                case SelectGroup: OnSelectedGroup(tid, site, ref context); break;
+                case PlaceGroup: OnPlaceGroup(tid, site, ref context); break;
+                case AcceptPlacement: OnAcceptedPlacement(tid, site, ref context); break;
+                case SavedSpawnCall: case DefaultSpawnCall: OnSpawn(tid, site, ref context); break;
+                default: throw new InvalidDataException("Unknown routed native entry observation site.");
+            }
+        }
+        catch { _failed = true; _retired = true; throw; }
     }
 
     internal void ObserveAtWorld(uint tid, ref Win32Native.X86Context context, in SharedProfileScene scene)
@@ -245,21 +305,30 @@ internal sealed class NativeWorldEntrySeed
     internal void RetireCached()
     {
         Require(Environment.CurrentManagedThreadId == _owner, "Entry retirement changed its owner thread.");
+        if (_router is not null)
+            Require(!_active && !_placementActive,
+                "A routed entry scope cannot retire or hide an unmatched original load/placement frame.");
         _retired = true; _active = false; _placementActive = false;
         _log(new { @event = "world-entry-retired", nativeReads = 0, nativeWrites = 0,
             historicalEntryOrSceneOwnersWillNotBeFollowed = true });
     }
 
     private void OnLoadEntry(uint tid, uint at, ref Win32Native.X86Context context)
+        => OnLoadEntryCore(tid, at, ref context, null);
+
+    private void OnLoadEntryCore(uint tid, uint at, ref Win32Native.X86Context context, uint? processOrdinal)
     {
         Ensure(tid); Require(context.Eip == at && at == NativeWorldEntryFrame.LoadEntry, "Entry callback moved.");
         uint table = U(context.Ecx);
         if (table is not (0x710874 or 0x7105C8) || U(context.Ecx + 0x10) != _level) return;
-        Require(++_nativeOrdinal <= 8 && !_active && !_loadReturned, "Entry observer saw a nested or repeated accepted native load.");
+        uint nextOrdinal = checked(_nativeOrdinal + 1);
+        Require((processOrdinal is null || processOrdinal.Value == nextOrdinal) && nextOrdinal <= 8 &&
+            !_active && !_loadReturned, "Entry observer saw a nested, repeated or differently routed accepted native load.");
+        _nativeOrdinal = nextOrdinal;
         if (_nativeOrdinal != _captureOrdinal) return;
         _frame = NativeWorldEntryFrame.Capture(_host, tid, context, _level);
         byte[] before = SharedProfileState.CaptureEntryValuesAtStop(_host, tid, context, _frame, _log);
-        if (_role == WorldStateRole.Host) _seed = new(_level, _epoch, _generation, _nativeOrdinal, before);
+        if (_role == WorldStateRole.Host && !_hostContinuation) _seed = new(_level, _epoch, _generation, _nativeOrdinal, before);
         else _apply = SharedProfileState.ApplyEntryValuesAtStop(_host, tid, context, _frame, _seed!.CopyValues(), _log);
         _active = true;
         _log(new { @event = "world-entry-seed-admitted", role = _role.ToString(),

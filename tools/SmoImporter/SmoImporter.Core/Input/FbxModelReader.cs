@@ -72,7 +72,7 @@ public static class FbxModelReader
                     "above the safe import limit. Reduce or split the FBX model.");
             }
             cancellationToken.ThrowIfCancellationRequested();
-            return ReadPayload(payload);
+            return ReadPayload(payload, cancellationToken);
         }
         finally
         {
@@ -81,7 +81,7 @@ public static class FbxModelReader
         }
     }
 
-    internal static ImportedScene ReadPayload(string path)
+    internal static ImportedScene ReadPayload(string path, CancellationToken cancellationToken = default)
     {
         using var stream = new FileStream(
             path, FileMode.Open, FileAccess.Read, FileShare.Read,
@@ -114,51 +114,11 @@ public static class FbxModelReader
             totalIndices,
             ImportedModelResourceLimits.MaximumTotalIndices,
             "Native FBX total index");
-        long decodedTexturePixels = 0;
-        foreach (ImportedTexture texture in textures)
-        {
-            decodedTexturePixels = ImportedModelResourceLimits.AddTexturePixels(
-                decodedTexturePixels,
-                texture.Width,
-                texture.Height,
-                $"Native FBX texture '{texture.Name}'");
-        }
         ValidateMaterialReferences(meshes, materials, textures);
-        bool[] textureHasTransparency = textures
-            .Select(TextureContainsTransparencyIfDecodable)
-            .ToArray();
-        materials = materials.Select(material =>
-        {
-            int textureIndex = material.BaseColorTextureIndex;
-            return textureIndex >= 0 &&
-                   textureHasTransparency[textureIndex] &&
-                   material.AlphaMode == ImportedMaterialAlphaMode.Opaque
-                ? material with { AlphaMode = ImportedMaterialAlphaMode.Blend }
-                : material;
-        }).ToArray();
-        return new ImportedScene(
+        return ImportedTextureRecovery.Recover(new ImportedScene(
             Array.AsReadOnly(meshes),
             Array.AsReadOnly(textures),
-            Array.AsReadOnly(materials));
-    }
-
-    private static bool TextureContainsTransparencyIfDecodable(
-        ImportedTexture texture)
-    {
-        try
-        {
-            return ImportedTextureImageTools.TextureContainsTransparency(texture);
-        }
-        catch (Exception exception) when (exception is InvalidDataException or
-                                          UnknownImageFormatException or
-                                          InvalidImageContentException or
-                                          NotSupportedException)
-        {
-            // The native protocol deliberately preserves unsupported image
-            // payloads for a later external override. Such a payload carries
-            // no trustworthy alpha evidence and therefore stays opaque.
-            return false;
-        }
+            Array.AsReadOnly(materials)), "FBX", cancellationToken, inferTextureAlpha: true);
     }
 
     private static ImportedTexture ReadTexture(BinaryReader reader)
@@ -185,7 +145,8 @@ public static class FbxModelReader
                                           InvalidImageContentException or
                                           NotSupportedException)
         {
-            // Keep unsupported data and its logical name for external overrides.
+            // Recovery removes failed bytes after all material references have
+            // been read; the logical material name remains available to override.
         }
         return new ImportedTexture(
             name, mime, width, height, data,
@@ -424,14 +385,6 @@ public static class FbxModelReader
             if (mesh.MaterialIndex < -1 || mesh.MaterialIndex >= materials.Count)
                 throw new InvalidDataException(
                     $"FBX mesh '{mesh.Name}' references invalid material {mesh.MaterialIndex}.");
-        }
-        foreach (ImportedMaterial material in materials)
-        {
-            if (material.BaseColorTextureIndex < -1 ||
-                material.BaseColorTextureIndex >= textures.Count)
-                throw new InvalidDataException(
-                    $"FBX material '{material.Name}' references invalid texture " +
-                    $"{material.BaseColorTextureIndex}.");
         }
     }
 

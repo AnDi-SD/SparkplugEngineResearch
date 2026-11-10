@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <WinxCoopTargetFramework Condition="'$(WinxCoopTargetFramework)' == ''">net8.0</WinxCoopTargetFramework>
+    <WinxCoopPlatform Condition="'$(WinxCoopPlatform)' == ''">x64</WinxCoopPlatform>
+    <BaseIntermediateOutputPath>obj/SessionHost/$(WinxCoopTargetFramework)/$(WinxCoopPlatform)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/SessionHost/$(WinxCoopPlatform)/</BaseOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>$(WinxCoopTargetFramework)-windows</TargetFramework>
+    <AssemblyName>WinxCoop.SessionHost</AssemblyName>
+    <PlatformTarget>$(WinxCoopPlatform)</PlatformTarget>
+    <RuntimeIdentifier Condition="'$(WinxCoopPlatform)' == 'x86'">win-x86</RuntimeIdentifier>
+    <RuntimeFrameworkVersion Condition="'$(WinxCoopTargetFramework)' == 'net6.0'">6.0.36</RuntimeFrameworkVersion>
+    <SelfContained>false</SelfContained>
+    <LangVersion>12.0</LangVersion>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <CheckEolTargetFramework Condition="'$(WinxCoopTargetFramework)' == 'net6.0'">false</CheckEolTargetFramework>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/SessionHost/**/*.cs" />
+    <ProjectReference Include="WinxCoop.SessionRuntime.csproj" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

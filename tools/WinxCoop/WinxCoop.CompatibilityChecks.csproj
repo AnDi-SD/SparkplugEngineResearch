@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj/$(MSBuildProjectName)/$(WinxCoopTargetFramework)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/$(MSBuildProjectName)/</BaseOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework Condition="'$(WinxCoopTargetFramework)' == ''">net8.0</TargetFramework>
+    <TargetFramework Condition="'$(WinxCoopTargetFramework)' != ''">$(WinxCoopTargetFramework)</TargetFramework>
+    <PlatformTarget Condition="'$(WinxCoopPlatform)' == ''">x64</PlatformTarget>
+    <PlatformTarget Condition="'$(WinxCoopPlatform)' != ''">$(WinxCoopPlatform)</PlatformTarget>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net6.0'">win-x86</RuntimeIdentifier>
+    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.36</RuntimeFrameworkVersion>
+    <SelfContained>false</SelfContained>
+    <AssemblyName>WinxCoop.CompatibilityChecks</AssemblyName>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="tests/CompatibilityChecks/*.cs" />
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

@@ -7,7 +7,10 @@ public sealed record WinxExePatchState(bool IsSupported, bool IsOriginal, ushort
 {
     public bool HasCostumeMenuPatch { get; init; }
 }
-public sealed record WinxExePatchResult(string ExePath, string BackupPath, ushort DisabledMask);
+public sealed record WinxExePatchResult(string ExePath, string BackupPath, ushort DisabledMask)
+{
+    public bool BytesChanged { get; init; }
+}
 
 public static class WinxExeHairPatcher
 {
@@ -137,16 +140,35 @@ public static class WinxExeHairPatcher
         string exePath = Path.GetFullPath(path);
         byte[] source = File.ReadAllBytes(exePath);
         byte[] patched = PatchBytes(source, disabledMask);
+        bool bytesChanged = !source.AsSpan().SequenceEqual(patched);
         string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
         string operationId = Guid.NewGuid().ToString("N");
         // File.Replace can replace an existing backup, including one made in the
         // same second. Keep every operation's original bytes under its own name.
         string backup = exePath + $".hairpatch-backup-{stamp}-{operationId}";
         string temporary = exePath + $".hairpatch-{operationId}.tmp";
-        File.WriteAllBytes(temporary, patched);
-        try { File.Replace(temporary, exePath, backup, true); }
+        try
+        {
+            File.WriteAllBytes(temporary, patched);
+            File.Replace(temporary, exePath, backup, true);
+        }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
-        return new(exePath, backup, (ushort)(disabledMask | OriginalDisabledMask));
+
+        byte[] saved;
+        try
+        {
+            saved = File.ReadAllBytes(exePath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new IOException(
+                $"Не удалось перечитать файл после замены. Резервная копия — {backup}. {exception.Message}",
+                exception);
+        }
+        if (!saved.AsSpan().SequenceEqual(patched))
+            throw new IOException($"Файл после замены не совпал с проверенными байтами. Резервная копия — {backup}.");
+
+        return new(exePath, backup, (ushort)(disabledMask | OriginalDisabledMask)) { BytesChanged = bytesChanged };
     }
 
     private static byte[] Build(string hex, int maskOffset, ushort mask)

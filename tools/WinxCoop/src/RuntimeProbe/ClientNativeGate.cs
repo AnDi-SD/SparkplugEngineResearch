@@ -48,14 +48,17 @@ internal sealed class ClientNativeGate
     private sealed record Recipient(string Name, uint Table, uint Class, uint OriginalNotify, uint[] AllowedCodes);
     private sealed record Patch(string Name, uint Address, byte[] Original, byte[] Replacement, bool Vtable);
 
-    internal ClientNativeGate(DebuggerHost host, PEReader image, Action<object> log, bool battlePresentation = false)
+    internal ClientNativeGate(DebuggerHost host, PEReader image, Action<object> log, bool battlePresentation = false,
+        ProbeConfiguration? controlledStory3 = null)
     {
         Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 &&
             host.ImageBase == 0x400000 && host.MainThreadId != 0,
             "Native client gate requires its pinned owned debug stop.");
+        Require(controlledStory3 is null || !battlePresentation && ProbeMain.IsClosedStory3Guest(controlledStory3),
+            "Story3 native quarantine requires its closed Guest progression cohort.");
         _host = host; _image = image; _log = log; _process = host.ProcessHandle;
         _pid = host.ProcessPid; _ownerThread = Environment.CurrentManagedThreadId;
-        _level = battlePresentation ? 47u : 28u;
+        _level = controlledStory3 is not null ? 3u : battlePresentation ? 47u : 28u;
         _playingTable = battlePresentation ? 0x7105C8u : 0x710874u;
         _exitEntry = battlePresentation ? 0x5F2300u : 0x5F86C0u;
     }
@@ -467,8 +470,9 @@ internal sealed class ClientNativeGate
 
     private bool AllOwnedThreadReferencesOutsideLeases()
     {
-        Require(IntPtr.Size == 8 && Marshal.SizeOf<MemoryBasicInformation64>() == 48 &&
-            _data is { Released: false }, "Native release scan requires its x64 query ABI and both live leases.");
+        Require((IntPtr.Size == 8 && Marshal.SizeOf<MemoryBasicInformation64>() == 48 ||
+            IntPtr.Size == 4 && Marshal.SizeOf<MemoryBasicInformation32>() == 28) &&
+            _data is { Released: false }, "Native release scan requires its native query ABI and both live leases.");
         IntPtr snapshot = CreateToolhelp32Snapshot(SnapshotThreads, 0);
         if (snapshot == new IntPtr(-1)) throw new Win32Exception(Marshal.GetLastWin32Error(), "Owned native thread inventory failed.");
         var observations = new List<object>(); bool outside = true, mainFound = false;
@@ -518,12 +522,27 @@ internal sealed class ClientNativeGate
     {
         // This is deliberately the complete current committed region above ESP,
         // not a fixed prefix which could miss a cached incoming stub pointer.
-        UIntPtr queried = VirtualQueryEx(_process, (IntPtr)(long)esp, out MemoryBasicInformation64 info, (UIntPtr)48);
+        UIntPtr queried;
+        MemoryBasicInformation64 info;
+        int queryBytes;
+        if (IntPtr.Size == 8)
+        {
+            queryBytes = 48;
+            queried = VirtualQueryEx(_process, (IntPtr)(long)esp, out info, (UIntPtr)48);
+        }
+        else
+        {
+            Require(IntPtr.Size == 4 && Marshal.SizeOf<MemoryBasicInformation32>() == 28,
+                "Native stack query requires the complete x86 memory ABI.");
+            queryBytes = 28;
+            queried = VirtualQueryEx32(_process, (IntPtr)unchecked((int)esp), out MemoryBasicInformation32 native, (UIntPtr)28);
+            info = NormalizeMemoryInformation32(native);
+        }
         ulong end = info.BaseAddress <= ulong.MaxValue - info.RegionSize ? info.BaseAddress + info.RegionSize : 0;
         ulong length = end > esp ? end - esp : 0;
         uint basicProtection = info.Protect & 0xFF;
         bool readable = basicProtection is 0x02 or 0x04 or 0x08 or 0x20 or 0x40 or 0x80;
-        string? refusal = queried.ToUInt64() != 48 ? "VirtualQueryEx did not return its complete 48-byte structure" :
+        string? refusal = queried.ToUInt64() != (uint)queryBytes ? $"VirtualQueryEx did not return its complete {queryBytes}-byte structure" :
             esp < 0x10000 || info.BaseAddress > esp || end > 0x100000000UL || length == 0 ? "Invalid x86 live-stack bounds" :
             info.State != Win32Native.MemCommit || !readable || (info.Protect & 0x100) != 0 ? "Live stack is not wholly committed readable memory" :
             length > MaximumLiveStackBytes ? "Complete live-stack region exceeds the 64-KiB scan bound" : null;
@@ -619,9 +638,23 @@ internal sealed class ClientNativeGate
         internal ulong RegionSize;
         internal uint State, Protect, Type, Alignment2;
     }
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    private struct MemoryBasicInformation32
+    {
+        internal uint BaseAddress, AllocationBase, AllocationProtect, RegionSize, State, Protect, Type;
+    }
+    private static MemoryBasicInformation64 NormalizeMemoryInformation32(MemoryBasicInformation32 information) => new()
+    {
+        BaseAddress = information.BaseAddress, AllocationBase = information.AllocationBase,
+        AllocationProtect = information.AllocationProtect, RegionSize = information.RegionSize,
+        State = information.State, Protect = information.Protect, Type = information.Type
+    };
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern UIntPtr VirtualQueryEx(IntPtr process, IntPtr address,
         out MemoryBasicInformation64 information, UIntPtr informationBytes);
+    [DllImport("kernel32.dll", EntryPoint = "VirtualQueryEx", SetLastError = true)]
+    private static extern UIntPtr VirtualQueryEx32(IntPtr process, IntPtr address,
+        out MemoryBasicInformation32 information, UIntPtr informationBytes);
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr CreateToolhelp32Snapshot(uint flags, uint processId);
     [DllImport("kernel32.dll", SetLastError = true)]

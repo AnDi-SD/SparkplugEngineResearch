@@ -213,9 +213,11 @@ public static class SmoSkinnedGlbReplacer
         SmoDocument target,
         ImportedScene donor,
         SkinnedRenderableMaterialProfile? materialProfile = null,
-        CancellationToken cancellationToken = default) =>
-        SmoSkinnedVisualGraphPipeline.AnalyzeSkinnedModel(
-            target, donor, materialProfile, cancellationToken);
+        CancellationToken cancellationToken = default,
+        SmoWingAttachmentDraft? wingAttachments = null) =>
+        wingAttachments is null
+            ? SmoSkinnedVisualGraphPipeline.AnalyzeSkinnedModel(target, donor, materialProfile, cancellationToken)
+            : SmoWingSkinnedModelWriter.Analyze(target, donor, materialProfile, wingAttachments, cancellationToken);
 
     /// <summary>
     /// Builds the external-space visual equivalent of the geometry that
@@ -246,10 +248,13 @@ public static class SmoSkinnedGlbReplacer
         SkinnedGeometryTransferMode transferMode =
             SkinnedGeometryTransferMode.PreservePreparedGeometry,
         SkinnedRenderableMaterialProfile? materialProfile = null,
-        CancellationToken cancellationToken = default) =>
-        SmoSkinnedVisualGraphPipeline.RebuildSkinnedModel(
-            target, donor, transform, outputPath, transferMode,
-            materialProfile, cancellationToken);
+        CancellationToken cancellationToken = default,
+        SmoWingAttachmentDraft? wingAttachments = null) =>
+        wingAttachments is null
+            ? SmoSkinnedVisualGraphPipeline.RebuildSkinnedModel(target, donor, transform, outputPath, transferMode,
+                materialProfile, cancellationToken)
+            : SmoWingSkinnedModelWriter.Replace(target, donor, transform, outputPath, transferMode,
+                materialProfile, wingAttachments, cancellationToken);
 }
 
 internal static partial class SmoSkinnedVisualGraphPipeline
@@ -630,9 +635,8 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                         materialProfile,
                         cancellationToken);
                     warnings.Add(
-                        $"All {donorGroups.Length} donor material groups will be " +
-                        "written as independent native TextureData/material/spSkin " +
-                        "branches. The old target MeshData, spMaterialData and " +
+                        $"Donor groups use independent native TextureData/material/spSkin branches for {donorGroups.Count(group => group.SourceTextureIndex >= 0)} assigned image group(s); " +
+                        $"{donorGroups.Count(group => group.SourceTextureIndex < 0)} group(s) keep material/spSkin branches without a texture. The old target MeshData, spMaterialData and " +
                         "TextureData resources will be physically removed; source " +
                         "UVs and texture files remain separate.");
                 }
@@ -862,10 +866,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         foreach (ImportedGroup group in donorGroups)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ImportedTexture sourceTexture = ResolveImportedGroupTexture(donor, group) ??
-                throw new InvalidDataException(
-                    $"Material group {group.MaterialIndex} has no donor texture for " +
-                    "an independent native TextureData branch.");
+            ImportedTexture? sourceTexture = ResolveImportedGroupTexture(donor, group);
             SmoSkinnedBranchSourceMesh[] meshes = group.Meshes
                 .Select(mesh => dryMeshes.Single(value => value.Key ==
                     GetImportedMeshIndex(donor.Meshes, mesh)))
@@ -873,7 +874,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                 .ToArray();
             SmoSkinnedRenderableOpacityPlan opacity =
                 SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
-                    meshes, sourceTexture, materialProfile);
+                    meshes, sourceTexture, materialProfile, GetUntexturedAlphaMaterialKeys(donor, group));
             meshes = SmoSkinnedBranchSplitBuilder
                 .ConformCloseSurfaceNormals(meshes, opacity)
                 .Meshes;
@@ -967,9 +968,8 @@ internal static partial class SmoSkinnedVisualGraphPipeline
 
             ImportedGroup importedGroup = BuildImportedGroup(
                 donor, group.Select(item => item.Mesh));
-            ImportedTexture sourceTexture = ResolveImportedGroupTexture(
-                donor, importedGroup) ?? throw new InvalidDataException(
-                $"OpaqueOverlay texture group '{group.Key}' has no source image.");
+            ImportedTexture? sourceTexture = ResolveImportedGroupTexture(donor, importedGroup);
+            if (sourceTexture is null) continue;
             int textureIndex = importedGroup.SourceTextureIndex;
             if (textureIndex < 0)
             {
@@ -1065,11 +1065,8 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                     System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        string? textureName = GetImportedVisualGroupTextureName(donor, mesh);
-        return textureName is null
-            ? "material:" + mesh.MaterialIndex.ToString(
-                System.Globalization.CultureInfo.InvariantCulture)
-            : "referenced-texture-name:" + textureName;
+        return "untextured-material:" + mesh.MaterialIndex.ToString(
+            System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static int GetImportedVisualGroupTextureIndex(
@@ -1382,70 +1379,21 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         }
     }
 
-    private static ImportedTexture? ResolveImportedGroupTexture(
-        ImportedScene donor,
-        ImportedGroup group)
+    private static ImportedTexture? ResolveImportedGroupTexture(ImportedScene donor, ImportedGroup group)
     {
         if ((uint)group.SourceTextureIndex < (uint)donor.Textures.Count)
             return donor.Textures[group.SourceTextureIndex];
         if (group.SourceTextureIndex != -1)
-        {
-            throw new InvalidDataException(
-                $"Material group {group.MaterialIndex} references invalid base-color " +
-                $"texture index {group.SourceTextureIndex}; donor texture count is " +
-                $"{donor.Textures.Count}.");
-        }
-        if (string.IsNullOrWhiteSpace(group.ReferencedTextureName))
-            return null;
-
-        string referencedName = NormalizeImportedTextureName(group.ReferencedTextureName);
-        int[] exactMatches = donor.Textures
-            .Select((texture, index) => (texture, index))
-            .Where(item => string.Equals(
-                NormalizeImportedTextureName(item.texture.Name),
-                referencedName,
-                StringComparison.OrdinalIgnoreCase))
-            .Select(item => item.index)
-            .ToArray();
-        if (exactMatches.Length == 1)
-            return donor.Textures[exactMatches[0]];
-        if (exactMatches.Length > 1)
-        {
-            throw new InvalidDataException(
-                $"Base-color texture name \"{group.ReferencedTextureName}\" for " +
-                $"material group {group.MaterialIndex} is ambiguous in the donor texture catalog.");
-        }
-
-        string referencedStem = Path.GetFileNameWithoutExtension(referencedName);
-        int[] stemMatches = donor.Textures
-            .Select((texture, index) => (texture, index))
-            .Where(item => string.Equals(
-                Path.GetFileNameWithoutExtension(
-                    NormalizeImportedTextureName(item.texture.Name)),
-                referencedStem,
-                StringComparison.OrdinalIgnoreCase))
-            .Select(item => item.index)
-            .ToArray();
-        if (stemMatches.Length == 1)
-            return donor.Textures[stemMatches[0]];
-        if (stemMatches.Length > 1)
-        {
-            throw new InvalidDataException(
-                $"Base-color texture name \"{group.ReferencedTextureName}\" for " +
-                $"material group {group.MaterialIndex} is ambiguous in the donor texture catalog.");
-        }
-        throw new InvalidDataException(
-            $"Base-color texture \"{group.ReferencedTextureName}\" for material " +
-            $"group {group.MaterialIndex} was not found in the donor texture catalog.");
+            throw new InvalidDataException($"Material group {group.MaterialIndex} references invalid texture index {group.SourceTextureIndex}.");
+        // Logical names are retained for a later explicit user assignment. They
+        // never authorize borrowing another image from the scene catalog.
+        return null;
     }
 
-    private static string NormalizeImportedTextureName(string name)
-    {
-        string trimmed = name.Trim();
-        string fileName = Path.GetFileName(trimmed);
-        return string.IsNullOrWhiteSpace(fileName) ? trimmed : fileName;
-    }
-
+    private static IReadOnlySet<int> GetUntexturedAlphaMaterialKeys(ImportedScene donor, ImportedGroup group) =>
+        group.Meshes.Where(mesh => (uint)mesh.MaterialIndex < donor.Materials.Count &&
+                donor.Materials[mesh.MaterialIndex].AlphaMode == ImportedMaterialAlphaMode.Blend)
+            .Select(mesh => GetImportedMeshIndex(donor.Meshes, mesh)).ToHashSet();
     private static void VerifyTargetPaletteBindMatrices(
         SmoDocument target,
         SmoDocument output,

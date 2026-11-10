@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace SmoLVLcreator.Core;
 
 /// <summary>
@@ -60,6 +62,22 @@ public sealed class SmoProjectSession
             Project.Validate();
             throw;
         }
+    }
+
+    public bool ExecutePlacementTransforms(
+        string label,
+        IReadOnlyList<KeyValuePair<uint, Matrix4x4>> placements,
+        IReadOnlyList<SmoProjectCollisionTransformEdit> collisions)
+    {
+        ArgumentNullException.ThrowIfNull(placements);
+        ArgumentNullException.ThrowIfNull(collisions);
+        return Execute(label, project =>
+        {
+            // Execute validates the complete journal and rolls the whole group back on failure.
+            foreach ((uint objectId, Matrix4x4 world) in placements)
+                project.SetPlacementTransformCore(objectId, world);
+            project.SetCollisionTransforms(collisions);
+        });
     }
 
     public bool Undo()

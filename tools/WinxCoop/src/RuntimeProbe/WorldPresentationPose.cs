@@ -29,6 +29,7 @@ internal sealed class WorldPresentationPoseApplier(DebuggerHost host, Func<bool>
     Action<object> log)
 {
     private readonly Dictionary<uint, WorldPresentationBinding> _bindings = [];
+    private readonly HashSet<uint> _canonicalBindings = [];
     private readonly Dictionary<uint, (int Health, int Maximum)> _health = [];
     private readonly Dictionary<uint, (float[] Position, uint Stop)> _expectedPositions = [];
     private readonly Dictionary<uint, float[]> _observedPositions = [];
@@ -36,11 +37,14 @@ internal sealed class WorldPresentationPoseApplier(DebuggerHost host, Func<bool>
     private uint _cacheSamples, _cacheMatches, _cacheMismatches, _cacheNonIdentityParents, _lastCacheStop;
     private readonly int _ownerThread = Environment.CurrentManagedThreadId;
     private uint _epoch, _scene, _applied, _nativeHealthMirrors, _characterVisualHalfTurnApplications;
+    private uint _displayApplications, _displayHalfTurnApplications;
     private bool _retired;
     internal uint Applied => _applied;
     internal object Summary => new { epoch = _epoch, scene = _scene, retired = _retired,
         bindings = _bindings.Count, applications = _applied, nativeHealthMirrors = _nativeHealthMirrors,
         characterVisualHalfTurnApplications = _characterVisualHalfTurnApplications,
+        displayPoseApplications = _displayApplications, displayHalfTurnApplications = _displayHalfTurnApplications,
+        displayHealthWrites = 0, displayVisibilityWrites = 0, displayAckChanges = 0,
         commandWrites = 0, cameraWrites = 0, nativeDamageCalls = 0, fsmTransitions = 0,
         collisionOrLootSimulationCreated = false, presentationHealth = _health.Select(x =>
             new { stableId = x.Key, hp = x.Value.Health, maximum = x.Value.Maximum }).ToArray(),
@@ -97,6 +101,7 @@ internal sealed class WorldPresentationPoseApplier(DebuggerHost host, Func<bool>
             }
         }
         ++_applied;
+        _canonicalBindings.Add(state.StableId);
         if (binding.CharacterVisualHalfTurn) ++_characterVisualHalfTurnApplications;
         if (_applied <= 4 || _applied % 120 == 0)
             log(new { @event = "world-presentation-pose-applied", epoch, state.StableId, state.TypeId,
@@ -105,8 +110,39 @@ internal sealed class WorldPresentationPoseApplier(DebuggerHost host, Func<bool>
                 authoritativeHpMirror = hasHealth && binding.Rig is not null, passiveHpMetadata = hasHealth && binding.Rig is null,
                 nativeWorldCacheUpdateStillRequired = true, nativeDamageOrHitClaimed = false });
     }
+    // Display-only continuation of an already applied authoritative Bloom pose.
+    // The caller owns the acknowledged snapshot and interpolation history. This
+    // path cannot mirror HP, change visibility/state, or publish a native ACK.
+    internal void ApplyDisplayPoseAtWorld(uint tid, ref Win32Native.X86Context context, uint epoch,
+        WorldPresentationActorState state)
+    {
+        Ensure(tid, context); state.Validate();
+        Require(!_retired && _epoch == epoch && state.StableId is 1 or 2 &&
+            state.TypeId == WorldPresentationActorState.BloomType && _canonicalBindings.Contains(state.StableId) &&
+            _bindings.TryGetValue(state.StableId, out _) && (state.Flags & WorldPresentationActorState.Present) != 0,
+            "Display pose requires an already acknowledged bound Bloom in its current presentation epoch.");
+        WorldPresentationBinding binding = _bindings[state.StableId]; VerifyBinding(binding);
+        Require(binding.TypeId == WorldPresentationActorState.BloomType,
+            "Display pose cannot change the admitted native presentation type.");
+        ValidateRotation(state.Rotation);
+        float[] rotation = WorldPresentationModelOrientation.Apply(state.Rotation, binding.CharacterVisualHalfTurn);
+        Write(binding.Root + 0x20, Bytes(state.Position)); Write(binding.Root + 0x30, Bytes(state.Scale));
+        Write(binding.Root + 0x40, Bytes(rotation));
+        // Preserve every visibility/owner flag; the original engine alone
+        // updates derived world/skin caches after this dirty local PRS write.
+        Write(binding.Root + 0xB0, BitConverter.GetBytes(U(binding.Root + 0xB0) | 1));
+        _expectedPositions[state.StableId] = ((float[])state.Position.Clone(), host.DebugStopSequence);
+        ++_displayApplications;
+        if (binding.CharacterVisualHalfTurn) ++_displayHalfTurnApplications;
+        if (_displayApplications <= 4 || _displayApplications % 240 == 0)
+            log(new { @event = "world-presentation-display-pose-applied", epoch, state.StableId,
+                position = state.Position, localPrsReadbackVerified = true,
+                characterVisualHalfTurn = binding.CharacterVisualHalfTurn,
+                nativeFollowingWorldCacheStillRequired = true,
+                healthWrites = 0, visibilityWrites = 0, stateWrites = 0, nativeAckPublished = false });
+    }
     internal void UnbindAtWorld(uint tid, ref Win32Native.X86Context context, uint stableId)
-    { Ensure(tid, context); Require(!_retired && _bindings.Remove(stableId), "Unknown presentation removal."); _health.Remove(stableId); _expectedPositions.Remove(stableId); _observedPositions.Remove(stableId); }
+    { Ensure(tid, context); Require(!_retired && _bindings.Remove(stableId), "Unknown presentation removal."); _canonicalBindings.Remove(stableId); _health.Remove(stableId); _expectedPositions.Remove(stableId); _observedPositions.Remove(stableId); }
     internal void ObserveFollowingWorldCaches(uint tid, ref Win32Native.X86Context context)
     {
         Ensure(tid, context);
@@ -142,7 +178,7 @@ internal sealed class WorldPresentationPoseApplier(DebuggerHost host, Func<bool>
         Require(host.IsAtDebugStop && tid == host.MainThreadId && Environment.CurrentManagedThreadId == _ownerThread &&
             !_retired && context.Eip is NativeCallDispatcher.WorldReturn or 0x5F86C0 or 0x5F2300 or 0x4E8AA0 or 0x4E8C80 or 0x59AE80 or 0x59B190,
             "World presentation retirement requires an owned pre-unload boundary.");
-        _retired = true; _bindings.Clear(); _health.Clear(); _expectedPositions.Clear(); _observedPositions.Clear();
+        _retired = true; _bindings.Clear(); _canonicalBindings.Clear(); _health.Clear(); _expectedPositions.Clear(); _observedPositions.Clear();
     }
     private void VerifyBinding(WorldPresentationBinding binding)
     {

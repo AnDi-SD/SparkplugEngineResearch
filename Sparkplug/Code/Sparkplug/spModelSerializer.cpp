@@ -1,4 +1,5 @@
 #include "spModelSerializer.h"
+#include "Analysis/Host/PcTextureStorageBudget.h"
 #include "spMesh.h"
 #include "Analysis/PC/spSectionCursor.h"
 
@@ -83,7 +84,7 @@ namespace sparkplug::reconstruction
         if(!stream.GetCurrentPosition(start)||!ReadRenderableFieldsForAnalysis(context,stream,size,*model,false,error,observation?&observation->renderable:nullptr)
             ||!stream.GetCurrentPosition(position)||position<start||position-start>=size)
         {context.failed=true;if(error&&error->empty())*error="Missing Model section";return false;}
-        evidence::pc::serialization::SectionCursor cursor(context,stream,size-(position-start),requireEnd,error);
+        evidence::pc::serialization::SectionCursor cursor(context,stream,size-(position-start),requireEnd,error,context.GetStructuralSectionLimitForAnalysis());
         while(const auto* header=cursor.Next())
         {
             if(header->IsTerminator()){model->InvalidateRuntimeModeForAnalysis();return true;}
@@ -123,6 +124,8 @@ namespace sparkplug::reconstruction
         if(!partial.IsExactly(spModel::ClassID)||GetTargetClassIDForAnalysis()!=spModel::ClassID)
         {if(error)*error="Derived Model inspection requires its own section adapter";return false;}
         spSerializerManager manager;spResourceManager resources;spSerializerReadContextForAnalysis context(manager,resources);
+        if(size<=sparkplug::host::pc_texture_storage::ToolResourceGraphBytes)
+            context.maximumToolStructuralSectionBytesForAnalysis=size;
         return ReadModelFieldsForAnalysis(context,stream,size,partial,true,error,&observation);
     }
 

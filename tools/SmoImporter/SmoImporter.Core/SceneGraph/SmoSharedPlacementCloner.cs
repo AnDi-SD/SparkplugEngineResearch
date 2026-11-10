@@ -17,6 +17,14 @@ public static class SmoSharedPlacementCloner
         int sourceMeshObjectIndex,
         Matrix4x4 worldTransform,
         string? placementName = null)
+        => Clone(document, sourceMeshObjectIndex, worldTransform, placementName, targetPartitionId: null);
+
+    internal static SmoSharedPlacementCloneResult Clone(
+        SmoDocument document,
+        int sourceMeshObjectIndex,
+        Matrix4x4 worldTransform,
+        string? placementName,
+        uint? targetPartitionId)
     {
         ArgumentNullException.ThrowIfNull(document);
         if ((uint)sourceMeshObjectIndex >= (uint)document.Objects.Count ||
@@ -52,14 +60,21 @@ public static class SmoSharedPlacementCloner
             ? document.Objects[parentIndex]
             : throw new InvalidOperationException(
                 "The shared placement template has no serialized parent field.");
-        SmoSharedMeshInstanceInfo targetTemplate = SelectNearestTemplate(
-            instances,
-            worldTransform);
-        SmoObjectEntry targetStatic = document.Objects[targetTemplate.StaticObjectIndex];
-        SmoObjectEntry targetParent = targetStatic.ParentIndex is int targetParentIndex
-            ? document.Objects[targetParentIndex]
-            : throw new InvalidOperationException(
-                "The nearest placement shell has no serialized parent field.");
+        SmoObjectEntry targetParent;
+        if (targetPartitionId is uint partitionId)
+        {
+            targetParent = document.Objects.Single(entry =>
+                entry.Id == partitionId && entry.TypeHash == SmoClassIds.PartitionNode);
+        }
+        else
+        {
+            SmoSharedMeshInstanceInfo targetTemplate = SelectNearestTemplate(instances, worldTransform);
+            SmoObjectEntry targetStatic = document.Objects[targetTemplate.StaticObjectIndex];
+            targetParent = targetStatic.ParentIndex is int targetParentIndex
+                ? document.Objects[targetParentIndex]
+                : throw new InvalidOperationException(
+                    "The nearest placement shell has no serialized parent field.");
+        }
         (int fieldPhysicalOffset, int fieldLength) = FindInlineField(
             document,
             sourceParent,

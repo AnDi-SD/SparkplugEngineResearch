@@ -1334,6 +1334,12 @@ public sealed class SmoProject
 
     public void SetPlacementTransform(uint objectId, Matrix4x4 world)
     {
+        SetPlacementTransformCore(objectId, world);
+        Validate();
+    }
+
+    internal void SetPlacementTransformCore(uint objectId, Matrix4x4 world)
+    {
         byte[] worldBytes = SmoPropertyValueCodec.Encode(world);
         if (!Matrix4x4.Invert(world, out _))
             throw new InvalidOperationException("Placement matrix is singular.");
@@ -1361,7 +1367,6 @@ public sealed class SmoProject
                 SmoPropertyKeys.InverseWorldMatrix,
                 SmoPropertyValueKind.Matrix4x4,
                 inverseBytes);
-            Validate();
             return;
         }
 
@@ -1372,7 +1377,6 @@ public sealed class SmoProject
         {
             generated.WorldMatrix = worldBytes;
             generated.InverseWorldMatrix = inverseBytes;
-            Validate();
             return;
         }
 
@@ -1400,7 +1404,6 @@ public sealed class SmoProject
             SmoPropertyKeys.InverseWorldMatrix,
             SmoPropertyValueKind.Matrix4x4,
             inverseBytes);
-        Validate();
     }
 
     public void RemovePlacement(uint objectId)
@@ -3301,6 +3304,8 @@ public sealed class SmoProject
         SmoProjectObject[] survivingObjects = Manifest.Objects
             .Where(entry => !removedObjectIndices.Contains(entry.Index))
             .ToArray();
+        Dictionary<uint, byte[]> renamedTextures = ResolveAddedTextureNameCollisions(
+            survivingObjects, addedObjects);
         var drafts = new List<SmoProjectDirectoryDraft>(
             survivingObjects.Length + addedObjects.Count);
         drafts.AddRange(survivingObjects.Select(entry =>
@@ -3334,7 +3339,7 @@ public sealed class SmoProject
         drafts.AddRange(addedObjects.Select((entry, addedIndex) =>
             new SmoProjectDirectoryDraft(
                 entry.Id,
-                entry.RawName,
+                renamedTextures.GetValueOrDefault(entry.Id, entry.RawName),
                 entry.TypeHash,
                 checked((uint)(MapChangeStart(entry.Change, changes) +
                     entry.ObjectRelativeOffset)),
@@ -3396,6 +3401,51 @@ public sealed class SmoProject
         int dataLength = checked(
             _dataSection.Length + changes.Sum(change => change.Delta));
         return new SmoProjectLayoutPlan(directory, changes, dataLength);
+    }
+
+    private static Dictionary<uint, byte[]> ResolveAddedTextureNameCollisions(
+        IReadOnlyList<SmoProjectObject> survivingObjects,
+        IReadOnlyList<SmoProjectAddedObjectLayout> addedObjects)
+    {
+        var renamed = new Dictionary<uint, byte[]>();
+        SmoProjectAddedObjectLayout[] addedTextures = addedObjects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
+            .ToArray();
+        if (addedTextures.Length == 0)
+            return renamed;
+
+        // Native texture lookup can reuse the first resource of a given name.
+        // Keep original names and the first added owner. Only the output
+        // catalog changes, so older archives benefit without a migration.
+        HashSet<string> claimed = survivingObjects
+            .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
+            .Select(entry => ReadName(entry.RawName))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var reserved = new HashSet<string>(claimed, claimed.Comparer);
+        reserved.UnionWith(addedTextures.Select(entry => ReadName(entry.RawName)));
+        foreach (SmoProjectAddedObjectLayout entry in addedTextures)
+        {
+            string name = ReadName(entry.RawName);
+            if (name.Length == 0 || claimed.Add(name))
+                continue;
+
+            string baseName = FormattableString.Invariant($"{name}_{entry.Id:X8}");
+            // Leave room for '_' plus a decimal Int32 suffix and the NUL.
+            const int suffixAndTerminatorBytes = 1 + 10 + 1;
+            if (Encoding.UTF8.GetByteCount(baseName) > ushort.MaxValue - suffixAndTerminatorBytes)
+                baseName = FormattableString.Invariant($"texture_{entry.Id:X8}");
+            string uniqueName = baseName;
+            for (int suffix = 2; !reserved.Add(uniqueName); suffix++)
+                uniqueName = FormattableString.Invariant($"{baseName}_{suffix}");
+            renamed.Add(entry.Id, Encoding.UTF8.GetBytes(uniqueName + '\0'));
+        }
+        return renamed;
+
+        static string ReadName(byte[] rawName)
+        {
+            int end = Array.IndexOf(rawName, (byte)0);
+            return Encoding.UTF8.GetString(rawName, 0, end >= 0 ? end : rawName.Length);
+        }
     }
 
     private void SetProperty(

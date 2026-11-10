@@ -34,7 +34,7 @@ public sealed class NativeSessionLog : IDisposable
 
     public void Write(NativeValidationEvent validationEvent)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        FrameworkGuards.ThrowIfDisposed(_disposed, this);
         string line = SerializeLine(validationEvent);
         lock (_gate)
         {

@@ -4,6 +4,7 @@
 #include <windows.h>
 #include "WorldStateSession.h"
 #include "Networking/WindowsTcpTransport.h"
+#include "Networking/WindowsPumpWait.h"
 #include <algorithm>
 #include <charconv>
 #include <cstring>
@@ -120,6 +121,7 @@ namespace
     class Bridge final
     {
         Options o_;Mapping mapping_;Shared& ipc_;Header header_;Session world_;WindowsTcpTransport tcp_;
+        WindowsPumpWait wait_;WindowsPumpCadence cadence_;
         ActorStatus actor_{};BridgeStatus status_{};HANDLE participant_=nullptr;bool admitted_=false,running_=false;
         std::uint64_t connection_=0,lastNow_=0;std::uint32_t snapshotPublication_=0;
         std::uint64_t sentFrames_=0,receivedFrames_=0,snapshotsForwarded_=0,snapshotReads_=0,coherentRetries_=0;
@@ -230,6 +232,7 @@ namespace
                 if(now-begin>=o_.runMilliseconds){Stop(Terminal::RunLimit);break;}
                 if(std::memcmp(&ipc_.header,&header_,sizeof(Header))){Stop(Terminal::Identity);break;}
                 (void)ReadActor(now);if(world_.Failure()!=Terminal::None)break;
+                if(!cadence_.Observe()){Stop(Terminal::Clock);break;}
                 tcp_.Pump(now);const auto active=tcp_.ActiveConnectionId();
                 if(active){if(connection_&&active!=connection_){Stop(Terminal::Identity);break;}connection_=active;}
                 running_=tcp_.Session()&&tcp_.Session()->Phase()==SessionPhase::Running;
@@ -238,7 +241,7 @@ namespace
                 if(running_||connection_)Work(now);
                 if(world_.Failure()==Terminal::None && (tcp_.State()==TcpTransportState::Closed||tcp_.State()==TcpTransportState::Failed||(connection_&&!active)))
                     Stop(Terminal::PeerClosed);
-                Publish(now);if(world_.Failure()==Terminal::None)Sleep(1);
+                Publish(now);if(world_.Failure()==Terminal::None&&!wait_.WaitOneMillisecond())Stop(Terminal::Clock);
             }
             const auto end=GetTickCount64();Publish(end);
             if(connection_&&running_&&world_.Token()&&!peerStopReceived_)
@@ -252,10 +255,11 @@ namespace
                     tcp_.Pump(now);
                     if(accepted&&tcp_.PendingSendBytes()==0){stopFlushed_=true;break;}
                     if(tcp_.State()==TcpTransportState::Closed||tcp_.State()==TcpTransportState::Failed)break;
-                    Sleep(1);
+                    if(!wait_.WaitOneMillisecond())break;
                 }
             }
             tcp_.Close();if(participant_){if(!CloseHandle(participant_))participantCloseError_=GetLastError();participant_=nullptr;}mapping_.Close();
+            wait_.Close();
             const auto& metrics=tcp_.Metrics();
             const auto report="{\"worldStateVersion\":1,\"terminalReason\":"+std::to_string(static_cast<unsigned>(world_.Failure()))+
                 ",\"syncEpoch\":"+std::to_string(world_.Epoch())+",\"sentRevisionDecimal\":\""+std::to_string(world_.SentRevision())+"\",\"appliedRevisionDecimal\":\""+std::to_string(world_.AppliedRevision())+
@@ -265,12 +269,13 @@ namespace
                 ",\"socketsOpened\":"+std::to_string(metrics.socketsOpened)+",\"socketsClosed\":"+std::to_string(metrics.socketsClosed)+
                 ",\"stopFlushed\":"+(stopFlushed_?"true":"false")+",\"peerStopReceived\":"+(peerStopReceived_?"true":"false")+
                 ",\"mappingClosed\":"+(mapping_.Balanced()?"true":"false")+",\"mappingCloseError\":"+std::to_string(mapping_.Error())+",\"participantCloseError\":"+std::to_string(participantCloseError_)+
+                ","+cadence_.JsonFields()+",\"pumpWait\":"+wait_.Json()+
                 ",\"wireCodec\":\"existing-SessionCore-Packet-MemoryStream\",\"snapshotDataAgePolicy\":\"absolute-latest; actor-lease-separate\",\"gameplayQualified\":false}\n";
             FreshFile(o_.report,report);std::cout<<report;
-            return stopFlushed_&&mapping_.Balanced()&&!participantCloseError_&&metrics.socketsOpened==metrics.socketsClosed&&
+            return stopFlushed_&&wait_.Balanced()&&mapping_.Balanced()&&!participantCloseError_&&metrics.socketsOpened==metrics.socketsClosed&&
                 (world_.Failure()==Terminal::ActorClosed||world_.Failure()==Terminal::RunLimit)?0:2;
         }
-        catch(...){Stop(Terminal::InvalidRecord);Publish(GetTickCount64());tcp_.Close();throw;}
+        catch(...){Stop(Terminal::InvalidRecord);Publish(GetTickCount64());tcp_.Close();wait_.Close();throw;}
     };
 }
 int wmain(int argc,wchar_t** argv)

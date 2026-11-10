@@ -74,7 +74,7 @@ public static partial class GeneratedSkinningPreparer
             return MathF.Min(targetEnvelope, longitudinal);
         }
 
-        public ApproximateFingerBranch SelectBranch(
+        public (ApproximateFingerBranch Branch, float Confidence) SelectBranch(
             Vector3 position,
             GeneratedSkinningRegionVolume volume,
             float donorLateralMinimum = -1,
@@ -93,14 +93,23 @@ public static partial class GeneratedSkinningPreparer
                     -1,
                     1)
                 : donorLateral / volume.LateralRadius;
-            return Branches
-                .OrderBy(branch =>
-                {
-                    float dl = lateral - branch.NormalizedLateral;
-                    return dl * dl;
-                })
-                .ThenBy(branch => branch.RootRigJointIndex)
-                .First();
+            var nearest = Branches
+                .Select(branch => (Branch: branch,
+                    Distance: MathF.Abs(lateral - branch.NormalizedLateral)))
+                .OrderBy(candidate => candidate.Distance)
+                .ThenBy(candidate => candidate.Branch.RootRigJointIndex)
+                .Take(2)
+                .ToArray();
+            if (nearest.Length == 1)
+                return (nearest[0].Branch, 1);
+
+            // At a lane boundary neither finger is certain. Keep the vertex
+            // on the hand there and restore motion toward the lane centre.
+            float span = nearest[0].Distance + nearest[1].Distance;
+            float confidence = span <= PositionEpsilon ? 0 :
+                (nearest[1].Distance - nearest[0].Distance) / span;
+            confidence = confidence * confidence * (3 - 2 * confidence);
+            return (nearest[0].Branch, confidence);
         }
     }
 
@@ -1373,7 +1382,7 @@ public static partial class GeneratedSkinningPreparer
             .OrderBy(vertex => vertex.MeshIndex)
             .ThenBy(vertex => vertex.VertexIndex)
             .ToArray();
-        var branchByVertex = new Dictionary<GeometryVertex, ApproximateFingerBranch>();
+        var branchByVertex = new Dictionary<GeometryVertex, (ApproximateFingerBranch Branch, float Confidence)>();
         var distalByBranch = new Dictionary<int, float>();
         if (motionProfile is not null)
         {
@@ -1397,12 +1406,13 @@ public static partial class GeneratedSkinningPreparer
             {
                 Vector3 position =
                     alignedPositionsByMesh[vertex.MeshIndex][vertex.VertexIndex];
-                ApproximateFingerBranch branch = motionProfile.SelectBranch(
+                var selection = motionProfile.SelectBranch(
                     position,
                     volume,
                     donorLateralMinimum,
                     donorLateralMaximum);
-                branchByVertex.Add(vertex, branch);
+                branchByVertex.Add(vertex, selection);
+                ApproximateFingerBranch branch = selection.Branch;
                 float axial = Vector3.Dot(
                     position, calibration.AutomaticVolume.AxialAxis);
                 distalByBranch[branch.RootRigJointIndex] = MathF.Max(
@@ -1441,9 +1451,9 @@ public static partial class GeneratedSkinningPreparer
                 PackedInfluence[] motionInfluences = [];
                 if (motionProfile is not null &&
                     branchByVertex.TryGetValue(
-                        vertex, out ApproximateFingerBranch? branch) &&
+                        vertex, out var selection) &&
                     distalByBranch.TryGetValue(
-                        branch.RootRigJointIndex, out float laneDistal))
+                        selection.Branch.RootRigJointIndex, out float laneDistal))
                 {
                     float laneSpan = laneDistal - lobe.MotionStartProjection;
                     float progress = laneSpan <= PositionEpsilon
@@ -1457,8 +1467,9 @@ public static partial class GeneratedSkinningPreparer
                         motionProfile.EvaluateArticulation(progress);
                     motionInfluences = BuildApproximateFingerInfluences(
                         calibration.AnchorSkeletonJointIndex,
-                        branch.SkeletonJointIndices,
-                        articulation);
+                        selection.Branch.SkeletonJointIndices,
+                        articulation,
+                        motionProfile.Evaluate(progress) * selection.Confidence);
                 }
                 core.Add(vertex);
                 mutable.Add(vertex, new SemanticVertexAssignment(
@@ -1491,10 +1502,12 @@ public static partial class GeneratedSkinningPreparer
     private static PackedInfluence[] BuildApproximateFingerInfluences(
         int anchorSkeletonJointIndex,
         IReadOnlyList<int> fingerChain,
-        float articulation)
+        float articulation,
+        float motionWeight)
     {
         if (fingerChain.Count == 0 || !float.IsFinite(articulation) ||
-            articulation <= WeightEpsilon)
+            !float.IsFinite(motionWeight) ||
+            articulation <= WeightEpsilon || motionWeight <= WeightEpsilon)
         {
             return [];
         }
@@ -1504,25 +1517,23 @@ public static partial class GeneratedSkinningPreparer
         int lower = Math.Min((int)MathF.Floor(scaled), fingerChain.Count);
         int upper = Math.Min(lower + 1, fingerChain.Count);
         float amount = Math.Clamp(scaled - lower, 0, 1);
-        if (lower == upper || amount <= WeightEpsilon)
+        // Articulation selects the position along the chain. It is normalized
+        // independently from the authored amount of motion away from Hand.
+        float lowerWeight = motionWeight * (1 - amount);
+        float upperWeight = motionWeight * amount;
+        float handWeight = 1 - motionWeight;
+        if (lower == 0)
+            handWeight += lowerWeight;
+
+        var influences = new List<PackedInfluence>(3)
         {
-            return
-            [
-                new PackedInfluence(checked((ushort)nodes[lower]), 1)
-            ];
-        }
-        if (amount >= 1 - WeightEpsilon)
-        {
-            return
-            [
-                new PackedInfluence(checked((ushort)nodes[upper]), 1)
-            ];
-        }
-        return
-        [
-            new PackedInfluence(checked((ushort)nodes[lower]), 1 - amount),
-            new PackedInfluence(checked((ushort)nodes[upper]), amount)
-        ];
+            new(checked((ushort)anchorSkeletonJointIndex), handWeight)
+        };
+        if (lower > 0 && lowerWeight > 0)
+            influences.Add(new(checked((ushort)nodes[lower]), lowerWeight));
+        if (upper != lower && upperWeight > 0)
+            influences.Add(new(checked((ushort)nodes[upper]), upperWeight));
+        return influences.ToArray();
     }
 
     private static IReadOnlyDictionary<GeometryVertex, SemanticVertexAssignment>

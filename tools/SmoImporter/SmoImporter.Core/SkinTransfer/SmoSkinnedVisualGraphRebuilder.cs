@@ -14,6 +14,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         IReadOnlySet<uint> AddedSkinIds,
         IReadOnlySet<uint> AddedMeshIds,
         IReadOnlySet<uint> AddedTextureIds,
+        IReadOnlySet<uint> UntexturedMeshIds,
         IReadOnlySet<uint> SkeletonCarrierMeshIds,
         IReadOnlySet<uint> RemovedTargetObjectIds,
         IReadOnlyDictionary<uint, ImportedTexture> ImportedTexturesByObjectId);
@@ -76,6 +77,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         var addedSkinIds = new HashSet<uint>();
         var addedMeshIds = new HashSet<uint>();
         var addedTextureIds = new HashSet<uint>();
+        var untexturedMeshIds = new HashSet<uint>();
         var importedTexturesByObjectId = new Dictionary<uint, ImportedTexture>();
         int vertices = 0;
         int triangles = 0;
@@ -84,11 +86,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
         foreach (ImportedGroup group in sourceGroups)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ImportedTexture branchTexture =
-                ResolveImportedGroupTexture(donor, group) ??
-                throw new InvalidDataException(
-                    $"Material group {group.MaterialIndex} has no donor texture. " +
-                    "A clean character rebuild cannot fall back to a target image.");
+            ImportedTexture? branchTexture = ResolveImportedGroupTexture(donor, group);
             SmoSkinnedBranchSourceMesh[] branchMeshes = group.Meshes
                 .Select(mesh => transferMeshes.Single(value => value.Key ==
                     GetImportedMeshIndex(donor.Meshes, mesh)))
@@ -98,7 +96,8 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                 SmoSkinnedBranchSplitBuilder.ClassifyRenderables(
                     branchMeshes,
                     branchTexture,
-                    materialProfile);
+                    materialProfile,
+                    GetUntexturedAlphaMaterialKeys(donor, group));
             branchMeshes = SmoSkinnedBranchSplitBuilder
                 .ConformCloseSurfaceNormals(branchMeshes, opacity)
                 .Meshes;
@@ -126,15 +125,19 @@ internal static partial class SmoSkinnedVisualGraphPipeline
                                 entry.TypeHash == SmoClassIds.TextureData)
                 .Select(entry => entry.Id)
                 .ToArray();
-            if (groupTextureIds.Length != 1)
+            if (groupTextureIds.Length != (branchTexture is null ? 0 : 1))
             {
                 throw new InvalidDataException(
                     $"Material group {group.MaterialIndex} generated " +
-                    $"{groupTextureIds.Length} TextureData objects instead of one.");
+                    $"{groupTextureIds.Length} unexpected TextureData objects.");
             }
-            uint generatedTextureId = groupTextureIds[0];
-            importedTexturesByObjectId.Add(generatedTextureId, branchTexture);
-            addedTextureIds.Add(generatedTextureId);
+            if (branchTexture is not null)
+            {
+                uint generatedTextureId = groupTextureIds[0];
+                importedTexturesByObjectId.Add(generatedTextureId, branchTexture);
+                addedTextureIds.Add(generatedTextureId);
+            }
+            else untexturedMeshIds.UnionWith(result.AddedMeshIds);
             addedObjectIds.UnionWith(result.AddedObjectIds);
             addedSkinIds.UnionWith(result.AddedSkinIds);
             addedMeshIds.UnionWith(result.AddedMeshIds);
@@ -165,6 +168,7 @@ internal static partial class SmoSkinnedVisualGraphPipeline
             addedSkinIds,
             addedMeshIds,
             addedTextureIds,
+            untexturedMeshIds,
             removal.AddedSkeletonCarrierMeshIds,
             removal.RemovedTargetObjectIds,
             importedTexturesByObjectId);
@@ -532,12 +536,13 @@ internal static partial class SmoSkinnedVisualGraphPipeline
             if (!skeletonCarrier &&
                 (!bindings.TryGetValue(
                      meshEntry.Index, out SmoTextureBinding? binding) ||
-                 binding.Issue is not null || binding.Texture is null ||
-                 !rebuilt.AddedTextureIds.Contains(
-                     output.Objects[binding.Texture.ObjectIndex].Id)))
+                 binding.Issue is not null ||
+                 (rebuilt.UntexturedMeshIds.Contains(meshEntry.Id) ? binding.Texture is not null :
+                    binding.Texture is null || !rebuilt.AddedTextureIds.Contains(
+                        output.Objects[binding.Texture.ObjectIndex].Id))))
             {
                 errors.Add(
-                    $"mesh ID {meshEntry.Id} is not bound to a generated donor texture");
+                    $"mesh ID {meshEntry.Id} does not match its planned textured/untextured material");
             }
         }
         int expectedTriangles = donor.Meshes.Sum(mesh =>

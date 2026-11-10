@@ -3,25 +3,1262 @@
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  Title="Sparkplug SMO Importer" Width="1180" Height="760"
  MinWidth="960" MinHeight="640" WindowStartupLocation="CenterScreen">
- <Grid>
-  <Grid.ColumnDefinitions><ColumnDefinition Width="390"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-  <ScrollViewer x:Name="ControlsScrollViewer" Grid.Column="0"
-                VerticalScrollBarVisibility="Auto" Background="#F4F6F8">
-   <StackPanel Margin="20">
-    <TextBlock Text="SMO Model Importer" FontSize="23" FontWeight="SemiBold"/>
-    <TextBlock Margin="0,5,0,16" Foreground="#52606D" TextWrapping="Wrap"
-     Text="В SMO-режиме служебная структура target сохраняется, а меши, веса и текстуры переносятся из донора. Skinned GLB/FBX использует привязку костей; FBX читается напрямую нативным модулем. Исходные файлы не изменяются."/>
+ <Window.Resources>
+  <Style x:Key="WizardButtonStyle" TargetType="Button">
+   <Setter Property="Height" Value="34"/>
+   <Setter Property="MinWidth" Value="86"/>
+   <Setter Property="Padding" Value="12,0"/>
+   <Setter Property="Foreground" Value="#DCE3EA"/>
+   <Setter Property="Background" Value="#202833"/>
+   <Setter Property="BorderBrush" Value="#3A4654"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="FontWeight" Value="SemiBold"/>
+   <Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="Button">
+      <Border x:Name="WizardButtonBorder" Padding="{TemplateBinding Padding}"
+              Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+       <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                         RecognizesAccessKey="True"/>
+      </Border>
+      <ControlTemplate.Triggers>
+       <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="WizardButtonBorder" Property="Background" Value="#2A3542"/>
+        <Setter TargetName="WizardButtonBorder" Property="BorderBrush" Value="#617185"/>
+       </Trigger>
+       <Trigger Property="IsPressed" Value="True">
+        <Setter TargetName="WizardButtonBorder" Property="Background" Value="#3B3024"/>
+       </Trigger>
+       <Trigger Property="IsKeyboardFocused" Value="True">
+        <Setter TargetName="WizardButtonBorder" Property="BorderBrush" Value="#E69A46"/>
+       </Trigger>
+       <Trigger Property="IsEnabled" Value="False">
+        <Setter TargetName="WizardButtonBorder" Property="Opacity" Value="0.45"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+       </Trigger>
+      </ControlTemplate.Triggers>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+  <Style x:Key="InputPreviewDropStyle" TargetType="Border">
+   <Setter Property="AllowDrop" Value="True"/>
+   <Setter Property="BorderBrush" Value="#2B3542"/>
+   <EventSetter Event="DragEnter" Handler="InputPreview_DragOver"/>
+   <EventSetter Event="DragOver" Handler="InputPreview_DragOver"/>
+   <EventSetter Event="DragLeave" Handler="InputPreview_DragLeave"/>
+   <EventSetter Event="Drop" Handler="InputPreview_Drop"/>
+  </Style>
+  <Style x:Key="WizardInfoStyle" TargetType="TextBlock">
+   <Setter Property="Text" Value="ⓘ"/>
+   <Setter Property="FontSize" Value="16"/>
+   <Setter Property="Margin" Value="8,0,0,0"/>
+   <Setter Property="VerticalAlignment" Value="Center"/>
+   <Setter Property="Foreground" Value="#9BAABD"/>
+   <Setter Property="Cursor" Value="Help"/>
+  </Style>
+  <Style x:Key="WizardSectionStyle" TargetType="Border">
+   <Setter Property="Background" Value="#10161E"/>
+   <Setter Property="BorderBrush" Value="#2B3542"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="CornerRadius" Value="4"/>
+   <Setter Property="Padding" Value="12"/>
+   <Setter Property="Margin" Value="0,0,0,10"/>
+  </Style>
+  <Style x:Key="WizardSectionHeadingStyle" TargetType="TextBlock">
+   <Setter Property="FontSize" Value="14"/>
+   <Setter Property="FontWeight" Value="SemiBold"/>
+   <Setter Property="Foreground" Value="#D8DEE9"/>
+   <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+  <Style x:Key="WizardSectionHintStyle" TargetType="TextBlock">
+   <Setter Property="Foreground" Value="#9BAABD"/>
+   <Setter Property="Margin" Value="0,6,0,0"/>
+   <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style x:Key="PreviewGuidanceStyle" TargetType="TextBlock">
+   <Setter Property="Foreground" Value="#A9B7C8"/>
+   <Setter Property="FontSize" Value="11"/>
+   <Setter Property="LineHeight" Value="15"/>
+   <Setter Property="TextWrapping" Value="Wrap"/>
+   <Setter Property="Margin" Value="2,7,2,0"/>
+   <Setter Property="IsHitTestVisible" Value="False"/>
+  </Style>
+  <Style x:Key="WizardListItemStyle" TargetType="ListBoxItem">
+   <Setter Property="Foreground" Value="#DCE3EA"/>
+   <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+   <Setter Property="Padding" Value="8,5"/>
+   <Setter Property="MinHeight" Value="30"/>
+   <Setter Property="Cursor" Value="Hand"/>
+   <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="ListBoxItem">
+      <Border x:Name="Row" Margin="0,1" Padding="{TemplateBinding Padding}" CornerRadius="3"
+              Background="Transparent" BorderBrush="Transparent" BorderThickness="1">
+       <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                         VerticalAlignment="Center"/>
+      </Border>
+      <ControlTemplate.Triggers>
+       <Trigger Property="IsMouseOver" Value="True">
+        <Setter TargetName="Row" Property="Background" Value="#202833"/>
+       </Trigger>
+       <Trigger Property="IsSelected" Value="True">
+        <Setter TargetName="Row" Property="Background" Value="#3B3024"/>
+        <Setter TargetName="Row" Property="BorderBrush" Value="#8C5A2D"/>
+        <Setter Property="Foreground" Value="#FFD3A1"/>
+       </Trigger>
+       <Trigger Property="IsKeyboardFocused" Value="True">
+        <Setter TargetName="Row" Property="BorderBrush" Value="#E69A46"/>
+       </Trigger>
+       <Trigger Property="IsEnabled" Value="False">
+        <Setter TargetName="Row" Property="Opacity" Value="0.45"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+       </Trigger>
+      </ControlTemplate.Triggers>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+  <Style x:Key="WizardListStyle" TargetType="ListBox">
+   <Setter Property="Foreground" Value="#DCE3EA"/>
+   <Setter Property="Background" Value="#151B23"/>
+   <Setter Property="BorderBrush" Value="#2B3542"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="Padding" Value="3"/>
+   <Setter Property="ItemContainerStyle" Value="{StaticResource WizardListItemStyle}"/>
+   <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+   <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="ListBox">
+      <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
+              Padding="{TemplateBinding Padding}">
+       <ScrollViewer Focusable="False" CanContentScroll="True"
+                     HorizontalScrollBarVisibility="Disabled"
+                     VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+        <ItemsPresenter/>
+       </ScrollViewer>
+      </Border>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+  <Style x:Key="WizardScrollBarStyle" TargetType="ScrollBar">
+   <Setter Property="Width" Value="8"/>
+   <Setter Property="Template">
+    <Setter.Value>
+     <ControlTemplate TargetType="ScrollBar">
+      <Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True">
+       <Track.Resources>
+        <Style TargetType="RepeatButton">
+         <Setter Property="Focusable" Value="False"/>
+         <Setter Property="Template">
+          <Setter.Value>
+           <ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate>
+          </Setter.Value>
+         </Setter>
+        </Style>
+       </Track.Resources>
+       <Track.DecreaseRepeatButton><RepeatButton Command="{x:Static ScrollBar.PageUpCommand}"/></Track.DecreaseRepeatButton>
+       <Track.Thumb>
+        <Thumb MinHeight="18">
+         <Thumb.Template>
+          <ControlTemplate TargetType="Thumb">
+           <Border Margin="2,1" Background="#455369" CornerRadius="2"/>
+          </ControlTemplate>
+         </Thumb.Template>
+        </Thumb>
+       </Track.Thumb>
+       <Track.IncreaseRepeatButton><RepeatButton Command="{x:Static ScrollBar.PageDownCommand}"/></Track.IncreaseRepeatButton>
+      </Track>
+     </ControlTemplate>
+    </Setter.Value>
+   </Setter>
+  </Style>
+  <Style x:Key="WizardTextureDropStyle" TargetType="Border">
+   <Setter Property="AllowDrop" Value="True"/>
+   <Setter Property="Background" Value="Transparent"/>
+   <Setter Property="BorderBrush" Value="Transparent"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="CornerRadius" Value="4"/>
+   <EventSetter Event="DragEnter" Handler="TextureDrop_DragOver"/>
+   <EventSetter Event="DragOver" Handler="TextureDrop_DragOver"/>
+   <EventSetter Event="DragLeave" Handler="TextureDrop_DragLeave"/>
+   <EventSetter Event="Drop" Handler="TextureDrop_Drop"/>
+  </Style>
+  <Style x:Key="WizardAutoTextureDropStyle" TargetType="Border" BasedOn="{StaticResource WizardTextureDropStyle}">
+   <Setter Property="Background" Value="#151B23"/>
+   <Setter Property="BorderBrush" Value="#3A4654"/>
+   <Setter Property="Padding" Value="9"/>
+  </Style>
+  <Style x:Key="WizardTextureListItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource WizardListItemStyle}">
+   <Setter Property="Padding" Value="2,1"/>
+  </Style>
+  <DataTemplate x:Key="WizardTextureRowTemplate">
+   <Border Style="{StaticResource WizardTextureDropStyle}" Padding="5,2"
+           ToolTip="Перетащите одно изображение на эту строку для точной замены.">
+    <DockPanel>
+     <Button DockPanel.Dock="Right" Style="{StaticResource WizardButtonStyle}" Margin="8,0,0,0"
+             Height="28" MinWidth="76" Padding="8,0" Content="Заменить…"
+             AutomationProperties.Name="{Binding Display, StringFormat='Заменить {0}'}"
+             ToolTip="Выбрать изображение для этой текстуры."
+             IsEnabled="{Binding CanReplace}" Click="ReplaceTextureRow_Click"/>
+     <TextBlock Text="{Binding Display}" VerticalAlignment="Center"
+                TextTrimming="CharacterEllipsis"/>
+    </DockPanel>
+   </Border>
+  </DataTemplate>
+ </Window.Resources>
+ <Grid Background="#0D1117">
+  <Grid.RowDefinitions>
+   <RowDefinition Height="Auto"/>
+   <RowDefinition Height="*"/>
+   <RowDefinition Height="Auto"/>
+  </Grid.RowDefinitions>
 
-    <TextBlock Text="1. Шаблон игры" FontSize="15" FontWeight="SemiBold"/>
-    <Button Margin="0,6,0,0" Height="38" Content="Выбрать исходный SMO" Click="SelectSource_Click"/>
-    <TextBlock x:Name="SourcePathText" Margin="0,6,0,4" Text="Не выбран" TextWrapping="Wrap"/>
-    <TextBlock x:Name="SourceSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+  <Border Padding="18,12" Background="#151B23" BorderBrush="#2B3542" BorderThickness="0,0,0,1">
+   <StackPanel Orientation="Horizontal">
+    <TextBlock x:Name="ModelsStepLabel" Text="1. Модели" FontSize="16"
+               FontWeight="SemiBold" Foreground="#FFD3A1" VerticalAlignment="Center"/>
+    <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка шага Модели"
+               ToolTip="Выберите исходный SMO и модель, которая его заменит."/>
+    <TextBlock Margin="16,0" Text="›" FontSize="18" Foreground="#657284" VerticalAlignment="Center"/>
+    <TextBlock x:Name="PreparationStepLabel" Text="2. Подготовка" FontSize="16"
+               FontWeight="SemiBold" Foreground="#8490A1" VerticalAlignment="Center"/>
+    <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка шага Подготовка"
+               ToolTip="Проверьте тип модели, способ импорта и текстуры."/>
+    <TextBlock Margin="16,0" Text="›" FontSize="18" Foreground="#657284" VerticalAlignment="Center"/>
+    <TextBlock x:Name="SizeStepLabel" Text="3. Размер" FontSize="16"
+               FontWeight="SemiBold" Foreground="#8490A1" VerticalAlignment="Center"/>
+    <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка шага Размер"
+               ToolTip="Сравните габариты и подгоните размер модели-донора."/>
+    <TextBlock Margin="16,0" Text="›" FontSize="18" Foreground="#657284" VerticalAlignment="Center"/>
+    <TextBlock x:Name="RigStepLabel" Text="4. Скелет" FontSize="16"
+               FontWeight="SemiBold" Foreground="DimGray" VerticalAlignment="Center"
+               ToolTip="Подгоните скелет исходной модели под донора."/>
+    <TextBlock x:Name="RigStepHint" Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка шага Скелет"
+               ToolTip="Этот шаг нужен для исходной модели со скелетом."/>
+    <TextBlock Margin="16,0" Text="›" FontSize="18" Foreground="#657284" VerticalAlignment="Center"/>
+    <TextBlock x:Name="PostRigStepLabel" Text="5. Защита" FontSize="16"
+               FontWeight="SemiBold" Foreground="DimGray" VerticalAlignment="Center"
+               ToolTip="Настройте защитные области и отдельные детали."/>
+    <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка шага Защита"
+               ToolTip="{Binding ToolTip, ElementName=PostRigStepLabel}"/>
+    <TextBlock Margin="16,0" Text="›" FontSize="18" Foreground="#657284" VerticalAlignment="Center"/>
+    <TextBlock x:Name="PreparedStepLabel" Text="6. Результат" FontSize="16"
+               FontWeight="SemiBold" Foreground="DimGray" VerticalAlignment="Center"
+               ToolTip="Проверьте применённые настройки."/>
+   </StackPanel>
+  </Border>
 
-    <TextBlock Margin="0,18,0,0" Text="2. Модель-донор" FontSize="15" FontWeight="SemiBold"/>
-    <Button Margin="0,6,0,0" Height="38" Content="Импортировать SMO, FBX, GLB или OBJ" Click="SelectReplacement_Click"/>
-    <TextBlock x:Name="ReplacementPathText" Margin="0,6,0,4" Text="Не выбрана" TextWrapping="Wrap"/>
-    <TextBlock x:Name="ReplacementSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+  <Grid Grid.Row="1" Margin="18,16">
+   <Grid.ColumnDefinitions>
+    <ColumnDefinition Width="*"/>
+    <ColumnDefinition Width="14"/>
+    <ColumnDefinition Width="*"/>
+   </Grid.ColumnDefinitions>
 
+   <Grid x:Name="ModelsStep" Visibility="Visible">
+    <Border Padding="12" Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="6">
+     <Grid>
+      <Grid.RowDefinitions>
+       <RowDefinition Height="Auto"/>
+       <RowDefinition Height="Auto"/>
+       <RowDefinition Height="*"/>
+       <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <DockPanel>
+       <Button x:Name="SourceSelectionButton" DockPanel.Dock="Right" Style="{StaticResource WizardButtonStyle}"
+               Content="Выбрать SMO" ToolTip="Открыть модель из игры, которую нужно заменить."
+               Click="SelectSource_Click" Unloaded="ModelSelectionButton_Unloaded"/>
+       <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Исходный SMO" FontSize="16" FontWeight="SemiBold"
+                   Foreground="#D8DEE9" VerticalAlignment="Center"/>
+        <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Что такое исходный SMO"
+                   ToolTip="Это модель из игры, на основе которой будет создан новый SMO."/>
+       </StackPanel>
+      </DockPanel>
+      <TextBlock x:Name="SourceSelectionText" Grid.Row="1" Margin="0,8,0,10" Text="Файл не выбран"
+                 Foreground="#9BAABD" TextTrimming="CharacterEllipsis"
+                 ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+      <Border x:Name="SourcePreviewSurface" Grid.Row="2" Background="#10161E" SizeChanged="InputPreviewSurface_SizeChanged"
+              Style="{StaticResource InputPreviewDropStyle}" BorderThickness="1" CornerRadius="4" Focusable="True"
+              MouseDown="InputPreview_MouseDown" MouseMove="InputPreview_MouseMove"
+              MouseUp="InputPreview_MouseUp" LostMouseCapture="InputPreview_LostMouseCapture"
+              MouseWheel="InputPreview_MouseWheel" KeyDown="InputPreview_KeyDown">
+       <Grid>
+        <Viewport3D ClipToBounds="True" IsHitTestVisible="False">
+         <Viewport3D.Camera>
+          <PerspectiveCamera x:Name="SourceSelectionCamera" Position="0,0,10" LookDirection="0,0,-10"
+                             UpDirection="0,1,0" FieldOfView="45"/>
+         </Viewport3D.Camera>
+         <ModelVisual3D><ModelVisual3D.Content><AmbientLight Color="#858585"/></ModelVisual3D.Content></ModelVisual3D>
+         <ModelVisual3D><ModelVisual3D.Content><DirectionalLight Color="White" Direction="-1,-1,-2"/></ModelVisual3D.Content></ModelVisual3D>
+         <ModelVisual3D x:Name="SourceSelectionVisual"/>
+        </Viewport3D>
+        <TextBlock x:Name="SourcePreviewEmptyText" Text="Предпросмотр появится после выбора SMO."
+                   Margin="14" Foreground="#9BAABD" TextAlignment="Center" TextWrapping="Wrap"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+       </Grid>
+      </Border>
+      <TextBlock x:Name="SourcePreviewGuidanceText" Grid.Row="3" Style="{StaticResource PreviewGuidanceStyle}"
+                 Text="Выберите SMO или перетащите его сюда."/>
+     </Grid>
+    </Border>
+   </Grid>
+
+   <Grid x:Name="PreparationStep" Visibility="Collapsed">
+    <Border Padding="12" Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="6">
+     <Grid>
+      <Grid.RowDefinitions>
+       <RowDefinition Height="34"/>
+       <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <StackPanel Orientation="Horizontal">
+       <TextBlock Text="Настройки импорта" FontSize="16" FontWeight="SemiBold"
+                  Foreground="#D8DEE9" VerticalAlignment="Center"/>
+       <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по подготовке"
+                  ToolTip="Проверьте тип модели, выберите способ импорта и поправьте текстуры при необходимости."/>
+      </StackPanel>
+      <ScrollViewer x:Name="ControlsScrollViewer" Grid.Row="1" Margin="0,10,0,0"
+                    VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+       <ScrollViewer.Resources>
+        <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+       </ScrollViewer.Resources>
+       <StackPanel>
+        <Border Style="{StaticResource WizardSectionStyle}">
+         <DockPanel LastChildFill="False">
+          <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+           <TextBlock Text="Тип модели" Style="{StaticResource WizardSectionHeadingStyle}"/>
+           <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Как определяется тип модели"
+                      ToolTip="Импортер определяет формат файла и проверяет, привязаны ли детали модели к костям."/>
+          </StackPanel>
+          <TextBlock x:Name="PreparationModelTypeText" DockPanel.Dock="Right" Margin="8,0,0,0"
+                     Foreground="#FFD3A1" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap"/>
+         </DockPanel>
+        </Border>
+
+        <Border Style="{StaticResource WizardSectionStyle}">
+         <StackPanel>
+          <StackPanel Orientation="Horizontal">
+           <TextBlock Text="Способ импорта" Style="{StaticResource WizardSectionHeadingStyle}"/>
+           <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по способам импорта"
+                      ToolTip="Доступные способы зависят от донора и исходной модели."/>
+          </StackPanel>
+          <TextBlock x:Name="PreparationModeHintText" Style="{StaticResource WizardSectionHintStyle}"/>
+          <StackPanel x:Name="PortingModePanel" Visibility="Collapsed">
+           <TextBlock x:Name="PortingModeRecommendationText" Style="{StaticResource WizardSectionHintStyle}"/>
+           <ListBox x:Name="PortingModeChoices" Margin="0,6,0,0" SelectedIndex="0"
+                    Style="{StaticResource WizardListStyle}" BorderThickness="0"
+                    Padding="0" Background="Transparent" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                    AutomationProperties.Name="Способ импорта" SelectionChanged="PortingMode_Changed">
+            <ListBoxItem Content="Автовыбор" ToolTip="Использовать рекомендованный способ."/>
+            <ListBoxItem Content="Готовая модель" ToolTip="Использовать кости модели, уже подготовленной для игры."/>
+            <ListBoxItem Content="Адаптировать скелет" ToolTip="Сопоставить кости донора с игровыми и сохранить веса."/>
+            <ListBoxItem Content="Создать веса" ToolTip="Подготовить модель для игрового скелета."/>
+            <ListBoxItem Content="Статическая замена" ToolTip="Заменить модель без создания костей."/>
+           </ListBox>
+          </StackPanel>
+         </StackPanel>
+        </Border>
+
+        <Border x:Name="TextureResourcesPanel" Style="{StaticResource WizardSectionStyle}" Margin="0">
+         <StackPanel>
+          <StackPanel Orientation="Horizontal">
+           <TextBlock Text="Текстуры" Style="{StaticResource WizardSectionHeadingStyle}"/>
+           <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по текстурам"
+                      ToolTip="Выберите строку, чтобы увидеть изображение и детали модели, на которых оно используется."/>
+          </StackPanel>
+          <Border x:Name="ObjMaterialPanel" Visibility="Collapsed" Margin="0,8,0,0" Padding="9"
+                  Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="4">
+           <StackPanel>
+            <StackPanel Orientation="Horizontal">
+             <TextBlock Text="Материалы OBJ" Foreground="#D8DEE9" FontWeight="SemiBold" VerticalAlignment="Center"/>
+             <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по материалам OBJ"
+                        ToolTip="Файл MTL указывает, какие изображения используют материалы OBJ."/>
+            </StackPanel>
+            <TextBlock x:Name="ObjMaterialPathText" Margin="0,4,0,0" Foreground="#9BAABD"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <WrapPanel Margin="0,7,0,0">
+             <Button x:Name="ChooseObjMaterialButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                     Content="Выбрать MTL…" ToolTip="Подставить другой файл материалов. Отмена вернёт прежний MTL и его назначения."
+                     Click="ChooseObjMaterial_Click"/>
+             <Button x:Name="ResetObjMaterialButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,0,4"
+                     Content="Вернуть MTL" ToolTip="Снова использовать материалы, указанные в OBJ."
+                     Visibility="Collapsed" IsEnabled="False" Click="ResetObjMaterial_Click"/>
+            </WrapPanel>
+           </StackPanel>
+          </Border>
+          <Border x:Name="AutomaticTextureDropSurface" Style="{StaticResource WizardAutoTextureDropStyle}" Margin="0,8,0,0"
+                  AutomationProperties.Name="Зона автоподбора текстур">
+           <StackPanel>
+            <TextBlock Text="Автоподбор по именам" Foreground="#D8DEE9" FontWeight="SemiBold"/>
+            <TextBlock Text="Перетащите сюда одно или несколько изображений." Style="{StaticResource WizardSectionHintStyle}"/>
+            <WrapPanel Margin="0,7,0,0" Visibility="{Binding Visibility, ElementName=TextureImportSourcesPanel}">
+             <Button x:Name="PreparationTextureAddButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,0"
+                     Content="Добавить…" ToolTip="Добавить изображения с подходящими именами."
+                     Click="AddTextureFiles_Click"/>
+             <Button x:Name="SelectTextureFolderButton" Style="{StaticResource WizardButtonStyle}"
+                     Content="Папка…" ToolTip="Добавить изображения из папки." Click="SelectTextureFolder_Click"/>
+            </WrapPanel>
+           </StackPanel>
+          </Border>
+          <StackPanel x:Name="TextureImportSourcesPanel">
+           <TextBlock Text="Для точной замены перетащите одно изображение на нужную строку."
+                      Style="{StaticResource WizardSectionHintStyle}" Margin="0,9,0,5"/>
+           <ListBox x:Name="TextureList" MaxHeight="188" Style="{StaticResource WizardListStyle}"
+                    ItemTemplate="{StaticResource WizardTextureRowTemplate}"
+                    ItemContainerStyle="{StaticResource WizardTextureListItemStyle}"
+                    SelectionMode="Extended" SelectionChanged="TextureList_SelectionChanged"
+                    AutomationProperties.Name="Текстуры модели"/>
+           <TextBlock x:Name="TextureSummaryText" Style="{StaticResource WizardSectionHintStyle}"/>
+           <Button x:Name="RemoveTexturesButton" Style="{StaticResource WizardButtonStyle}" Margin="0,9,0,0"
+                   HorizontalAlignment="Left" Content="Убрать"
+                   ToolTip="Убрать выбранные замены или добавленные изображения."
+                   IsEnabled="False" Click="RemoveTextures_Click"/>
+          </StackPanel>
+          <StackPanel x:Name="NativeDonorTextureEditor" Margin="0,8,0,0" Visibility="Collapsed">
+           <TextBlock Text="Для точной замены перетащите одно изображение на нужную строку."
+                      Style="{StaticResource WizardSectionHintStyle}" Margin="0,0,0,5"/>
+           <ListBox x:Name="NativeDonorTextureList" MaxHeight="188" Style="{StaticResource WizardListStyle}"
+                    ItemTemplate="{StaticResource WizardTextureRowTemplate}"
+                    ItemContainerStyle="{StaticResource WizardTextureListItemStyle}"
+                    AutomationProperties.Name="Текстуры SMO" SelectionChanged="NativeDonorTexture_SelectionChanged"/>
+           <TextBlock x:Name="NativeDonorTextureStatusText" Style="{StaticResource WizardSectionHintStyle}"/>
+           <Button x:Name="ResetNativeDonorTextureButton" Style="{StaticResource WizardButtonStyle}" Margin="0,9,0,0"
+                   HorizontalAlignment="Left" Content="Вернуть исходную"
+                   ToolTip="Вернуть исходное изображение выбранной текстуры."
+                   IsEnabled="False" Click="ResetNativeDonorTexture_Click"/>
+          </StackPanel>
+         </StackPanel>
+        </Border>
+       </StackPanel>
+      </ScrollViewer>
+     </Grid>
+    </Border>
+   </Grid>
+
+   <Grid x:Name="SizeStep" Visibility="Collapsed">
+    <Border Padding="16" Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="6">
+     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <ScrollViewer.Resources>
+       <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+      </ScrollViewer.Resources>
+      <StackPanel>
+       <StackPanel.Resources>
+        <Style x:Key="FittingLabelStyle" TargetType="TextBlock">
+         <Setter Property="Foreground" Value="#D8DEE9"/>
+         <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="FittingAxisStyle" TargetType="TextBlock">
+         <Setter Property="Foreground" Value="#9BAABD"/>
+         <Setter Property="HorizontalAlignment" Value="Center"/>
+         <Setter Property="Margin" Value="6,6,0,0"/>
+        </Style>
+        <Style x:Key="FittingInputStyle" TargetType="TextBox">
+         <Setter Property="Height" Value="32"/>
+         <Setter Property="Margin" Value="6,5,0,0"/>
+         <Setter Property="Padding" Value="7,0"/>
+         <Setter Property="VerticalContentAlignment" Value="Center"/>
+         <Setter Property="Background" Value="#10161E"/>
+         <Setter Property="Foreground" Value="#DCE3EA"/>
+         <Setter Property="CaretBrush" Value="#DCE3EA"/>
+         <Setter Property="BorderBrush" Value="#3A4654"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="MaxLength" Value="24"/>
+         <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+         <EventSetter Event="TextChanged" Handler="WizardTransform_TextChanged"/>
+         <EventSetter Event="KeyDown" Handler="WizardTransform_KeyDown"/>
+         <Style.Triggers>
+          <Trigger Property="IsKeyboardFocused" Value="True">
+           <Setter Property="BorderBrush" Value="#E69A46"/>
+          </Trigger>
+          <Trigger Property="IsEnabled" Value="False">
+           <Setter Property="Opacity" Value="0.6"/>
+          </Trigger>
+         </Style.Triggers>
+        </Style>
+       </StackPanel.Resources>
+
+       <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+        <TextBlock Text="Размер и положение" FontSize="16" FontWeight="SemiBold"
+                   Foreground="#D8DEE9" VerticalAlignment="Center"/>
+        <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по подгонке"
+                   ToolTip="Сравните исходную модель и донор. Введите значения вручную или уточните положение в окне просмотра."/>
+       </StackPanel>
+       <Grid Margin="0,9,0,0">
+        <Grid.ColumnDefinitions>
+         <ColumnDefinition Width="Auto"/>
+         <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Габариты" Style="{StaticResource WizardSectionHeadingStyle}"/>
+        <TextBlock Grid.Column="1" Text="Ширина × высота × глубина" Margin="10,0,0,0" Foreground="#9BAABD"
+                   VerticalAlignment="Center" TextAlignment="Right" TextWrapping="Wrap"/>
+        <TextBlock Grid.Row="1" Text="Исходный SMO" Margin="0,8,0,0" Style="{StaticResource FittingLabelStyle}"/>
+        <TextBlock x:Name="WizardSourceSizeText" Grid.Row="1" Grid.Column="1" Margin="10,8,0,0" Foreground="#D8DEE9"
+                   TextAlignment="Right" TextWrapping="Wrap" AutomationProperties.Name="Габариты исходного SMO"/>
+        <TextBlock Grid.Row="2" Text="Модель-донор" Margin="0,5,0,0" Style="{StaticResource FittingLabelStyle}"/>
+        <TextBlock x:Name="WizardDonorSizeText" Grid.Row="2" Grid.Column="1" Margin="10,5,0,0" Foreground="#FFD3A1"
+                   TextAlignment="Right" TextWrapping="Wrap" AutomationProperties.Name="Текущие габариты модели-донора"/>
+       </Grid>
+       <Rectangle Height="1" Fill="#2B3542" Margin="0,13,0,12"/>
+
+       <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Параметры донора" Style="{StaticResource WizardSectionHeadingStyle}"/>
+        <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по параметрам донора"
+                   ToolTip="Масштаб сохраняет пропорции. Поворот задаётся в градусах, смещение — в единицах модели."/>
+       </StackPanel>
+       <Grid Margin="0,4,0,0">
+        <Grid.RowDefinitions>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+         <ColumnDefinition Width="Auto"/>
+         <ColumnDefinition Width="*"/>
+         <ColumnDefinition Width="*"/>
+         <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="Масштаб, %" Margin="0,5,12,0" Style="{StaticResource FittingLabelStyle}"/>
+        <TextBox x:Name="WizardScalePercentTextBox" Grid.Column="1" Grid.ColumnSpan="3" Width="112"
+                 HorizontalAlignment="Left" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Масштаб донора в процентах"
+                 ToolTip="100% оставляет исходный размер, 50% уменьшает модель вдвое."/>
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="X" Style="{StaticResource FittingAxisStyle}"/>
+        <TextBlock Grid.Row="1" Grid.Column="2" Text="Y" Style="{StaticResource FittingAxisStyle}"/>
+        <TextBlock Grid.Row="1" Grid.Column="3" Text="Z" Style="{StaticResource FittingAxisStyle}"/>
+        <TextBlock Grid.Row="2" Text="Поворот, °" Margin="0,5,12,0" Style="{StaticResource FittingLabelStyle}"/>
+        <TextBlock Grid.Row="3" Text="Смещение" Margin="0,5,12,0" Style="{StaticResource FittingLabelStyle}"/>
+        <TextBox x:Name="WizardRotationXBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Поворот по X в градусах" ToolTip="Угол вокруг оси X"/>
+        <TextBox x:Name="WizardRotationYBox" Grid.Row="2" Grid.Column="2" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Поворот по Y в градусах" ToolTip="Угол вокруг оси Y"/>
+        <TextBox x:Name="WizardRotationZBox" Grid.Row="2" Grid.Column="3" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Поворот по Z в градусах" ToolTip="Угол вокруг оси Z"/>
+        <TextBox x:Name="WizardOffsetXBox" Grid.Row="3" Grid.Column="1" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Смещение по X" ToolTip="Сдвиг вдоль оси X"/>
+        <TextBox x:Name="WizardOffsetYBox" Grid.Row="3" Grid.Column="2" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Смещение по Y" ToolTip="Сдвиг вдоль оси Y"/>
+        <TextBox x:Name="WizardOffsetZBox" Grid.Row="3" Grid.Column="3" Style="{StaticResource FittingInputStyle}"
+                 AutomationProperties.Name="Смещение по Z" ToolTip="Сдвиг вдоль оси Z"/>
+       </Grid>
+       <TextBlock x:Name="WizardPlacementAvailabilityText" Style="{StaticResource WizardSectionHintStyle}" Visibility="Collapsed"/>
+       <Button x:Name="WizardManualPlacementButton" Style="{StaticResource WizardButtonStyle}" Margin="0,7,0,0"
+               Visibility="Collapsed" HorizontalAlignment="Left" Content="Настроить положение вручную"
+               ToolTip="Переключить между автоматическим и ручным положением донора." Click="WizardManualPlacement_Click"/>
+       <TextBlock x:Name="WizardTransformHintText" Style="{StaticResource WizardSectionHintStyle}" Visibility="Collapsed"/>
+       <WrapPanel Margin="0,12,0,0">
+        <Button x:Name="WizardTransformApplyButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                Content="Применить" Background="#3B3024" Foreground="#FFD3A1" BorderBrush="#795536"
+                ToolTip="Применить введённые значения. Можно нажать Enter." Click="WizardTransformApply_Click"/>
+        <Button x:Name="WizardPlacementAutoFitButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                Content="Автоподгонка" ToolTip="Подогнать высоту и, если доступно, совместить центры моделей. Текущий поворот сохранится."
+                Click="WizardPlacementAutoFit_Click"/>
+        <Button x:Name="WizardTransformResetButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,0,4"
+                Content="Сбросить" ToolTip="Вернуть исходные размер, поворот и положение донора." Click="WizardTransformReset_Click"/>
+       </WrapPanel>
+      </StackPanel>
+     </ScrollViewer>
+    </Border>
+   </Grid>
+
+   <Grid x:Name="RigStep" Visibility="Collapsed">
+    <Border Padding="16" Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="6">
+     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <ScrollViewer.Resources>
+       <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+      </ScrollViewer.Resources>
+      <StackPanel>
+       <StackPanel.Resources>
+        <Style x:Key="RigInputStyle" TargetType="TextBox">
+         <Setter Property="Height" Value="32"/>
+         <Setter Property="Padding" Value="7,0"/>
+         <Setter Property="VerticalContentAlignment" Value="Center"/>
+         <Setter Property="Background" Value="#10161E"/>
+         <Setter Property="Foreground" Value="#DCE3EA"/>
+         <Setter Property="CaretBrush" Value="#DCE3EA"/>
+         <Setter Property="BorderBrush" Value="#3A4654"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Style.Triggers>
+          <Trigger Property="IsKeyboardFocused" Value="True">
+           <Setter Property="BorderBrush" Value="#E69A46"/>
+          </Trigger>
+         </Style.Triggers>
+        </Style>
+        <Style x:Key="RigAngleInputStyle" TargetType="TextBox" BasedOn="{StaticResource RigInputStyle}">
+         <Setter Property="Margin" Value="0,4,0,0"/>
+         <Setter Property="MaxLength" Value="24"/>
+         <EventSetter Event="TextChanged" Handler="WizardRigJointText_Changed"/>
+        </Style>
+        <Style x:Key="RigSliderStyle" TargetType="Slider">
+         <Setter Property="VerticalAlignment" Value="Center"/>
+         <Setter Property="Margin" Value="0,3"/>
+         <Setter Property="SmallChange" Value="1"/>
+         <Setter Property="LargeChange" Value="5"/>
+         <Setter Property="IsMoveToPointEnabled" Value="True"/>
+         <Setter Property="Template">
+          <Setter.Value>
+           <ControlTemplate TargetType="Slider">
+            <Grid x:Name="SliderSurface" Height="18" Background="Transparent">
+             <Border x:Name="SliderRail" Height="4" Margin="6,0" VerticalAlignment="Center"
+                     Background="#415063" CornerRadius="2"/>
+             <Track x:Name="PART_Track" Focusable="False">
+              <Track.Thumb>
+               <Thumb Width="14" Height="14" Cursor="SizeWE">
+                <Thumb.Template>
+                 <ControlTemplate TargetType="Thumb">
+                  <Ellipse x:Name="SliderThumb" Fill="#D7A66D" Stroke="#10161E" StrokeThickness="1"/>
+                  <ControlTemplate.Triggers>
+                   <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="SliderThumb" Property="Fill" Value="#FFD3A1"/>
+                   </Trigger>
+                  </ControlTemplate.Triggers>
+                 </ControlTemplate>
+                </Thumb.Template>
+               </Thumb>
+              </Track.Thumb>
+             </Track>
+            </Grid>
+            <ControlTemplate.Triggers>
+             <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="SliderRail" Property="Background" Value="#A57443"/>
+             </Trigger>
+             <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="SliderSurface" Property="Opacity" Value="0.5"/>
+             </Trigger>
+            </ControlTemplate.Triggers>
+           </ControlTemplate>
+          </Setter.Value>
+         </Setter>
+        </Style>
+        <Style x:Key="RigBodySliderStyle" TargetType="Slider" BasedOn="{StaticResource RigSliderStyle}">
+         <EventSetter Event="ValueChanged" Handler="WizardRigBodySlider_Changed"/>
+        </Style>
+        <Style x:Key="RigJointSliderStyle" TargetType="Slider" BasedOn="{StaticResource RigSliderStyle}">
+         <Setter Property="Minimum" Value="-180"/>
+         <Setter Property="Maximum" Value="180"/>
+         <Setter Property="Value" Value="0"/>
+         <Setter Property="TickFrequency" Value="1"/>
+         <Setter Property="IsSnapToTickEnabled" Value="True"/>
+         <EventSetter Event="ValueChanged" Handler="WizardRigJointSlider_Changed"/>
+        </Style>
+        <Style x:Key="RigBodyLabelStyle" TargetType="TextBlock">
+         <Setter Property="Foreground" Value="#D8DEE9"/>
+         <Setter Property="Margin" Value="0,4,10,4"/>
+         <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="RigBodyValueStyle" TargetType="TextBlock">
+         <Setter Property="Foreground" Value="#9BAABD"/>
+         <Setter Property="Margin" Value="8,4,0,4"/>
+         <Setter Property="VerticalAlignment" Value="Center"/>
+         <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style x:Key="RigAxisLabelStyle" TargetType="TextBlock">
+         <Setter Property="Foreground" Value="#9BAABD"/>
+         <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+       </StackPanel.Resources>
+       <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Подгонка скелета" FontSize="16" FontWeight="SemiBold" Foreground="#D8DEE9" VerticalAlignment="Center"/>
+        <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по подгонке скелета"
+                   ToolTip="Сравните позы моделей. Кости можно выбирать из списка или прямо на модели."/>
+       </StackPanel>
+       <TextBlock x:Name="WizardRigDetectionText" Style="{StaticResource WizardSectionHintStyle}" Margin="0,7,0,0"/>
+       <TextBlock Text="Правки видны сразу. «Далее» применит текущую позу."
+                  Style="{StaticResource WizardSectionHintStyle}" Margin="0,5,0,0"/>
+       <WrapPanel x:Name="WizardRigModesPanel" Margin="0,10,0,0" Visibility="Collapsed">
+        <Button x:Name="WizardRigHumanoidModeButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                Content="Поза тела" Tag="Humanoid" Click="WizardRigMode_Click"
+                ToolTip="Настроить обе руки или ноги одновременно. Можно затем уточнить отдельную кость."/>
+        <Button x:Name="WizardRigJointModeButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,0,4"
+                Content="Отдельные кости" Tag="Joints" Click="WizardRigMode_Click"
+                ToolTip="Выбрать любую кость и задать её угол вокруг каждой оси."/>
+       </WrapPanel>
+
+       <StackPanel x:Name="WizardRigHumanoidPanel" Visibility="Collapsed" Margin="0,9,0,0">
+        <DockPanel LastChildFill="False">
+         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+          <TextBlock Text="Симметричная подгонка" Style="{StaticResource WizardSectionHeadingStyle}"/>
+          <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по позе тела"
+                     ToolTip="Ползунки двигают левую и правую стороны вместе. Черновик сразу виден на модели."/>
+         </StackPanel>
+        </DockPanel>
+        <Button x:Name="WizardRigAutoFitButton" Style="{StaticResource WizardButtonStyle}" Margin="0,8,0,2"
+                HorizontalAlignment="Left" Content="Подогнать по донору" Click="WizardRigAutoFit_Click"
+                ToolTip="Подобрать позу скелета по форме модели-донора. Результат можно поправить вручную."/>
+        <Grid Margin="0,8,0,0">
+         <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="50"/>
+         </Grid.ColumnDefinitions>
+         <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+         </Grid.RowDefinitions>
+         <TextBlock Text="Руки" Grid.ColumnSpan="3" Foreground="#FFD3A1" FontWeight="SemiBold" Margin="0,0,0,2"/>
+         <TextBlock Grid.Row="1" Text="Высота рук" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigArmRaiseSlider" Grid.Row="1" Grid.Column="1" Minimum="-85" Maximum="85"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Высота рук"/>
+         <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigArmRaiseSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+         <TextBlock Grid.Row="2" Text="Руки вперёд / назад" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigArmForwardSlider" Grid.Row="2" Grid.Column="1" Minimum="-75" Maximum="75"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Руки вперёд или назад"/>
+         <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigArmForwardSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+         <TextBlock Grid.Row="3" Text="Сгиб локтей" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigElbowBendSlider" Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="145"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Сгиб локтей"/>
+         <TextBlock Grid.Row="3" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigElbowBendSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+         <TextBlock Grid.Row="4" Grid.ColumnSpan="3" Text="Ноги" Foreground="#FFD3A1" FontWeight="SemiBold" Margin="0,8,0,2"/>
+         <TextBlock Grid.Row="5" Text="Ширина стойки" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigLegSpreadSlider" Grid.Row="5" Grid.Column="1" Minimum="-20" Maximum="45"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Ширина стойки"/>
+         <TextBlock Grid.Row="5" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigLegSpreadSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+         <TextBlock Grid.Row="6" Text="Сгиб коленей" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigKneeBendSlider" Grid.Row="6" Grid.Column="1" Minimum="0" Maximum="135"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Сгиб коленей"/>
+         <TextBlock Grid.Row="6" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigKneeBendSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+         <TextBlock Grid.Row="7" Grid.ColumnSpan="3" Text="Корпус" Foreground="#FFD3A1" FontWeight="SemiBold" Margin="0,8,0,2"/>
+         <TextBlock Grid.Row="8" Text="Наклон корпуса" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigTorsoPitchSlider" Grid.Row="8" Grid.Column="1" Minimum="-45" Maximum="45"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Наклон корпуса"/>
+         <TextBlock Grid.Row="8" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigTorsoPitchSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+         <TextBlock Grid.Row="9" Text="Наклон шеи" Style="{StaticResource RigBodyLabelStyle}"/>
+         <Slider x:Name="WizardRigNeckForwardSlider" Grid.Row="9" Grid.Column="1" Minimum="-45" Maximum="45"
+                 Style="{StaticResource RigBodySliderStyle}" AutomationProperties.Name="Наклон шеи"/>
+         <TextBlock Grid.Row="9" Grid.Column="2" Style="{StaticResource RigBodyValueStyle}"
+                    Text="{Binding ElementName=WizardRigNeckForwardSlider, Path=Value, StringFormat={}{0:0.#}°}"/>
+        </Grid>
+       </StackPanel>
+
+       <StackPanel x:Name="WizardRigJointPanel" Visibility="Collapsed" Margin="0,9,0,0">
+        <StackPanel Orientation="Horizontal">
+         <TextBlock Text="Выберите кость" Style="{StaticResource WizardSectionHeadingStyle}"/>
+         <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по выбору кости"
+                    ToolTip="Поиск по имени из SMO. Кость также можно выбрать в окне предпросмотра."/>
+        </StackPanel>
+        <DockPanel Margin="0,8,0,0">
+         <TextBlock Text="Поиск" DockPanel.Dock="Left" Style="{StaticResource RigBodyLabelStyle}"/>
+         <TextBox x:Name="WizardRigJointSearchBox" Style="{StaticResource RigInputStyle}" MaxLength="80"
+                  AutomationProperties.Name="Поиск кости" ToolTip="Введите часть имени кости." TextChanged="WizardRigSearch_Changed"/>
+        </DockPanel>
+        <ListBox x:Name="WizardRigJointList" Style="{StaticResource WizardListStyle}" Margin="0,6,0,0"
+                 MaxHeight="178" AutomationProperties.Name="Кости скелета" SelectionChanged="WizardRigJointSelection_Changed">
+         <ListBox.ItemContainerStyle>
+          <Style TargetType="ListBoxItem" BasedOn="{StaticResource WizardListItemStyle}">
+           <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+          </Style>
+         </ListBox.ItemContainerStyle>
+         <ListBox.Resources>
+          <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+         </ListBox.Resources>
+         <ListBox.ItemTemplate>
+          <DataTemplate>
+           <TextBlock Text="{Binding Name}" Margin="{Binding Indent}" ToolTip="{Binding Detail}" TextTrimming="CharacterEllipsis"/>
+          </DataTemplate>
+         </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock x:Name="WizardRigSearchHintText" Style="{StaticResource WizardSectionHintStyle}" Visibility="Collapsed"/>
+        <Border x:Name="WizardRigJointEditor" Style="{StaticResource WizardSectionStyle}" Margin="0,10,0,0">
+         <StackPanel>
+          <StackPanel Orientation="Horizontal">
+           <TextBlock Text="Поворот кости, °" Style="{StaticResource WizardSectionHeadingStyle}"/>
+           <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по повороту кости"
+                      ToolTip="Угол вокруг локальной оси кости. Дочерние кости следуют за ней."/>
+          </StackPanel>
+          <TextBlock x:Name="WizardRigSelectedJointText" Style="{StaticResource WizardSectionHintStyle}"/>
+          <Grid Margin="0,7,0,0">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="7"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="7"/>
+            <ColumnDefinition Width="*"/>
+           </Grid.ColumnDefinitions>
+           <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+           </Grid.RowDefinitions>
+           <TextBlock Text="X" Style="{StaticResource RigAxisLabelStyle}"/>
+           <TextBlock Grid.Column="2" Text="Y" Style="{StaticResource RigAxisLabelStyle}"/>
+           <TextBlock Grid.Column="4" Text="Z" Style="{StaticResource RigAxisLabelStyle}"/>
+           <TextBox x:Name="WizardRigJointXBox" Grid.Row="1" Style="{StaticResource RigAngleInputStyle}"
+                    AutomationProperties.Name="Поворот кости по X" ToolTip="Угол вокруг локальной оси X."/>
+           <TextBox x:Name="WizardRigJointYBox" Grid.Row="1" Grid.Column="2" Style="{StaticResource RigAngleInputStyle}"
+                    AutomationProperties.Name="Поворот кости по Y" ToolTip="Угол вокруг локальной оси Y."/>
+           <TextBox x:Name="WizardRigJointZBox" Grid.Row="1" Grid.Column="4" Style="{StaticResource RigAngleInputStyle}"
+                    AutomationProperties.Name="Поворот кости по Z" ToolTip="Угол вокруг локальной оси Z."/>
+           <Slider x:Name="WizardRigJointXSlider" Grid.Row="2" Style="{StaticResource RigJointSliderStyle}"
+                   AutomationProperties.Name="Ползунок поворота кости по X" ToolTip="Поворот вокруг X от −180° до +180°. Ноль посередине."/>
+           <Slider x:Name="WizardRigJointYSlider" Grid.Row="2" Grid.Column="2" Style="{StaticResource RigJointSliderStyle}"
+                   AutomationProperties.Name="Ползунок поворота кости по Y" ToolTip="Поворот вокруг Y от −180° до +180°. Ноль посередине."/>
+           <Slider x:Name="WizardRigJointZSlider" Grid.Row="2" Grid.Column="4" Style="{StaticResource RigJointSliderStyle}"
+                   AutomationProperties.Name="Ползунок поворота кости по Z" ToolTip="Поворот вокруг Z от −180° до +180°. Ноль посередине."/>
+          </Grid>
+         </StackPanel>
+        </Border>
+       </StackPanel>
+
+       <TextBlock x:Name="WizardRigFeedbackText" Style="{StaticResource WizardSectionHintStyle}" Margin="0,9,0,0"/>
+       <Button x:Name="WizardRigResetButton" Style="{StaticResource WizardButtonStyle}" HorizontalAlignment="Left"
+               Margin="0,8,0,0" Content="Сбросить позу" Click="WizardRigReset_Click"
+               ToolTip="Вернуть исходное положение костей в предпросмотре."/>
+      </StackPanel>
+     </ScrollViewer>
+    </Border>
+   </Grid>
+
+   <Grid x:Name="PostRigStep" Visibility="Collapsed">
+    <Border Padding="16" Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="6">
+     <Grid>
+     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <ScrollViewer.Resources>
+       <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+       <Style x:Key="ProtectionSliderStyle" TargetType="Slider">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="IsMoveToPointEnabled" Value="True"/>
+        <Setter Property="Template">
+         <Setter.Value>
+          <ControlTemplate TargetType="Slider">
+           <Grid x:Name="SliderSurface" Height="20" Background="Transparent">
+            <Border Height="4" Margin="6,0" VerticalAlignment="Center" Background="#415063" CornerRadius="2"/>
+            <Track x:Name="PART_Track" Focusable="False">
+             <Track.Thumb>
+              <Thumb Width="14" Height="14" Cursor="SizeWE">
+               <Thumb.Template>
+                <ControlTemplate TargetType="Thumb">
+                 <Ellipse Fill="#D7A66D" Stroke="#10161E" StrokeThickness="1"/>
+                </ControlTemplate>
+               </Thumb.Template>
+              </Thumb>
+             </Track.Thumb>
+            </Track>
+           </Grid>
+           <ControlTemplate.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+             <Setter TargetName="SliderSurface" Property="Opacity" Value="0.5"/>
+            </Trigger>
+           </ControlTemplate.Triggers>
+          </ControlTemplate>
+         </Setter.Value>
+        </Setter>
+        <EventSetter Event="ValueChanged" Handler="WizardProtectionSlider_Changed"/>
+       </Style>
+       <Style x:Key="ProtectionLabelStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="#D8DEE9"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+       </Style>
+       <Style x:Key="ProtectionValueStyle" TargetType="TextBlock" BasedOn="{StaticResource ProtectionLabelStyle}">
+        <Setter Property="Foreground" Value="#9BAABD"/>
+        <Setter Property="TextAlignment" Value="Right"/>
+        <Setter Property="Margin" Value="6,0,0,0"/>
+       </Style>
+      </ScrollViewer.Resources>
+      <StackPanel>
+       <StackPanel Orientation="Horizontal">
+        <TextBlock Text="Защита и детали" FontSize="16" FontWeight="SemiBold" Foreground="#D8DEE9" VerticalAlignment="Center"/>
+        <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по защите и деталям"
+                   ToolTip="Границы помогают сохранять силуэт при сгибании. Отдельные детали можно привязать к голове или крыльям."/>
+       </StackPanel>
+       <TextBlock x:Name="WizardProtectionStatusText" Style="{StaticResource WizardSectionHintStyle}"/>
+       <WrapPanel x:Name="WizardProtectionModeButtons" Margin="0,10,0,8">
+        <Button x:Name="WizardProtectionAreasButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                Content="Области" ToolTip="Границы плеч и головы, защитные объёмы кистей." Click="WizardProtectionMode_Click"/>
+        <Button x:Name="WizardProtectionPartsButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,0,4"
+                Content="Детали и крылья" ToolTip="Выбор частей донора и их привязка." Click="WizardProtectionMode_Click"/>
+       </WrapPanel>
+
+       <Border x:Name="WizardProtectionAreasPanel" Style="{StaticResource WizardSectionStyle}">
+        <StackPanel>
+         <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Защитная область" Style="{StaticResource WizardSectionHeadingStyle}"/>
+          <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по областям"
+                     ToolTip="Выберите область, чтобы увидеть её на модели. Плечи и голова используют плоскость, кисти — объём."/>
+         </StackPanel>
+         <ListBox x:Name="WizardProtectionRegionList" Style="{StaticResource WizardListStyle}" Margin="0,7,0,0"
+                  SelectedIndex="0" SelectionChanged="WizardProtectionRegion_Changed" AutomationProperties.Name="Выбор защитной области">
+          <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ListBox.ItemsPanel>
+          <ListBoxItem Content="Левое плечо"/>
+          <ListBoxItem Content="Правое плечо"/>
+          <ListBoxItem Content="Голова и шея"/>
+          <ListBoxItem Content="Обе кисти"/>
+          <ListBoxItem Content="Левая кисть"/>
+          <ListBoxItem Content="Правая кисть"/>
+         </ListBox>
+         <TextBlock x:Name="WizardProtectionRegionInfoText" Style="{StaticResource WizardSectionHintStyle}"/>
+         <CheckBox x:Name="WizardProtectionMirrorHands" Margin="0,6,0,0" Content="Изменять вторую кисть вместе с выбранной"
+                   Foreground="#DCE3EA" IsChecked="True" Visibility="Collapsed"
+                   Checked="WizardProtectionMirror_Changed" Unchecked="WizardProtectionMirror_Changed"/>
+         <StackPanel x:Name="WizardProtectionRegionEditor" Margin="0,8,0,0">
+          <CheckBox x:Name="WizardProtectionEnabled" Content="Использовать защиту" Foreground="#DCE3EA"
+                    Checked="WizardProtectionEnabled_Changed" Unchecked="WizardProtectionEnabled_Changed"/>
+          <Grid x:Name="WizardProtectionPlaneControls" Margin="0,7,0,0">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="88"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="60"/>
+           </Grid.ColumnDefinitions>
+           <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+           <TextBlock x:Name="WizardProtectionPlaneOffsetLabel" Text="Высота" Style="{StaticResource ProtectionLabelStyle}"/>
+           <Slider x:Name="WizardProtectionPlaneOffset" Grid.Column="1" Style="{StaticResource ProtectionSliderStyle}"
+                   Minimum="-1" Maximum="1" AutomationProperties.Name="Высота плоскости"/>
+           <TextBlock x:Name="WizardProtectionPlaneOffsetValue" Grid.Column="2" Style="{StaticResource ProtectionValueStyle}"
+                      Text="{Binding ElementName=WizardProtectionPlaneOffset, Path=Value, StringFormat={}{0:F2}}"/>
+           <TextBlock Grid.Row="1" Text="Наклон" Style="{StaticResource ProtectionLabelStyle}"/>
+           <Slider x:Name="WizardProtectionPlaneAngle" Grid.Row="1" Grid.Column="1" Style="{StaticResource ProtectionSliderStyle}"
+                   Minimum="-45" Maximum="45" AutomationProperties.Name="Наклон плоскости"/>
+           <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource ProtectionValueStyle}"
+                      Text="{Binding ElementName=WizardProtectionPlaneAngle, Path=Value, StringFormat={}{0:F1}°}"/>
+          </Grid>
+          <Grid x:Name="WizardProtectionHandControls" Margin="0,7,0,0" Visibility="Collapsed">
+           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="88"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="60"/>
+           </Grid.ColumnDefinitions>
+           <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+           <TextBlock Text="Положение" Style="{StaticResource ProtectionLabelStyle}"/>
+           <Slider x:Name="WizardProtectionHandOffset" Grid.Column="1" Style="{StaticResource ProtectionSliderStyle}"
+                   Minimum="-1" Maximum="1" AutomationProperties.Name="Положение объёма кисти"/>
+           <TextBlock Grid.Column="2" Style="{StaticResource ProtectionValueStyle}"
+                      Text="{Binding ElementName=WizardProtectionHandOffset, Path=Value, StringFormat={}{0:F2}}"/>
+           <TextBlock Grid.Row="1" Text="Длина" Style="{StaticResource ProtectionLabelStyle}"/>
+           <Slider x:Name="WizardProtectionHandLength" Grid.Row="1" Grid.Column="1" Style="{StaticResource ProtectionSliderStyle}"
+                   Minimum="0.5" Maximum="1.75" Value="1" AutomationProperties.Name="Длина объёма кисти"/>
+           <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource ProtectionValueStyle}"
+                      Text="{Binding ElementName=WizardProtectionHandLength, Path=Value, StringFormat={}{0:F2}×}"/>
+           <TextBlock Grid.Row="2" Text="Толщина" Style="{StaticResource ProtectionLabelStyle}"/>
+           <Slider x:Name="WizardProtectionHandThickness" Grid.Row="2" Grid.Column="1" Style="{StaticResource ProtectionSliderStyle}"
+                   Minimum="0.5" Maximum="1.75" Value="1" AutomationProperties.Name="Толщина объёма кисти"/>
+           <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource ProtectionValueStyle}"
+                      Text="{Binding ElementName=WizardProtectionHandThickness, Path=Value, StringFormat={}{0:F2}×}"/>
+          </Grid>
+          <Button x:Name="WizardProtectionRegionAutoButton" Style="{StaticResource WizardButtonStyle}" HorizontalAlignment="Left"
+                  Margin="0,8,0,0" Content="Вернуть авто" ToolTip="Вернуть автоматические настройки выбранной области."
+                  Click="WizardProtectionRegionAuto_Click"/>
+         </StackPanel>
+        </StackPanel>
+       </Border>
+
+       <Border x:Name="WizardProtectionPartsPanel" Style="{StaticResource WizardSectionStyle}" Visibility="Collapsed">
+        <StackPanel>
+         <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Детали донора" Style="{StaticResource WizardSectionHeadingStyle}"/>
+          <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка по привязке деталей"
+                     ToolTip="Выберите детали в списке или в окне справа. Ctrl меняет выделение нескольких деталей."/>
+         </StackPanel>
+         <TextBlock Text="Выделите деталь и выберите её назначение." Style="{StaticResource WizardSectionHintStyle}"/>
+         <ListBox x:Name="WizardProtectionComponentList" Style="{StaticResource WizardListStyle}" Margin="0,8,0,0"
+                  MinHeight="96" MaxHeight="240" SelectionMode="Extended" SelectionChanged="WizardProtectionComponent_SelectionChanged"
+                  AutomationProperties.Name="Детали модели-донора">
+          <ListBox.ItemContainerStyle>
+           <Style TargetType="ListBoxItem" BasedOn="{StaticResource WizardListItemStyle}">
+            <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+           </Style>
+          </ListBox.ItemContainerStyle>
+          <ListBox.ItemTemplate>
+           <DataTemplate>
+            <DockPanel ToolTip="{Binding Name}">
+             <Border DockPanel.Dock="Right" Margin="6,0,0,0" Padding="6,2" CornerRadius="3" Background="{Binding BadgeBackground}">
+              <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="SemiBold" Foreground="#ECF0F4"/>
+             </Border>
+             <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+           </DataTemplate>
+          </ListBox.ItemTemplate>
+         </ListBox>
+         <Button x:Name="WizardProtectionWholeMeshButton" Style="{StaticResource WizardButtonStyle}" Margin="0,7,0,0"
+                 HorizontalAlignment="Left" Content="Весь меш" ToolTip="Выделить все детали мешей, к которым относятся выбранные части."
+                 Click="WizardProtectionWholeMesh_Click"/>
+         <WrapPanel Margin="0,8,0,0">
+          <Button x:Name="WizardProtectionAttachmentAutoButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                  Content="Авто" ToolTip="Вернуть автоматический выбор весов или привязки." Click="WizardProtectionAttachmentAuto_Click"/>
+          <Button x:Name="WizardProtectionAttachmentHeadButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,4"
+                  Content="Голова" ToolTip="Привязать выделенные детали к голове." Click="WizardProtectionAttachmentHead_Click"/>
+          <Button x:Name="WizardProtectionAttachmentWingsButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,0,4"
+                  Content="Крылья" ToolTip="Выберите отдельные детали левого и правого крыла, чтобы подогнать их по игровому образцу."
+                  Click="WizardProtectionAttachmentWings_Click"/>
+         </WrapPanel>
+         <TextBlock x:Name="WizardProtectionWingStatusText" Style="{StaticResource WizardSectionHintStyle}"/>
+         <StackPanel x:Name="WizardProtectionWingHeightPanel" Margin="0,10,0,0" Visibility="Collapsed">
+          <DockPanel>
+           <TextBlock Text="Высота крыльев" Foreground="#D8DEE9"/>
+           <TextBlock x:Name="WizardProtectionWingHeightValue" Text="0.0%" HorizontalAlignment="Right" Foreground="#9BAABD"/>
+          </DockPanel>
+          <Slider x:Name="WizardProtectionWingHeight" Margin="0,5,0,4" Minimum="-25" Maximum="25" Value="0"
+                  SmallChange="0.1" LargeChange="1" TickFrequency="5" TickPlacement="BottomRight"
+                  AutomationProperties.Name="Высота крыльев, процент от высоты тела"
+                  ToolTip="Сдвиг обоих крыльев вдоль их плоскости: минус — ниже, плюс — выше. Процент от высоты модели без крыльев; 0% — автоматическая подгонка."
+                  ValueChanged="WizardProtectionWingHeight_Changed"/>
+          <Button x:Name="WizardProtectionWingHeightResetButton" Style="{StaticResource WizardButtonStyle}"
+                  HorizontalAlignment="Left" Content="Вернуть авто" ToolTip="Вернуть высоту крыльев к 0%."
+                  Click="WizardProtectionWingHeightReset_Click"/>
+         </StackPanel>
+         <StackPanel x:Name="WizardProtectionWingRotationPanel" Margin="0,10,0,0" Visibility="Collapsed">
+          <DockPanel>
+           <TextBlock Text="Поворот крыльев" Foreground="#D8DEE9"/>
+           <TextBlock x:Name="WizardProtectionWingRotationValue" Text="0.0°" HorizontalAlignment="Right" Foreground="#9BAABD"/>
+          </DockPanel>
+          <Slider x:Name="WizardProtectionWingRotation" Margin="0,5,0,4" Minimum="-90" Maximum="90" Value="0"
+                  SmallChange="0.5" LargeChange="5" TickFrequency="30" TickPlacement="BottomRight"
+                  AutomationProperties.Name="Поворот крыльев в плоскости, градусы"
+                  ToolTip="Поворот обоих крыльев в их плоскостях вокруг точки у спины: минус — опустить, плюс — поднять. 0° — автоматическая подгонка."
+                  ValueChanged="WizardProtectionWingRotation_Changed"/>
+          <Button x:Name="WizardProtectionWingRotationResetButton" Style="{StaticResource WizardButtonStyle}"
+                  HorizontalAlignment="Left" Content="Вернуть авто" ToolTip="Вернуть поворот крыльев к 0°, сохранив высоту."
+                  Click="WizardProtectionWingRotationReset_Click"/>
+         </StackPanel>
+        </StackPanel>
+       </Border>
+      </StackPanel>
+     </ScrollViewer>
+     </Grid>
+    </Border>
+   </Grid>
+
+   <Grid x:Name="PreparedStep" Visibility="Collapsed">
+    <Border Padding="16" Background="#151B23" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="6">
+     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <StackPanel>
+      <StackPanel Orientation="Horizontal">
+       <TextBlock Text="Готовая модель" FontSize="16" FontWeight="SemiBold" Foreground="#D8DEE9" VerticalAlignment="Center"/>
+       <TextBlock Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка шага Результат"
+                  ToolTip="Можно вернуться назад и поправить настройки."/>
+      </StackPanel>
+      <TextBlock x:Name="PreparedStatusText" Style="{StaticResource WizardSectionHintStyle}" Margin="0,12,0,0"/>
+      <Button x:Name="WizardResultRetryButton" Style="{StaticResource WizardButtonStyle}" Content="Повторить подготовку"
+              HorizontalAlignment="Left" Margin="0,8,0,0" Visibility="Collapsed" Click="WizardResultRetry_Click"/>
+      <Border Style="{StaticResource WizardSectionStyle}" Margin="0,12,0,10">
+       <StackPanel>
+        <WrapPanel>
+         <Button x:Name="WizardResultExportButton" Style="{StaticResource WizardButtonStyle}" Content="Экспортировать SMO…"
+                 Margin="0,0,8,6" Background="#5B3A20" ToolTip="Сохранить показанную готовую модель с текстурами в отдельный SMO."
+                 Click="WizardResultExport_Click"/>
+         <Button x:Name="WizardResultCheckButton" Style="{StaticResource WizardButtonStyle}" Content="Проверить загрузку в игре"
+                 Margin="0,0,0,6" ToolTip="Проверить загрузку показанного SMO нативным загрузчиком, без просмотра сцены."
+                 Click="WizardResultCheck_Click"/>
+        </WrapPanel>
+        <TextBlock x:Name="WizardResultExportStatus" Style="{StaticResource WizardSectionHintStyle}"/>
+        <TextBlock x:Name="WizardResultGamePathText" Style="{StaticResource WizardSectionHintStyle}"
+                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,6,0,0"/>
+        <Button x:Name="WizardResultChooseGameButton" Style="{StaticResource WizardButtonStyle}" Content="Указать исполняемый файл…"
+                HorizontalAlignment="Left" Margin="0,6,0,0" Click="WizardResultChooseGame_Click"/>
+        <TextBlock x:Name="WizardResultValidationText" Style="{StaticResource WizardSectionHintStyle}" Margin="0,8,0,0"/>
+       </StackPanel>
+      </Border>
+      <Border Style="{StaticResource WizardSectionStyle}">
+       <StackPanel>
+        <TextBlock Text="Тестовые анимации" Style="{StaticResource WizardSectionHeadingStyle}"/>
+        <DockPanel Margin="0,8,0,0">
+         <Button x:Name="WizardResultAnimationFolderButton" DockPanel.Dock="Right" Style="{StaticResource WizardButtonStyle}"
+                 Content="Папка…" Margin="8,0,0,0" ToolTip="Выбрать папку с анимациями SAN." Click="WizardResultAnimationFolder_Click"/>
+         <ComboBox x:Name="WizardResultAnimationCombo" DisplayMemberPath="DisplayName" MinWidth="130" VerticalContentAlignment="Center"
+                   AutomationProperties.Name="Тестовая анимация" SelectionChanged="WizardResultAnimation_SelectionChanged"/>
+        </DockPanel>
+        <TextBlock x:Name="WizardResultAnimationSourceText" Style="{StaticResource WizardSectionHintStyle}" Margin="0,5,0,0"/>
+        <WrapPanel Margin="0,8,0,0">
+         <Button x:Name="WizardResultAnimationPlayButton" Style="{StaticResource WizardButtonStyle}" Content="Воспроизвести"
+                 Margin="0,0,6,4" Click="WizardResultAnimationPlay_Click"/>
+         <Button x:Name="WizardResultAnimationStopButton" Style="{StaticResource WizardButtonStyle}" Content="Стоп"
+                 Margin="0,0,10,4" Click="WizardResultAnimationStop_Click"/>
+         <CheckBox x:Name="WizardResultAnimationLoopCheckBox" Content="Цикл" IsChecked="True" Foreground="#D8DEE9"
+                   VerticalAlignment="Center" Margin="0,0,12,4" Checked="WizardResultAnimationLoop_Changed" Unchecked="WizardResultAnimationLoop_Changed"/>
+         <ComboBox x:Name="WizardResultAnimationSpeedCombo" Width="70" Height="30" SelectedIndex="1" Margin="0,0,0,4"
+                   AutomationProperties.Name="Скорость анимации" SelectionChanged="WizardResultAnimationSpeed_Changed">
+          <ComboBoxItem Content="0.5×" Tag="0.5"/><ComboBoxItem Content="1×" Tag="1"/>
+          <ComboBoxItem Content="1.5×" Tag="1.5"/><ComboBoxItem Content="2×" Tag="2"/>
+         </ComboBox>
+        </WrapPanel>
+        <Slider x:Name="WizardResultAnimationSeek" Margin="0,4,0,0" Minimum="0" Maximum="1" SmallChange="0.033" LargeChange="0.2"
+                AutomationProperties.Name="Позиция анимации" ValueChanged="WizardResultAnimationSeek_Changed"/>
+        <TextBlock x:Name="WizardResultAnimationTimeText" Foreground="#9BAABD" HorizontalAlignment="Right" Text="0.0 / 0.0 с"/>
+        <TextBlock x:Name="WizardResultAnimationIssueText" Style="{StaticResource WizardSectionHintStyle}" Foreground="Salmon" Visibility="Collapsed"/>
+       </StackPanel>
+      </Border>
+     </StackPanel>
+     </ScrollViewer>
+    </Border>
+   </Grid>
+
+   <Border Grid.Column="2" Padding="12" Background="#151B23" BorderBrush="#2B3542"
+           BorderThickness="1" CornerRadius="6">
+    <Grid>
+     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+     </Grid.RowDefinitions>
+     <DockPanel>
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+       <Button x:Name="ReturnToDonorModelButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,0"
+               Content="Вернуться к модели" ToolTip="Показать всю модель в прежнем ракурсе."
+               Visibility="Collapsed" Click="ReturnToDonorModel_Click"/>
+       <Button x:Name="DonorSelectionButton" Style="{StaticResource WizardButtonStyle}"
+               Content="Выбрать донора" ToolTip="Открыть модель на замену. Подходят SMO, FBX, GLB и OBJ."
+               Click="SelectReplacement_Click" Unloaded="ModelSelectionButton_Unloaded"/>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal">
+       <TextBlock x:Name="DonorPreviewHeading" Text="Модель-донор" FontSize="16" FontWeight="SemiBold"
+                  Foreground="#D8DEE9" VerticalAlignment="Center"/>
+       <TextBlock x:Name="DonorPreviewHint" Style="{StaticResource WizardInfoStyle}" AutomationProperties.Name="Подсказка предпросмотра донора"
+                  ToolTip="Это модель, которая появится в игре вместо исходной."/>
+      </StackPanel>
+     </DockPanel>
+     <TextBlock x:Name="DonorSelectionText" Grid.Row="1" Margin="0,8,0,10" Text="Файл не выбран"
+                Foreground="#9BAABD" TextTrimming="CharacterEllipsis"
+                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+     <WrapPanel x:Name="WizardProtectionVisibilityPanel" Grid.Row="2" Margin="0,0,0,8" Visibility="Collapsed"
+                ToolTip="Показывать части модели в предпросмотре. На сохранение эти галочки не влияют.">
+      <CheckBox x:Name="WizardProtectionShowBodyCheckBox" Content="Тело" IsChecked="True" Margin="0,0,14,0"
+                Foreground="#D8DEE9" Checked="WizardProtectionVisibility_Changed" Unchecked="WizardProtectionVisibility_Changed"/>
+      <CheckBox x:Name="WizardProtectionShowWingsCheckBox" Content="Крылья" IsChecked="True" Margin="0,0,14,0"
+                Foreground="#D8DEE9" Checked="WizardProtectionVisibility_Changed" Unchecked="WizardProtectionVisibility_Changed"/>
+      <CheckBox x:Name="WizardProtectionShowHeadCheckBox" Content="Голова" IsChecked="True"
+                Foreground="#D8DEE9" Checked="WizardProtectionVisibility_Changed" Unchecked="WizardProtectionVisibility_Changed"/>
+     </WrapPanel>
+     <Grid x:Name="DonorPreviewHost" Grid.Row="3">
+     <Border x:Name="DonorPreviewSurface" Background="#10161E" SizeChanged="InputPreviewSurface_SizeChanged"
+             Style="{StaticResource InputPreviewDropStyle}" BorderThickness="1" CornerRadius="4" Focusable="True"
+             MouseDown="InputPreview_MouseDown" MouseMove="InputPreview_MouseMove"
+             MouseUp="InputPreview_MouseUp" LostMouseCapture="InputPreview_LostMouseCapture"
+             MouseWheel="InputPreview_MouseWheel" KeyDown="InputPreview_KeyDown">
+      <Grid>
+       <Viewport3D x:Name="DonorInputViewport" SizeChanged="WizardPlacementViewport_SizeChanged" ClipToBounds="True">
+        <Viewport3D.Camera>
+         <PerspectiveCamera x:Name="DonorSelectionCamera" Position="0,0,10" LookDirection="0,0,-10"
+                            UpDirection="0,1,0" FieldOfView="45"/>
+        </Viewport3D.Camera>
+        <ModelVisual3D><ModelVisual3D.Content><AmbientLight Color="#858585"/></ModelVisual3D.Content></ModelVisual3D>
+        <ModelVisual3D><ModelVisual3D.Content><DirectionalLight Color="White" Direction="-1,-1,-2"/></ModelVisual3D.Content></ModelVisual3D>
+        <ModelVisual3D x:Name="DonorSelectionVisual"/>
+        <ModelVisual3D x:Name="PlacementSourceVisual"/>
+        <ModelVisual3D x:Name="WizardProtectionVisual"/>
+       </Viewport3D>
+       <Canvas x:Name="WizardPlacementOverlay" ClipToBounds="True" IsHitTestVisible="False"/>
+       <Canvas x:Name="WizardRigOverlay" ClipToBounds="True" IsHitTestVisible="False"/>
+       <Canvas ClipToBounds="True" IsHitTestVisible="False">
+        <Rectangle x:Name="WizardProtectionSelectionRectangle" Stroke="#7DD3FC" StrokeThickness="1.5"
+                   Fill="#337DD3FC" Visibility="Collapsed"/>
+       </Canvas>
+       <Button x:Name="WizardRigViewportTools" Style="{StaticResource WizardButtonStyle}" Margin="8"
+               Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="66"
+               Content="В кадр" ToolTip="Показать обе модели и скелет целиком." Click="WizardFrameDonor_Click"/>
+       <Button x:Name="WizardProtectionViewportTools" Style="{StaticResource WizardButtonStyle}" Margin="8"
+               Visibility="Collapsed" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="66"
+               Content="В кадр" ToolTip="Показать модель-донор целиком." Click="WizardFrameDonor_Click"/>
+       <Border x:Name="WizardGizmoToolbar" Visibility="Collapsed" Margin="8" Padding="5"
+               HorizontalAlignment="Left" VerticalAlignment="Top" Background="#EE151B23"
+               BorderBrush="#3A4654" BorderThickness="1" CornerRadius="4">
+        <StackPanel Orientation="Horizontal">
+         <Button x:Name="WizardMoveGizmoButton" Style="{StaticResource WizardButtonStyle}" MinWidth="64" Margin="0,0,4,0"
+                 Tag="Translate" Content="Сдвиг" ToolTip="Потяните стрелку нужной оси. Повторное нажатие скрывает стрелки."
+                 Click="WizardGizmoMode_Click"/>
+         <Button x:Name="WizardRotateGizmoButton" Style="{StaticResource WizardButtonStyle}" MinWidth="72" Margin="0,0,4,0"
+                 Tag="Rotate" Content="Поворот" ToolTip="Потяните кольцо нужной оси. Повторное нажатие скрывает кольца."
+                 Click="WizardGizmoMode_Click"/>
+         <Button x:Name="WizardScaleGizmoButton" Style="{StaticResource WizardButtonStyle}" MinWidth="72" Margin="0,0,4,0"
+                 Tag="Scale" Content="Масштаб" ToolTip="Потяните жёлтый маркер, чтобы пропорционально изменить размер."
+                 Click="WizardGizmoMode_Click"/>
+         <Button Style="{StaticResource WizardButtonStyle}" MinWidth="66" Content="В кадр"
+                 ToolTip="Показать обе модели целиком после сдвига или изменения размера." Click="WizardFrameDonor_Click"/>
+        </StackPanel>
+       </Border>
+       <Border x:Name="WizardFittingLegend" Visibility="Collapsed" Margin="8" Padding="8,5"
+               HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="#EE151B23"
+               BorderBrush="#3A4654" BorderThickness="1" CornerRadius="4" IsHitTestVisible="False">
+        <StackPanel Orientation="Horizontal">
+         <Ellipse Width="9" Height="9" Fill="#99AEC5" Margin="0,0,6,0"/>
+         <TextBlock Text="Исходный SMO" Foreground="#D8DEE9" Margin="0,0,14,0"/>
+         <Ellipse Width="9" Height="9" Fill="#62CFB7" Margin="0,0,6,0"/>
+         <TextBlock Text="Донор" Foreground="#D8DEE9"/>
+        </StackPanel>
+       </Border>
+       <TextBlock x:Name="DonorPreviewEmptyText" Text="Предпросмотр появится после выбора донора."
+                  Margin="14" Foreground="#9BAABD" TextAlignment="Center" TextWrapping="Wrap"
+                  HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+       <Border x:Name="TextureFocusPanel" Width="164" Margin="10" Padding="8"
+               HorizontalAlignment="Right" VerticalAlignment="Top"
+               Background="#EC151B23" BorderBrush="#3A4654" BorderThickness="1" CornerRadius="4"
+               Visibility="Collapsed" IsHitTestVisible="False">
+        <StackPanel>
+         <TextBlock x:Name="TextureFocusTitleText" Foreground="#D8DEE9" FontWeight="SemiBold"
+                    TextWrapping="Wrap" MaxHeight="42" TextTrimming="CharacterEllipsis"/>
+         <Image x:Name="TextureFocusImage" Margin="0,6,0,0" MaxHeight="144" Stretch="Uniform"
+                RenderOptions.BitmapScalingMode="HighQuality"/>
+         <TextBlock Text="Изображение недоступно" Margin="0,6,0,0" Foreground="#9BAABD" TextWrapping="Wrap">
+          <TextBlock.Style>
+           <Style TargetType="TextBlock">
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+             <DataTrigger Binding="{Binding Source, ElementName=TextureFocusImage}" Value="{x:Null}">
+              <Setter Property="Visibility" Value="Visible"/>
+             </DataTrigger>
+            </Style.Triggers>
+           </Style>
+          </TextBlock.Style>
+         </TextBlock>
+        </StackPanel>
+       </Border>
+      </Grid>
+     </Border>
+      <Border x:Name="WizardProtectionProgressPanel" Visibility="Collapsed" Padding="9" Margin="12"
+              HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Panel.ZIndex="10"
+              BorderBrush="#536176" BorderThickness="1" Background="#F21B2532" CornerRadius="4">
+       <StackPanel>
+        <TextBlock x:Name="WizardProtectionProgressText" Foreground="#DCE3EA" TextWrapping="Wrap"/>
+        <ProgressBar x:Name="WizardProtectionProgressBar" Minimum="0" Maximum="100" Height="12" Margin="0,7,0,0"/>
+        <WrapPanel Margin="0,7,0,0">
+         <Button x:Name="WizardProtectionCancelButton" Style="{StaticResource WizardButtonStyle}" Margin="0,0,6,0"
+                 Content="Отменить расчёт" Click="WizardProtectionCancel_Click"/>
+         <Button x:Name="WizardProtectionRetryButton" Style="{StaticResource WizardButtonStyle}"
+                 Content="Повторить расчёт" Click="WizardProtectionRetry_Click"/>
+        </WrapPanel>
+       </StackPanel>
+      </Border>
+     </Grid>
+     <TextBlock x:Name="DonorPreviewGuidanceText" Grid.Row="4" Style="{StaticResource PreviewGuidanceStyle}"
+                Text="Выберите донора или перетащите модель сюда."/>
+    </Grid>
+   </Border>
+  </Grid>
+
+  <!-- Fitting and save controls belong to a separate stage. -->
+  <Grid Grid.Row="1" Visibility="Collapsed">
+   <StackPanel>
+    <TextBlock x:Name="PortingModeDescriptionText" Margin="0,4,0,0"
+               Foreground="#52606D" TextWrapping="Wrap"/>
+    <TextBlock x:Name="PortingPreviewStatusText" Margin="0,5,0,0"
+               Foreground="#B45309" TextWrapping="Wrap" Visibility="Collapsed"/>
     <Border x:Name="TextureMemoryWarningPanel" Margin="0,10,0,0" Padding="10"
             Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1"
             CornerRadius="4" Visibility="Collapsed">
@@ -34,104 +1271,30 @@
      </StackPanel>
     </Border>
 
-    <Border x:Name="TextureResourcesPanel" Margin="0,14,0,0" Padding="10"
-            IsEnabled="False" Opacity="0.65"
-            BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4">
+    <Border x:Name="MaterialOverridePanel" Margin="0,7,0,0" Padding="8"
+            BorderBrush="#FDBA74" BorderThickness="1" CornerRadius="3"
+            Background="#FFF7ED" IsEnabled="False" Opacity="0.55">
      <StackPanel>
-      <TextBlock Text="Текстуры для импорта" FontSize="15" FontWeight="SemiBold"/>
-      <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
-                 Text="Старые меши, материалы и текстуры исходного SMO никогда не переносятся. Результат полностью собирается из ресурсов модели-донора."/>
-      <StackPanel x:Name="TextureImportSourcesPanel">
-       <ListBox x:Name="TextureList" Height="200" Margin="0,7,0,0"
-                SelectionMode="Extended" HorizontalContentAlignment="Stretch"
-                SelectionChanged="TextureList_SelectionChanged"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-        <ListBox.ItemTemplate>
-         <DataTemplate>
-          <StackPanel Margin="5,3">
-           <TextBlock Text="{Binding Display}" FontWeight="SemiBold"
-                      TextTrimming="CharacterEllipsis"/>
-           <TextBlock Margin="0,2,0,0" Text="{Binding Details}"
-                      FontSize="12" Foreground="#52606D" TextWrapping="Wrap"/>
-           <TextBlock Margin="0,2,0,0" Text="{Binding MaterialModeStatus}"
-                      FontSize="12" FontWeight="SemiBold" Foreground="#B45309"
-                      TextWrapping="Wrap"/>
-          </StackPanel>
-         </DataTemplate>
-        </ListBox.ItemTemplate>
-       </ListBox>
-       <Border x:Name="MaterialOverridePanel" Margin="0,7,0,0" Padding="8"
-               BorderBrush="#FDBA74" BorderThickness="1" CornerRadius="3"
-               Background="#FFF7ED" IsEnabled="False" Opacity="0.55">
-        <StackPanel>
-         <TextBlock Text="Режим материала выбранных групп" FontWeight="SemiBold"/>
-         <WrapPanel Margin="0,6,0,0">
-          <Button x:Name="SetOpaqueOverlayButton" Height="31" Padding="9,0"
-                  Margin="0,0,6,6" Content="Непрозрачная накладка"
-                  IsEnabled="False" Click="SetOpaqueOverlay_Click"/>
-          <Button x:Name="SetTransparentSurfaceButton" Height="31" Padding="9,0"
-                  Margin="0,0,6,6" Content="Прозрачная поверхность"
-                  IsEnabled="False" Click="SetTransparentSurface_Click"/>
-          <Button x:Name="ResetMaterialModeButton" Height="31" Padding="9,0"
-                  Margin="0,0,0,6" Content="Авто"
-                  IsEnabled="False" Click="ResetMaterialMode_Click"/>
-         </WrapPanel>
-         <TextBlock x:Name="MaterialOverrideStatusText" Foreground="#52606D"
-                    FontSize="12" TextWrapping="Wrap"
-                    Text="Выберите режим 3 с импортом текстур донора и текстурную группу."/>
-         <TextBlock Margin="0,5,0,0" Foreground="#9A3412" FontSize="12"
-                    TextWrapping="Wrap"
-                    Text="Авто переносит RGBA и определяет прозрачность по texels, которых реально касаются UV. Для плоских накладок кожи вокруг глаз или рта выберите «Непрозрачная накладка». Если автоматическое определение ошиблось, явно выберите «Прозрачная поверхность»."/>
-        </StackPanel>
-       </Border>
-       <WrapPanel Margin="0,7,0,0">
-        <Button Height="33" Padding="10,0" Margin="0,0,6,6"
-                Content="Добавить файлы…" Click="AddTextureFiles_Click"/>
-        <Button x:Name="SelectTextureFolderButton"
-                Height="33" Padding="10,0" Margin="0,0,6,6"
-                Content="Папка…" Click="SelectTextureFolder_Click"/>
-        <Button x:Name="RemoveTexturesButton" Height="33" Padding="10,0"
-                IsEnabled="False"
-                Margin="0,0,0,6" Content="Удалить" Click="RemoveTextures_Click"/>
-       </WrapPanel>
-       <TextBlock x:Name="TextureSummaryText" Margin="0,1,0,0"
-                  Text="Доступные текстуры появятся после выбора модели."
-                  TextWrapping="Wrap"/>
-       <TextBlock Margin="0,5,0,0" Foreground="#52606D" TextWrapping="Wrap"
-                  Text="В импорт идут все текстуры, привязанные к материалам. Встроенные добавляются автоматически, внешние можно выбрать группой или папкой. Выделение в списке используется для удаления добавленного источника и, в режиме 3, для явного режима материала."/>
-      </StackPanel>
+      <TextBlock Text="Режим материала выбранных групп" FontWeight="SemiBold"/>
+      <WrapPanel Margin="0,6,0,0">
+       <Button x:Name="SetOpaqueOverlayButton" Height="31" Padding="9,0"
+               Margin="0,0,6,6" Content="Непрозрачная накладка"
+               IsEnabled="False" Click="SetOpaqueOverlay_Click"/>
+       <Button x:Name="SetTransparentSurfaceButton" Height="31" Padding="9,0"
+               Margin="0,0,6,6" Content="Прозрачная поверхность"
+               IsEnabled="False" Click="SetTransparentSurface_Click"/>
+       <Button x:Name="ResetMaterialModeButton" Height="31" Padding="9,0"
+               Margin="0,0,0,6" Content="Авто"
+               IsEnabled="False" Click="ResetMaterialMode_Click"/>
+      </WrapPanel>
+      <TextBlock x:Name="MaterialOverrideStatusText" Foreground="#52606D"
+                 FontSize="12" TextWrapping="Wrap"
+                 Text="Выберите режим 3 с импортом текстур донора и текстурную группу."/>
+      <TextBlock Margin="0,5,0,0" Foreground="#9A3412" FontSize="12"
+                 TextWrapping="Wrap"
+                 Text="Авто переносит RGBA и определяет прозрачность по texels, которых реально касаются UV. Для плоских накладок кожи вокруг глаз или рта выберите «Непрозрачная накладка». Если автоматическое определение ошиблось, явно выберите «Прозрачная поверхность»."/>
      </StackPanel>
     </Border>
-
-    <Border x:Name="PortingModePanel" Margin="0,12,0,0" Padding="10"
-            BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4"
-            Background="#F8FAFC" Visibility="Collapsed">
-     <StackPanel>
-      <TextBlock Text="Режим портирования" FontWeight="SemiBold"/>
-      <ComboBox x:Name="PortingModeCombo" Margin="0,7,0,0" SelectedIndex="0"
-                SelectionChanged="PortingMode_Changed">
-       <ComboBoxItem Content="Авто"/>
-       <ComboBoxItem Content="1. Подготовленная модель"/>
-       <ComboBoxItem Content="2. Адаптировать существующий скелет"/>
-       <ComboBoxItem Content="3. Создать веса с нуля"/>
-       <ComboBoxItem Content="4. Статическая модель (без костей)"/>
-      </ComboBox>
-      <TextBlock x:Name="PortingModeRecommendationText" Margin="0,6,0,0"
-                 FontWeight="SemiBold" TextWrapping="Wrap"/>
-      <TextBlock x:Name="PortingModeDescriptionText" Margin="0,4,0,0"
-                 Foreground="#52606D" TextWrapping="Wrap"/>
-      <TextBlock x:Name="PortingPreviewStatusText" Margin="0,5,0,0"
-                 Foreground="#B45309" TextWrapping="Wrap" Visibility="Collapsed"/>
-     </StackPanel>
-    </Border>
-
-    <Border x:Name="ReplacementModePanel" Margin="0,12,0,0" Padding="10" Background="#E8EEF5" CornerRadius="4">
-     <StackPanel>
-      <TextBlock x:Name="ReplacementModeText" FontWeight="SemiBold" Text="Режим ещё не определён"/>
-      <TextBlock x:Name="CompatibilityText" Margin="0,4,0,0" Text="Выберите модель-донор." TextWrapping="Wrap" Foreground="#52606D"/>
-     </StackPanel>
-    </Border>
-
     <Border x:Name="ModelTransformPanel" Margin="0,12,0,0" Padding="10"
             BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="4"
             Background="#F8FAFC">
@@ -702,7 +1865,7 @@
                  Content="Показывать результат подгонки в окне просмотра"
                  Checked="ShowFittingPose_Changed"
                  Unchecked="ShowFittingPose_Changed"/>
-       <CheckBox x:Name="ShowTargetSmoCheckBox" Margin="0,5,0,0" IsChecked="True"
+       <CheckBox x:Name="ShowTargetSmoCheckBox" Margin="0,5,0,0" IsChecked="False"
                  Content="Показывать исходную SMO-модель"
                  Checked="ShowTargetSmo_Changed"
                  Unchecked="ShowTargetSmo_Changed"/>
@@ -764,14 +1927,12 @@
        </StackPanel>
       </Border>
 
-     <GroupBox Header="Автоматическая нарезка" Margin="0,18,0,0" Padding="10">
+     <GroupBox Header="Проверка итоговой модели" Margin="0,18,0,0" Padding="10">
       <StackPanel>
        <TextBlock x:Name="SplitModeText" Text="Вся модель помещается в один основной body-slot; остальные slots получают невидимый вырожденный triangle. UInt16 ограничивает вершины, но не длину index buffer." TextWrapping="Wrap"/>
        <Button x:Name="ShowFinalTexturedPreviewButton" Margin="0,9,0,0" Height="35"
                Content="Показать окончательный результат с текстурами"
                IsEnabled="False" Click="ShowFinalTexturedPreview_Click"/>
-       <Button x:Name="PlanButton" Margin="0,9,0,0" Height="35" Content="Построить план и проверить" IsEnabled="False" Click="Plan_Click"/>
-       <TextBlock x:Name="PlanSummaryText" Margin="0,7,0,0" Text="План ещё не построен." TextWrapping="Wrap"/>
       </StackPanel>
      </GroupBox>
 
@@ -789,10 +1950,8 @@
 
     </StackPanel>
 
-    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
-     <Button x:Name="SaveButton" Width="225" Height="42" Content="4. Создать новый SMO" IsEnabled="False" Click="Save_Click"/>
-     <Button x:Name="ResetButton" Width="105" Height="42" Margin="8,0,0,0" Content="Сброс" Click="Reset_Click"/>
-    </StackPanel>
+    <Button x:Name="ResetButton" Width="105" Height="34" HorizontalAlignment="Left"
+            Margin="0,14,0,0" Content="Сброс" Click="Reset_Click"/>
     <Border Margin="0,10,0,0" Padding="9" Background="#EEF2F6" CornerRadius="4">
      <StackPanel>
       <TextBlock Text="Проверка в игре и диагностика" FontWeight="SemiBold"/>
@@ -821,15 +1980,61 @@
      </StackPanel>
     </Border>
     <TextBlock x:Name="StatusText" Margin="0,14,0,0" Text="Выберите исходный SMO." TextWrapping="Wrap" Foreground="#52606D"/>
-   </StackPanel>
-  </ScrollViewer>
+    <Expander Header="Совместимость и файлы" Margin="0,12,0,0"
+              ToolTip="Показывает пути к выбранным моделям и результаты проверки совместимости.">
+     <StackPanel Margin="0,4,0,0">
+      <TextBlock Text="Исходный SMO" FontWeight="SemiBold"/>
+      <TextBlock x:Name="SourcePathText" Margin="0,3,0,0" Text="Не выбран" TextWrapping="Wrap"/>
+      <TextBlock x:Name="SourceSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+      <TextBlock Margin="0,10,0,0" Text="Модель-донор" FontWeight="SemiBold"/>
+      <TextBlock x:Name="ReplacementPathText" Margin="0,3,0,0" Text="Не выбрана" TextWrapping="Wrap"/>
+      <TextBlock x:Name="ReplacementSummaryText" Foreground="#52606D" Text="—" TextWrapping="Wrap"/>
+      <Border x:Name="ReplacementModePanel" Margin="0,12,0,0" Padding="10" Background="#E8EEF5" CornerRadius="4">
+       <StackPanel>
+        <TextBlock x:Name="ReplacementModeText" FontWeight="SemiBold" Text="Режим ещё не определён"/>
+        <TextBlock x:Name="CompatibilityText" Margin="0,4,0,0" Text="Выберите модель-донор." TextWrapping="Wrap" Foreground="#52606D"/>
+       </StackPanel>
+      </Border>
 
-  <Grid x:Name="PreviewSurface" Grid.Column="1" Background="#20242A" Focusable="True"
+     </StackPanel>
+    </Expander>
+
+   </StackPanel>
+  <StackPanel Grid.Row="4" Grid.Column="2" Margin="13,8,13,0">
+   <TextBlock x:Name="PlanSummaryText" Margin="0,0,0,6" Foreground="#9BAABD" MaxHeight="36"
+              Text="План ещё не построен." TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+              ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+   <Grid IsEnabled="{Binding IsEnabled, ElementName=ControlsScrollViewer}">
+    <Grid.Resources>
+     <DataTemplate x:Key="PreparationActionLabel">
+      <TextBlock Text="{Binding}" TextWrapping="Wrap" TextAlignment="Center"/>
+     </DataTemplate>
+    </Grid.Resources>
+    <Grid.ColumnDefinitions>
+     <ColumnDefinition/>
+     <ColumnDefinition Width="8"/>
+     <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
+    <Button x:Name="PlanButton" Height="42" Style="{StaticResource WizardButtonStyle}"
+            Content="Проверить импорт" ContentTemplate="{StaticResource PreparationActionLabel}"
+            ToolTip="Проверьте, что модель можно импортировать с выбранными настройками."
+            IsEnabled="False" Click="Plan_Click"/>
+    <Button x:Name="SaveButton" Grid.Column="2" Height="42" Style="{StaticResource WizardButtonStyle}"
+            Background="#50351F" BorderBrush="#8C5A2D" Foreground="#FFD3A1"
+            Content="Создать SMO" ContentTemplate="{StaticResource PreparationActionLabel}"
+            ToolTip="Сохраните результат в новый файл после успешной проверки."
+            IsEnabled="False" Click="Save_Click"/>
+   </Grid>
+  </StackPanel>
+
+  <Grid Grid.Row="3" Grid.RowSpan="2" Margin="14,1" Visibility="{Binding Visibility, ElementName=PreviewSurface}">
+   <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Grid x:Name="PreviewSurface" Visibility="Collapsed" Background="#10161E" ClipToBounds="True" Focusable="True"
         MouseDown="Preview_MouseDown" MouseUp="Preview_MouseUp"
         MouseMove="Preview_MouseMove" MouseWheel="Preview_MouseWheel"
         LostMouseCapture="Preview_LostMouseCapture" PreviewKeyDown="Preview_KeyDown"
         SizeChanged="Preview_SizeChanged">
-   <Viewport3D x:Name="PreviewViewport">
+   <Viewport3D x:Name="PreviewViewport" ClipToBounds="True">
     <Viewport3D.Camera><PerspectiveCamera x:Name="Camera" Position="0,0,10" LookDirection="0,0,-10" UpDirection="0,1,0" FieldOfView="45"/></Viewport3D.Camera>
     <ModelVisual3D><ModelVisual3D.Content><AmbientLight Color="#888888"/></ModelVisual3D.Content></ModelVisual3D>
     <ModelVisual3D><ModelVisual3D.Content><DirectionalLight Color="White" Direction="-1,-1,-2"/></ModelVisual3D.Content></ModelVisual3D>
@@ -840,15 +2045,12 @@
                Stroke="#7DD3FC" StrokeThickness="1.5" StrokeDashArray="4,2"
                Fill="#337DD3FC" Visibility="Collapsed"/>
    </Canvas>
-   <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12" Padding="8" Background="#AA000000">
+   <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" IsHitTestVisible="False">
     <StackPanel>
-     <TextBlock Foreground="White" Text="Серый — вся исходная модель   Оранжевый — вся модель замены"/>
-     <TextBlock x:Name="BoneHighlightText" Margin="0,5,0,0" Foreground="#FF6464"
+     <TextBlock x:Name="BoneHighlightText" Margin="0,5,0,0" Foreground="#FF6464" TextWrapping="Wrap"
       Text="Красный — выбранная palette bone"/>
-     <TextBlock Margin="0,5,0,0" Foreground="#D7DEE7"
-      Text="СКМ — вращение · Shift+СКМ — сдвиг · Ctrl+СКМ/колесо — масштаб · Home — показать всё"/>
      <TextBlock x:Name="ModelTransformGizmoViewportHint" Margin="0,5,0,0"
-      Visibility="Collapsed" Foreground="#FDE68A"
+      Visibility="Collapsed" Foreground="#FDE68A" TextWrapping="Wrap"
       Text="ЛКМ по gizmo — двигать, поворачивать или менять общий масштаб модели"/>
     </StackPanel>
    </Border>
@@ -859,7 +2061,7 @@
            Visibility="Collapsed">
     <Grid>
      <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="210"/>
+      <ColumnDefinition Width="140"/>
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="Auto"/>
      </Grid.ColumnDefinitions>
@@ -869,12 +2071,17 @@
      <ProgressBar x:Name="GeneratedCalculationOverlayBar" Grid.Column="1"
                   Height="18" Margin="12,0" Minimum="0" Maximum="100"/>
      <Button x:Name="CancelGeneratedCalculationButton" Grid.Column="2"
-             MinWidth="120" Height="30" Padding="10,0"
+             MinWidth="105" Height="30" Padding="10,0"
              Content="Остановить" Click="CancelGeneratedCalculation_Click"/>
     </Grid>
    </Border>
   </Grid>
-  <Border x:Name="SaveOperationOverlay" Grid.ColumnSpan="2" Panel.ZIndex="100"
+   <TextBlock x:Name="LegacyPreviewGuidanceText" Grid.Row="1" Style="{StaticResource PreviewGuidanceStyle}"
+              Text="ПКМ — вращать · Shift+ПКМ — сдвиг вида · Колесо / Ctrl+ПКМ — приблизить · Home — в кадр"/>
+  </Grid>
+  </Grid>
+
+  <Border x:Name="SaveOperationOverlay" Grid.RowSpan="3" Panel.ZIndex="100"
           Background="#B3101720" Visibility="Collapsed">
    <Border HorizontalAlignment="Center" VerticalAlignment="Center"
            Width="440" Padding="22" Background="#F51F2937"
@@ -884,10 +2091,82 @@
                 FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
                 Text="Собирается и проверяется новый SMO…"/>
      <ProgressBar Height="18" Margin="0,14,0,0" IsIndeterminate="True"/>
-     <Button x:Name="CancelSaveOperationButton" Height="34" Margin="0,14,0,0"
+     <Button x:Name="CancelSaveOperationButton" Style="{StaticResource WizardButtonStyle}" Margin="0,14,0,0"
              Content="Остановить безопасно" Click="CancelSaveOperation_Click"/>
     </StackPanel>
    </Border>
+  </Border>
+
+  <Border Grid.Row="2" Padding="18,10" Background="#151B23" BorderBrush="#2B3542" BorderThickness="0,1,0,0">
+   <Grid>
+    <Grid.RowDefinitions>
+     <RowDefinition Height="Auto"/>
+     <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <ScrollViewer x:Name="WizardFooterInfoScroll" MaxHeight="300" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <ScrollViewer.Resources>
+      <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+     </ScrollViewer.Resources>
+    <StackPanel>
+    <Border x:Name="WizardNoticePanel" Visibility="Collapsed" Padding="10,7" Margin="0,0,0,8"
+            BorderThickness="1" CornerRadius="4" AutomationProperties.LiveSetting="Polite">
+     <StackPanel>
+      <TextBlock x:Name="WizardNoticeTitle" FontWeight="SemiBold"/>
+      <TextBlock x:Name="WizardNoticeSummary" Margin="0,3,0,0" Foreground="#F1E7D5" TextWrapping="Wrap"/>
+      <Expander x:Name="WizardNoticeExpander" Header="Подробности" Margin="0,4,0,0" Foreground="#F1E7D5">
+       <DockPanel LastChildFill="True">
+        <Button DockPanel.Dock="Bottom" Content="Открыть журнал" Click="OpenDiagnosticLogFolder_Click"
+                Style="{StaticResource WizardButtonStyle}" HorizontalAlignment="Left" Height="28" Margin="0,5,0,0"/>
+        <TextBox x:Name="WizardNoticeDetails" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="120"
+                 VerticalScrollBarVisibility="Auto" Background="Transparent" Foreground="#F1E7D5" BorderThickness="0"/>
+       </DockPanel>
+      </Expander>
+     </StackPanel>
+    </Border>
+    <TextBlock x:Name="WizardMessageText" Margin="0,0,0,8" Foreground="#9BAABD"
+               Text="Выберите исходный SMO и модель-донора." TextWrapping="Wrap"
+               AutomationProperties.LiveSetting="Polite"/>
+    <Expander x:Name="WizardStepHelpExpander" Visibility="Collapsed" IsExpanded="False" Margin="0,0,0,8"
+              Foreground="#D8DEE9" Expanded="WizardStepHelp_Expanded" Collapsed="WizardStepHelp_Collapsed"
+              Unloaded="WizardStepHelp_Unloaded" AutomationProperties.Name="Инструкция по текущему шагу">
+     <Expander.Header>
+      <TextBlock x:Name="WizardStepHelpHeader" Text="Инструкция по шагу" Foreground="#FFD3A1" FontWeight="SemiBold"/>
+     </Expander.Header>
+     <Border Margin="0,6,0,0" Padding="10,7" Background="#10161E" BorderBrush="#344354" BorderThickness="1" CornerRadius="4">
+      <ScrollViewer x:Name="WizardStepHelpScroll" MaxHeight="144" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+       <ScrollViewer.Resources>
+        <Style TargetType="ScrollBar" BasedOn="{StaticResource WizardScrollBarStyle}"/>
+       </ScrollViewer.Resources>
+       <StackPanel>
+        <StackPanel x:Name="WizardStepHelpContent"/>
+        <TextBlock x:Name="WizardStepHelpFeedback" Visibility="Collapsed" Margin="0,6,0,0" FontSize="11"
+                   Foreground="#FFD3A1" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+       </StackPanel>
+      </ScrollViewer>
+     </Border>
+    </Expander>
+    </StackPanel>
+    </ScrollViewer>
+    <DockPanel Grid.Row="1" LastChildFill="False">
+     <Button x:Name="WizardBackButton" DockPanel.Dock="Left" Style="{StaticResource WizardButtonStyle}"
+             Content="Назад" IsEnabled="False" ToolTip="Вернуться к предыдущему шагу."
+             Click="WizardBack_Click"/>
+     <Button x:Name="WizardUndoButton" DockPanel.Dock="Left" Style="{StaticResource WizardButtonStyle}"
+             Margin="8,0,0,0" Content="Отменить" IsEnabled="False"
+             ToolTip="Отменить выбор файла, переход, смену режима или текстур." Click="WizardUndo_Click"/>
+     <Button x:Name="WizardRedoButton" DockPanel.Dock="Left" Style="{StaticResource WizardButtonStyle}"
+             Margin="8,0,0,0" Content="Повторить" IsEnabled="False"
+             ToolTip="Повторить отменённый выбор, переход или настройку." Click="WizardRedo_Click"/>
+     <Button x:Name="WizardCancelLoadButton" DockPanel.Dock="Left" Style="{StaticResource WizardButtonStyle}"
+             Margin="8,0,0,0" Content="Отменить загрузку" Visibility="Collapsed"
+             ToolTip="Запросить отмену. Чтение текущего блока файла должно завершиться перед освобождением данных."
+             Click="WizardCancelLoad_Click"/>
+     <Button x:Name="WizardNextButton" DockPanel.Dock="Right" Style="{StaticResource WizardButtonStyle}"
+             Content="Далее" IsEnabled="False" Background="#50351F" BorderBrush="#8C5A2D"
+             Foreground="#FFD3A1" ToolTip="Перейти к следующему шагу после загрузки обеих моделей."
+             Click="WizardNext_Click"/>
+    </DockPanel>
+   </Grid>
   </Border>
  </Grid>
 </Window>

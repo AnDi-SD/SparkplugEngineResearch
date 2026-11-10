@@ -18,8 +18,8 @@ public sealed class StagedAssetSession : IDisposable
 
     public static StagedAssetSession Create(string sourceAssetPath, string logicalGameAssetPath)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sourceAssetPath);
-        ArgumentException.ThrowIfNullOrWhiteSpace(logicalGameAssetPath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(sourceAssetPath);
+        FrameworkGuards.ThrowIfNullOrWhiteSpace(logicalGameAssetPath);
         string source = Path.GetFullPath(sourceAssetPath);
         if (!File.Exists(source))
             throw new FileNotFoundException("The selected SMO does not exist.", source);
