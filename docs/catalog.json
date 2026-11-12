@@ -532,6 +532,36 @@
       "category": "engine/physics"
     },
     {
+      "path": "docs/engine/physics/contact-provided-tangent-rows.md",
+      "title": "Contact: строки с заданным tangent-вектором",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/contact-single-body-multirow.md",
+      "title": "Contact: две и три строки для одного supplied body",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/contact-single-body-row.md",
+      "title": "Конечная однострочная операция Contact",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/contact-tangents.md",
+      "title": "Contact tangent value helper",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/contact-two-body-multirow.md",
+      "title": "Contact: две и три строки с двумя supplied body",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/contact-two-body-row.md",
+      "title": "ContactConstraint: строка с двумя заданными body",
+      "category": "engine/physics"
+    },
+    {
       "path": "docs/engine/physics/mesh-bv-tools-core.md",
       "title": "MeshBV и данные граней для общих ядер tools",
       "category": "engine/physics"
@@ -1107,6 +1137,21 @@
       "category": "game/ai"
     },
     {
+      "path": "docs/game/ai/attack-state-gates.md",
+      "title": "AIAction: command-байты и raw state-record",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/ice-worm-holes-message.md",
+      "title": "IceWormHoles: raw сообщение в профиле NoNodeCalls",
+      "category": "game/ai"
+    },
+    {
+      "path": "docs/game/ai/kiko-moving-message.md",
+      "title": "KikoMoving: сообщение и два raw DWORD",
+      "category": "game/ai"
+    },
+    {
       "path": "docs/game/assets/README.md",
       "title": "Игровые ресурсы",
       "category": "game/assets"
@@ -1489,6 +1534,11 @@
     {
       "path": "docs/reference/classes/sp-color-func-eval-serializer.md",
       "title": "spColorFuncEvalSerializer",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/sp-contact-constraint.md",
+      "title": "spContactConstraint",
       "category": "reference/classes"
     },
     {
@@ -2822,6 +2872,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-ice-worm-holes-ai-action.md",
+      "title": "wxIceWormHolesAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-ice-worm-holes-state.md",
       "title": "`wxIceWormHolesState`",
       "category": "reference/classes"
@@ -2844,6 +2899,11 @@
     {
       "path": "docs/reference/classes/wx-kiko-hole-ai-action.md",
       "title": "wxKikoHoleAIAction",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-kiko-moving-ai-action.md",
+      "title": "wxKikoMovingAIAction",
       "category": "reference/classes"
     },
     {
@@ -2987,6 +3047,11 @@
       "category": "reference/classes"
     },
     {
+      "path": "docs/reference/classes/wx-shadow-beast-attack-ai-action.md",
+      "title": "wxShadowBeastAttackAIAction",
+      "category": "reference/classes"
+    },
+    {
       "path": "docs/reference/classes/wx-shadow-beast-defense-state.md",
       "title": "wxShadowBeastDefenseState",
       "category": "reference/classes"
@@ -3004,6 +3069,11 @@
     {
       "path": "docs/reference/classes/wx-shadow-beast-moving-state.md",
       "title": "`wxShadowBeastMovingState`",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-spider-attack-ai-action.md",
+      "title": "wxSpiderAttackAIAction",
       "category": "reference/classes"
     },
     {

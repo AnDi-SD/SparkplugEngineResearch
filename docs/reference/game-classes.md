@@ -201,7 +201,7 @@
 | `wxIceWormAIBehavior` | `0x169B1DA0` | Да | Да | — | — |
 | `wxIceWormAttackAIAction` | `0x76850CC0` | Да | Да | [1](classes/wx-ice-worm-attack-ai-action.md) | [wxIceWormAttackAIAction.h](../../Winx/Code/wxIceWormAttackAIAction.h) |
 | `wxIceWormAttackState` | `0x709E322B` | Да | Да | [1](classes/wx-ice-worm-attack-state.md) | [wxIceWormAttackState.h](../../Winx/Code/wxIceWormAttackState.h) |
-| `wxIceWormHolesAIAction` | `0x812B81AB` | Да | Да | — | — |
+| `wxIceWormHolesAIAction` | `0x812B81AB` | Да | Да | [1](classes/wx-ice-worm-holes-ai-action.md) | [wxIceWormHolesAIAction.h](../../Winx/Code/wxIceWormHolesAIAction.h) |
 | `wxIceWormHolesState` | `0x1D213B00` | Да | Да | [1](classes/wx-ice-worm-holes-state.md) | [wxIceWormHolesState.cpp](../../Winx/Code/wxIceWormHolesState.cpp), [wxIceWormHolesState.h](../../Winx/Code/wxIceWormHolesState.h) |
 | `wxIceWormMovingState` | `0x3E394575` | Да | Да | [1](classes/wx-ice-worm-moving-state.md) | [wxIceWormMovingState.cpp](../../Winx/Code/wxIceWormMovingState.cpp), [wxIceWormMovingState.h](../../Winx/Code/wxIceWormMovingState.h) |
 | `wxIceWormStateMachine` | `0x13873488` | Да | Да | — | — |
@@ -217,7 +217,7 @@
 | `wxKikoAIBehavior` | `0x047C0F9C` | Да | Да | — | — |
 | `wxKikoHole` | `0xCB256D81` | Да | Да | — | — |
 | `wxKikoHoleAIAction` | `0x872B81BB` | Да | Да | [1](classes/wx-kiko-hole-ai-action.md) | [wxKikoHoleAIAction.h](../../Winx/Code/wxKikoHoleAIAction.h), [wxKikoHoleAIAction.cpp](../../Winx/Code/wxKikoHoleAIAction.cpp) |
-| `wxKikoMovingAIAction` | `0x99887766` | Да | Да | — | — |
+| `wxKikoMovingAIAction` | `0x99887766` | Да | Да | [1](classes/wx-kiko-moving-ai-action.md) | [wxKikoMovingAIAction.h](../../Winx/Code/wxKikoMovingAIAction.h) |
 | `wxKikoStateMachine` | `0x243E116A` | Да | Да | — | — |
 | `wxKnutAttackAIAction` | `0x70D47C10` | Да | Да | [1](classes/wx-knut-attack-ai-action.md) | [wxKnutAttackAIAction.h](../../Winx/Code/wxKnutAttackAIAction.h) |
 | `wxKnutAttackState` | `0x2FDC3901` | Да | Да | [1](classes/wx-knut-attack-state.md) | [wxKnutAttackState.cpp](../../Winx/Code/wxKnutAttackState.cpp), [wxKnutAttackState.h](../../Winx/Code/wxKnutAttackState.h) |
@@ -323,7 +323,7 @@
 | `wxRollingPin` | `0x72245761` | Да | Да | — | — |
 | `wxSavePoint` | `0x099029B2` | Да | Да | — | — |
 | `wxShadowBeastAIBehavior` | `0x43E22A49` | Да | Да | — | — |
-| `wxShadowBeastAttackAIAction` | `0x0F6C5372` | Да | Да | — | — |
+| `wxShadowBeastAttackAIAction` | `0x0F6C5372` | Да | Да | [1](classes/wx-shadow-beast-attack-ai-action.md) | [wxShadowBeastAttackAIAction.h](../../Winx/Code/wxShadowBeastAttackAIAction.h) |
 | `wxShadowBeastAttackState` | `0x0B6B139A` | Да | Да | — | — |
 | `wxShadowBeastDefenseState` | `0x43634D72` | Да | Да | [1](classes/wx-shadow-beast-defense-state.md) | [wxShadowBeastDefenseState.cpp](../../Winx/Code/wxShadowBeastDefenseState.cpp), [wxShadowBeastDefenseState.h](../../Winx/Code/wxShadowBeastDefenseState.h) |
 | `wxShadowBeastHurtState` | `0x0C87213F` | Да | Да | [1](classes/wx-shadow-beast-hurt-state.md) | [wxShadowBeastHurtState.cpp](../../Winx/Code/wxShadowBeastHurtState.cpp), [wxShadowBeastHurtState.h](../../Winx/Code/wxShadowBeastHurtState.h) |
@@ -346,7 +346,7 @@
 | `wxSparxBehavior` | `0x292371F4` | Да | Да | — | — |
 | `wxSpecialistsStateMachine` | `0x7D395CFE` | Да | Да | — | — |
 | `wxSpiderAIBehavior` | `0x64AB5890` | Да | Да | — | — |
-| `wxSpiderAttackAIAction` | `0x71237CFA` | Да | Да | — | — |
+| `wxSpiderAttackAIAction` | `0x71237CFA` | Да | Да | [1](classes/wx-spider-attack-ai-action.md) | [wxSpiderAttackAIAction.h](../../Winx/Code/wxSpiderAttackAIAction.h) |
 | `wxSpiderAttackState` | `0x6ADD2466` | Да | Да | [1](classes/wx-spider-attack-state.md) | [wxSpiderAttackState.h](../../Winx/Code/wxSpiderAttackState.h) |
 | `wxSpiderHurtState` | `0x54F716CC` | Да | Да | [1](classes/wx-spider-hurt-state.md) | [wxSpiderHurtState.h](../../Winx/Code/wxSpiderHurtState.h) |
 | `wxSpiderMovingState` | `0x463733DF` | Да | Да | [1](classes/wx-spider-moving-state.md) | [wxSpiderMovingState.cpp](../../Winx/Code/wxSpiderMovingState.cpp), [wxSpiderMovingState.h](../../Winx/Code/wxSpiderMovingState.h) |

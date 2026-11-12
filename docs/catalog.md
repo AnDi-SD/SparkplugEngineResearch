@@ -132,9 +132,15 @@
 ## Движок / Физика и коллизии
 
 - [CollisionInfo и OBB: используемая инструментами часть PC](engine/physics/collision-tools-core.md).
+- [Contact tangent value helper](engine/physics/contact-tangents.md).
+- [Contact: две и три строки для одного supplied body](engine/physics/contact-single-body-multirow.md).
+- [Contact: две и три строки с двумя supplied body](engine/physics/contact-two-body-multirow.md).
+- [Contact: строки с заданным tangent-вектором](engine/physics/contact-provided-tangent-rows.md).
+- [ContactConstraint: строка с двумя заданными body](engine/physics/contact-two-body-row.md).
 - [MeshBV и данные граней для общих ядер tools](engine/physics/mesh-bv-tools-core.md).
 - [spCapsuleBV](engine/physics/capsule-bv.md).
 - [Sphere contact: bounded PC value helper](engine/physics/sphere-contact.md).
+- [Конечная однострочная операция Contact](engine/physics/contact-single-body-row.md).
 - [Физика и коллизии](engine/physics/README.md).
 - [Физика и коллизии Sparkplug](engine/physics/overview.md).
 - [Физические объекты и BoundingVolume: PC и PS2](engine/physics/physics-family.md).
@@ -269,6 +275,7 @@
 ## Игра / Искусственный интеллект
 
 - [`wxAIAction`: общий контракт и 35 производных действий](game/ai/ai-action-family.md).
+- [AIAction: command-байты и raw state-record](game/ai/attack-state-gates.md).
 - [AIAction: Copy изменённых полей](game/ai/ai-action-modified-copy.md).
 - [AIAction: входы через реестр и сообщения владельцу](game/ai/ai-registry-entry.md).
 - [AIAction: завершение команд, входные параметры и выбор состояния](game/ai/ai-action-command-protocol.md).
@@ -278,6 +285,8 @@
 - [AIAction: поиск цели и запрос другого действия](game/ai/ai-perception-control.md).
 - [AIAction: поля входа и общая выбранная цель](game/ai/ai-action-entry-fields.md).
 - [AIAction: случайные параметры Minotaur и Mosquito](game/ai/ai-random-entry.md).
+- [IceWormHoles: raw сообщение в профиле NoNodeCalls](game/ai/ice-worm-holes-message.md).
+- [KikoMoving: сообщение и два raw DWORD](game/ai/kiko-moving-message.md).
 - [Активация IceWormHoles и начальные связи Kiko](game/ai/ai-activation-fields.md).
 - [Выход из двадцати AI-состояний](game/ai/ai-exit-cleanup.md).
 - [Искусственный интеллект](game/ai/README.md).
@@ -445,6 +454,7 @@
 - [spCinematicManager](reference/classes/sp-cinematic-manager.md).
 - [spCollisionInfo](reference/classes/sp-collision-info.md).
 - [spColorFuncEvalSerializer](reference/classes/sp-color-func-eval-serializer.md).
+- [spContactConstraint](reference/classes/sp-contact-constraint.md).
 - [spController / spSubController](reference/classes/sp-controller.md).
 - [spCrossPlatform](reference/classes/sp-cross-platform.md).
 - [spCubeTexture](reference/classes/sp-cube-texture.md).
@@ -673,8 +683,10 @@
 - [wxIceGargoyleWithdrawlAIAction](reference/classes/wx-ice-gargoyle-withdrawl-ai-action.md).
 - [wxIceWormAttackAIAction](reference/classes/wx-ice-worm-attack-ai-action.md).
 - [wxIceWormAttackState](reference/classes/wx-ice-worm-attack-state.md).
+- [wxIceWormHolesAIAction](reference/classes/wx-ice-worm-holes-ai-action.md).
 - [wxIcyAttackAIAction](reference/classes/wx-icy-attack-ai-action.md).
 - [wxKikoHoleAIAction](reference/classes/wx-kiko-hole-ai-action.md).
+- [wxKikoMovingAIAction](reference/classes/wx-kiko-moving-ai-action.md).
 - [wxKnutAttackAIAction](reference/classes/wx-knut-attack-ai-action.md).
 - [wxKnutAttackState](reference/classes/wx-knut-attack-state.md).
 - [wxLoadSaveGameFlowState](reference/classes/wx-load-save-game-flow-state.md).
@@ -691,7 +703,9 @@
 - [wxPS2App](reference/classes/wx-ps2-app.md).
 - [wxPullLeverState](reference/classes/wx-pull-lever-state.md).
 - [wxReadingState](reference/classes/wx-reading-state.md).
+- [wxShadowBeastAttackAIAction](reference/classes/wx-shadow-beast-attack-ai-action.md).
 - [wxShadowBeastDefenseState](reference/classes/wx-shadow-beast-defense-state.md).
+- [wxSpiderAttackAIAction](reference/classes/wx-spider-attack-ai-action.md).
 - [wxSpiderAttackState](reference/classes/wx-spider-attack-state.md).
 - [wxSpiderHurtState](reference/classes/wx-spider-hurt-state.md).
 - [wxStickingLeftState и wxStickingRightState](reference/classes/wx-sticking-states.md).

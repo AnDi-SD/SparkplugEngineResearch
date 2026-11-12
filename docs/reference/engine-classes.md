@@ -50,7 +50,7 @@
 | `spColorFuncEvalSerializer` | `0x2CC46B90` | Да | Да | [1](classes/sp-color-func-eval-serializer.md) | [spColorFuncEvalSerializer.h](../../Sparkplug/Code/Sparkplug/spColorFuncEvalSerializer.h) |
 | `spConstraint` | `0x86CD6780` | Да | — | — | — |
 | `spConstraintSystem` | `0x40724C06` | Да | — | — | — |
-| `spContactConstraint` | `0x04353BD3` | Да | — | — | — |
+| `spContactConstraint` | `0x04353BD3` | Да | — | [1](classes/sp-contact-constraint.md) | [spContactConstraint.h](../../Sparkplug/Code/Sparkplug/spContactConstraint.h) |
 | `spController` | `0x4FAD24F1` | Да | Да | [1](classes/sp-controller.md) | [spController.h](../../Sparkplug/Code/Sparkplug/spController.h) |
 | `spConvexBV` | `0x1BCC5322` | Да | Да | — | — |
 | `spConvexBVSerializer` | `0x4F5F485A` | Да | Да | — | — |

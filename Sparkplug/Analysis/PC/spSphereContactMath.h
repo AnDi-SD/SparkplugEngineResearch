@@ -5,6 +5,8 @@
 #include "Code/Sparkplug/spBoundingVolumeQueries.h"
 #include "spTransformConstMath.h"
 
+// Historical Sphere arithmetic placement is retained. Its Number-root overload
+// also serves the separate bounded ContactTangents value query.
 namespace sparkplug::evidence::pc::sphere_contact_math
 {
     using Number = float80_rtz::Number;
@@ -19,7 +21,7 @@ namespace sparkplug::evidence::pc::sphere_contact_math
     }
     inline void ShiftLeft(Wide& value, unsigned count) noexcept
     {
-        // Only counts1/2 are used; the query's root/division remainders fit65 bits.
+        // Only counts1/2 are used; the transient root remainder can reach66 bits.
         std::uint32_t carry = 0;
         for (auto& word : value.words)
         {
@@ -31,7 +33,7 @@ namespace sparkplug::evidence::pc::sphere_contact_math
     inline Number Negate(Number value) noexcept { value.negative = !value.negative; return value; }
     inline Number From(float value) noexcept { return float80_rtz::FromFloat(value); }
     inline Number Add(Number a, Number b) noexcept { return nearest::AddNearest(a, b); }
-    inline Number Subtract(Number a, Number b) noexcept { return Add(a, Negate(b)); }
+    inline Number Subtract(Number a, Number b) noexcept { return sphere_contact_math::Add(a, Negate(b)); }
     inline float Store(Number value) noexcept { return nearest::StoreNearest(value); }
     inline Number Multiply(Number first, Number second) noexcept
     {
@@ -57,9 +59,8 @@ namespace sparkplug::evidence::pc::sphere_contact_math
         if (roundUp && ++mantissa == 0) return {std::uint64_t(1) << 63, exponent + 1, false};
         return {mantissa, exponent, false};
     }
-    inline Number SquareRoot(float positive) noexcept
+    inline Number SquareRoot(Number value) noexcept
     {
-        const auto value = From(positive);
         const unsigned shift = value.exponent % 2 != 0 ? 63 : 64;
         const Wide radicand = Wide::Shifted(value.mantissa, shift);
         Wide remainder; std::uint64_t root = 0;
@@ -77,6 +78,8 @@ namespace sparkplug::evidence::pc::sphere_contact_math
         return Rounded(root, (value.exponent - int(shift)) / 2,
             CompareWide(remainder, Wide::Shifted(root, 0)) > 0);
     }
+    inline Number SquareRoot(float positive) noexcept
+    { return sphere_contact_math::SquareRoot(From(positive)); }
     inline Number Reciprocal(Number positive) noexcept
     {
         const unsigned power = positive.mantissa == (std::uint64_t(1) << 63) ? 126 : 127;
@@ -104,8 +107,8 @@ namespace sparkplug::evidence::pc::sphere_contact_math
         for (unsigned lane = 0; lane != 3; ++lane) delta[lane] = Subtract(From(input.center2[lane]), From(input.center1[lane]));
         const auto square = [](Number value) noexcept { return Multiply(value, value); };
         // Native distance squared is spilled toF32 before the strict test.
-        const float storedSquared = Store(Add(Add(square(delta[2]), square(delta[1])), square(delta[0])));
-        const Number squared = From(storedSquared), sumRadius = Add(From(input.radius1), From(input.radius2));
+        const float storedSquared = Store(sphere_contact_math::Add(sphere_contact_math::Add(square(delta[2]), square(delta[1])), square(delta[0])));
+        const Number squared = From(storedSquared), sumRadius = sphere_contact_math::Add(From(input.radius1), From(input.radius2));
         if (nearest::Compare(squared, square(sumRadius)) >= 0) return false;
         if (!squared.mantissa)
         {
@@ -127,9 +130,9 @@ namespace sparkplug::evidence::pc::sphere_contact_math
         const float offsetX = Store(Multiply(shift, From(output.normal[0])));
         const float offsetY = Store(Multiply(shift, From(output.normal[1])));
         const Number offsetZ = Multiply(shift, From(output.normal[2]));
-        output.position[2] = Store(Add(offsetZ, From(input.center1[2])));
-        output.position[0] = Store(Add(From(offsetX), From(input.center1[0])));
-        output.position[1] = Store(Add(From(offsetY), From(input.center1[1])));
+        output.position[2] = Store(sphere_contact_math::Add(offsetZ, From(input.center1[2])));
+        output.position[0] = Store(sphere_contact_math::Add(From(offsetX), From(input.center1[0])));
+        output.position[1] = Store(sphere_contact_math::Add(From(offsetY), From(input.center1[1])));
         output.depth = Store(Subtract(sumRadius, distance));
         return true;
     }

@@ -345,6 +345,19 @@ add_library(WinxAIActions STATIC
     Code/wxKnutAttackAIAction.cpp
     Code/wxKnutAttackAIAction.h
     Analysis/PC/wxKnutAttackAIActionAbi.h
+    Analysis/Host/wxAIAttackStateStorageHost.h
+    Code/wxSpiderAttackAIAction.h
+    Code/wxSpiderAttackAIAction.cpp
+    Analysis/PC/wxSpiderAttackAIActionAbi.h
+    Code/wxShadowBeastAttackAIAction.h
+    Code/wxShadowBeastAttackAIAction.cpp
+    Analysis/PC/wxShadowBeastAttackAIActionAbi.h
+    Code/wxKikoMovingAIAction.h
+    Code/wxKikoMovingAIAction.cpp
+    Analysis/PC/wxKikoMovingAIActionAbi.h
+    Code/wxIceWormHolesAIAction.h
+    Code/wxIceWormHolesAIAction.cpp
+    Analysis/PC/wxIceWormHolesAIActionAbi.h
     Code/wxYetiAttackAIAction.cpp
     Code/wxYetiAttackAIAction.h
     Analysis/Host/wxAIActionCommandExitHost.h
@@ -1026,7 +1039,7 @@ if(BUILD_TESTING)
     target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
     add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
     set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
-    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
         add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
         target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
         add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)

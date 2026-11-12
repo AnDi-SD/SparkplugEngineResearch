@@ -98,6 +98,7 @@
 - [spCinematicManager](sp-cinematic-manager.md).
 - [spCollisionInfo](sp-collision-info.md).
 - [spColorFuncEvalSerializer](sp-color-func-eval-serializer.md).
+- [spContactConstraint](sp-contact-constraint.md).
 - [spController / spSubController](sp-controller.md).
 - [spCrossPlatform](sp-cross-platform.md).
 - [spCubeTexture](sp-cube-texture.md).
@@ -326,8 +327,10 @@
 - [wxIceGargoyleWithdrawlAIAction](wx-ice-gargoyle-withdrawl-ai-action.md).
 - [wxIceWormAttackAIAction](wx-ice-worm-attack-ai-action.md).
 - [wxIceWormAttackState](wx-ice-worm-attack-state.md).
+- [wxIceWormHolesAIAction](wx-ice-worm-holes-ai-action.md).
 - [wxIcyAttackAIAction](wx-icy-attack-ai-action.md).
 - [wxKikoHoleAIAction](wx-kiko-hole-ai-action.md).
+- [wxKikoMovingAIAction](wx-kiko-moving-ai-action.md).
 - [wxKnutAttackAIAction](wx-knut-attack-ai-action.md).
 - [wxKnutAttackState](wx-knut-attack-state.md).
 - [wxLoadSaveGameFlowState](wx-load-save-game-flow-state.md).
@@ -344,7 +347,9 @@
 - [wxPS2App](wx-ps2-app.md).
 - [wxPullLeverState](wx-pull-lever-state.md).
 - [wxReadingState](wx-reading-state.md).
+- [wxShadowBeastAttackAIAction](wx-shadow-beast-attack-ai-action.md).
 - [wxShadowBeastDefenseState](wx-shadow-beast-defense-state.md).
+- [wxSpiderAttackAIAction](wx-spider-attack-ai-action.md).
 - [wxSpiderAttackState](wx-spider-attack-state.md).
 - [wxSpiderHurtState](wx-spider-hurt-state.md).
 - [wxStickingLeftState и wxStickingRightState](wx-sticking-states.md).

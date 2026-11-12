@@ -241,6 +241,37 @@ add_library(SparkplugEngine STATIC
     Analysis/Host/LegacySortPolicy.h
     Code/Sparkplug/spBoundingVolume.cpp
     Code/Sparkplug/spBoundingVolume.h
+    Code/Sparkplug/spBoundingVolumeQueries.cpp
+    Code/Sparkplug/spBoundingVolumeQueries.h
+    Analysis/PC/spSphereContactMath.h
+    Analysis/PC/spSphereContactAbi.h
+    Code/Sparkplug/spContactConstraint.cpp
+    Code/Sparkplug/spContactConstraint.h
+    Analysis/PC/spContactConstraintAbi.h
+    Code/Sparkplug/spConstraintValueQueries.cpp
+    Code/Sparkplug/spConstraintValueQueries.h
+    Analysis/PC/spContactTangentMath.h
+    Analysis/PC/spConstraintValueQueriesAbi.h
+    Code/Sparkplug/spContactRowQueries.cpp
+    Code/Sparkplug/spContactRowQueries.h
+    Analysis/PC/spContactRowMath.h
+    Analysis/PC/spContactRowAbi.h
+    Code/Sparkplug/spContactTwoBodyMultirowQueries.h
+    Code/Sparkplug/spContactTwoBodyMultirowQueries.cpp
+    Analysis/PC/spContactTwoBodyMultirowMath.h
+    Analysis/PC/spContactTwoBodyMultirowAbi.h
+    Code/Sparkplug/spContactProvidedTangentQueries.h
+    Code/Sparkplug/spContactProvidedTangentQueries.cpp
+    Analysis/PC/spContactProvidedTangentMath.h
+    Analysis/PC/spContactProvidedTangentAbi.h
+    Code/Sparkplug/spContactMultirowQueries.h
+    Code/Sparkplug/spContactMultirowQueries.cpp
+    Analysis/PC/spContactMultirowMath.h
+    Analysis/PC/spContactMultirowAbi.h
+    Code/Sparkplug/spContactTwoBodyRowQueries.h
+    Code/Sparkplug/spContactTwoBodyRowQueries.cpp
+    Analysis/PC/spContactTwoBodyRowMath.h
+    Analysis/PC/spContactTwoBodyRowAbi.h
     Code/Sparkplug/spOBBBV.cpp
     Code/Sparkplug/spOBBBV.h
     Code/Sparkplug/spSphereBV.cpp
@@ -1225,6 +1256,38 @@ if(BUILD_TESTING)
     add_test(NAME SparkplugMeshReaderTests COMMAND SparkplugMeshReaderTests)
     set_tests_properties(SparkplugMeshReaderTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugNodeSerializationTests Tests/spNodeSerializationTests.cpp)
+    add_executable(SparkplugSphereContactTests Tests/spBoundingVolumeQueriesTests.cpp)
+    target_link_libraries(SparkplugSphereContactTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugSphereContactTests COMMAND SparkplugSphereContactTests)
+    set_tests_properties(SparkplugSphereContactTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactConstraintTests Tests/spContactConstraintTests.cpp)
+    target_link_libraries(SparkplugContactConstraintTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactConstraintTests COMMAND SparkplugContactConstraintTests)
+    set_tests_properties(SparkplugContactConstraintTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugConstraintValueQueriesTests Tests/spConstraintValueQueriesTests.cpp)
+    target_link_libraries(SparkplugConstraintValueQueriesTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugConstraintValueQueriesTests COMMAND SparkplugConstraintValueQueriesTests)
+    set_tests_properties(SparkplugConstraintValueQueriesTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactRowsTests Tests/spContactRowQueriesTests.cpp)
+    target_link_libraries(SparkplugContactRowsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactRowsTests COMMAND SparkplugContactRowsTests)
+    set_tests_properties(SparkplugContactRowsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactTwoBodyMultirowsTests Tests/spContactTwoBodyMultirowQueriesTests.cpp)
+    target_link_libraries(SparkplugContactTwoBodyMultirowsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactTwoBodyMultirowsTests COMMAND SparkplugContactTwoBodyMultirowsTests)
+    set_tests_properties(SparkplugContactTwoBodyMultirowsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactProvidedTangentsTests Tests/spContactProvidedTangentQueriesTests.cpp)
+    target_link_libraries(SparkplugContactProvidedTangentsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactProvidedTangentsTests COMMAND SparkplugContactProvidedTangentsTests)
+    set_tests_properties(SparkplugContactProvidedTangentsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactMultirowsTests Tests/spContactMultirowQueriesTests.cpp)
+    target_link_libraries(SparkplugContactMultirowsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactMultirowsTests COMMAND SparkplugContactMultirowsTests)
+    set_tests_properties(SparkplugContactMultirowsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactTwoBodyRowsTests Tests/spContactTwoBodyRowQueriesTests.cpp)
+    target_link_libraries(SparkplugContactTwoBodyRowsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactTwoBodyRowsTests COMMAND SparkplugContactTwoBodyRowsTests)
+    set_tests_properties(SparkplugContactTwoBodyRowsTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugCollisionCoreTests Tests/spCollisionCoreTests.cpp)
     target_link_libraries(SparkplugCollisionCoreTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugCollisionCoreTests COMMAND SparkplugCollisionCoreTests)

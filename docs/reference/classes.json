@@ -834,8 +834,12 @@
       "registrationBaseIds": {
         "pc": "0x86CD6780"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/sp-contact-constraint.md"
+      ],
+      "sources": [
+        "Sparkplug/Code/Sparkplug/spContactConstraint.h"
+      ]
     },
     {
       "name": "spController",
@@ -9863,8 +9867,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-ice-worm-holes-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIceWormHolesAIAction.h"
+      ]
     },
     {
       "name": "wxIceWormHolesState",
@@ -10123,8 +10131,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-kiko-moving-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxKikoMovingAIAction.h"
+      ]
     },
     {
       "name": "wxKikoStateMachine",
@@ -11837,8 +11849,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-shadow-beast-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxShadowBeastAttackAIAction.h"
+      ]
     },
     {
       "name": "wxShadowBeastAttackState",
@@ -12202,8 +12218,12 @@
         "pc": "0x490A6EB5",
         "ps2": "0x490A6EB5"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-spider-attack-ai-action.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiderAttackAIAction.h"
+      ]
     },
     {
       "name": "wxSpiderAttackState",
