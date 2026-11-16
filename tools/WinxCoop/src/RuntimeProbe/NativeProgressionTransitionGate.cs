@@ -58,6 +58,7 @@ internal sealed class NativeProgressionTransitionGate
     private readonly Action<object> _log;
     private readonly WorldStateRole _role;
     private readonly bool _story3;
+    private readonly CampaignSceneProfile? _campaign;
     private readonly uint _progressionEpoch, _progressionGeneration;
     private readonly IntPtr _process;
     private readonly uint _pid, _thread;
@@ -81,18 +82,18 @@ internal sealed class NativeProgressionTransitionGate
 
     internal NativeProgressionTransitionGate(DebuggerHost host, PEReader image, Action<object> log,
         WorldStateRole role, uint progressionSceneLevel = 28, ProgressionControlPermit? progressionControl = null,
-        WorldStateIdentity? progressionWorld = null)
+        WorldStateIdentity? progressionWorld = null, CampaignSceneProfile? campaign = null)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(log);
         Require(role is WorldStateRole.Host or WorldStateRole.Guest && host.IsAtDebugStop &&
             host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 && host.MainThreadId != 0 &&
             host.ImageBase == 0x400000, "Progression gate requires its explicit role and owned original debug stop.");
-        Require(progressionSceneLevel == 28 || progressionSceneLevel == 3 &&
+        Require(campaign?.Admits(progressionSceneLevel) == true || progressionSceneLevel == 28 || progressionSceneLevel == 3 &&
             progressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 } &&
             progressionWorld is { } world && world.Role == role && world.LevelEpoch > 0 && world.Generation > 0,
             "Story3 transition authority requires its explicit progression permit and role-matched scene identity.");
-        _story3 = progressionSceneLevel == 3;
+        _story3 = progressionSceneLevel == 3; _campaign = campaign;
         _progressionEpoch = progressionWorld?.LevelEpoch ?? 0; _progressionGeneration = progressionWorld?.Generation ?? 0;
         Require(Convert.ToHexString(SHA256.HashData(image.GetEntireImage().GetContent().ToArray())) ==
             "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
@@ -174,7 +175,7 @@ internal sealed class NativeProgressionTransitionGate
         uint flow = U(0x755294);
         if (flow == 0 || U(flow) != FlowTable) return;
         uint depth = U(flow + 0x1AC), current = U(flow + 0x1B0);
-        if (depth == uint.MaxValue || current is not (28 or 47) && !(current == 3 && _story3) || U(flow + 0x1B8) != 0) return;
+        if (depth == uint.MaxValue || current is not (28 or 47) && !(current == 3 && _story3) && _campaign?.Admits(current) != true || U(flow + 0x1B8) != 0) return;
         Require(depth < 20, "Progression ready Flow stack exceeds its original twenty slots.");
         uint playing = P(flow + 0x15C + depth * 4), table = U(playing);
         uint expected = current == 47 ? 0x7105C8u : 0x710874u;

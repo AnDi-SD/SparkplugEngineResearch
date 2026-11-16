@@ -1,4 +1,5 @@
 #include "../src/WorldState/WorldStateSession.h"
+#include "../src/WorldState/ActorLeasePolicy.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -77,6 +78,63 @@ namespace
         SessionIdentity id{11,22,33,1,1};Session host{Role::Host,id},guest{Role::Guest,id};
         Pair() {Check(host.ObserveActor(Availability::Ready,1),"host world ready");Check(guest.ObserveActor(Availability::Ready,1),"guest world ready");Flush(host,guest);}
     };
+    void BoundedInitialNativeLease()
+    {
+        ActorStatus actor;actor.availability=static_cast<unsigned>(Availability::Initializing);
+        actor.observedAtMilliseconds=1000;
+        ActorLeasePolicy initial(Role::Guest,2000);
+        Check(initial.Observe(1000,actor)==Terminal::None,"Guest explicitly begins initial native construction");
+        Check(initial.Check(3599,actor)==Terminal::None,"2599ms first visual interval may exceed ordinary2s lease without a fake heartbeat");
+        actor.observedAtMilliseconds=20000;
+        Check(initial.Observe(20000,actor)==Terminal::None,"real later native observations may refresh initialization status");
+        Check(initial.Check(31000,actor)==Terminal::None,"initial bound has an exact inclusive30s deadline");
+        actor.observedAtMilliseconds=31001;
+        Check(initial.Observe(31001,actor)==Terminal::ActorLeaseExpired,"fresh heartbeats do not extend the first fixed30s deadline");
+        actor.availability=static_cast<unsigned>(Availability::Waiting);
+        Check(initial.Check(31001,actor)==Terminal::ActorLeaseExpired,"Waiting cannot reset an unfinished initialization budget");
+
+        actor={};actor.availability=static_cast<unsigned>(Availability::Initializing);actor.observedAtMilliseconds=1000;
+        ActorLeasePolicy promoted(Role::Guest,2000);
+        Check(promoted.Observe(1000,actor)==Terminal::None,"second independent owner begins initialization");
+        actor.availability=static_cast<unsigned>(Availability::Ready);actor.observedAtMilliseconds=5000;
+        Check(promoted.Observe(5000,actor)==Terminal::NativeApply,"Ready cannot promote initialization without its actual complete native ACK fields");
+        actor.appliedEpoch=1;actor.appliedRevision=7;
+        Check(promoted.Observe(5000,actor)==Terminal::None,"first complete native receipt starts ordinary Ready lease");
+        Check(promoted.Check(7000,actor)==Terminal::None&&promoted.Check(7001,actor)==Terminal::ActorLeaseExpired,
+            "unchanged cached Ready expires after2s even while the process is live or a publication remains odd");
+        actor.availability=static_cast<unsigned>(Availability::Initializing);actor.appliedEpoch=0;actor.appliedRevision=0;
+        Check(promoted.Observe(5001,actor)==Terminal::Identity,"native-ready endpoint cannot return to initializing");
+        ActorLeasePolicy host(Role::Host,2000);
+        Check(host.Observe(5001,actor)==Terminal::Identity,"Host does not gain a Guest construction allowance");
+        actor.availability=static_cast<unsigned>(Availability::Ready);actor.observedAtMilliseconds=5000;
+        Check(host.Observe(7001,actor)==Terminal::ActorLeaseExpired,"existing direct Ready admission keeps its short stale-observation fence");
+    }
+    void InitializationDoesNotAcknowledgeNativeApply()
+    {
+        SessionIdentity id{11,22,33,1,1};Session host(Role::Host,id),guest(Role::Guest,id);
+        Check(host.ObserveActor(Availability::Ready,1)&&guest.ObserveActor(Availability::Initializing,1),
+            "transport admits the quarantined Guest independently of native readiness");
+        Flush(host,guest);
+        Check(host.OfferSnapshot(State(1)),"Host snapshot does not wait for Guest input readiness");Flush(host,guest);
+        const auto delivery=guest.TakeReceivedSnapshot();
+        Check(delivery&&delivery->revision==1&&host.AppliedRevision()==0&&guest.AppliedSnapshotCount()==0&&
+            host.State()==Phase::Connected&&guest.State()==Phase::Connected,
+            "delivery and initialization remain Connected with no fabricated ACK");
+        const auto epoch=guest.Epoch();
+        Check(guest.ObserveActor(Availability::Ready,2)&&guest.Epoch()==epoch&&!guest.PeekOutbound()&&guest.AppliedSnapshotCount()==0,
+            "one initial promotion preserves exact epoch and still sends no acknowledgement by itself");
+        Check(guest.ObserveApplied(epoch,1),"only an explicit native receipt qualifies that exact full delivery");Flush(host,guest);
+        Check(host.AppliedRevision()==1&&guest.AppliedSnapshotCount()==1&&host.State()==Phase::Ready&&guest.State()==Phase::Ready,
+            "first complete apply reaches actual Ready through the ordinary exact ACK path");
+        Check(!guest.ObserveActor(Availability::Initializing,3)&&guest.Failure()==Terminal::Identity,
+            "second initialization is terminal in the same native channel");
+
+        Session before(Role::Guest,id),beforeHost(Role::Host,id);
+        Check(beforeHost.ObserveActor(Availability::Ready,1)&&before.ObserveActor(Availability::Initializing,1),"independent negative initialization");
+        Flush(beforeHost,before);Check(beforeHost.OfferSnapshot(State(1)),"negative full snapshot");Flush(beforeHost,before);
+        Check(before.TakeReceivedSnapshot().has_value()&&!before.ObserveApplied(1,1)&&before.Failure()==Terminal::NativeApply,
+            "Initializing cannot publish an applied receipt without the explicit native-ready transition");
+    }
     void ScalarRoundTripAndValidation()
     {
         auto s=State(1);s.flags=NativePaused;s.entities={Actor(100)};
@@ -413,7 +471,8 @@ namespace
 }
 int main()
 {
-    try {ScalarRoundTripAndValidation();EntrySeedValidation();StarPresentationValidation();ExtendedSnapshotValidation();
+    try {BoundedInitialNativeLease();InitializationDoesNotAcknowledgeNativeApply();
+        ScalarRoundTripAndValidation();EntrySeedValidation();StarPresentationValidation();ExtendedSnapshotValidation();
         FragmentBoundaries();ExtendedSessionAndSeedIdentity();FreshSessionFullResynchronization();
         NativeAckAndAbsoluteCoalescing();FailClosedAndWaitingHello();
         LocalWaitingDrainsAlreadyCommittedSnapshot();WaitingDrainKeepsAuthorityAndSequenceFences();

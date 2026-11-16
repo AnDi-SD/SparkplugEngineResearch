@@ -16,6 +16,15 @@ internal static class NativeRetirementReceipts
         Digest = P.Digest32.FromBytes(SHA256.HashData(Encoding.ASCII.GetBytes("WinxCoop.PC.3F022480.Alfea28.entry0")))
     };
 
+    internal static P.Descriptor DescriptorFor(uint level, bool campaign)
+    {
+        if (!campaign) { Require(level == 28, "Alfea descriptor changed its native level."); return Descriptor; }
+        var admitted = new CampaignSceneProfile();
+        Require(admitted.Admits(level), "Campaign descriptor lacks its admitted native scene.");
+        return new() { Level = level, Entry = 0,
+            Digest = P.Digest32.FromBytes(Convert.FromHexString(admitted.DescriptorSha256)) };
+    }
+
     internal static P.RetirementReceipt Build(RoleActor actor, P.Scene scene)
     {
         Require(actor.Epoch == scene.LevelEpoch && actor.Generation == scene.Generation,
@@ -70,7 +79,7 @@ internal static class NativeRetirementReceipts
 
     internal static P.EntryReceipt HostEntry(RoleActor actor, EntrySnapshotCapture capture, BootstrapPeer.Assignment assignment)
     {
-        Require(actor.Role == "host" && capture.Level == 28 && capture.LevelEpoch == assignment.LevelEpoch &&
+        Require(actor.Role == "host" && capture.Level == assignment.Level && capture.LevelEpoch == assignment.LevelEpoch &&
             capture.Generation == assignment.Generation && capture.Seed.Length == 448 && capture.Witness.Length == 64,
             "Host entry capture differs from the assigned native generation.");
         return Entry(actor, assignment, capture.Seed, capture.Witness, capture.HostEntryOrdinal, actor.Epoch == 1 ? 1u : 2u);
@@ -91,7 +100,7 @@ internal static class NativeRetirementReceipts
         JsonObject actual = actor.Last("world-entry-native-qualified") ?? throw new InvalidDataException("Actual native entry World is missing.");
         JsonObject returned = actor.Last("world-entry-load-returned") ?? throw new InvalidDataException("Actual native Load return is missing.");
         string seedHash = Hash(seed), witnessHash = Hash(witness);
-        Require(U(actual, "level") == 28 && U(actual, "levelEpoch") == assignment.LevelEpoch && U(actual, "generation") == assignment.Generation &&
+        Require(U(actual, "level") == assignment.Level && U(actual, "levelEpoch") == assignment.LevelEpoch && U(actual, "generation") == assignment.Generation &&
             U(actual, "nativeLocalEntryOrdinal") == localOrdinal && U(actual, "hostEntryOrdinal") == authoritativeOrdinal &&
             S(actual, "preSeedHash") == seedHash && S(actual, "witnessHash") == witnessHash &&
             U(returned, "nativeLocalEntryOrdinal") == localOrdinal && U(returned, "hostEntryOrdinal") == authoritativeOrdinal &&
@@ -102,7 +111,7 @@ internal static class NativeRetirementReceipts
                 "Continued Host entry lacks the original whole-checkpoint bootstrap.");
         return new()
         {
-            Scene = assignment.Scene, Descriptor = Descriptor, Channels = assignment.Channels,
+            Scene = assignment.Scene, Descriptor = DescriptorFor(assignment.Level, actor.Campaign), Channels = assignment.Channels,
             Seed = P.Digest32.FromBytes(Convert.FromHexString(seedHash)), Witness = P.Digest32.FromBytes(Convert.FromHexString(witnessHash)),
             LocalEntryOrdinal = localOrdinal, OriginalLoadReturned = 1, ActualReadyNativeWorld = 1
         };

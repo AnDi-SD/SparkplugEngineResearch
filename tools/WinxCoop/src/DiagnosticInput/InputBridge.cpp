@@ -65,6 +65,7 @@ namespace
     struct Options
     {
         Role role = Role::Host;
+        bool interactiveSession = false;
         TcpTransportConfig tcp;
         std::wstring mapping;
         std::filesystem::path ready, report;
@@ -95,14 +96,17 @@ namespace
             else if(key == L"--level-epoch") o.levelEpoch = static_cast<std::uint32_t>(Number(value, UINT32_MAX));
             else if(key == L"--generation") o.generation = static_cast<std::uint32_t>(Number(value, UINT32_MAX));
             else if(key == L"--credits") o.credits = static_cast<std::uint32_t>(Number(value, MaximumCredits));
-            else if(key == L"--run-ms") o.runMilliseconds = Number(value, 600000);
-            else if(key == L"--max-samples") o.maxSamples = static_cast<std::uint32_t>(Number(value, 65536));
+            else if(key == L"--interactive-session") { if(value != L"1") throw std::invalid_argument("Explicit interactive-session requires1"); o.interactiveSession = true; }
+            else if(key == L"--run-ms") o.runMilliseconds = Number(value, 14400000);
+            else if(key == L"--max-samples") o.maxSamples = static_cast<std::uint32_t>(Number(value, 14400000));
             else if(key == L"--actor-lease-ms") o.actorLeaseMilliseconds = static_cast<std::uint32_t>(Number(value, 5000));
             else if(key == L"--token") o.token = static_cast<std::uint16_t>(Number(value, 65535));
             else if(key == L"--ready-file") o.ready = value;
             else if(key == L"--report") o.report = value;
             else throw std::invalid_argument("Unknown diagnostic option");
         }
+        if(!o.interactiveSession && (o.runMilliseconds > 600000 || o.maxSamples > 65536))
+            throw std::invalid_argument("Long input lifetime requires explicit interactive-session");
         const std::wstring prefix = L"Local\\WinxCoop.DiagnosticInput5.";
         if(!role || !bind || !o.nonce || !o.session || !o.scenario || !o.levelEpoch || !o.generation ||
             !o.credits || !o.maxSamples || !o.token || o.runMilliseconds < 100 || o.actorLeaseMilliseconds < 500 ||

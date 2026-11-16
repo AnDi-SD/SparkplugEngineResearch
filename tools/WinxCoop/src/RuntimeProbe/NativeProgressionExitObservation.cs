@@ -32,13 +32,13 @@ internal sealed class NativeProgressionExitObservation
         uint Esi, uint Edi, uint EFlags, uint EntryStack, uint EntryCurrent, uint EntryPending);
 
     internal NativeProgressionExitObservation(DebuggerHost host, PEReader image, Action<object> log,
-        uint playingLevel = 28, ProgressionControlPermit? progressionControl = null)
+        uint playingLevel = 28, ProgressionControlPermit? progressionControl = null, CampaignSceneProfile? campaign = null)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image); ArgumentNullException.ThrowIfNull(log);
         Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 &&
             host.MainThreadId != 0 && host.ImageBase == 0x400000,
             "Progression Exit observation requires its owned original main-thread debug stop.");
-        Require(playingLevel == 28 || playingLevel == 3 &&
+        Require(campaign?.Admits(playingLevel) == true || playingLevel == 28 || playingLevel == 3 &&
             progressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 },
             "Story3 Exit observation requires its explicit closed progression owner permit.");
         _playingLevel = playingLevel;

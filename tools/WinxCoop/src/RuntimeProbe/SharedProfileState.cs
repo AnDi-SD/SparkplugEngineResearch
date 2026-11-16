@@ -48,7 +48,7 @@ internal sealed class SharedProfileState
     internal const int PayloadBytes = 411;
     private const uint ProfileTable = 0x6F5A44, ManagerTable = 0x6FDEDC;
     private const uint InstanceTable = 0x710F80, NodeTable = 0x6DC4F4;
-    private const uint MaximumSnapshots = 100000;
+    private static uint MaximumSnapshots => NativeObservationBudget.SnapshotLimit;
     private readonly DebuggerHost _host;
     private readonly Action<object> _log;
     private readonly bool _guestApply;

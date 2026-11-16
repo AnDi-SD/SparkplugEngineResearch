@@ -61,7 +61,7 @@ internal sealed class NativeInputCapture
     internal NativeInputCapture(DebuggerHost host, PEReader image, DiagnosticInputClient client, Action<object> log,
         bool ordinaryAttack = false, int heartbeatMilliseconds = 50, bool traceEdges = false,
         bool limitContinuousChanges = false, uint? qualifiedSceneLevel = null,
-        ProgressionControlPermit? progressionControl = null, bool progressionNeutralCaptureWhileUnfocused = false)
+        ProgressionControlPermit? progressionControl = null, bool progressionNeutralCaptureWhileUnfocused = false, CampaignSceneProfile? campaign = null)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(client); ArgumentNullException.ThrowIfNull(log);
@@ -71,13 +71,13 @@ internal sealed class NativeInputCapture
         _limitContinuousChanges = limitContinuousChanges;
         uint legacyLevel = ordinaryAttack ? 47u : 28u;
         _level = qualifiedSceneLevel ?? legacyLevel;
-        Require(_level == legacyLevel || _level == 3 && !ordinaryAttack &&
+        Require(campaign?.Admits(_level) == true || _level == legacyLevel || _level == 3 && !ordinaryAttack &&
             progressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 },
             "Native input scene selection requires its legacy cohort or explicit controlled Gardenia03 progression permit.");
-        _progressionRetirementAllowed = !ordinaryAttack && (_level is 28 or 3) &&
+        _progressionRetirementAllowed = !ordinaryAttack && (_level is 28 or 3 || campaign?.Admits(_level) == true) &&
             progressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 };
         _progressionNeutralCaptureWhileUnfocused = progressionNeutralCaptureWhileUnfocused;
-        Require(!progressionNeutralCaptureWhileUnfocused || _level == 28 && !ordinaryAttack && _progressionRetirementAllowed,
+        Require(!progressionNeutralCaptureWhileUnfocused || (_level == 28 || campaign?.Admits(_level) == true) && !ordinaryAttack && _progressionRetirementAllowed,
             "Unfocused neutral capture requires controlled Alfea Guest input without ordinary attack capture.");
         _playingTable = ordinaryAttack ? 0x7105C8u : 0x710874u;
         if (!host.IsAtDebugStop || host.ProcessHandle == IntPtr.Zero || host.ProcessPid == 0 || host.ImageBase != 0x400000 ||
@@ -146,7 +146,7 @@ internal sealed class NativeInputCapture
         EnsureStop();
         Require(tid == _host.MainThreadId && address == InputReturn && context.Eip == InputReturn && Read(InputReturn, 1)[0] == 0xC3,
             "Native capture was not called at the original main-thread UserInput RET.");
-        Require(++_nativeReturns <= 1000000, "Native capture observation budget exceeded.");
+        Require(++_nativeReturns <= NativeObservationBudget.InputReturnLimit, "Native capture observation budget exceeded.");
         try
         {
             if (!mediaVerified) { Disarm("media-not-ready"); _client.SetAvailability(DiagnosticInputAvailability.Waiting); return; }

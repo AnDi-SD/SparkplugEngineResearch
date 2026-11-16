@@ -53,6 +53,9 @@ namespace winxcoop::adapter
         std::wstring game, adapter, report, media, mode = L"observe";
         std::uint32_t seconds{};
         OwnedGamePolicy policy = OwnedGamePolicy::DiagnosticProbe;
+        // GameHost CLI defaults to menu-first with seconds0: no game lifetime
+        // timer. DiagnosticProbe remains explicitly bounded and non-menu-first.
+        bool menuFirst{};
         ExternalRuntimeBinding external;
     };
     struct OwnedGameResult final
@@ -67,7 +70,8 @@ namespace winxcoop::adapter
     // One sequential owner thread. This engine creates exactly one child and
     // never attaches to an existing game. The GameHost policy only reads the
     // GUI's runtime mapping; the GUI remains its sole command writer. Registry
-    // preparation belongs to the existing outer helper, outside this module.
+    // Menu-first GameHost starts the installed game without a registry/media
+    // preparation helper. Explicit legacy diagnostics may retain the old outer.
     class OwnedGameProcess final
     {
     public:

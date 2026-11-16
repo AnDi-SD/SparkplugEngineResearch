@@ -24,6 +24,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="src/SessionHost/**/*.cs" />
+    <Compile Include="src/RuntimeProbe/CampaignSceneProfile.cs" Link="CampaignSceneProfile.cs" />
+    <Compile Include="src/RuntimeProbe/InteractiveSessionLimits.cs" Link="InteractiveSessionLimits.cs" />
     <ProjectReference Include="WinxCoop.SessionRuntime.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

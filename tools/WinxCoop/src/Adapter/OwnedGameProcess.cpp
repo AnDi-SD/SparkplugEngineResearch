@@ -26,8 +26,6 @@ namespace
     constexpr SIZE_T PageBytes = 4096, PathOffset = 512, StartOffset = 1536, ResultLoad = 4088, ResultStart = 4092;
     constexpr ULONGLONG BootstrapLimit = 30000, WorldWitnessLimit = 5000, LogLimit = 16ull * 1024 * 1024;
     constexpr std::array<BYTE,16> WorldCallerSignature{{0x8b,0x4e,0x40,0x8b,0x01,0xff,0x50,0x28,0xa1,0x84,0xdb,0x75,0x00,0x85,0xc0,0x5e}};
-    constexpr std::array<BYTE,32> GameHash{{0x3f,0x02,0x24,0x80,0xbf,0x55,0x04,0x5d,0xa4,0xbf,0x69,0x2e,0x4b,0xc8,0x86,0x2e,
-        0xd3,0x8f,0xc0,0x24,0xe8,0xa9,0x64,0xa5,0x58,0xfb,0xdf,0xdf,0x64,0x6d,0xfc,0x4f}};
 
     struct Handle
     {
@@ -381,8 +379,8 @@ namespace
             LocalFree(args.p); args.p=nullptr; raw=CommandLineToArgvW(sidecar.c_str(),&count); if(!raw) Error("Sidecar command line invalid"); args.p=raw;
         }
         Options options; options.policy=policy;
-        if(policy==OwnedGamePolicy::GameHost)options.mode=L"passive-actor";
-        bool game=false,adapter=false,report=false,seconds=false,mode=false,media=false;
+        if(policy==OwnedGamePolicy::GameHost){options.mode=L"passive-actor";options.menuFirst=true;}
+        bool game=false,adapter=false,report=false,seconds=false,mode=false,media=false,menuFirst=false;
         bool runtime=false,status=false,stop=false,owner=false,created=false,nonce=false,session=false,epoch=false;
         for(int i=1;i<count;++i)
         {
@@ -390,7 +388,9 @@ namespace
             if(key==L"--game" && !game) { options.game=Absolute(value,MAX_PATH);game=true; }
             else if(key==L"--adapter" && !adapter) { options.adapter=Absolute(value,MAX_PATH);adapter=true; }
             else if(key==L"--report" && !report) { options.report=Absolute(value,MAX_PATH-16);report=true; }
-            else if(key==L"--seconds" && !seconds) { options.seconds=Number(value,policy==OwnedGamePolicy::GameHost?3600:600);seconds=true; }
+            else if(key==L"--seconds" && !seconds) { options.seconds=policy==OwnedGamePolicy::GameHost && value==L"0"?0:Number(value,policy==OwnedGamePolicy::GameHost?3600:600);seconds=true; }
+            else if(policy==OwnedGamePolicy::GameHost && key==L"--menu-first" && !menuFirst)
+                {Require(value==L"0" || value==L"1","--menu-first expects0 or1");options.menuFirst=value==L"1";menuFirst=true;}
             else if(key==L"--mode" && !mode) { options.mode=value;mode=true; }
             else if(key==L"--media" && !media) { options.media=Absolute(value,MAX_PATH-40);media=true; }
             else if(policy==OwnedGamePolicy::GameHost && key==L"--mapping" && !runtime)
@@ -411,7 +411,7 @@ namespace
                 {options.external.levelEpoch=static_cast<DWORD>(NonzeroDecimal(value,MAXDWORD));epoch=true;}
             else throw std::runtime_error("Unknown or repeated option");
         }
-        Require(game && adapter && report && seconds,"Expected --game --adapter --report --seconds");
+        Require(game && adapter && report && (seconds || options.menuFirst),"Expected --game --adapter --report and bounded --seconds outside menu-first service");
         Require(options.mode==L"observe" || options.mode==L"passive-actor" || options.mode==L"passive-unload","Unknown adapter probe mode");
         Require((options.mode==L"observe")==!media,"Passive modes require --media; observer must not supply it");
         if(policy==OwnedGamePolicy::GameHost)
@@ -462,7 +462,8 @@ namespace winxcoop::adapter
         unsigned bootstrap=0;
         CONTEXT saved{};
         std::array<BYTE,16> callerOriginalBytes{};
-        ULONGLONG began=0,bootstrapBegan=0,lastSample=0,logBytes=0;
+        ULONGLONG began=0,bootstrapBegan=0,lastSample=0,logBytes=0,lastSnapshotLog=0,gameCreationTime=0,helperCreationTime=0;
+        bool logCapNotice{},visualRetirementLogged{};
         RuntimeSnapshot latest{};
         RuntimeCommand pendingCommand{};
         std::uint32_t commandsSent{},commandsAcknowledged{},scriptStep{};
@@ -494,17 +495,28 @@ namespace winxcoop::adapter
         }
         void Log(const std::string& value)
         {
+            if(MenuFirst())
+            {
+                if(logCapNotice)return;
+                if(logBytes+value.size()+1>LogLimit*4-512)
+                {
+                    const std::string notice="{\"event\":\"event-log-cap-reached\",\"furtherEventDiagnosticsSuppressed\":true,\"gameStopRequested\":false,\"finalReportAndStatusRemainSeparate\":true}\n";
+                    WriteAll(events.value,notice);logBytes+=notice.size();logCapNotice=true;return;
+                }
+            }
             Require(logBytes+value.size()+1<=(Service()?LogLimit*4:LogLimit),"Event log reached its bounded policy limit");
             WriteAll(events.value,value+'\n'); logBytes+=value.size()+1;
         }
         bool Service() const noexcept { return options.policy==OwnedGamePolicy::GameHost; }
+        bool MenuFirst() const noexcept { return Service() && options.menuFirst; }
         void OwnerThread() const { Require(GetCurrentThreadId()==ownerThread,"OwnedGameProcess methods require their original owner thread"); }
         void ValidateConfiguration()
         {
             OwnerThread();options.game=Absolute(options.game,MAX_PATH);options.adapter=Absolute(options.adapter,MAX_PATH);
             options.report=Absolute(options.report,MAX_PATH-16);
             Require(options.policy==OwnedGamePolicy::DiagnosticProbe || options.policy==OwnedGamePolicy::GameHost,"Unknown owned game policy");
-            Require(options.seconds>=5 && options.seconds<=(Service()?3600u:600u),"Owned game limit is outside its policy bound");
+            Require(!options.menuFirst || Service(),"Menu-first is a GameHost policy, not a diagnostic bypass");
+            Require(MenuFirst()?options.seconds==0:options.seconds>=5 && options.seconds<=(Service()?3600u:600u),"Menu-first requires seconds0; diagnostic game limit is outside its policy bound");
             Require(options.mode==L"observe" || options.mode==L"passive-actor" || options.mode==L"passive-unload","Unknown owned game diagnostic mode");
             Require((options.mode==L"observe")==options.media.empty(),"Passive mode requires media; observe leaves it empty");
             if(!options.media.empty())options.media=Absolute(options.media,MAX_PATH-40);
@@ -573,12 +585,12 @@ namespace winxcoop::adapter
             if(!Service() || !externalBound || !ExternalIdentity())return;
             GameHostStatusSnapshot value{};
             value.phase=!failure.empty()?GameHostPhase::Failed:engineFinished?GameHostPhase::Stopped:
-                (stopRequested || exitContinued)?GameHostPhase::Stopping:ObserverAdmitted()?GameHostPhase::Running:
+                (stopRequested || exitContinued)?GameHostPhase::Stopping:(ObserverAdmitted() || MenuFirst() && startComplete && contextRestored)?GameHostPhase::Running:
                 engineStarted?GameHostPhase::Bootstrapping:GameHostPhase::Starting;
             value.helperPid=GetCurrentProcessId();value.gamePid=pi.dwProcessId;value.mainThreadId=pi.dwThreadId;value.bootstrapStage=bootstrap;
             value.error=failure.empty()?0:1;value.monotonicMilliseconds=GetTickCount64();value.fullContextRestored=contextRestored?1:0;
             value.worldContextPreserved=ObserverAdmitted()?1:0;
-            value.runtimeReady=failure.empty() && !engineFinished && !stopRequested && !exitContinued && latest.phase==RuntimePhase::Ready?1:0;
+            value.runtimeReady=failure.empty() && !engineFinished && !stopRequested && !exitContinued && ObserverAdmitted() && latest.phase==RuntimePhase::Ready && !latest.epochRetired?1:0;
             value.stopRequested=stopRequested?1:0;value.gameExitCodeKnown=exitKnown?1:0;value.gameExitCode=exitCode;
             value.exitEventContinued=exitContinued?1:0;value.cleanupConfirmed=cleanupConfirmed?1:0;value.forcedTermination=forced?1:0;value.stopReason=stopReason;
             for(std::size_t i=0;i<failure.size() && i+1<sizeof(value.errorText);++i)
@@ -588,6 +600,10 @@ namespace winxcoop::adapter
         void Setup()
         {
             ValidateConfiguration();
+            FILETIME created{},exited{},kernel{},user{};
+            if(!GetProcessTimes(GetCurrentProcess(),&created,&exited,&kernel,&user))Error("GameHost creation identity unavailable");
+            helperCreationTime=(std::uint64_t(created.dwHighDateTime)<<32)|created.dwLowDateTime;
+            Require(helperCreationTime!=0,"GameHost creation identity is empty");
             report.value=CreateFileW(options.report.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
             if(!report.Valid()) Error("Fresh report unavailable");
             events.value=CreateFileW((options.report+L".events.jsonl").c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
@@ -595,7 +611,7 @@ namespace winxcoop::adapter
             gameFile.value=CreateFileW(options.game.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
             adapterFile.value=CreateFileW(options.adapter.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
             if(!gameFile.Valid() || !adapterFile.Valid()) Error("Pinned game/adapter file unavailable");
-            Require(Hash(gameFile.value)==GameHash,"Original game SHA256 differs from qualified image");
+            const auto gameHash=Hash(gameFile.value); // Diagnostic identity, never a compatibility condition.
             const auto adapterHash=Hash(adapterFile.value);gamePe=FilePe(gameFile.value); adapterPe=FilePe(adapterFile.value);
             Require(gamePe.OptionalHeader.ImageBase==0x400000,"Original preferred image base mismatch");
             localAdapter=LoadLibraryExW(options.adapter.c_str(),nullptr,DONT_RESOLVE_DLL_REFERENCES);
@@ -629,7 +645,7 @@ namespace winxcoop::adapter
             }
             CopyMemory(start.mappingName,name.c_str(),(name.size()+1)*sizeof(wchar_t)); pendingStart=start;
             PublishStatus();
-            Log("{\"event\":\"identity-pinned\",\"originalGameSha256Matched\":true,\"adapterSha256\":"+Quote(HexDigest(adapterHash))+",\"imageMachine\":332,\"ipcVersion\":"+std::to_string(IpcVersion)+",\"runtimeSharedBytes\":"+std::to_string(sizeof(RuntimeShared))+
+            Log("{\"event\":\"identity-pinned\",\"gameExecutableSha256\":"+Quote(HexDigest(gameHash))+",\"executableHashIsCompatibilityGate\":false,\"menuFirst\":"+Boolean(MenuFirst())+",\"adapterSha256\":"+Quote(HexDigest(adapterHash))+",\"imageMachine\":332,\"ipcVersion\":"+std::to_string(IpcVersion)+",\"runtimeSharedBytes\":"+std::to_string(sizeof(RuntimeShared))+
                 ",\"runtimeCommandBytes\":"+std::to_string(sizeof(RuntimeCommand))+",\"runtimeAckBytes\":"+std::to_string(sizeof(RuntimeAck))+",\"mode\":"+Quote(options.mode==L"observe"?"observe":options.mode==L"passive-actor"?"passive-actor":"passive-unload")+"}");
         }
         RuntimeStart pendingStart{};
@@ -638,12 +654,16 @@ namespace winxcoop::adapter
             STARTUPINFOW startup{};startup.cb=sizeof(startup);std::wstring command=L'"'+options.game+L'"';
             const auto slash=options.game.find_last_of(L"\\/"); const auto directory=options.game.substr(0,slash);
             if(!CreateProcessW(options.game.c_str(),command.data(),nullptr,nullptr,FALSE,DEBUG_ONLY_THIS_PROCESS|CREATE_NEW_PROCESS_GROUP|CREATE_DEFAULT_ERROR_MODE,nullptr,directory.c_str(),&startup,&pi)) Error("Owned game launch failed");
+            FILETIME created{},exited{},kernel{},user{};
+            if(!GetProcessTimes(pi.hProcess,&created,&exited,&kernel,&user))Error("Owned game creation time unavailable");
+            gameCreationTime=(std::uint64_t(created.dwHighDateTime)<<32)|created.dwLowDateTime;
+            Require(gameCreationTime!=0,"Owned game creation identity is empty");
             if(!DuplicateHandle(GetCurrentProcess(),pi.hProcess,GetCurrentProcess(),&heldProcess.value,0,FALSE,DUPLICATE_SAME_ACCESS) ||
                !DuplicateHandle(GetCurrentProcess(),pi.hThread,GetCurrentProcess(),&heldThread.value,0,FALSE,DUPLICATE_SAME_ACCESS)) Error("Own independent debug handles unavailable");
             if(!DebugSetProcessKillOnExit(TRUE)) Error("Own debugger kill-on-exit policy unavailable");
             pendingStart.gamePid=pi.dwProcessId;pendingStart.mainThreadId=pi.dwThreadId;
             began=GetTickCount64();
-            Log("{\"event\":\"owned-game-start\",\"pid\":"+std::to_string(pi.dwProcessId)+",\"mainThread\":"+std::to_string(pi.dwThreadId)+",\"debugOnlyThisProcess\":true}");
+            Log("{\"event\":\"owned-game-start\",\"pid\":"+std::to_string(pi.dwProcessId)+",\"creationTime\":"+std::to_string(gameCreationTime)+",\"mainThread\":"+std::to_string(pi.dwThreadId)+",\"debugOnlyThisProcess\":true,\"menuFirst\":"+Boolean(MenuFirst())+",\"gameLifetimeLimitEnabled\":"+Boolean(!MenuFirst())+"}");
         }
         CONTEXT Context()
         { CONTEXT c{};c.ContextFlags=FullContext;if(!GetThreadContext(heldThread.value,&c))Error("Full original x86 context unavailable");Require((c.ContextFlags&FullContext)==FullContext,"Incomplete x86 context");return c; }
@@ -716,9 +736,9 @@ namespace winxcoop::adapter
         void CaptureCallerSignature()
         {
             BYTE originalReturnInstruction{};ReadRemote(heldProcess.value,WorldReturn,&originalReturnInstruction,1);
-            Require(originalReturnInstruction==0xC3,"Original world instruction is not the qualified C3");
+            Require(originalReturnInstruction==0xC3,"Unsupported native feature WorldReturn0045A802: expectedC3");
             ReadRemote(heldProcess.value,WorldCaller,callerOriginalBytes.data(),callerOriginalBytes.size());
-            Require(callerOriginalBytes==WorldCallerSignature && callerOriginalBytes[0]!=0xCC,"Original world caller signature differs");
+            Require(callerOriginalBytes==WorldCallerSignature && callerOriginalBytes[0]!=0xCC,"Unsupported native feature WorldCaller0041CDF8: expected16byte prefix");
             callerSignatureCaptured=true;
             Log("{\"event\":\"world-caller-signature-captured\",\"atCreateProcessBeforeAdapter\":true,\"caller\":"+Quote(Hex(WorldCaller))+
                 ",\"firstByte\":"+std::to_string(callerOriginalBytes[0])+",\"signatureBytes\":16}");
@@ -1033,8 +1053,13 @@ namespace winxcoop::adapter
             Require(value.mode==pendingStart.mode && value.session==pendingStart.session && value.levelEpoch==pendingStart.levelEpoch && !value.inputQualified,"Runtime mode/session/input qualification mismatch");
             if(samples && value.worldUpdates==latest.worldUpdates && value.phase==latest.phase)return;
             Require(!samples || value.worldUpdates>=latest.worldUpdates,"Runtime world counter moved backward");
+            const bool stateChanged=!samples || value.phase!=latest.phase || value.error!=latest.error || value.levelId!=latest.levelId ||
+                value.epochRetired!=latest.epochRetired || value.remoteCreated!=latest.remoteCreated || value.remoteRemoved!=latest.remoteRemoved ||
+                value.mediaQualified!=latest.mediaQualified;
             latest=value;++samples;if(value.phase==RuntimePhase::Ready)++readySamples;
             mediaQualifiedObserved=mediaQualifiedObserved || value.mediaQualified!=0;
+            if(MenuFirst() && !force && !stateChanged && now-lastSnapshotLog<1000)return;
+            lastSnapshotLog=now;
             std::string position="[";
             for(unsigned i=0;i<3;++i){if(i)position+=',';position+=std::to_string(value.local.position[i]);}position+=']';
             std::string remotePosition="[";
@@ -1215,10 +1240,18 @@ namespace winxcoop::adapter
             if(InterlockedCompareExchange(&requestedStopSignal,0,0))RequestStop(GameHostStopReason::Requested);
             if(stopRequested || exitContinued)return false;
             Sample();PumpCommands();const auto now=GetTickCount64();
-            if(Service() && latest.epochRetired){RequestStop(GameHostStopReason::RuntimeRetired);PublishStatus();return false;}
+            if(Service() && latest.epochRetired)
+            {
+                if(!MenuFirst()){RequestStop(GameHostStopReason::RuntimeRetired);PublishStatus();return false;}
+                if(!visualRetirementLogged)
+                {
+                    visualRetirementLogged=true;
+                    Log("{\"event\":\"visual-epoch-retired-game-continues\",\"nativeEpochRetired\":true,\"gameStopRequested\":false,\"waitingOnly\":true}");
+                }
+            }
             if((bootstrap==1 || bootstrap==2) && now-bootstrapBegan>BootstrapLimit)throw std::runtime_error("Bootstrap exceeded 30 second call deadline");
             if(worldWitnessStarted && !worldContextWitnessPassed && now-worldWitnessBegan>WorldWitnessLimit)throw std::runtime_error("World caller witness exceeded its five-second deadline");
-            if(now-began>=std::uint64_t(options.seconds)*1000)
+            if(!MenuFirst() && now-began>=std::uint64_t(options.seconds)*1000)
             {
                 timedOut=true;RequestStop(GameHostStopReason::TimeLimit);
                 if(!startComplete)failure="Observation limit reached before adapter bootstrap completed";
@@ -1235,16 +1268,27 @@ namespace winxcoop::adapter
             if(exitContinued && stopReason==GameHostStopReason::None)stopReason=GameHostStopReason::GameExit;
             PublishStatus();return !exitContinued;
         }
+        bool MeasuredMenuExit() const noexcept
+        {
+            // One measured stock-menu exit returns1. Run's WM_QUIT returnsAL1
+            // and CRT forwards WinMain's result, but the virtualized WinMain
+            // body is not fully recovered. Keep this service-only case narrow.
+            return MenuFirst() && exitKnown && exitContinued && exitCode==1 && fatal==0 && !forced && !stopRequested &&
+                stopReason==GameHostStopReason::GameExit && samples>0 && readySamples==0 && latest.levelId==0 &&
+                latest.remoteCreated==0 && latest.remoteRemoved==0 && latest.remoteEntity==0 &&
+                latest.lastCommandSequence==0 && commandsSent==0 && commandsAcknowledged==0;
+        }
         void FinalizeObservation()
         {
             if(observationFinalized)return;observationFinalized=true;
             Sample(true);
-            if(exitContinued && exitCode!=0 && failure.empty())
+            if(exitContinued && exitCode!=0 && !MeasuredMenuExit() && failure.empty())
                 failure="Owned game exited unexpectedly with code "+std::to_string(exitCode);
         }
         bool QualifiedComplete() const noexcept
         {
-            return failure.empty() && startComplete && contextRestored && pageFreed && ObserverAdmitted() &&
+            const bool worldQualified=ObserverAdmitted() || (MenuFirst() && !worldWitnessStarted && !observerWitnessSaved);
+            return failure.empty() && startComplete && contextRestored && pageFreed && worldQualified &&
                 (Service() || options.mode==L"observe" || (actorLifecycleCompleted && ActorFpQualified())) && cleanupConfirmed && fatal==0;
         }
         void Cleanup() noexcept
@@ -1302,6 +1346,7 @@ namespace winxcoop::adapter
             operationWitnesses+=']';
             const std::string actorFields=",\"mode\":"+Quote(options.mode==L"observe"?"observe":options.mode==L"passive-actor"?"passive-actor":"passive-unload")+
                 ",\"ipcVersion\":"+std::to_string(IpcVersion)+",\"commandsSent\":"+std::to_string(commandsSent)+",\"commandsAcknowledged\":"+std::to_string(commandsAcknowledged)+
+                ",\"runtimeLevelId\":"+std::to_string(latest.levelId)+",\"runtimeLastCommandSequence\":"+std::to_string(latest.lastCommandSequence)+
                 ",\"actorLifecycleCompleted\":"+Boolean(actorLifecycleCompleted)+",\"remoteCreated\":"+std::to_string(latest.remoteCreated)+",\"remoteRemoved\":"+std::to_string(latest.remoteRemoved)+
                 ",\"remoteEntity\":"+std::to_string(latest.remoteEntity)+",\"nativeCalls\":"+std::to_string(latest.nativeCalls)+",\"unloadGuardHits\":"+std::to_string(latest.unloadGuardHits)+
                 ",\"unloadCleanups\":"+std::to_string(latest.unloadCleanups)+",\"epochRetired\":"+Boolean(latest.epochRetired!=0)+",\"mediaQualified\":"+Boolean(latest.mediaQualified!=0)+",\"mediaQualifiedObserved\":"+Boolean(mediaQualifiedObserved)+
@@ -1310,8 +1355,12 @@ namespace winxcoop::adapter
                 ",\"actorFpWitnessContextCompletedAwaitingSnapshot\":"+Boolean(actorWitnessContextCompleted)+",\"actorFpWitnessSeedOccupiedX87Registers\":"+std::to_string(Service()?0:1)+
                 ",\"actorFpWitnessNativeEmptyX87Requirement\":\"unqualified\",\"actorFpWitnessCoverage\":"+Quote(Service()?"none":"command-world-intervals-only")+
                 ",\"preUnloadNativeCallsControlledFpWitness\":false,\"actorFpWitnessOperations\":"+operationWitnesses;
-            const std::string serviceFields=Service()?",\"externalRuntimeMappingBound\":true,\"runtimeCommandWrites\":0,\"controlledFpSeedPerformed\":false,\"ownerPid\":"+
+            const std::string serviceFields=Service()?",\"externalRuntimeMappingBound\":"+Boolean(externalBound)+",\"runtimeCommandWrites\":0,\"controlledFpSeedPerformed\":false,\"ownerPid\":"+
                 std::to_string(options.external.ownerPid)+",\"ownerCreationTime\":"+std::to_string(options.external.ownerCreationTime)+
+                ",\"helperPid\":"+std::to_string(GetCurrentProcessId())+",\"helperCreationTime\":"+std::to_string(helperCreationTime)+
+                ",\"gameCreationTime\":"+std::to_string(gameCreationTime)+",\"menuFirst\":"+Boolean(MenuFirst())+
+                ",\"gameProcessCreated\":"+Boolean(pi.dwProcessId!=0)+
+                ",\"gameLifetimeLimitEnabled\":"+Boolean(!MenuFirst())+",\"eventDiagnosticsSuppressedAtCap\":"+Boolean(logCapNotice)+
                 ",\"stopRequested\":"+Boolean(stopRequested)+",\"stopReason\":"+std::to_string(static_cast<unsigned>(stopReason)):std::string();
             WriteAll(report.value,std::string("{\"kind\":")+Quote(Service()?"WinxCoop-owned-x86-game-host":"WinxCoop-owned-x86-adapter-probe")+
                 ",\""+(Service()?std::string("serviceCompleted"):std::string("probeCompleted"))+"\":"+Boolean(completed)+",\"gameplayAccepted\":false,\"pid\":"+std::to_string(pi.dwProcessId)+",\"observationSeconds\":"+std::to_string(options.seconds)+",\"limitReached\":"+Boolean(timedOut)+",\"loadComplete\":"+Boolean(loadComplete)+",\"startComplete\":"+Boolean(startComplete)+",\"fullContextRestored\":"+Boolean(contextRestored)+",\"privatePageFreed\":"+Boolean(pageFreed)+",\"privatePageReclaimedByProcessExit\":"+Boolean(privatePage!=0 && cleanupConfirmed)+witnessFields+actorFields+serviceFields+",\"runtimeReadyObserved\":"+Boolean(readySamples>0)+",\"readySamples\":"+std::to_string(readySamples)+",\"samples\":"+std::to_string(samples)+",\"worldUpdates\":"+std::to_string(latest.worldUpdates)+",\"debugEvents\":"+std::to_string(eventCount)+",\"fatalExceptions\":"+std::to_string(fatal)+",\"exitCodeKnown\":"+Boolean(exitKnown)+",\"exitCode\":"+std::to_string(exitCode)+",\"forcedTermination\":"+Boolean(forced)+",\"exitEventContinued\":"+Boolean(exitContinued)+",\"cleanupConfirmed\":"+Boolean(cleanupConfirmed)+",\"error\":"+(failure.empty()?std::string("null"):Quote(failure))+"}\n");

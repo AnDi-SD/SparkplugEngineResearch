@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -19,6 +20,10 @@ internal sealed class SessionParent : IDisposable
     private readonly string _outerPath, _outerReport, _workerReport;
     private readonly List<FileStream> _pins = [];
     private readonly FileStream _commands;
+    private readonly object _commandGate = new();
+    private System.Threading.Timer? _heartbeat;
+    private Exception? _heartbeatFailure;
+    private bool _heartbeatStopped;
     private readonly SessionStatusJournal.Reader _statuses;
     private Process? _outer;
     private uint _outerPid;
@@ -45,26 +50,34 @@ internal sealed class SessionParent : IDisposable
         _config = configuration; _pins.AddRange(pins);
         _outerPath = Path.Combine(CaseDirectory, "Outer.exe");
         _outerReport = Path.Combine(CaseDirectory, "outer.json");
-        _statuses = new SessionStatusJournal.Reader(CaseDirectory);
+        _statuses = new SessionStatusJournal.Reader(CaseDirectory, _config.Interactive);
         _workerReport = Path.Combine(CaseDirectory, "worker-report.json");
         _commands = new FileStream(_config.UiCommandPath, FileMode.CreateNew, FileAccess.Write,
             FileShare.ReadWrite | FileShare.Delete);
         Status = new JsonObject { ["phase"] = "starting", ["running"] = false,
             ["message"] = configuration.Host ? "Создаём лобби…" : "Подключаемся к серверу…" };
-        try { WriteCommand(); } // Start/operation0 is the initial waiting heartbeat.
-        catch { _commands.Dispose(); _statuses.Dispose(); throw; }
+        try
+        {
+            // The first real command is visible before any worker is started.
+            lock (_commandGate) WriteCommand();
+            // A busy WinForms message loop must not starve the local owner lease.
+            _heartbeat = new System.Threading.Timer(PublishHeartbeat, null, 250, 250);
+        }
+        catch { StopHeartbeat(); _commands.Dispose(); _statuses.Dispose(); throw; }
     }
 
-    internal static SessionParent Start(SessionConfiguration configuration, RuntimeBundle bundle, GameProfile game)
+    internal static SessionParent Start(SessionConfiguration configuration, RuntimeBundle bundle, CancellationToken cancellation = default)
     {
+        cancellation.ThrowIfCancellationRequested();
         configuration.Validate();
+        var game = new GameSelection(configuration.GameRoot, configuration.InitialLevel);
         string output = SessionConfiguration.AbsoluteAscii(configuration.CaseDirectory);
         Require(!Directory.Exists(output) && !File.Exists(output), "Session output must be fresh.");
         string? parent = Path.GetDirectoryName(output);
         Require(parent is not null && Directory.Exists(parent), "Session output requires its selected existing parent.");
         RuntimeBundle.Ordinary(parent!, true);
-        Require(SamePath(configuration.BundleDirectory, bundle.DirectoryPath) && SamePath(configuration.GameRoot, game.GameRoot),
-            "Session inputs differ from the qualified bundle/game.");
+        Require(SamePath(configuration.BundleDirectory, bundle.DirectoryPath),
+            "Session bundle differs from the qualified local deployment.");
         Directory.CreateDirectory(output); RuntimeBundle.Ordinary(output, true);
         string app = Path.Combine(output, "app"); Directory.CreateDirectory(app);
         var pins = new List<FileStream>();
@@ -72,7 +85,10 @@ internal sealed class SessionParent : IDisposable
         try
         {
             foreach (RuntimeFile file in bundle.Manifest.Files)
+            {
+                cancellation.ThrowIfCancellationRequested();
                 pins.Add(CopyPinned(bundle.File(file.Name), Path.Combine(app, file.Name), file.Sha256));
+            }
             string manifestSource = Path.Combine(bundle.DirectoryPath, "WinxCoop.SessionBundle.json");
             using (var source = new FileStream(manifestSource, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -101,12 +117,14 @@ internal sealed class SessionParent : IDisposable
             WriteFresh(executable + ".json", JsonSerializer.SerializeToUtf8Bytes(worker, SessionConfiguration.Json));
             string arguments = "--game " + Quote(executable) + " --media " + Quote(game.Media) +
                 " --report " + Quote(Path.Combine(output, "outer.json")) + " --observe-ms " +
-                checked((worker.Seconds + 120) * 1000).ToString(CultureInfo.InvariantCulture) +
-                " --process-local-media --job-name " + Quote(worker.JobName);
+                new SessionLifecycleBudget(worker.Seconds, 0, worker.Interactive).NativeSupervisorMilliseconds.ToString(CultureInfo.InvariantCulture) +
+                " --process-local-media --job-name " + Quote(worker.JobName) +
+                (worker.Interactive ? " --interactive-session 1" : "");
             Require(arguments.Length is > 0 and <= 1024 && arguments.All(character => character is >= ' ' and <= '~'),
                 "Native supervisor arguments exceed their ASCII bound.");
             WriteFresh(Path.Combine(output, "Outer.exe.args"), Encoding.ASCII.GetBytes(arguments));
             owner = new(worker, pins); pins.Clear();
+            cancellation.ThrowIfCancellationRequested();
             owner._outer = Process.Start(new ProcessStartInfo
             {
                 FileName = owner._outerPath, WorkingDirectory = output, UseShellExecute = false,
@@ -131,24 +149,30 @@ internal sealed class SessionParent : IDisposable
 
     internal void Command(string action)
     {
-        Require(!_disposed && !OuterExited && action is "Start" or "Reload" or "Save" or "Load" or "Stop",
-            "Session command is unsupported or the native supervisor has exited.");
-        Require(_config.Host || action == "Stop", "Only the server controls game start and progression.");
-        if (_action == "Stop") return;
-        _action = action; _operation = checked(_operation + 1); WriteCommand();
+        lock (_commandGate)
+        {
+            Require(!_disposed && !OuterExited && action is "Start" or "Reload" or "Save" or "Load" or "Stop",
+                "Session command is unsupported or the native supervisor has exited.");
+            Require(_config.Host || action == "Stop", "Only the server controls game start and progression.");
+            if (_action == "Stop") return;
+            _action = action; _operation = checked(_operation + 1); WriteCommand();
+        }
     }
 
     internal void Pump()
     {
         if (_disposed) throw new ObjectDisposedException(GetType().FullName);
+        Exception? heartbeatFailure;
+        lock (_commandGate) heartbeatFailure = _heartbeatFailure;
+        if (heartbeatFailure is not null) SetFailure(heartbeatFailure);
         if (_outer is null) return;
         try
         {
             OuterExited = _outer.HasExited;
+            if (OuterExited) StopHeartbeat();
             if (_outerPid == 0) _outerPid = checked((uint)_outer.Id);
             if (_outerCreation == 0) _outerCreation = Creation(_outer.SafeHandle);
             VerifyOuter();
-            if (!OuterExited && Environment.TickCount64 - _lastHeartbeat >= 250) WriteCommand();
             if (!_statusReadFailed) try
             {
                 JsonObject? status = _statuses.ReadLatest(final: OuterExited);
@@ -215,6 +239,34 @@ internal sealed class SessionParent : IDisposable
         };
     }
 
+    private void PublishHeartbeat(object? state)
+    {
+        lock (_commandGate)
+        {
+            if (_heartbeatStopped || _disposed || _heartbeatFailure is not null) return;
+            try
+            {
+                if (Environment.TickCount64 - _lastHeartbeat >= 250) WriteCommand();
+            }
+            catch (Exception error) { _heartbeatFailure = error; }
+        }
+    }
+
+    private void StopHeartbeat()
+    {
+        System.Threading.Timer? heartbeat;
+        lock (_commandGate)
+        {
+            _heartbeatStopped = true; heartbeat = _heartbeat; _heartbeat = null;
+        }
+        // Never wait while holding the writer gate: an already queued callback
+        // must acquire it, observe the stop, and return before the file closes.
+        if (heartbeat is null) return;
+        using var drained = new ManualResetEvent(false);
+        if (heartbeat.Dispose(drained)) drained.WaitOne();
+    }
+
+    // Constructor, UI commands and the timer all hold _commandGate here.
     private void WriteCommand()
     {
         long now = Environment.TickCount64;
@@ -223,6 +275,9 @@ internal sealed class SessionParent : IDisposable
             Version = 1, CapabilityNonce = _config.UiCapability, Sequence = checked(++_sequence),
             Operation = _operation, Action = _action, IssuedAtMilliseconds = now
         }) + "\n");
+        if (_config.Interactive)
+            Require(_commands.Length <= InteractiveSessionLimits.CommandJournalBytes - bytes.Length,
+                "Interactive UI command journal exceeded its32MiB bound.");
         _commands.Write(bytes, 0, bytes.Length); _commands.Flush(); _lastHeartbeat = now;
     }
 
@@ -316,11 +371,16 @@ internal sealed class SessionParent : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
-        Require(_outer is null || ReadyToDispose,
-            "Wait for the exact native cleanup and bounded final status observation before disposing the parent.");
+        lock (_commandGate)
+        {
+            if (_disposed) return;
+            Require(_outer is null || ReadyToDispose,
+                "Wait for the exact native cleanup and bounded final status observation before disposing the parent.");
+            _disposed = true;
+        }
+        StopHeartbeat();
         _statuses.Dispose(); _commands.Dispose(); _outer?.Dispose(); foreach (FileStream pin in _pins) pin.Dispose();
-        _pins.Clear(); _disposed = true;
+        _pins.Clear();
     }
     [StructLayout(LayoutKind.Sequential)] private struct NativeFileTime { internal uint Low, High; }
     [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]

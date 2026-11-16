@@ -23,6 +23,7 @@ namespace
     struct Options final
     {
         GameProcessClientConfiguration configuration;
+        Options() { configuration.menuFirst=false; }
         std::wstring mode=L"lifecycle";
         std::uint32_t holdMilliseconds=1000;
     };

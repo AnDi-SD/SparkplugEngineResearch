@@ -256,6 +256,14 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spContactRowQueries.h
     Analysis/PC/spContactRowMath.h
     Analysis/PC/spContactRowAbi.h
+    Code/Sparkplug/spContactTwoBodyRawDotRowQueries.h
+    Code/Sparkplug/spContactTwoBodyRawDotRowQueries.cpp
+    Analysis/PC/spContactTwoBodyRawDotRowMath.h
+    Analysis/PC/spContactTwoBodyRawDotRowAbi.h
+    Code/Sparkplug/spContactRawDotRowQueries.h
+    Code/Sparkplug/spContactRawDotRowQueries.cpp
+    Analysis/PC/spContactRawDotRowMath.h
+    Analysis/PC/spContactRawDotRowAbi.h
     Code/Sparkplug/spContactTwoBodyMultirowQueries.h
     Code/Sparkplug/spContactTwoBodyMultirowQueries.cpp
     Analysis/PC/spContactTwoBodyMultirowMath.h
@@ -1272,6 +1280,14 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugContactRowsTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugContactRowsTests COMMAND SparkplugContactRowsTests)
     set_tests_properties(SparkplugContactRowsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactTwoBodyRawDotRowsTests Tests/spContactTwoBodyRawDotRowQueriesTests.cpp)
+    target_link_libraries(SparkplugContactTwoBodyRawDotRowsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactTwoBodyRawDotRowsTests COMMAND SparkplugContactTwoBodyRawDotRowsTests)
+    set_tests_properties(SparkplugContactTwoBodyRawDotRowsTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugContactRawDotRowsTests Tests/spContactRawDotRowQueriesTests.cpp)
+    target_link_libraries(SparkplugContactRawDotRowsTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugContactRawDotRowsTests COMMAND SparkplugContactRawDotRowsTests)
+    set_tests_properties(SparkplugContactRawDotRowsTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugContactTwoBodyMultirowsTests Tests/spContactTwoBodyMultirowQueriesTests.cpp)
     target_link_libraries(SparkplugContactTwoBodyMultirowsTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugContactTwoBodyMultirowsTests COMMAND SparkplugContactTwoBodyMultirowsTests)

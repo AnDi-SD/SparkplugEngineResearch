@@ -30,18 +30,18 @@ internal sealed class NativeProgressionSavedState
             config.UseProcessLocalMediaPath && config.EnableWorldEntry &&
             config.DiagnosticWorldState is { Role: WorldStateRole.Host } &&
             config.DiagnosticHostInput is { Role: DiagnosticInputRole.Host } && config.DiagnosticGuestInput is null &&
-            config.TemplateNetworkInputFixture && config.TemplateSharedPlayerProfile == "alfea-28-network-input" &&
+            config.TemplateNetworkInputFixture && (config.TemplateSharedPlayerProfile == "alfea-28-network-input" || ProbeMain.IsCampaign(config)) &&
             !config.WorldBattlePresentation && !config.TemplateNetworkOrdinaryAttackFixture &&
             !config.TemplateDeathBattleFixture && !config.TemplateStoryDeathFixture &&
-            !config.TemplateMosquitoPlayerTargets && config.DurationSeconds is >= 5 and <= 600 &&
+            !config.TemplateMosquitoPlayerTargets && NativeObservationBudget.DurationAllowed(config) &&
             gate.Role == WorldStateRole.Host,
             "Progression saved state requires the explicit held Alfea28 Host two-body cohort.");
         _host = host; _log = log; _gate = gate; _process = host.ProcessHandle;
         _pid = host.ProcessPid; _thread = host.MainThreadId; _owner = Environment.CurrentManagedThreadId;
-        _durationSeconds = config.DurationSeconds;
+        _durationSeconds = NativeObservationBudget.OperationSeconds(config);
         // Its original registry-to-primary check remains strict: a second-body
         // registry cache is a failure, never permission to choose another actor.
-        _probe = new(host, image, log, WorldStateRole.Host, gate, captureBeforeWriter: true);
+        _probe = new(host, image, log, WorldStateRole.Host, gate, captureBeforeWriter: true, campaign: config.CampaignScene);
     }
 
     internal bool Completed => _completed && !_failed && _gate.Healthy &&

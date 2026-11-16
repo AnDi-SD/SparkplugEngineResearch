@@ -4,7 +4,6 @@
 #include "PinnedImage.h"
 #include "PassiveActor.h"
 #include "RemotePoseInterpolator.h"
-#include <bcrypt.h>
 #include <cmath>
 
 using namespace winxcoop::adapter;
@@ -145,9 +144,13 @@ namespace
         }
         return true;
     }
-    void CloseResourcesBeforeHooks() noexcept
+    void CloseAssetPins() noexcept
     {
         for(auto& file:assets)if(file){CloseHandle(file);file=nullptr;}
+    }
+    void CloseResourcesBeforeHooks() noexcept
+    {
+        CloseAssetPins();
         if(owner){CloseHandle(owner);owner=nullptr;}
         if(shared){UnmapViewOfFile(shared);shared=nullptr;}
         if(mapping){CloseHandle(mapping);mapping=nullptr;}
@@ -156,15 +159,11 @@ namespace
     bool PinAssets() noexcept
     {
         static const char* names[]={"bloom_jeans.smo","bloom_hair.smo","blidsh.san","blwa.san","bljusm.san"};
-        static const char* hashes[]={
-            "17184190AAB5C45CFE7EB594B6B166A343CD688D99C236FEA3508CA5809B28CA",
-            "AF68FF609294648CB817497868BB6D0F222863F76D62AC19CA9E39D480702654",
-            "04BBAFAF20DB422AC8A110D6CDACF44B44897571E64ED21E8424C2E4524DB725",
-            "E4A3DF69FBA8353CC2DD5928AFEC4490512F10002C9FE843AE555F0FCAFAC2B0",
-            "C130E5403DA2D0F7F5D385CB82FD1DB02368B6E4CB18DC37A03FFFC0041E96DF"};
+        // Called only by a future explicit visual Create, never by ordinary
+        // game startup. Contents may be modded; native graph/clip/type and
+        // ownership checks remain the actual functional admission boundary.
+        if(assets[0]){for(const auto file:assets)if(!file)return false;return true;}
         std::uint32_t length{};if(!MediaText(configuration.mediaDirectory,length))return false;
-        BCRYPT_ALG_HANDLE algorithm{};
-        if(BCryptOpenAlgorithmProvider(&algorithm,BCRYPT_SHA256_ALGORITHM,nullptr,0)<0)return false;
         bool result=true;
         for(unsigned i=0;i<5 && result;++i)
         {
@@ -173,23 +172,34 @@ namespace
             for(const char c:suffix){if(!c)break;if(n+1>=MAX_PATH){result=false;break;}path[n++]=c;}
             for(unsigned j=0;result && names[i][j];++j){if(n+1>=MAX_PATH){result=false;break;}path[n++]=names[i][j];}
             if(!result)break;
-            HANDLE file=CreateFileA(path,GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+            HANDLE file=CreateFileA(path,GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
             if(file==INVALID_HANDLE_VALUE){result=false;break;}assets[i]=file;
-            LARGE_INTEGER size{};BCRYPT_HASH_HANDLE hash{};BYTE digest[32]{},buffer[16384]{};
-            result=GetFileSizeEx(file,&size) && size.QuadPart>0 && size.QuadPart<=64*1024*1024 &&
-                BCryptCreateHash(algorithm,&hash,nullptr,0,nullptr,0,0)>=0;
-            LONGLONG consumed{};
-            while(result && consumed<size.QuadPart)
-            {
-                const LONGLONG remaining=size.QuadPart-consumed;const DWORD want=remaining>16384?16384:static_cast<DWORD>(remaining);
-                DWORD got{};result=ReadFile(file,buffer,want,&got,nullptr) && got==want && BCryptHashData(hash,buffer,got,0)>=0;consumed+=got;
-            }
-            result=result && BCryptFinishHash(hash,digest,sizeof(digest),0)>=0;
-            if(hash)BCryptDestroyHash(hash);
-            constexpr char hex[]="0123456789ABCDEF";
-            for(unsigned j=0;result && j<32;++j)result=hashes[i][j*2]==hex[digest[j]>>4] && hashes[i][j*2+1]==hex[digest[j]&15];
+            LARGE_INTEGER size{};BY_HANDLE_FILE_INFORMATION info{};
+            result=GetFileType(file)==FILE_TYPE_DISK && GetFileInformationByHandle(file,&info) &&
+                !(info.dwFileAttributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)) &&
+                GetFileSizeEx(file,&size) && size.QuadPart>0 && size.QuadPart<=64*1024*1024;
         }
-        BCryptCloseAlgorithmProvider(algorithm,0);return result;
+        if(!result)CloseAssetPins();
+        return result;
+    }
+    void PublishRetired(const ULONGLONG now) noexcept
+    {
+        snapshot.phase=RuntimePhase::Stopped;snapshot.monotonicMilliseconds=now;
+        Statistics();Publish(shared->snapshot,snapshot);
+    }
+    bool RetireVisualEpoch() noexcept
+    {
+        if(actor.Created() || actor.Poisoned())return false;
+        snapshot.epochRetired=1;snapshot.remoteEntity=0;snapshot.levelId=0;snapshot.localComponentCount=0;
+        snapshot.local={};snapshot.localAnimationQualified=0;snapshot.localFsmState=0xFFFFFFFFu;
+        snapshot.remoteDisplay={};snapshot.mediaQualified=0;
+        actorProfile=actorAnimationManager=0;
+        sceneProfile=sceneAnimationManager=sceneRecord=sceneRoot=scenePlayingState=0;
+        qualifiedSceneSeen=false;remoteInterpolation.Clear();lastDisplayTime=0;
+        CloseAssetPins();
+        PublishRetired(GetTickCount64());
+        OutputDebugStringA("WinxCoop visual epoch retired; original game continues without scene reuse");
+        return true;
     }
     bool GuardSignature(const UnloadGuard& guard) noexcept
     {
@@ -238,16 +248,21 @@ namespace
     bool Observe() noexcept
     {
         observationReason=0;
-        snapshot.localAnimationQualified=0;
-        const auto profile = Word(0x765AD4), record = Word(profile + 0x2B4), root = Word(record + 0x24);
+        snapshot.localAnimationQualified=0;snapshot.localFsmState=0xFFFFFFFFu;
+        snapshot.levelId=0;snapshot.localComponentCount=0;snapshot.local={};
         const auto flow = Word(0x755294), sceneManager = Word(0x75DB90);
         std::uint32_t level{}, pending{}, stack{}, currentScene{};
-        if (flow < 0x10000 || sceneManager < 0x10000 ||
+        if (flow < 0x10000 || Word(flow)!=0x702D2C || sceneManager < 0x10000 ||
             !Read(flow + 0x1B0,&level,4) || !Read(flow + 0x1B8,&pending,4) ||
             !Read(flow + 0x1AC,&stack,4) || !Read(sceneManager + 0x20,&currentScene,4)) {observationReason=1;return false;}
         const auto active = stack <= 20 ? Word(flow + 0x15C + stack * 4) : 0;
+        // Ordinary boot/menu/cinematic flows are an expected wait. Do not even
+        // follow the local player chain until the current native Playing is typed.
+        // currentScene==0 is the WorldRET quiescence marker, not a level ID.
+        if(Word(active)!=0x710874 || level<1 || level>50 || pending || Word(active+0x10)!=level || currentScene)
+        {observationReason=2;return false;}
+        const auto profile = Word(0x765AD4), record = Word(profile + 0x2B4), root = Word(record + 0x24);
         if (Word(profile) != 0x6F5A44 || Word(record) != 0x710F80 || Word(root) != 0x6DC4F4 ||
-            level != 28 || pending != 0 || Word(active + 0x10) != level || currentScene != 0 ||
             Word(root + 0x3C) == 0 || Word(Word(root + 0x3C)) != 0x6E7358 || Word(record + 0x20) != 11)
         {
             observationReason=2;
@@ -305,7 +320,7 @@ namespace
         bool applied=false;
         if(command.operation==RuntimeOperation::Create)
         {
-            if(actor.Created() || snapshot.remoteEntity || !CommandTransform(command.remote) || !MediaMatchesNative())return false;
+            if(actor.Created() || snapshot.remoteEntity || !CommandTransform(command.remote) || !MediaMatchesNative() || !PinAssets())return false;
             actorProfile=Word(0x765AD4);actorAnimationManager=Word(0x765ADC);
             if(actorProfile<0x10000 || Word(actorAnimationManager)!=0x703470)return false;
             remoteInterpolation.Clear();
@@ -349,14 +364,21 @@ namespace
     {
         ++snapshot.worldUpdates;
         const auto now = GetTickCount64();
+        if(!owner || WaitForSingleObject(owner,0)!=WAIT_TIMEOUT || shared->magic!=IpcMagic || shared->version!=IpcVersion ||
+            shared->bytes!=sizeof(*shared) || shared->nonce!=configuration.nonce || shared->launcherPid!=GetProcessId(owner))
+            {FailClosed(RuntimeError::Owner);return;}
+        // A retired visual epoch never follows the old scene, borrowed clips,
+        // pending command or a fresh scene. The original game continues normally.
+        if(snapshot.epochRetired)
+        {
+            if(now-lastPublished>=50){lastPublished=now;PublishRetired(now);}
+            return;
+        }
         const auto timer=Word(0x755298);BYTE paused{},timerActive{};
         snapshot.gameTimerPaused=Read(timer+0x40,&paused,1)?paused:0xFFFFFFFFu;
         snapshot.gameTimerActive=Read(timer+0x18,&timerActive,1)?timerActive:0xFFFFFFFFu;
         if(!Read(timer+0x1C,&snapshot.gameTimerCurrentRaw,4))snapshot.gameTimerCurrentRaw=0;
         if(!Read(timer+0x28,&snapshot.gameTimerDeltaRaw,4))snapshot.gameTimerDeltaRaw=0;
-        if(!owner || WaitForSingleObject(owner,0)!=WAIT_TIMEOUT || shared->magic!=IpcMagic || shared->version!=IpcVersion ||
-            shared->bytes!=sizeof(*shared) || shared->nonce!=configuration.nonce || shared->launcherPid!=GetProcessId(owner))
-            {FailClosed(RuntimeError::Owner);return;}
         const bool ready=Observe();
         if(!snapshot.epochRetired)snapshot.phase=ready?RuntimePhase::Ready:RuntimePhase::WaitingForLevel;
         if(PassiveMode())
@@ -373,7 +395,12 @@ namespace
                     qualifiedSceneSeen=true;
                 }
                 else if(sceneProfile!=profile || sceneAnimationManager!=manager || sceneRecord!=record || sceneRoot!=root || scenePlayingState!=playing)
-                    {TraceLifetimeFailure();FailClosed(RuntimeError::Unload);return;}
+                {
+                    // With no visual there are no native resources to remove.
+                    // Retire an observed old cohort without touching its objects.
+                    if(!actor.Created() && RetireVisualEpoch())return;
+                    TraceLifetimeFailure();FailClosed(RuntimeError::Unload);return;
+                }
             }
             const bool mediaMatches=MediaMatchesNative();
             snapshot.mediaQualified=mediaMatches?1:0;
@@ -443,14 +470,23 @@ namespace
         }
         if(!GuardSignature(guard) || context.Eip!=guard.address || context.Esp<0x10004 || (context.Esp&3) || (context.EFlags&0x100))return false;
         ++snapshot.unloadGuardHits;
+        bool cohortBoundary=false;
         if(qualifiedSceneSeen && !snapshot.epochRetired)
         {
-            if(Word(0x765AD4)!=sceneProfile || Word(0x765ADC)!=sceneAnimationManager)return false;
-            if((guard.address==0x4E8AA0 || guard.address==0x4E8C80) && context.Ecx!=sceneProfile)return false;
-            if((guard.address==0x59AE80 || guard.address==0x59B190) && context.Ecx!=sceneAnimationManager)return false;
-            if(guard.address==0x5F86C0 && context.Ecx!=scenePlayingState)return false;
+            if(Word(0x765AD4)!=sceneProfile || Word(0x765ADC)!=sceneAnimationManager)
+            {
+                if(actor.Created() || !RetireVisualEpoch())return false;
+            }
+            else
+            {
+                cohortBoundary=((guard.address==0x4E8AA0 || guard.address==0x4E8C80) && context.Ecx==sceneProfile) ||
+                    ((guard.address==0x59AE80 || guard.address==0x59B190) && context.Ecx==sceneAnimationManager) ||
+                    (guard.address==0x5F86C0 && context.Ecx==scenePlayingState);
+            }
         }
-        if(actor.Created())
+        // Other native objects may use the same methods. Their original PUSH
+        // passes through; only OUR captured owner retires/removes this visual.
+        if(cohortBoundary && actor.Created())
         {
             if(Word(0x765AD4)!=actorProfile || Word(0x765ADC)!=actorAnimationManager || !MediaMatchesNative())return false;
             if((guard.address==0x4E8AA0 || guard.address==0x4E8C80) && context.Ecx!=actorProfile)return false;
@@ -468,12 +504,10 @@ namespace
             remoteInterpolation.Clear();lastDisplayTime=0;
             OutputDebugStringA("WinxCoop passive actor removed before native unload entry");
         }
-        // Any destructive boundary after actor use retires this cohort. A new
-        // level/session needs a fresh owned runtime, never stale borrowed clips.
-        if(qualifiedSceneSeen)
+        // No automatic rearm: a later scene/session needs a fresh epoch owner.
+        if(cohortBoundary && qualifiedSceneSeen)
         {
-            snapshot.epochRetired=1;snapshot.phase=RuntimePhase::Stopped;snapshot.monotonicMilliseconds=GetTickCount64();
-            Publish(shared->snapshot,snapshot);
+            if(!RetireVisualEpoch())return false;
         }
         // Permanent hook, exact original PUSH semantics. No single-step flag,
         // no temporary restoration/rearm interval where another unload can pass.
@@ -553,7 +587,20 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
         (start.mode==RuntimeMode::Observe && (start.session || start.levelEpoch || start.mediaDirectory[0])))
         return static_cast<DWORD>(RuntimeError::Identity);
     configuration=start;
-    if (!pinnedImage.Open()) return static_cast<DWORD>(RuntimeError::Image);
+    if (!pinnedImage.Open())
+    {
+        // The owned debugger records bounded ASCII "WinxCoop " messages.
+        // Failure contains static feature names/reasons, never user paths.
+        char text[384]{};char* cursor=text;char* const end=text+sizeof(text)-1;
+        const auto append=[&cursor,end](const char* value) noexcept
+        {while(value && *value && cursor<end)*cursor++=*value++;};
+        append("WinxCoop image feature gate failed address=");
+        const auto address=pinnedImage.FailureAddress();
+        for(unsigned i=0;i<8 && cursor<end;++i)*cursor++="0123456789ABCDEF"[(address>>(28-i*4))&15];
+        append(" reason=");append(pinnedImage.Failure());*cursor=0;
+        OutputDebugStringA(text);
+        return static_cast<DWORD>(RuntimeError::Image);
+    }
     const auto* image = reinterpret_cast<const IMAGE_DOS_HEADER*>(GetModuleHandleW(nullptr));
     if (reinterpret_cast<std::uintptr_t>(image) != 0x400000 || image->e_magic != IMAGE_DOS_SIGNATURE)
         {CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Image);}
@@ -577,7 +624,8 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
     snapshot.mode=start.mode;snapshot.session=start.session;snapshot.levelEpoch=start.levelEpoch;
     if(PassiveMode())
     {
-        if(!PinAssets()){CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Media);}
+        // Ordinary boot/menu does not load or content-hash any visual asset.
+        // The explicit Create path pins files and validates their native graph.
         for(auto& guard:unloadGuards)
             if(!pinnedImage.Verify(guard.address,sizeof(guard.signature)) || !Read(guard.address,guard.signature,sizeof(guard.signature)) || guard.signature[0]!=guard.instruction)
             {CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}

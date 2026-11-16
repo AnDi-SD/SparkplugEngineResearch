@@ -21,9 +21,11 @@ internal sealed class NativeProgressionControl : IDisposable
     private readonly Action<object> _log;
     private readonly byte[] _capability;
     private readonly bool _saveAllowed;
+    private readonly long _maximumCommandJournalBytes;
     private readonly bool _overlayAllowed;
     private readonly bool _reloadPreparationAllowed;
     private readonly uint _sceneLevel;
+    private readonly CampaignSceneProfile? _campaign;
     private readonly int _thread = Environment.CurrentManagedThreadId;
     private ProgressionActorCommand? _command;
     private string _commandHash = "";
@@ -37,14 +39,15 @@ internal sealed class NativeProgressionControl : IDisposable
 
     internal NativeProgressionControl(ProbeConfiguration config, DebuggerHost host, Action<object> log)
     {
+        _maximumCommandJournalBytes = config.InteractiveSession ? InteractiveSessionLimits.CommandJournalBytes : 2097152;
         _permit = config.ProgressionControl ?? throw new InvalidDataException("Missing progression control permit.");
         _identity = config.DiagnosticWorldState ?? throw new InvalidDataException("Progression requires its World identity.");
         bool story3 = config.ProgressionSceneLevel == 3;
         Require(!story3 || ProbeMain.IsClosedStory3Host(config) || ProbeMain.IsClosedStory3Guest(config),
             "Story3 primary input control requires its closed Host outcome or Guest presentation cohort.");
-        _sceneLevel = story3 ? 3u : 28u;
+        _sceneLevel = config.CampaignScene?.Level ?? (story3 ? 3u : 28u); _campaign = config.CampaignScene;
         Require(config.EnableProgressionAuthority && config.UseProcessLocalMediaPath && config.EnableWorldEntry &&
-            _permit.NextLevel == 28 && _permit.OwnerPid != 0 && _permit.OwnerCreationFileTime != 0 &&
+            (_permit.NextLevel == 28 || ProbeMain.IsCampaign(config) && _permit.NextLevel == config.CampaignScene!.Level) && _permit.OwnerPid != 0 && _permit.OwnerCreationFileTime != 0 &&
             _permit.CapabilityNonce.Length == 32 && _permit.CapabilityNonce.All(Uri.IsHexDigit) &&
             Path.IsPathFullyQualified(_permit.CommandPath) && File.Exists(_permit.CommandPath) &&
             (File.GetAttributes(_permit.CommandPath) & FileAttributes.ReparsePoint) == 0,
@@ -85,9 +88,9 @@ internal sealed class NativeProgressionControl : IDisposable
         Require(!_owner.HasExited && Creation(_owner) == _permit.OwnerCreationFileTime,
             "Progression parent closed or changed.");
         var file = new FileInfo(_permit.CommandPath);
-        Require(file.Exists && file.Length is > 0 and <= 2097152 &&
+        Require(file.Exists && file.Length > 0 && file.Length <= _maximumCommandJournalBytes &&
             (file.Attributes & FileAttributes.ReparsePoint) == 0, "Progression command disappeared or exceeded its bound.");
-        byte[] bytes = ReadAtomicCommand(file.FullName);
+        byte[] bytes = ReadAtomicCommand(file.FullName, _maximumCommandJournalBytes);
         string hash = Convert.ToHexString(SHA256.HashData(bytes));
         var next = RuntimeControlJson.Deserialize<ProgressionActorCommand>(bytes, Json) ??
             throw new InvalidDataException("Missing progression command.");
@@ -178,7 +181,7 @@ internal sealed class NativeProgressionControl : IDisposable
     // and Resume never grants this allowance while the window is inactive.
     internal bool CanCaptureUnfocusedNeutralAtInputReturn(uint tid, in Win32Native.X86Context context)
     {
-        if (_retired || _sceneLevel != 28 || _command is not { Action: "Hold", Operation: 0 } || _neutralReturns == 0 ||
+        if (_retired || _sceneLevel != 28 && _campaign?.Admits(_sceneLevel) != true || _command is not { Action: "Hold", Operation: 0 } || _neutralReturns == 0 ||
             _lastNeutralInputDebugStop == 0 || _lastNeutralInputDebugStop != _host.DebugStopSequence) return false;
         Require(Environment.CurrentManagedThreadId == _thread && _host.IsAtDebugStop && tid == _host.MainThreadId &&
             context.Eip == NativeInputCapture.InputReturn, "Unfocused neutral allowance left its actual same InputRET.");
@@ -190,7 +193,7 @@ internal sealed class NativeProgressionControl : IDisposable
         return true;
     }
     public void Dispose() { _retired = true; _owner.Dispose(); }
-    private static byte[] ReadAtomicCommand(string path)
+    private static byte[] ReadAtomicCommand(string path, long maximumBytes)
     {
         for (int attempt = 0; ; ++attempt)
         {
@@ -199,7 +202,7 @@ internal sealed class NativeProgressionControl : IDisposable
                 using var file = new FileStream(path, FileMode.Open, FileAccess.Read,
                     FileShare.ReadWrite | FileShare.Delete);
                 long length = file.Length;
-                Require(length is > 0 and <= 2097152, "Progression command journal exceeded its bound.");
+                Require(length > 0 && length <= maximumBytes, "Progression command journal exceeded its bound.");
                 int count = checked((int)Math.Min(length, 8192));
                 file.Position = length - count;
                 byte[] bytes = new byte[count];

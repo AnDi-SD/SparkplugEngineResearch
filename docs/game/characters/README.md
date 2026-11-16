@@ -11,8 +11,10 @@
 - [CharacterState: управляющие записи и события анимации](character-state-data-events.md).
 - [CharacterState: формирование ключей и запросы анимации](character-animation-requests.md).
 - [CharacterStateMachine: создание и раскладка 36 классов](character-machine-family.md).
+- [PlayerTraits и сброс captured prefix](player-traits-reset.md).
 - [wxAnimationController и spActor: команды и подготовка запуска](character-animation-playback.md).
 - [wxAnimationManager: поиск по packed key и индексированной таблице](character-animation-selection.md).
+- [wxCharacterTraits: опубликованное значение Fairy Stars](character-traits-property.md).
 - [Общий протокол CharacterStateMachine: переходы, стек, события](character-machine-protocol.md).
 - [Система внешних волос Bloom](bloom-hair-system.md).
 - [Снаряды и менеджеры: два семейства PC/PS2](projectile-families.md).

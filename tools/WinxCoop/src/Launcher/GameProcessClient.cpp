@@ -26,6 +26,13 @@ namespace winxcoop::launcher
         void Require(const bool condition,const char* message){if(!condition)throw std::runtime_error(message);}
         [[noreturn]] void WinError(const char* message)
         {throw std::runtime_error(std::string(message)+" (win32="+std::to_string(GetLastError())+')');}
+        std::uint64_t ProcessCreation(HANDLE process)
+        {
+            FILETIME created{},exited{},kernel{},user{};
+            if(!GetProcessTimes(process,&created,&exited,&kernel,&user))WinError("Owned process creation time unavailable");
+            const auto value=(std::uint64_t(created.dwHighDateTime)<<32)|created.dwLowDateTime;
+            Require(value!=0,"Owned process creation identity is empty");return value;
+        }
         bool Same(const void* a,const void* b,const std::size_t bytes) noexcept {return std::memcmp(a,b,bytes)==0;}
         std::wstring Absolute(const std::wstring& value,const std::size_t limit)
         {
@@ -206,7 +213,8 @@ namespace winxcoop::launcher
         std::uint32_t logicalEntity{};
         bool attempted{},stopRequested{},haveSnapshot{},haveHelper{},pendingActive{},finalized{};
 
-        explicit Impl(GameProcessClientConfiguration value):config(std::move(value)){}
+        explicit Impl(GameProcessClientConfiguration value):config(std::move(value)){result.directHost=config.menuFirst;}
+        bool OwnerProcessStarted() const noexcept {return result.outerStarted || result.helperStarted;}
         ~Impl()
         {
             if(stopEvent.Valid() && !finalized)SetEvent(stopEvent.value);
@@ -216,7 +224,7 @@ namespace winxcoop::launcher
         void Stop() noexcept
         {
             stopRequested=true;if(stopEvent.Valid())SetEvent(stopEvent.value);
-            if(!finalized && result.outerStarted)phase=GameProcessClientPhase::Stopping;
+            if(!finalized && OwnerProcessStarted())phase=GameProcessClientPhase::Stopping;
         }
         void Fail(const std::string& message)
         {
@@ -253,15 +261,17 @@ namespace winxcoop::launcher
         void FileExists(const std::wstring& path,const bool directory)
         {
             const DWORD attributes=GetFileAttributesW(path.c_str());
-            Require(attributes!=INVALID_FILE_ATTRIBUTES && bool(attributes&FILE_ATTRIBUTE_DIRECTORY)==directory,"Prepared game/helper file or media directory is missing");
+            Require(attributes!=INVALID_FILE_ATTRIBUTES && bool(attributes&FILE_ATTRIBUTE_DIRECTORY)==directory,"Installed game/helper file or media directory is missing");
         }
         void Validate()
         {
             OwnerThread();config.game=Absolute(config.game,MAX_PATH);config.media=Absolute(config.media,MAX_PATH-40);
-            config.adapter=Absolute(config.adapter,MAX_PATH);config.gameHost=Absolute(config.gameHost,MAX_PATH);config.outer=Absolute(config.outer,MAX_PATH);
+            config.adapter=Absolute(config.adapter,MAX_PATH);config.gameHost=Absolute(config.gameHost,MAX_PATH);
+            if(!config.menuFirst)config.outer=Absolute(config.outer,MAX_PATH);
             config.caseDirectory=Absolute(config.caseDirectory,MAX_PATH-40);
-            Require(config.session && config.levelEpoch && config.seconds>=5 && config.seconds<=3600,"Nonzero session/epoch and 5..3600-second bound required");
-            for(const auto* file:{&config.game,&config.adapter,&config.gameHost,&config.outer})FileExists(*file,false);FileExists(config.media,true);
+            Require(config.session && config.levelEpoch && (config.menuFirst?config.seconds==0:config.seconds>=5 && config.seconds<=3600),"Nonzero session/epoch and seconds0 for menu-first or5..3600 for legacy diagnostic required");
+            for(const auto* file:{&config.game,&config.adapter,&config.gameHost})FileExists(*file,false);
+            if(!config.menuFirst)FileExists(config.outer,false);FileExists(config.media,true);
         }
         void PrepareCase()
         {
@@ -272,8 +282,8 @@ namespace winxcoop::launcher
             Require(GetFileInformationByHandle(caseHandle.value,&info) && !(info.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT),"New case directory is not an ordinary directory");
             caseHost=config.caseDirectory+L"\\WinxCoopGameHost.exe";hostReport=config.caseDirectory+L"\\host-report.json";outerReport=config.caseDirectory+L"\\outer-report.json";
             hostSource.value=CreateFileW(config.gameHost.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
-            outerFile.value=CreateFileW(config.outer.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
-            if(!hostSource.Valid() || !outerFile.Valid())WinError("GameHost/outer program pin failed");
+            if(!config.menuFirst)outerFile.value=CreateFileW(config.outer.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+            if(!hostSource.Valid() || (!config.menuFirst && !outerFile.Valid()))WinError("GameHost/outer program pin failed");
             if(!CopyFileW(config.gameHost.c_str(),caseHost.c_str(),TRUE))WinError("Fresh per-case GameHost copy failed");
             hostCopy.value=CreateFileW(caseHost.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
             if(!hostCopy.Valid())WinError("Copied GameHost cannot be pinned");VerifyCopy(hostSource.value,hostCopy.value);
@@ -320,14 +330,26 @@ namespace winxcoop::launcher
         }
         void Start()
         {
-            OwnerThread();Require(!attempted,"GameProcessClient generation cannot be reused");attempted=true;Validate();AcquireMediaLease();PrepareCase();PrepareMappings();
+            OwnerThread();Require(!attempted,"GameProcessClient generation cannot be reused");attempted=true;Validate();
+            if(!config.menuFirst)AcquireMediaLease();PrepareCase();PrepareMappings();
             const auto argument=[](const wchar_t* name,const std::wstring& value){return std::wstring(L" ")+name+L' '+Quote(value);};
             const auto args=argument(L"--game",config.game)+argument(L"--adapter",config.adapter)+argument(L"--report",hostReport)+
-                argument(L"--seconds",std::to_wstring(config.seconds))+argument(L"--media",config.media)+argument(L"--mapping",runtimeName)+
+                argument(L"--seconds",std::to_wstring(config.seconds))+argument(L"--menu-first",config.menuFirst?L"1":L"0")+argument(L"--media",config.media)+argument(L"--mapping",runtimeName)+
                 argument(L"--status",statusName)+argument(L"--stop-event",stopName)+argument(L"--owner",std::to_wstring(identity.ownerPid))+
                 argument(L"--owner-created",std::to_wstring(identity.ownerCreationTime))+argument(L"--nonce",std::to_wstring(identity.nonce))+
                 argument(L"--session",std::to_wstring(config.session))+argument(L"--epoch",std::to_wstring(config.levelEpoch));
             WriteFreshAscii(caseHost+L".args",args);
+            if(config.menuFirst)
+            {
+                std::wstring command=Quote(caseHost)+args;Require(command.size()<4096,"Direct GameHost command exceeds its bound");
+                STARTUPINFOW startup{};startup.cb=sizeof(startup);startup.dwFlags=STARTF_USESHOWWINDOW;startup.wShowWindow=SW_HIDE;
+                PROCESS_INFORMATION process{};
+                if(!CreateProcessW(caseHost.c_str(),command.data(),nullptr,nullptr,FALSE,CREATE_NEW_PROCESS_GROUP|CREATE_DEFAULT_ERROR_MODE,
+                    nullptr,config.caseDirectory.c_str(),&startup,&process))WinError("Direct owned GameHost launch failed");
+                outerProcess.value=process.hProcess;CloseHandle(process.hThread);identity.helperPid=process.dwProcessId;
+                result.helperStarted=true;began=GetTickCount64();phase=GameProcessClientPhase::Starting;
+                identity.helperCreationTime=ProcessCreation(outerProcess.value);VerifyDirectHost(true);return;
+            }
             std::wstring command=Quote(config.outer)+argument(L"--game",caseHost)+argument(L"--media",config.media)+argument(L"--report",outerReport)+
                 argument(L"--observe-ms",std::to_wstring((config.seconds+35)*1000));
             Require(command.size()<1024,"Outer command exceeds its ASCII input contract");
@@ -347,6 +369,19 @@ namespace winxcoop::launcher
             result.outerStarted=true;result.mediaLeaseInherited=true;began=GetTickCount64();phase=GameProcessClientPhase::Starting;
             if(!CloseHandle(inheritedLease.value))WinError("Temporary inherited lease handle close failed");inheritedLease.value=nullptr;
         }
+        void VerifyDirectHost(const bool verifyImage=false) const
+        {
+            if(!config.menuFirst)return;
+            Require(outerProcess.Valid() && identity.helperPid && identity.helperCreationTime &&
+                GetProcessId(outerProcess.value)==identity.helperPid && ProcessCreation(outerProcess.value)==identity.helperCreationTime,
+                "Direct GameHost process identity differs from the created instance");
+            if(verifyImage)
+            {
+                wchar_t path[MAX_PATH]{};DWORD count=MAX_PATH;
+                if(!QueryFullProcessImageNameW(outerProcess.value,0,path,&count))WinError("Direct GameHost image unavailable");
+                Require(SamePath(Narrow(std::wstring(path,count)),Narrow(caseHost)),"Created direct GameHost image differs from its pinned case copy");
+            }
+        }
         void Headers() const
         {
             Require(runtime && status && runtime->magic==IpcMagic && runtime->version==IpcVersion && runtime->bytes==sizeof(*runtime) &&
@@ -363,7 +398,7 @@ namespace winxcoop::launcher
             Require(!identity.gamePid || value.gamePid==identity.gamePid,"GameHost changed the owned game PID");
             Require(!identity.mainThreadId || value.mainThreadId==identity.mainThreadId,"GameHost changed the owned main thread");
             if(identity.helperPid)Require(value.helperPid==identity.helperPid,"GameHost PID changed");
-            identity.helperPid=value.helperPid;if(value.gamePid)identity.gamePid=value.gamePid;if(value.mainThreadId)identity.mainThreadId=value.mainThreadId;
+            identity.helperPid=value.helperPid;if(value.gamePid){identity.gamePid=value.gamePid;result.originalGameStarted=true;}if(value.mainThreadId)identity.mainThreadId=value.mainThreadId;
             helper=value;haveHelper=true;
             if(value.phase==GameHostPhase::Failed || value.error)
             {
@@ -383,13 +418,25 @@ namespace winxcoop::launcher
             Require(value.lastCommandSequence<=result.commandsPublished,"Native runtime applied an unpublished command");
             snapshot=value;haveSnapshot=true;
             Require(value.phase!=RuntimePhase::Failed && value.error==RuntimeError::None && !value.actorError,"Native runtime failed its gate");
-            if(value.epochRetired || value.phase==RuntimePhase::Stopped)Stop();
+            if(value.epochRetired || value.phase==RuntimePhase::Stopped)
+            {
+                if(!config.menuFirst)Stop();
+                else
+                {
+                    Require(value.epochRetired && value.phase==RuntimePhase::Stopped && !value.remoteEntity &&
+                        value.remoteCreated==value.remoteRemoved,"Retired visual epoch has no confirmed passive cleanup");
+                    result.visualEpochRetired=true; // Keep the original game; do not clear a command or fabricate an ACK.
+                }
+            }
         }
         bool Ready() const noexcept
         {
+            const auto now=GetTickCount64();
+            const bool fresh=!config.menuFirst || (now>=helper.monotonicMilliseconds && now-helper.monotonicMilliseconds<=1000 &&
+                now>=snapshot.monotonicMilliseconds && now-snapshot.monotonicMilliseconds<=1000);
             return failure.empty() && !stopRequested && !finalized && haveHelper && helper.phase==GameHostPhase::Running &&
                 haveSnapshot && snapshot.phase==RuntimePhase::Ready && !snapshot.epochRetired && snapshot.mediaQualified &&
-                snapshot.levelId==28 && helper.fullContextRestored && helper.worldContextPreserved;
+                (config.menuFirst?snapshot.levelId>=1 && snapshot.levelId<=50:snapshot.levelId==28) && fresh && helper.fullContextRestored && helper.worldContextPreserved;
         }
         bool Matching(const RuntimeAck& value,const RuntimeCommand& command) const noexcept
         {
@@ -452,22 +499,89 @@ namespace winxcoop::launcher
             const auto document=Report(hostReport);Require(document.At("kind").String()=="WinxCoop-owned-x86-game-host","Wrong helper report kind");
             Require(document.At("ownerPid").Unsigned(MAXDWORD)==identity.ownerPid && document.At("ownerCreationTime").Unsigned()==identity.ownerCreationTime &&
                 document.At("ipcVersion").Unsigned(MAXDWORD)==IpcVersion && document.At("runtimeCommandWrites").Unsigned(MAXDWORD)==0 &&
-                !document.At("controlledFpSeedPerformed").Boolean() && document.At("externalRuntimeMappingBound").Boolean(),"Helper report binding/policy does not match this client");
+                !document.At("controlledFpSeedPerformed").Boolean(),"Helper report binding/policy does not match this client");
+            const bool mappingBound=document.At("externalRuntimeMappingBound").Boolean();
+            Require(document.At("menuFirst").Boolean()==config.menuFirst &&
+                document.At("gameLifetimeLimitEnabled").Boolean()!=config.menuFirst,"Helper lifetime policy differs from this launch");
+            if(config.menuFirst)
+                Require(document.At("helperPid").Unsigned(MAXDWORD)==identity.helperPid &&
+                    document.At("helperCreationTime").Unsigned()==identity.helperCreationTime,"Direct helper report names another process instance");
             const auto gamePid=document.At("pid").Unsigned(MAXDWORD);
             Require(!identity.gamePid || gamePid==identity.gamePid,"Helper report game PID differs from the bound runtime");
+            if(config.menuFirst)
+            {
+                identity.gamePid=static_cast<DWORD>(gamePid);
+                identity.gameCreationTime=document.At("gameCreationTime").Unsigned();
+                const bool created=document.At("gameProcessCreated").Boolean();
+                Require(created==(gamePid!=0),"Helper process-created witness differs from its original PID");
+                result.originalGameStarted=created;
+            }
             const bool completed=document.At("serviceCompleted").Boolean(),known=document.At("exitCodeKnown").Boolean();
             const bool continued=document.At("exitEventContinued").Boolean(),cleaned=document.At("cleanupConfirmed").Boolean(),forced=document.At("forcedTermination").Boolean();
             const auto exitCode=document.At("exitCode").Unsigned(MAXDWORD),reason=document.At("stopReason").Unsigned(static_cast<unsigned>(GameHostStopReason::Error));
             const bool limited=document.At("limitReached").Boolean();const auto& error=document.At("error");
             Require(error.kind==Json::Kind::Null || error.kind==Json::Kind::String,"Invalid helper error field");
             result.helperReportValid=true;result.helperCompleted=completed;result.gameExitCodeKnown=known;result.gameExitCode=static_cast<DWORD>(exitCode);
-            result.gameExitEventContinued=continued;result.gameCleanupConfirmed=cleaned;result.gameForcedTermination=forced;result.helperLimitReached=limited;
+            result.gameExitEventContinued=continued;result.gameCleanupConfirmed=cleaned && !config.menuFirst;result.gameForcedTermination=forced;result.helperLimitReached=limited;
             result.stopReason=static_cast<GameHostStopReason>(reason);
-            Require(completed && known && continued && cleaned && exitCode==0 && error.kind==Json::Kind::Null,"GameHost/native owned cleanup failed");
+            if(config.menuFirst && cleaned && known && continued && identity.gamePid && identity.gameCreationTime)
+            {
+                Require(identity.gamePid!=identity.helperPid && identity.gamePid!=identity.ownerPid,"GameHost report does not name its original child");
+                Handle game;game.value=OpenProcess(SYNCHRONIZE|PROCESS_QUERY_LIMITED_INFORMATION,FALSE,identity.gamePid);
+                if(!game.Valid())
+                    Require(GetLastError()==ERROR_INVALID_PARAMETER,"Original game exit cannot be independently queried");
+                else
+                {
+                    const auto created=ProcessCreation(game.value);
+                    // A reused PID proves the reported original instance is gone;
+                    // never stop, modify or mistake the unrelated new process.
+                    if(created==identity.gameCreationTime)
+                        Require(WaitForSingleObject(game.value,0)==WAIT_OBJECT_0,"Reported original game instance is still running");
+                }
+                result.gameExitIndependentlyVerified=true;result.gameCleanupConfirmed=true;
+            }
+            else if(config.menuFirst && cleaned && !identity.gamePid && !identity.gameCreationTime &&
+                !document.At("loadComplete").Boolean() && !document.At("startComplete").Boolean())
+                result.gameCleanupConfirmed=true; // Bound helper report confirms no original process was created.
+            if(error.kind==Json::Kind::String)throw std::runtime_error("GameHost: "+error.String());
+            Require(mappingBound,"GameHost never bound the expected native mappings");
+            // Mirror the measured original menu exit; the helper process must
+            // still exit0. These are raw observations, never a synthetic exit0.
+            const bool measuredMenuExit=config.menuFirst && known && continued && exitCode==1 && !forced &&
+                !document.At("stopRequested").Boolean() && reason==static_cast<unsigned>(GameHostStopReason::GameExit) &&
+                document.At("fatalExceptions").Unsigned(MAXDWORD)==0 && document.At("samples").Unsigned(MAXDWORD)>0 &&
+                document.At("readySamples").Unsigned(MAXDWORD)==0 && document.At("runtimeLevelId").Unsigned(MAXDWORD)==0 &&
+                document.At("runtimeLastCommandSequence").Unsigned(MAXDWORD)==0 && document.At("commandsSent").Unsigned(MAXDWORD)==0 &&
+                document.At("commandsAcknowledged").Unsigned(MAXDWORD)==0 && document.At("remoteCreated").Unsigned(MAXDWORD)==0 &&
+                document.At("remoteRemoved").Unsigned(MAXDWORD)==0 && document.At("remoteEntity").Unsigned(MAXDWORD)==0 &&
+                result.commandsPublished==0 && !pendingActive;
+            Require(completed && known && continued && cleaned && (exitCode==0 || measuredMenuExit) && error.kind==Json::Kind::Null,"GameHost/native owned cleanup failed");
+            if(config.menuFirst)
+                Require(!limited && identity.gamePid && identity.gameCreationTime && result.gameExitIndependentlyVerified,
+                    "Direct GameHost lacks an unlimited independently retired original child identity");
         }
         void Finalize()
         {
             if(finalized)return;
+            if(config.menuFirst)
+            {
+                result.helperExited=true;DWORD code{};
+                try
+                {
+                    VerifyDirectHost();
+                    if(!GetExitCodeProcess(outerProcess.value,&code))WinError("Direct GameHost exit code unavailable");
+                    result.helperExitCodeKnown=true;result.helperExitCode=code;
+                    ParseHelper();
+                }
+                catch(const std::exception& error){Fail(error.what());}
+                result.commandUnconfirmed=pendingActive;result.completed=true;
+                result.directCleanupVerified=result.helperExited && result.helperExitCodeKnown && result.helperReportValid && result.gameCleanupConfirmed &&
+                    (result.gameExitIndependentlyVerified || !result.originalGameStarted);
+                if(result.helperExitCodeKnown && result.helperExitCode!=0)Fail("Direct GameHost exited with a failure code");
+                result.successful=failure.empty() && result.helperExitCodeKnown && result.helperExitCode==0 &&
+                    result.helperReportValid && result.helperCompleted && result.gameCleanupConfirmed && result.gameExitIndependentlyVerified;
+                finalized=true;phase=result.successful?GameProcessClientPhase::Closed:GameProcessClientPhase::Failed;result.error=failure;return;
+            }
             result.outerExited=true;DWORD code{};if(!GetExitCodeProcess(outerProcess.value,&code))Fail("Outer exit code unavailable");
             else{result.outerExitCodeKnown=true;result.outerExitCode=code;}
             try{ParseOuter();}catch(const std::exception& error){Fail(error.what());}
@@ -483,16 +597,17 @@ namespace winxcoop::launcher
         void PollOuter()
         {
             const DWORD wait=WaitForSingleObject(outerProcess.value,0);
-            if(wait==WAIT_OBJECT_0)Finalize();else Require(wait==WAIT_TIMEOUT,"Owned outer wait failed");
+            if(wait==WAIT_OBJECT_0)Finalize();else Require(wait==WAIT_TIMEOUT,config.menuFirst?"Owned direct GameHost wait failed":"Owned outer wait failed");
         }
         void Pump()
         {
-            OwnerThread();if(!result.outerStarted || finalized)return;PollOuter();if(finalized)return;
+            OwnerThread();if(!OwnerProcessStarted() || finalized)return;PollOuter();if(finalized)return;
+            VerifyDirectHost();
             Headers();ReadHelper();ReadSnapshot();ReadAck();
             RuntimeCommand actual{};
             if(TryRead(runtime->command,actual))Require(Same(&actual,&lastPublished,sizeof(actual)),"Published command was changed or cleared");
             const auto now=GetTickCount64();
-            if(pendingActive && !stopRequested)
+            if(pendingActive && !stopRequested && !(config.menuFirst && result.visualEpochRetired))
             {
                 const bool paused=haveHelper && helper.phase==GameHostPhase::Running && haveSnapshot &&
                     snapshot.phase==RuntimePhase::WaitingForLevel && !snapshot.epochRetired && snapshot.gamePid==identity.gamePid &&
@@ -501,7 +616,7 @@ namespace winxcoop::launcher
                 commandLastCheck=now;
                 Require(commandReadyWait<=CommandDeadline,"Native command acknowledgement timed out during ready time");
             }
-            Require(now-began<=std::uint64_t(config.seconds+45)*1000,"Outer deadline exceeded; rollback remains unverified until it exits");
+            if(!config.menuFirst)Require(now-began<=std::uint64_t(config.seconds+45)*1000,"Outer deadline exceeded; rollback remains unverified until it exits");
             if(stopRequested)phase=GameProcessClientPhase::Stopping;
             else if(Ready())phase=GameProcessClientPhase::Ready;
             else phase=haveHelper && helper.phase==GameHostPhase::Running?GameProcessClientPhase::WaitingForLevel:GameProcessClientPhase::Starting;
@@ -510,8 +625,12 @@ namespace winxcoop::launcher
         void PumpFailure(const std::string& message)
         {
             Fail(message);
-            if(result.outerStarted){try{PollOuter();}catch(...){} }
-            else{ReleaseMediaLease();result.completed=true;phase=GameProcessClientPhase::Failed;finalized=true;}
+            if(OwnerProcessStarted()){try{PollOuter();}catch(...){} }
+            else
+            {
+                ReleaseMediaLease();result.completed=true;phase=GameProcessClientPhase::Failed;finalized=true;
+                result.directCleanupVerified=config.menuFirst; // No owner/helper was created, so no original game can exist.
+            }
         }
     };
 

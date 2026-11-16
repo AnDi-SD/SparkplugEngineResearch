@@ -64,10 +64,15 @@ internal static class ChecksProgram
             Run("native deadline survives absent Guest receipt", ProgressionChannelChecks.NativeTimeout);
             Run("socket Dispose is idempotent and Session borrowed", ProgressionChannelChecks.BorrowedSessionLifetime);
             Run("immutable runtime process admission policy", () => ProcessPolicyChecks.Run(output));
+            Run("cold qualification and peer wait preserve native game budget", SessionStartupChecks.ColdQualificationAndPeerWait);
+            Run("qualification peer and native game deadlines remain bounded", SessionStartupChecks.PhaseDeadlines);
+            Run("interactive lifetime remains finite without changing short leases", SessionStartupChecks.InteractiveLifetimeBoundaries);
+            Run("complete resource SHA handles short reads and cancellation", SessionStartupChecks.CompleteShaAndCancellation);
+            Run("lightweight game selection grants no content qualification", () => SessionStartupChecks.LightweightSelection(output));
         }
         catch (Exception error) { failure = error.ToString(); }
         finally { if (module != IntPtr.Zero) NativeLibrary.Free(module); }
-        bool passed = failure is null && checks.Count == 8 && checks.All(check => check.Passed);
+        bool passed = failure is null && checks.Count == 13 && checks.All(check => check.Passed);
         if (output is not null && Directory.Exists(output))
         {
             using var file = new FileStream(Path.Combine(output, "report.json"), FileMode.CreateNew, FileAccess.Write, FileShare.Read);

@@ -78,17 +78,20 @@ internal sealed unsafe class WorldStateClient : IDisposable
         lastGuestRevision = _lastGuestRevision, published = _published, delivered = _delivered,
         actualApplyAcknowledgments = _acknowledged, pendingNativeApply = _pending is not null, discardedPending = _discarded,
         actorPublications = _actorPublications, readinessRevision = _actor.ReadinessRevision,
+        availability = _actor.Availability.ToString(), initialNativeApplyPending = _actor.Availability == WorldStateAvailability.Initializing,
         contendedReads = _contendedReads, retries = _retries, retryExpiries = _retryExpiries,
         maximumRetryMilliseconds = _maximumRetryMilliseconds, retryLimitMilliseconds = RetryMilliseconds,
         cachedStatusAccepted = false, readImpliesAck = false, nativePointersOrNetworkCodec = false
     };
     internal object Summary => Stats;
 
-    /// <summary>Root calls at real scene observations, also unchanged Ready, to refresh the native-owner lease.</summary>
+    /// <summary>Real scene observations admit transport; Guest native Ready starts only with its first full apply ACK.</summary>
     internal bool SetReady(bool ready, bool forceRevision = false)
     {
         EnsureThread(); if (TerminalOrRetired || !TryReadBridgeStatus(out _)) return false;
-        WorldStateAvailability next = ready ? WorldStateAvailability.Ready : WorldStateAvailability.Waiting;
+        WorldStateAvailability next = !ready ? WorldStateAvailability.Waiting :
+            _identity.Role == WorldStateRole.Guest && _acknowledged == 0
+                ? WorldStateAvailability.Initializing : WorldStateAvailability.Ready;
         if (_actor.Availability != next || forceRevision)
         {
             if (_actor.ReadinessRevision == uint.MaxValue) return Fence(WorldStateTerminal.CounterExhausted);
@@ -98,7 +101,8 @@ internal sealed unsafe class WorldStateClient : IDisposable
         _actor.Availability = next; _actor.ObservedAtMilliseconds = Now();
         if (!PublishActor()) return Fence(WorldStateTerminal.Identity);
         if (_actorPublications <= 3 || forceRevision)
-            Emit(ready ? "actor-ready" : "actor-waiting", new { _actor.ReadinessRevision, _actor.ObservedAtMilliseconds });
+            Emit(next == WorldStateAvailability.Initializing ? "actor-initializing" : ready ? "actor-ready" : "actor-waiting",
+                new { _actor.ReadinessRevision, _actor.ObservedAtMilliseconds, nativeApplyAcknowledged = false });
         return true;
     }
 
@@ -152,7 +156,7 @@ internal sealed unsafe class WorldStateClient : IDisposable
     {
         EnsureThread(); delivery = null!; if (TerminalOrRetired) return false;
         Require(_identity.Role == WorldStateRole.Guest, "Only the Guest Actor reads WorldState1 deliveries.");
-        if (_actor.Availability != WorldStateAvailability.Ready) return false;
+        if (_actor.Availability is not (WorldStateAvailability.Ready or WorldStateAvailability.Initializing)) return false;
         ulong started = Now(); uint attempts = 0;
         for (;;)
         {
@@ -202,7 +206,8 @@ internal sealed unsafe class WorldStateClient : IDisposable
     {
         EnsureThread(); if (TerminalOrRetired) return false;
         Require(_identity.Role == WorldStateRole.Guest, "Only the Guest native owner publishes WorldState1 apply ACKs.");
-        if (!ReferenceEquals(delivery, _pending) || delivery is null || _actor.Availability != WorldStateAvailability.Ready)
+        if (!ReferenceEquals(delivery, _pending) || delivery is null ||
+            _actor.Availability is not (WorldStateAvailability.Ready or WorldStateAvailability.Initializing))
             return Fence(WorldStateTerminal.NativeApply);
         ulong started = Now();
         if (!ReadBridgeFresh(started, out WorldStateBridgeStatus status)) return false;
@@ -216,10 +221,20 @@ internal sealed unsafe class WorldStateClient : IDisposable
         if (!ReadBridgeFresh(started, out WorldStateBridgeStatus after)) return false;
         if (!CurrentDelivery(after, delivery)) { _pending = null; ++_discarded; return false; }
         if (Acquire(WorldStateContract.SnapshotOffset) != delivery.Publication) return Fence(WorldStateTerminal.NativeApply);
+        bool initialReady = _actor.Availability == WorldStateAvailability.Initializing;
+        if (initialReady)
+        {
+            if (_acknowledged != 0 || _actor.ReadinessRevision == uint.MaxValue)
+                return Fence(WorldStateTerminal.CounterExhausted);
+            _actor.Availability = WorldStateAvailability.Ready; ++_actor.ReadinessRevision;
+        }
         _actor.AppliedEpoch = delivery.SyncEpoch; _actor.AppliedRevision = delivery.Snapshot.Revision;
         _actor.ObservedAtMilliseconds = Now();
         if (!PublishActor()) return Fence(WorldStateTerminal.Identity);
         ++_acknowledged; _pending = null;
+        if (initialReady)
+            Emit("actor-ready", new { _actor.ReadinessRevision, _actor.ObservedAtMilliseconds,
+                delivery.SyncEpoch, delivery.Snapshot.Revision, firstCompleteNativeApplyAcknowledged = true });
         if (_acknowledged <= 2 || _acknowledged % 120 == 0)
             Emit("guest-applied-ack", new { delivery.SyncEpoch, delivery.Snapshot.Revision,
                 exactDeliveredPayloadRechecked = true, rootReportedCompleteNativeApply = true });

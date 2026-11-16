@@ -36,7 +36,7 @@ static DWORD JobCreateError,JobConfigureError,JobAssignError,JobTerminateError,J
 static DWORD JobQueryCalls,JobInitialActive,JobLastActive,JobTotalAssigned,JobCleanupMs,ResumeResult=0xffffffffUL,ResumeError;
 static DWORD ObservationLimitMs=40000;
 static int HaveGame,HaveMedia,HaveReport,SidecarUsed,VersionOK,SnapshotOK,PreviousExists;
-static int HaveObserve;
+static int HaveObserve,InteractiveSessionRequested;
 static int ProcessLocalMediaRequested,HaveNamedJob,NamedJobFresh,NamedJobCollision,ExistingNamedHandleClosed;
 static int RegistryPrepareEntered,RegistryRestoreEntered;
 static int OverrideAttempted,OverrideOK,RestoreAttempted,RestoreVerified,CreatedProcess,TimedOut,Terminated,ChildStopped;
@@ -150,7 +150,7 @@ static int ParseObservationLimit(const char* text)
         if(value>(0xffffffffUL-digit)/10)return Fail("observe-ms-overflow");
         value=value*10+digit;
     }
-    if(value<1000||value>3700000)return Fail("observe-ms-range");
+    if(value<1000||value>17220000)return Fail("observe-ms-range");
     ObservationLimitMs=value;return 1;
 }
 static int ProcessLocalArguments(void)
@@ -159,6 +159,7 @@ static int ProcessLocalArguments(void)
     static const char sessionPrefix[]="Local\\WinxCoop.E7.";
     DWORD i,n=Length(NamedJob),start=sizeof(prefix)-1;
     int matchDiagnostic=1,matchSession=1;char c;
+    if(InteractiveSessionRequested&&!ProcessLocalMediaRequested)return Fail("interactive-requires-process-local-media");
     if(!ProcessLocalMediaRequested)
     {if(HaveNamedJob)return Fail("job-name-requires-process-local-media");return 1;}
     /* Refuse the global registry/lease broker before any such operation.
@@ -174,6 +175,7 @@ static int ProcessLocalArguments(void)
         if(NamedJob[i]!=sessionPrefix[i])matchSession=0;
     }
     if(!matchDiagnostic&&!matchSession)return Fail("process-local-job-name-prefix");
+    if(InteractiveSessionRequested&&!matchSession)return Fail("interactive-requires-session-job-prefix");
     for(i=start;i<n;++i)
     {
         c=NamedJob[i];
@@ -207,11 +209,12 @@ static int Arguments(void)
     if(!next){if(!LoadSidecar())return 0;p=Sidecar;next=Next(&p,Token,sizeof(Token));}
     while(next==1)
     {
-        if(++count>6)return Fail("argument-count");
+        if(++count>7)return Fail("argument-count");
         if(Equal(Token,"--game")){if(HaveGame||Next(&p,Game,sizeof(Game))!=1)return Fail("game-argument");HaveGame=1;}
         else if(Equal(Token,"--media")){if(HaveMedia||Next(&p,Media,sizeof(Media))!=1)return Fail("media-argument");HaveMedia=1;}
         else if(Equal(Token,"--report")){if(HaveReport||Next(&p,Report,sizeof(Report))!=1)return Fail("report-argument");HaveReport=1;}
         else if(Equal(Token,"--observe-ms")){if(HaveObserve||Next(&p,Token,sizeof(Token))!=1||!ParseObservationLimit(Token))return Fail("observe-ms-argument");HaveObserve=1;}
+        else if(Equal(Token,"--interactive-session")){if(InteractiveSessionRequested||Next(&p,Token,sizeof(Token))!=1||!Equal(Token,"1"))return Fail("interactive-session-argument");InteractiveSessionRequested=1;}
         else if(Equal(Token,"--own-media-lease")){if(OwnMediaLeaseRequested)return Fail("duplicate-own-media-lease");OwnMediaLeaseRequested=1;}
         else if(Equal(Token,"--next-media")){if(HaveNextMedia||Next(&p,NextMedia,sizeof(NextMedia))!=1)return Fail("next-media-argument");HaveNextMedia=1;}
         else if(Equal(Token,"--process-local-media")){if(ProcessLocalMediaRequested)return Fail("duplicate-process-local-media");ProcessLocalMediaRequested=1;}
@@ -219,6 +222,7 @@ static int Arguments(void)
         else return Fail("unknown-argument");next=Next(&p,Token,sizeof(Token));
     }
     if(next<0||!HaveGame||!HaveMedia||!HaveReport||!Absolute(Game)||!Absolute(Media)||!Absolute(Report))return Fail("absolute-ascii-arguments");
+    if(!InteractiveSessionRequested&&(count>6||ObservationLimitMs>3700000))return Fail("legacy-observation-or-argument-bound");
     if(!ProcessLocalArguments())return 0;
     n=Length(Media);if(n<3||n+2>sizeof(Media))return Fail("media-bound");
     if(Media[n-1]!='\\'){Media[n++]='\\';Media[n]=0;}

@@ -133,8 +133,10 @@
 
 - [CollisionInfo и OBB: используемая инструментами часть PC](engine/physics/collision-tools-core.md).
 - [Contact tangent value helper](engine/physics/contact-tangents.md).
+- [Contact: два body и две ordered raw dot-суммы](engine/physics/contact-two-body-raw-dot-row.md).
 - [Contact: две и три строки для одного supplied body](engine/physics/contact-single-body-multirow.md).
 - [Contact: две и три строки с двумя supplied body](engine/physics/contact-two-body-multirow.md).
+- [Contact: одна строка и raw dot-ветвь](engine/physics/contact-raw-dot-row.md).
 - [Contact: строки с заданным tangent-вектором](engine/physics/contact-provided-tangent-rows.md).
 - [ContactConstraint: строка с двумя заданными body](engine/physics/contact-two-body-row.md).
 - [MeshBV и данные граней для общих ядер tools](engine/physics/mesh-bv-tools-core.md).
@@ -305,8 +307,10 @@
 - [CharacterState: управляющие записи и события анимации](game/characters/character-state-data-events.md).
 - [CharacterState: формирование ключей и запросы анимации](game/characters/character-animation-requests.md).
 - [CharacterStateMachine: создание и раскладка 36 классов](game/characters/character-machine-family.md).
+- [PlayerTraits и сброс captured prefix](game/characters/player-traits-reset.md).
 - [wxAnimationController и spActor: команды и подготовка запуска](game/characters/character-animation-playback.md).
 - [wxAnimationManager: поиск по packed key и индексированной таблице](game/characters/character-animation-selection.md).
+- [wxCharacterTraits: опубликованное значение Fairy Stars](game/characters/character-traits-property.md).
 - [Общий протокол CharacterStateMachine: переходы, стек, события](game/characters/character-machine-protocol.md).
 - [Персонажи и действия](game/characters/README.md).
 - [Система внешних волос Bloom](game/characters/bloom-hair-system.md).
@@ -320,13 +324,29 @@
 - [Entity: собственные predicates персонажа, анимации и расстояния](game/entities/entity-runtime-predicates.md).
 - [Entity: ссылки, общие флаги и переход между менеджерами](game/entities/entity-reference-flags.md).
 - [Entity: строки, векторы и блок параметров при Copy](game/entities/entity-aggregate-copy.md).
+- [Facing Glyph: no-op setter и FLD getter (PC)](game/entities/glyph-facing-no-op.md).
+- [Falling rock raw properties](game/entities/falling-rock-properties.md).
 - [Knut: полный вход, поиск Node и cached эффекты](game/entities/knut-node-entry.md).
+- [Raw Damage у EyeBallSentry (PC)](game/entities/eye-ball-sentry-damage.md).
+- [Raw Value of Fairy Stars у BreakableVase (PC)](game/entities/breakable-vase-value.md).
+- [Swamp gaz bubble raw damage property](game/entities/swamp-gaz-bubble-damage.md).
+- [wxCabinetPuzzle: captured PC combination words](game/entities/cabinet-puzzle-digits.md).
+- [wxChallengeParams: defaults блока параметров на PC](game/entities/challenge-params-defaults.md).
+- [wxCylindricalDoor: два опубликованных свойства на PC](game/entities/cylindrical-door-properties.md).
+- [wxDamageProxy: raw-параметры](game/entities/damage-proxy-properties.md).
 - [wxEntity и прямые связи регистрации: создание, копирование, раскладка](game/entities/entity-direct-family.md).
 - [wxEntityManager: добавление и удаление указателей](game/entities/entity-manager-insertion-removal.md).
 - [wxEntityManager: таблицы, размеры и выбор группы](game/entities/entity-manager-tables.md).
+- [wxKikoHole: captured PC Radius](game/entities/kiko-hole-radius.md).
+- [wxMovingPlatform: проверка близости на PC](game/entities/moving-platform-near-state.md).
+- [wxSideQuestGivenObject: captured PC Scale](game/entities/side-quest-given-object.md).
+- [wxThunderMaker: captured PC delay property bits](game/entities/thunder-maker.md).
+- [Два DWORD-свойства Pendulum (PC)](game/entities/pendulum-raw-properties.md).
+- [Два DWORD-свойства RacingCheckpoint (PC)](game/entities/racing-checkpoint-properties.md).
 - [Игровые объекты](game/entities/README.md).
 - [Оставшиеся игровые классы: независимый проход PC и PS2](game/entities/game-remainder.md).
 - [Привязка Node: Barrel и назначение Copy у MoveCtrl](game/entities/entity-bound-node-copy.md).
+- [Свойства скалярных полей wxSwampPlatformRing](game/entities/swamp-platform-ring-properties.md).
 
 ## Игра / Состояния игры и меню
 
@@ -659,6 +679,7 @@
 - [wxCharacterRegistry](reference/classes/wx-character-registry.md).
 - [wxCharacterState](reference/classes/wx-character-state.md).
 - [wxCharacterStateMachine](reference/classes/wx-character-state-machine.md).
+- [wxCollectibleGem](reference/classes/wx-collectible-gem.md).
 - [wxCreditsMenuGameFlowState](reference/classes/wx-credits-menu-game-flow-state.md).
 - [wxDarcyAttackAIAction](reference/classes/wx-darcy-attack-ai-action.md).
 - [wxDebugMenuGameFlowState](reference/classes/wx-debug-menu-game-flow-state.md).

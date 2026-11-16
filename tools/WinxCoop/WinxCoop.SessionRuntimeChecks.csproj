@@ -23,6 +23,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="tests/SessionRuntimeChecks/*.cs" />
+    <Compile Include="src/SessionHost/SessionConfiguration.cs" />
+    <Compile Include="src/SessionHost/SessionLifecycleBudget.cs" />
+    <Compile Include="src/SessionHost/RuntimeBundle.cs" />
+    <Compile Include="src/SessionHost/GameSelection.cs" />
+    <Compile Include="src/SessionHost/GameProfile.cs" />
+    <Compile Include="src/RuntimeProbe/InteractiveSessionLimits.cs" Link="InteractiveSessionLimits.cs" />
+    <Compile Include="src/RuntimeProbe/CampaignSceneProfile.cs" Link="CampaignSceneProfile.cs" />
     <ProjectReference Include="WinxCoop.SessionRuntime.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

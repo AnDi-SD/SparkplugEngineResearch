@@ -13,6 +13,8 @@ namespace winxcoop::gameplay
     using Digest256 = std::array<std::uint8_t, 32>;
     struct Compatibility
     {
+        // Legacy wire names. The passive menu-first profile uses executable as
+        // a protocol capability tag, never as a hash of the installed game.
         Digest256 executable{}, adapter{};
     };
     struct LevelDescriptor
@@ -102,6 +104,9 @@ namespace winxcoop::gameplay
         LevelDescriptor qualifiedLevel;
         // Nonzero, fresh per connection for Host; zero for Guest before Welcome.
         std::uint64_t hostSession = 0;
+        // Menu-first negotiation starts with no selected level (ID0). Only an
+        // actual Host ready observation may assign it. Legacy profiles stay exact.
+        bool allowDeferredLevel = false;
     };
 
     class GameplayProtocol final
@@ -119,6 +124,7 @@ namespace winxcoop::gameplay
         // actually ready. No guest API chooses a level or starts gameplay.
         [[nodiscard]] bool HostAssignLevel(std::uint32_t epoch, const LevelDescriptor& actualReadyLevel);
         [[nodiscard]] bool NotifyLocalReady(const LevelDescriptor& actualReadyLevel);
+        [[nodiscard]] const LevelDescriptor& AssignedLevel() const noexcept { return config_.qualifiedLevel; }
         // V2 source API retained explicitly inactive. V3 forwards stock local
         // state observations; it does not negotiate host-side input simulation.
         // Returns false and emits nothing. V3 rejects wire Input messages.

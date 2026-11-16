@@ -54,11 +54,11 @@ internal sealed class ClientNativeGate
         Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 &&
             host.ImageBase == 0x400000 && host.MainThreadId != 0,
             "Native client gate requires its pinned owned debug stop.");
-        Require(controlledStory3 is null || !battlePresentation && ProbeMain.IsClosedStory3Guest(controlledStory3),
+        Require(controlledStory3 is null || !battlePresentation && (ProbeMain.IsClosedStory3Guest(controlledStory3) || ProbeMain.IsCampaign(controlledStory3)),
             "Story3 native quarantine requires its closed Guest progression cohort.");
         _host = host; _image = image; _log = log; _process = host.ProcessHandle;
         _pid = host.ProcessPid; _ownerThread = Environment.CurrentManagedThreadId;
-        _level = controlledStory3 is not null ? 3u : battlePresentation ? 47u : 28u;
+        _level = controlledStory3?.CampaignScene?.Level ?? (controlledStory3 is not null ? 3u : battlePresentation ? 47u : 28u);
         _playingTable = battlePresentation ? 0x7105C8u : 0x710874u;
         _exitEntry = battlePresentation ? 0x5F2300u : 0x5F86C0u;
     }

@@ -24,7 +24,7 @@ internal sealed class WorldStateSession : IDisposable
     private WorldStateDelivery? _pending;
     private SharedProfileScene _scene;
     private WorldPresentationNativeRig? _local;
-    private bool _bound, _retired, _poseApplied;
+    private bool _bound, _retired, _poseApplied, _initialHostCaptureComplete;
     private uint _nextId = 3, _revision, _captures, _applications, _nativeTicks;
     private long _lastCapture;
     private readonly Queue<WorldPresentationNativeRig> _stockEnemiesToHide = [];
@@ -59,10 +59,10 @@ internal sealed class WorldStateSession : IDisposable
                     config.TemplateNetworkInputFixture && config.TemplateStoryDeathFixture
                 : config.DiagnosticGuestCaptureFixture),
             "Gardenia03 World requires its closed Host outcome or Guest presentation progression cohort.");
-        _qualifiedLevel = story3 ? 3u : config.WorldBattlePresentation ? 47u : 28u;
+        _qualifiedLevel = config.CampaignScene?.Level ?? (story3 ? 3u : config.WorldBattlePresentation ? 47u : 28u);
         if (config.WorldPresentationSmoothingMilliseconds > 0)
         {
-            Require(_identity.Role == WorldStateRole.Guest && _qualifiedLevel == 28 &&
+            Require(_identity.Role == WorldStateRole.Guest && (_qualifiedLevel == 28 || ProbeMain.IsCampaign(config)) &&
                 config.ProgressionControl is not null && config.DiagnosticGuestCaptureFixture &&
                 config.EnableWorldEntry && config.EnableProgressionAuthority &&
                 config.WorldPresentationSmoothingMilliseconds <= 200,
@@ -75,6 +75,8 @@ internal sealed class WorldStateSession : IDisposable
         _starTracker.InstallStopped();
     }
     internal bool Retired => _retired;
+    internal bool GuestNativeReady => _identity.Role == WorldStateRole.Guest && !_retired && _applications > 0 &&
+        !_client.TerminalOrRetired;
     internal bool HostTransportDetachedForReconnect => _identity.Role == WorldStateRole.Host && !_retired &&
         _bound && _peerRetired && _hostNativeApplied > 0 &&
         _client.Terminal is WorldStateTerminal.ActorClosed or WorldStateTerminal.PeerClosed;
@@ -82,7 +84,8 @@ internal sealed class WorldStateSession : IDisposable
     internal bool GoalPassed => (!_config.EnableWorldEntry || Entry?.WorldQualified == true) &&
         (_identity.Role == WorldStateRole.Host ? _hostNativeApplied > 0 : _applications >= 2);
     internal object Summary => new { role = _identity.Role.ToString(), bound = _bound, retired = _retired,
-        captures = _captures, applications = _applications, hostObservedNativeAppliedRevision = _hostNativeApplied,
+        captures = _captures, applications = _applications, initialHostCaptureComplete = _initialHostCaptureComplete,
+        hostObservedNativeAppliedRevision = _hostNativeApplied,
         peerRetiredAfterNativeApply = _peerRetired, goalPassed = GoalPassed,
         transportAttempt = _transportAttempt, previousTransport = _previousTransport,
         nativeTransitionWorldsDeferred = _transitionWorlds,
@@ -112,7 +115,10 @@ internal sealed class WorldStateSession : IDisposable
             return;
         }
         if (_retired || _peerRetired || !template.WorldStateBodyReady || calls.Pending) return;
-        if (!_client.SetReady(true))
+        // The first complete native capture may include cold pool/profile
+        // reads. Keep this exact owner Waiting until that capture is validated;
+        // later observations retain the ordinary short Ready lease.
+        if (!_client.SetReady(_initialHostCaptureComplete))
         {
             if (_hostNativeApplied > 0 && _client.Terminal is WorldStateTerminal.ActorClosed or WorldStateTerminal.PeerClosed)
             { _peerRetired = true; _log(new { @event = "world-host-peer-retired-after-native-apply", revision = _hostNativeApplied }); return; }
@@ -160,6 +166,18 @@ internal sealed class WorldStateSession : IDisposable
         }
         var snapshot = new WorldStateSnapshot(revision, _nativeTicks, flags, players, entities, shared,
             entryWitness, entrySeed, stars);
+        if (!_initialHostCaptureComplete)
+        {
+            // The constructor copy-owns and validates every snapshot block.
+            // This is monotonic per transport, independent of whether the
+            // bridge has accepted a local publication or the peer is ready.
+            _initialHostCaptureComplete = true;
+            _log(new { @event = "world-host-first-complete-snapshot-captured", transportAttempt = _transportAttempt,
+                revision, nativeTick = _nativeTicks, completeSnapshotValidated = true,
+                nativeReadinessPublished = false, nativeApplyAcknowledged = false });
+            Require(_client.SetReady(true),
+                "World Host channel lost its native owner/lease before its first complete snapshot publication.");
+        }
         if (_client.TryPublish(snapshot))
         {
             ++_captures;
@@ -278,6 +296,7 @@ internal sealed class WorldStateSession : IDisposable
             nativeAppliedRevision = _hostNativeApplied };
         _client.Dispose(); _client = client; _identity = next;
         _transportAttempt = 2; _peerRetired = false; _hostNativeApplied = 0; _lastCapture = 0;
+        _initialHostCaptureComplete = false; // A fresh endpoint requires its own complete native capture.
         // Entity IDs are local to the fresh transport. Never confuse native
         // address reuse while disconnected with a still-live previous instance.
         _hostIds.Clear(); _nextId = 3;
@@ -395,7 +414,7 @@ internal sealed class WorldStateSession : IDisposable
         }
         if (!_poseApplied)
         {
-            Require(_applications < 100000 && snapshot.Revision <= uint.MaxValue, "World native apply budget exceeded.");
+            Require(_applications < NativeObservationBudget.SnapshotLimit && snapshot.Revision <= uint.MaxValue, "World native apply budget exceeded.");
             _profile.ApplyAtWorld(tid, ref context, new(_scene.LevelEpoch, _scene.BodyGeneration, _scene.Level,
                 (uint)snapshot.Revision, snapshot.SharedProfile));
             foreach (var actor in snapshot.Bodies.Concat(enemies))
@@ -444,7 +463,7 @@ internal sealed class WorldStateSession : IDisposable
         ClientPresentationSession presentation)
     {
         if (_smoothing is null || _retired || !_bound || _poses is null || _pending is not null) return;
-        Require(_identity.Role == WorldStateRole.Guest && _scene.Level == 28 &&
+        Require(_identity.Role == WorldStateRole.Guest && (_scene.Level == 28 || _config.CampaignScene?.Admits(_scene.Level) == true) &&
             _host.IsAtDebugStop && tid == _host.MainThreadId && context.Eip == NativeCallDispatcher.WorldReturn &&
             presentation.WorldQuarantineActive, "Display sample lost its owned quarantined WorldRET.");
         if (_progressionPreparedOperation != 0 || !_client.TryReadBridgeStatus(out var status) ||
@@ -468,7 +487,7 @@ internal sealed class WorldStateSession : IDisposable
     {
         Require(!_retired && presentation.WorldQuarantineActive && _host.IsAtDebugStop &&
             tid == _host.MainThreadId && context.Eip == NativeCallDispatcher.WorldReturn,
-            "World Guest lease requires its actual quarantined native WorldRET.");
+            "World Guest initialization/lease requires its actual quarantined native WorldRET.");
         Require(_client.SetReady(true), "World Guest channel lost its native owner/lease.");
         _poses?.ObserveFollowingWorldCaches(tid, ref context);
         _starMirror?.ObserveFollowingWorldCaches(tid, ref context);
@@ -485,7 +504,8 @@ internal sealed class WorldStateSession : IDisposable
     {
         _poses!.BindAtWorld(tid, ref context, binding); _bindings.Add(binding.StableId, binding);
         _animations.Add(binding.StableId, new(_host, _image, () => presentation.WorldQuarantineActive, _log, binding,
-            fullKeyboardMovingUsesRun: _config.ProgressionControl is not null && _scene.Level == 28));
+            fullKeyboardMovingUsesRun: _config.ProgressionControl is not null &&
+                (_scene.Level == 28 || _config.CampaignScene?.Admits(_scene.Level) == true)));
     }
     private void Bind(uint tid, ref Win32Native.X86Context context, SharedProfileScene scene, uint parent)
     {

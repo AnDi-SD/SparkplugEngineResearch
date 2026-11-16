@@ -1,0 +1,7 @@
+# Raw Value of Fairy Stars у BreakableVase (PC)
+
+Captured-value API `wxBreakableVase` моделирует одну callback-пару собственного publisher для descriptor `Value of Fairy Stars`: setter `0x541430` переносит четыре байта аргумента из стека в `+0x17C`, getter `0x541440` возвращает эти четыре байта в EAX. Имя descriptor не устанавливает native C++ тип, signedness, единицы или смысл количества звёзд и не доказывает участие в разрушении вазы.
+
+Профиль `PcCapturedPrimaryRawDword17C` принимает предоставленный префикс384байта с primary `0x6FC7A8`. `ReadFairyStarsValueRawForAnalysis`, `WriteFairyStarsValueRawForAnalysis` и `ComposeFairyStarsValueRawForAnalysis` сохраняют raw32 бита. Compose выполняет GET/SET/GET и выдаёт прежнее значение, полный after-prefix и новое значение. Остальные байты не меняются; prefix input/output могут совпадать. Выход записывается после допуска операции. Неизвестные profile или primary отклоняются без изменения выхода. `bool` относится к допуску нашего анализа, а не native return signature.
+
+Минимальный выбранный префикс384байта совпадает с исторической allocation384байта, но это не устанавливает текущий sizeof, layout или физическое наследование. Factory/RTTI, primary, typed clone, регистрация и descriptor собственного publisher атрибутируют выбранную пару; текущий FF25 constructor не выполняется и его тело не раскрыто. Native signatures, constructor/lifecycle, прочие методы, применение значения, производство звёзд и разрушение, production callers, PS2, gameplay и целый класс остаются открытыми.

@@ -1,0 +1,7 @@
+# Raw Damage у EyeBallSentry (PC)
+
+Captured-value API `wxEyeBallSentry` моделирует только callback-пару descriptor `Damage` собственного publisher. Setter `0x56B080` загружает четыре байта аргумента из стека и записывает их в `+0x144`; getter `0x57FC30` возвращает эти четыре байта в EAX. Адреса setter и getter установлены отдельно по descriptor. Название не задаёт native C++ тип, signedness, единицы или применение урона.
+
+Профиль `PcCapturedPrimaryRawDword144` допускает предоставленный328-байтный префикс с primary `0x700DE8`. `ReadDamageRawForAnalysis`, `WriteDamageRawForAnalysis` и `ComposeDamageRawForAnalysis` сохраняют все32 бита. Compose выполняет GET/SET/GET и выдаёт прежнее значение, полный after-prefix и новое значение. Остальные байты сохраняются, input/output prefix могут совпадать. Неизвестный profile или primary отклоняется без изменения выхода. Возвращаемый `bool` описывает допуск нашего анализа и не устанавливает native signature.
+
+Историческая allocation416байт и минимальный выбранный префикс328байт — разные границы. Factory/RTTI, primary, typed clone, регистрация и descriptor собственного publisher атрибутируют выбранную пару. Текущий FF25 constructor не выполняется и его тело неизвестно. Три FLD-пары и две byte/прочие формы descriptors не входят в этот API. Native signatures, sizeof/layout, физическое наследование, constructor/lifecycle, поведение sentry и применение урона, production callers, PS2, gameplay и целый класс остаются открытыми.

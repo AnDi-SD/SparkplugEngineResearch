@@ -25,7 +25,7 @@ internal sealed class RuntimeBundle : IDisposable
 
     internal RuntimeBundle(string directory)
     {
-        DirectoryPath = SessionConfiguration.AbsoluteAscii(directory);
+        DirectoryPath = SessionConfiguration.BundleSourceDirectory(directory);
         Ordinary(DirectoryPath, true);
         try
         {

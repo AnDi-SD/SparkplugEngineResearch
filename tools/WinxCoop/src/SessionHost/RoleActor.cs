@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,7 +14,7 @@ namespace WinxCoop.SessionHost;
 internal sealed class RoleActor : IDisposable
 {
     private const int MaximumRecordBytes = 1024 * 1024, MaximumEventKinds = 512;
-    private const long MaximumJournalBytes = 256L * 1024 * 1024;
+    private long MaximumJournalBytes => _config.Interactive ? InteractiveSessionLimits.ActorJournalBytes : 256L * 1024 * 1024;
     private const int ReadBudgetPerTick = 256 * 1024;
     private readonly SessionConfiguration _config;
     private readonly RuntimeBundle _bundle;
@@ -32,7 +33,8 @@ internal sealed class RoleActor : IDisposable
     private ulong _sequence, _operation;
     private string _action = "Hold";
     private bool _disposed;
-    internal readonly uint Epoch, Generation;
+    internal readonly uint Epoch, Generation, Level;
+    internal bool Campaign => _config.Campaign;
     internal readonly string Role, Output, ConfigPath;
     internal OwnedChild Child { get; private set; } = null!;
     internal JsonObject? Report { get; private set; }
@@ -48,7 +50,7 @@ internal sealed class RoleActor : IDisposable
     {
         Require(epoch != 0 && generation != 0, "Explicit local Actor epoch/generation required.");
         _config = config; _bundle = bundle; _policy = policy; _channels = channels;
-        Role = config.Role; Epoch = epoch; Generation = generation;
+        Role = config.Role; Epoch = epoch; Generation = generation; Level = config.InitialLevel;
         string owned = policy.ValidateOutput(directory); Directory.CreateDirectory(owned);
         string control = policy.ValidateOutput(Path.Combine(owned, "control"));
         Require(!Directory.Exists(control) && !File.Exists(control), "Local Actor command directory must be fresh.");
@@ -74,12 +76,13 @@ internal sealed class RoleActor : IDisposable
             {
                 ["CommandPath"] = commandPath, ["OwnerPid"] = Environment.ProcessId,
                 ["OwnerCreationFileTime"] = OwnedChild.NativeCreation(self), ["CapabilityNonce"] = _capability,
-                ["NextLevel"] = 28
+                ["NextLevel"] = config.InitialLevel
             };
         // The caller supplies the admitted native profile and entry ordinal.
         // This owner adds local transport/control authority, never a ready bit.
         actor["EnableProgressionAuthority"] = true; actor["UseProcessLocalMediaPath"] = true;
-        actor["EnableWorldEntry"] = true; actor["DurationSeconds"] = 600;
+        actor["EnableWorldEntry"] = true; actor["DurationSeconds"] = config.Interactive ? config.Seconds : 600;
+        if (config.Interactive) actor["InteractiveSession"] = true;
         actor["WorldPresentationSmoothingMilliseconds"] = config.Host ? 0 : config.SmoothingMilliseconds;
         _commands = new FileStream(commandPath, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
         try
@@ -178,7 +181,7 @@ internal sealed class RoleActor : IDisposable
         if (!File.Exists(_eventsPath))
         { Require(_eventOffset == 0, "Local native event journal disappeared after observation."); return; }
         using var file = new FileStream(_eventsPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-        Require(file.Length >= _eventOffset && file.Length <= MaximumJournalBytes, "Local native event journal truncated or exceeded256MiB.");
+        Require(file.Length >= _eventOffset && file.Length <= MaximumJournalBytes, "Local native event journal truncated or exceeded its selected byte bound.");
         file.Position = _eventOffset;
         byte[] buffer = _readBuffer; int budget = ReadBudgetPerTick;
         while (budget != 0)
@@ -217,7 +220,8 @@ internal sealed class RoleActor : IDisposable
         var command = new { Version = 1, CapabilityNonce = _capability, LevelEpoch = Epoch, Generation,
             Sequence = checked(++_sequence), Operation = _operation, Action = _action, IssuedAtMilliseconds = _lastHeartbeat };
         byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(command) + "\n");
-        Require(_commands.Length + bytes.Length <= 2097152, "Local Actor command journal exceeded its native2MiB bound.");
+        Require(_commands.Length + bytes.Length <= (_config.Interactive ? InteractiveSessionLimits.CommandJournalBytes : 2097152),
+            "Local Actor command journal exceeded its selected native byte bound.");
         _commands.Write(bytes); _commands.Flush();
     }
 

@@ -6,6 +6,8 @@ internal sealed record NativeSharedPlayerProfile(string Name, uint Level, uint P
 {
     internal static NativeSharedPlayerProfile Select(ProbeConfiguration config) => config.TemplateSharedPlayerProfile switch
     {
+        CampaignSceneProfile.BodyProfile when ProbeMain.IsCampaign(config) && config.TemplateNetworkInputFixture =>
+            new(CampaignSceneProfile.BodyProfile, config.CampaignScene!.Level, 0x710874, 0x5F5450, 0x5F86C0, true, true),
         null when config.TemplateHealthBattleFixture => new("battle-01", 47, 0x7105C8, 0x5F2080, 0x5F2300, true, false),
         null => new("alfea-28", 28, 0x710874, 0x5F5450, 0x5F86C0, false, false),
         "battle-01-projectile-init" when config.TemplateProjectileManagerFixture =>

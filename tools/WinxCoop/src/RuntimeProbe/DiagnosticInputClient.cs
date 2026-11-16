@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace WinxCoop.RuntimeProbe;
 
@@ -111,6 +112,7 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
     private readonly Action<object>? _log;
     private MemoryMappedFile? _mapping;
     private MemoryMappedViewAccessor? _view;
+    private SafeProcessHandle? _bridgeOwnerProcess;
     private byte* _pointer;
     private bool _pointerHeld, _retired, _disposed;
     private DiagnosticInputTerminal _terminal;
@@ -123,6 +125,7 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
     private long _lastOwnerCheckMilliseconds;
     private ulong _bridgeStatusContendedReads, _bridgeStatusRetries, _bridgeStatusRetryExpiries;
     private long _bridgeStatusMaximumRetryMilliseconds;
+    private uint _closedOwnerTerminalDrains;
 
     internal DiagnosticInputClient(DiagnosticInputIdentity identity, Action<object>? log = null)
     {
@@ -133,9 +136,18 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
             identity.Role is DiagnosticInputRole.Host or DiagnosticInputRole.Guest && identity.OwnerPid != 0 &&
             identity.OwnerCreationFileTime != 0 && identity.Nonce != 0 && identity.SessionId != 0 && identity.ScenarioId != 0 &&
             identity.LevelEpoch != 0 && identity.BodyGeneration != 0, "Invalid diagnostic mapping identity/platform.");
-        Require(CreationFileTime(identity.OwnerPid) == identity.OwnerCreationFileTime, "Diagnostic bridge PID creation identity differs.");
         try
         {
+            // Keep the admitted process object, not a later lookup of its PID.
+            // Its immutable creation identity and final exit code remain
+            // queryable after the bridge has published its final status.
+            SafeProcessHandle owner = OpenProcess(0x1000, false, identity.OwnerPid);
+            _bridgeOwnerProcess = owner;
+            if (owner.IsInvalid)
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot retain diagnostic bridge identity.");
+            ReadProcessIdentity(owner, out ulong created, out uint exitCode);
+            Require(created == identity.OwnerCreationFileTime && exitCode == 259,
+                "Diagnostic bridge PID creation identity differs or is no longer live.");
             _mapping = MemoryMappedFile.OpenExisting(identity.MappingName, MemoryMappedFileRights.ReadWrite);
             _view = _mapping.CreateViewAccessor(0, SharedBytes, MemoryMappedFileAccess.ReadWrite);
             Require(_view.Capacity == SharedBytes, "Diagnostic mapping view has a different size.");
@@ -174,6 +186,8 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
         bridgeStatusContendedReads = _bridgeStatusContendedReads, bridgeStatusRetries = _bridgeStatusRetries,
         bridgeStatusMaximumRetryMilliseconds = _bridgeStatusMaximumRetryMilliseconds,
         bridgeStatusRetryExpiries = _bridgeStatusRetryExpiries, bridgeStatusRetryLimitMilliseconds = BridgeStatusRetryMilliseconds,
+        closedOwnerTerminalDrains = _closedOwnerTerminalDrains,
+        bridgeOwnerHandleRetained = _bridgeOwnerProcess is { IsClosed: false, IsInvalid: false },
         hostIngressRestamped = false, nativePointersOrWireCodec = false
     };
 
@@ -255,12 +269,44 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
         if (!force && now - _lastOwnerCheckMilliseconds < 250) return true;
         try
         {
-            if (CreationFileTime(_identity.OwnerPid) != _identity.OwnerCreationFileTime)
+            SafeProcessHandle? owner = _bridgeOwnerProcess;
+            if (owner is null || owner.IsClosed || owner.IsInvalid)
+            { Fence(DiagnosticInputTerminal.PeerClosed); return false; }
+            ReadProcessIdentity(owner, out ulong created, out uint exitCode);
+            if (created != _identity.OwnerCreationFileTime)
             { Fence(DiagnosticInputTerminal.Identity); return false; }
+            if (exitCode != 259)
+            {
+                if (exitCode == 0 && TryDrainClosedHostTerminal()) return false;
+                Fence(DiagnosticInputTerminal.PeerClosed); return false;
+            }
         }
-        catch (Exception error) when (error is Win32Exception or InvalidDataException)
+        catch (Exception error) when (error is Win32Exception or ObjectDisposedException)
         { Fence(DiagnosticInputTerminal.PeerClosed); return false; }
         _lastOwnerCheckMilliseconds = now; return true;
+    }
+
+    private bool TryDrainClosedHostTerminal()
+    {
+        // This is terminal observation only. A dead owner never supplies Ready,
+        // a grant, a ring delivery or an applied acknowledgment. Guest has a
+        // different ring producer and retains its existing failure policy.
+        if (_identity.Role != DiagnosticInputRole.Host) return false;
+        ValidateHeader();
+        if (Acquire(RingOffset + 8) != (uint)DiagnosticInputTerminal.ActorClosed) return false;
+        if (!TryReadStatus(BridgeOffset, out DiagnosticBridgeStatus closed) || closed.Publication == 0 ||
+            (closed.Publication & 1) != 0 || closed.State != DiagnosticBridgeState.Closed ||
+            closed.TerminalReason != DiagnosticInputTerminal.ActorClosed || closed.NeutralRequired != 1 || closed.Reserved != 0)
+            return false;
+        ValidateHeader();
+        if (Acquire(BridgeOffset) != closed.Publication ||
+            Acquire(RingOffset + 8) != (uint)DiagnosticInputTerminal.ActorClosed) return false;
+        _bridge = closed; ++_closedOwnerTerminalDrains;
+        _log?.Invoke(new { @event = "diagnostic-input-closed-owner-terminal-drained", role = _identity.Role.ToString(),
+            _identity.OwnerPid, _identity.OwnerCreationFileTime, ownerExitCode = 0, closed.Publication,
+            terminal = "ActorClosed", cachedStatusAccepted = false, readinessGranted = false,
+            inputAppliedOrAcknowledged = false });
+        Fence(DiagnosticInputTerminal.ActorClosed); return true;
     }
 
     // Call at actual local owner observations (including unchanged availability)
@@ -439,8 +485,12 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
     private void Release(int offset, uint value) => Interlocked.Exchange(ref *(int*)(_pointer + offset), unchecked((int)value));
     private void ReleaseMapping()
     {
-        if (_pointerHeld) { _view!.SafeMemoryMappedViewHandle.ReleasePointer(); _pointerHeld = false; }
-        _pointer = null; _view?.Dispose(); _view = null; _mapping?.Dispose(); _mapping = null;
+        try
+        {
+            if (_pointerHeld) { _view!.SafeMemoryMappedViewHandle.ReleasePointer(); _pointerHeld = false; }
+            _pointer = null; _view?.Dispose(); _view = null; _mapping?.Dispose(); _mapping = null;
+        }
+        finally { _bridgeOwnerProcess?.Dispose(); _bridgeOwnerProcess = null; }
     }
     private void EnsureThread() => Require(Environment.CurrentManagedThreadId == _ownerThread, "Diagnostic IPC has one synchronous ActorProbe owner thread.");
     private static bool KnownTerminal(DiagnosticInputTerminal reason) => (uint)reason <= 12;
@@ -459,21 +509,20 @@ internal sealed unsafe class DiagnosticInputClient : IDisposable
     }
     private static ulong CreationFileTime(uint pid)
     {
-        IntPtr process = OpenProcess(0x1000, false, pid);
-        if (process == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot query diagnostic process identity.");
-        try
-        {
-            if (!GetProcessTimes(process, out NativeFileTime creation, out _, out _, out _) || !GetExitCodeProcess(process, out uint exitCode))
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot read diagnostic process creation time.");
-            Require(exitCode == 259, "Diagnostic process identity is no longer live.");
-            return ((ulong)creation.High << 32) | creation.Low;
-        }
-        finally { _ = CloseHandle(process); }
+        using SafeProcessHandle process = OpenProcess(0x1000, false, pid);
+        if (process.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot query diagnostic process identity.");
+        ReadProcessIdentity(process, out ulong creation, out uint exitCode);
+        Require(exitCode == 259, "Diagnostic process identity is no longer live."); return creation;
+    }
+    private static void ReadProcessIdentity(SafeProcessHandle process, out ulong creation, out uint exitCode)
+    {
+        if (!GetProcessTimes(process, out NativeFileTime time, out _, out _, out _) || !GetExitCodeProcess(process, out exitCode))
+            throw new Win32Exception(Marshal.GetLastWin32Error(), "Cannot read diagnostic process creation time.");
+        creation = ((ulong)time.High << 32) | time.Low;
     }
     [StructLayout(LayoutKind.Sequential)] private struct NativeFileTime { internal uint Low, High; }
-    [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint pid);
-    [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetProcessTimes(IntPtr process, out NativeFileTime creation, out NativeFileTime exit, out NativeFileTime kernel, out NativeFileTime user);
-    [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetExitCodeProcess(IntPtr process, out uint code);
-    [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll", SetLastError = true)] private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint pid);
+    [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetProcessTimes(SafeProcessHandle process, out NativeFileTime creation, out NativeFileTime exit, out NativeFileTime kernel, out NativeFileTime user);
+    [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetExitCodeProcess(SafeProcessHandle process, out uint code);
     [DllImport("kernel32.dll")] private static extern ulong GetTickCount64();
 }

@@ -257,6 +257,57 @@ else()
 endif()
 
 add_library(WinxEntities STATIC
+    Code/wxCylindricalDoor.h
+    Code/wxCylindricalDoor.cpp
+    Analysis/PC/wxCylindricalDoorAbi.h
+    Code/wxSwampPlatformRing.h
+    Code/wxSwampPlatformRing.cpp
+    Analysis/PC/wxSwampPlatformRingAbi.h
+    Code/wxChallengeParams.h
+    Code/wxChallengeParams.cpp
+    Analysis/PC/wxChallengeParamsAbi.h
+    Code/wxDamageProxy.h
+    Code/wxDamageProxy.cpp
+    Analysis/PC/wxDamageProxyAbi.h
+    Code/wxRacingCheckpoint.h
+    Code/wxRacingCheckpoint.cpp
+    Analysis/PC/wxRacingCheckpointAbi.h
+    Code/wxPendulum.h
+    Code/wxPendulum.cpp
+    Analysis/PC/wxPendulumAbi.h
+    Code/wxFallingRock.h
+    Analysis/PC/wxFallingRockAbi.h
+    Code/wxFallingRock.cpp
+    Code/wxSwampGazBubble.h
+    Code/wxSwampGazBubble.cpp
+    Analysis/PC/wxSwampGazBubbleAbi.h
+    Code/wxGlyph.h
+    Analysis/PC/wxGlyphAbi.h
+    Code/wxGlyph.cpp
+    Code/wxSideQuestGivenObject.h
+    Code/wxSideQuestGivenObject.cpp
+    Analysis/PC/wxSideQuestGivenObjectAbi.h
+    Code/wxBreakableVase.h
+    Code/wxBreakableVase.cpp
+    Analysis/PC/wxBreakableVaseAbi.h
+    Code/wxThunderMaker.h
+    Code/wxThunderMaker.cpp
+    Analysis/PC/wxThunderMakerAbi.h
+    Code/wxEyeBallSentry.h
+    Code/wxEyeBallSentry.cpp
+    Analysis/PC/wxEyeBallSentryAbi.h
+    Code/wxKikoHole.h
+    Code/wxKikoHole.cpp
+    Analysis/PC/wxKikoHoleAbi.h
+    Code/wxCabinetPuzzle.h
+    Code/wxCabinetPuzzle.cpp
+    Analysis/PC/wxCabinetPuzzleAbi.h
+    Code/wxPlayerTraits.h
+    Code/wxPlayerTraits.cpp
+    Analysis/PC/wxPlayerTraitsAbi.h
+    Code/wxCharacterTraits.h
+    Code/wxCharacterTraits.cpp
+    Analysis/PC/wxCharacterTraitsAbi.h
     Code/wxEntity.cpp
     Code/wxEntity.h
     Analysis/Host/wxEntityHost.h
@@ -977,6 +1028,11 @@ else()
 endif()
 
 add_library(WinxGameCore STATIC
+    Code/wxMovingPlatform.h
+    Code/wxMovingPlatform.cpp
+    Analysis/PC/wxMovingPlatformAbi.h
+    Code/wxCollectibleGem.cpp
+    Code/wxCollectibleGem.h
     Code/wxFaceData.cpp
     Code/wxFaceData.h
     Code/wxGameTimer.cpp
@@ -1039,7 +1095,7 @@ if(BUILD_TESTING)
     target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
     add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
     set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
-    foreach(suite IN ITEMS VectorWrapper Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+    foreach(suite IN ITEMS VectorWrapper CabinetPuzzleProperty KikoHoleRadius EyeBallSentryDamage ThunderMakerProperty BreakableVaseValue SideQuestGivenObjectScale GlyphFacing SwampGazBubbleDamage FallingRockProperty PendulumProperty RacingCheckpointProperty DamageProxyProperty ChallengeParamsDefaults SwampPlatformRingProperty CylindricalDoorProperty MovingPlatformNear CharacterTraitsProperty PlayerTraitsReset Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
         add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
         target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
         add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)
@@ -1433,6 +1489,10 @@ if(BUILD_TESTING)
     target_link_libraries(WinxEntityTests PRIVATE WinxEntities)
     add_test(NAME WinxEntityTests COMMAND WinxEntityTests)
     set_tests_properties(WinxEntityTests PROPERTIES TIMEOUT 20)
+    add_executable(WinxCollectibleGemTests Tests/wxCollectibleGemTests.cpp)
+    target_link_libraries(WinxCollectibleGemTests PRIVATE WinxGameCore)
+    add_test(NAME WinxCollectibleGemTests COMMAND WinxCollectibleGemTests)
+    set_tests_properties(WinxCollectibleGemTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxBasicMovingStateTests Tests/wxBasicMovingStateTests.cpp)
     target_link_libraries(WinxBasicMovingStateTests PRIVATE WinxCharacterStates)

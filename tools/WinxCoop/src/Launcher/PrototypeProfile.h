@@ -1,6 +1,6 @@
 #pragma once
-// Read-only qualification for the single Stage P scene. This module never
-// copies game resources, changes INI files or prepares the registry.
+// Read-only installed-game paths and own-module integrity. No prepared copy,
+// game INI, whole-game hash or full resource scan is a compatibility gate.
 #include "../Gameplay/GameplayProtocol.h"
 #include <cstdint>
 #include <memory>
@@ -12,27 +12,31 @@ namespace winxcoop::launcher
     struct PrototypePaths final
     {
         std::wstring gameRoot, media, adapter, helper, outer, caseRoot;
-        std::uint32_t seconds = 900;
+        std::uint32_t seconds = 0;
+        bool menuFirst = true; // Local service policy, not a wire/IPC field.
     };
     struct PrototypeProfile final
     {
         PrototypePaths paths;
-        std::wstring game, ini;
+        std::wstring game;
         gameplay::Compatibility compatibility;
         gameplay::LevelDescriptor level;
         std::uint64_t mediaFiles{}, mediaBytes{};
-        // Exact EXE/DLL bytes stay open read-only, denying replacement from
-        // qualification through every game using this profile. No OS handle is
-        // exported to IPC or the network; the definition is private to .cpp.
+        // Game source stays read-pinned without a hash comparison. The adapter
+        // is our own module: its SHA remains an integrity/version pin. Neither
+        // handle is exported to IPC/network; the definition is private to .cpp.
         std::shared_ptr<const PrototypeFilePins> filePins;
     };
     // Paths in the adjacent WinxCoopLauncher.ini are relative to that INI.
-    // [Paths]: gameRoot/media/adapter/helper/outer/caseRoot. [Prototype]: seconds.
+    // [Paths]: gameRoot/media/adapter/helper/outer/caseRoot. Empty gameRoot waits
+    // for explicit user selection. [Prototype]: menuFirst and legacy seconds.
     // Command-line overrides are applied by the UI before Check is constructed.
     PrototypePaths ReadPrototypePaths();
     std::wstring ResolvePrototypePath(const std::wstring& path);
+    // Shared by the UI for its own settings/logs. Does not create directories.
+    std::wstring LocalPrototypeDataDirectory();
 
-    // Only this worker performs the potentially long, read-only tree hashing.
+    // This worker checks selected paths, game PE shape and our adapter module.
     // No transport, protocol, IPC, native operation or UI access runs on it.
     // Poll on the UI thread; Cancel then keep polling during orderly shutdown.
     // A Windows 7 thread handle stays owned until the worker has been joined.

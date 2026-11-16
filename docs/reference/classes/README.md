@@ -303,6 +303,7 @@
 - [wxCharacterRegistry](wx-character-registry.md).
 - [wxCharacterState](wx-character-state.md).
 - [wxCharacterStateMachine](wx-character-state-machine.md).
+- [wxCollectibleGem](wx-collectible-gem.md).
 - [wxCreditsMenuGameFlowState](wx-credits-menu-game-flow-state.md).
 - [wxDarcyAttackAIAction](wx-darcy-attack-ai-action.md).
 - [wxDebugMenuGameFlowState](wx-debug-menu-game-flow-state.md).

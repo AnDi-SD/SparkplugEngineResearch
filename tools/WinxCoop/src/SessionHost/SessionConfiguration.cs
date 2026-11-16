@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.Net;
 using System.Text.Json;
 
@@ -24,19 +25,44 @@ internal sealed record SessionConfiguration
     public ulong UiOwnerCreationFileTime { get; init; }
 
     internal bool Host => Role == "host";
+    internal bool Campaign => Profile == CampaignSceneProfile.Name;
+    internal uint InitialLevel => Campaign ? CampaignSceneProfile.FirstLevel : 28u;
+    internal bool Interactive => Campaign;
 
     internal void Validate()
     {
         Require(Version == 1 && Role is "host" or "guest", "Unsupported session configuration or role.");
-        Require(Profile == "alfea-28", "This runtime profile currently admits Alfea 28 only.");
-        Require(Seconds is >= 60 and <= 600 && SmoothingMilliseconds is >= 0 and <= 200,
-            "Session duration must be60..600s; smoothing must be0..200ms.");
+        Require(Profile is "alfea-28" or "campaign-prototype", "Unsupported explicit local session profile.");
+        Require(InteractiveSessionLimits.SessionDurationAllowed(Seconds, Interactive) &&
+            SmoothingMilliseconds is >= 0 and <= 200,
+            "Session duration must be60..600s for Alfea or60..14400s for campaign; smoothing must be0..200ms.");
         Require(Port != 0 && IPAddress.TryParse(BindAddress, out var bind) &&
             bind.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
             IPAddress.TryParse(ServerAddress, out var server) &&
             server.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && !server.Equals(IPAddress.Any),
             "Explicit IPv4 bind and server addresses are required.");
-        foreach (string path in new[] { BundleDirectory, GameRoot, CaseDirectory }) AbsoluteAscii(path);
+        if (Worker) AbsoluteAscii(BundleDirectory);
+        else BundleSourceDirectory(BundleDirectory);
+        foreach (string path in new[] { GameRoot, CaseDirectory }) AbsoluteAscii(path);
+    }
+
+    // The UI may read a distribution from a share. Its retained native worker
+    // still receives a freshly pinned local case/app directory from the parent.
+    internal static string BundleSourceDirectory(string value)
+    {
+        Require(!string.IsNullOrWhiteSpace(value) && Path.IsPathFullyQualified(value), "An absolute program folder is required.");
+        string full = Path.GetFullPath(value).TrimEnd(Path.DirectorySeparatorChar);
+        bool drive = full.Length > 3 && full[1] == ':' && full[2] == '\\';
+        bool share = full.StartsWith(@"\\", StringComparison.Ordinal) &&
+            !full.StartsWith(@"\\?\", StringComparison.Ordinal) && !full.StartsWith(@"\\.\", StringComparison.Ordinal);
+        if (share)
+        {
+            string[] parts = full[2..].Split(Path.DirectorySeparatorChar);
+            share = parts.Length >= 2 && parts[0].Length != 0 && parts[1].Length != 0;
+        }
+        Require(full.Length is > 3 and <= 180 && (drive || share) &&
+            full.All(c => c is >= ' ' and <= '~' && c != '"'), "Use a bounded ASCII local or network program folder without quotes.");
+        return full;
     }
 
     internal static string AbsoluteAscii(string value)

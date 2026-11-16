@@ -19,6 +19,7 @@ internal sealed class NativeGuestProgression
     private readonly IntPtr _process;
     private readonly uint _pid, _thread;
     private readonly uint _level;
+    private readonly CampaignSceneProfile? _campaign;
     private readonly int _owner;
     private readonly byte[] _request;
     private bool _started, _requestReturned, _inputRetiredBeforeRequest, _exitSeen, _retirementReady, _failed, _retired;
@@ -36,7 +37,7 @@ internal sealed class NativeGuestProgression
         bool story3 = config.ProgressionControl is not null && config.ProgressionSceneLevel == 3;
         Require(!story3 || config.EnableProgressionAuthority && config.EnableWorldEntry,
             "Gardenia03 Guest retirement requires the closed progression/entry cohort.");
-        _level = story3 ? 3u : 28u;
+        _level = config.CampaignScene?.Level ?? (story3 ? 3u : 28u); _campaign = config.CampaignScene;
         Require(Convert.ToHexString(SHA256.HashData(image.GetEntireImage().GetContent().ToArray())) ==
             "3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F",
             "Guest progression requires the exact original PC executable.");
@@ -158,7 +159,7 @@ internal sealed class NativeGuestProgression
                 Read(MenuGetter, 6).SequenceEqual(Image(MenuGetter, 6)),
                 "Guest progression pre-Exit lost its current typed Playing or captured original MainMenu registration.");
             calls.ReleaseRetiredBeforeGuestProgressionExit(_host, tid, ref context, entry, expectedFirstByte,
-                _menuId, _menuObject, _level);
+                _menuId, _menuObject, _level, _campaign);
         }
         catch (Exception error) { _failed = true; _failure = error.Message; throw; }
     }

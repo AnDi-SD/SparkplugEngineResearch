@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.Buffers.Binary;
 using System.Globalization;
 using System.IO.MemoryMappedFiles;
@@ -66,8 +67,10 @@ internal sealed class LocalChannels : IDisposable
             "--actor-lease-ms", Number(ActorLeaseMilliseconds), "--run-ms", Number(checked((ulong)_config.Seconds * 1000)),
             "--token", Number(_assignment.InputToken), "--ready-file", readyPath, "--report", reportPath
         };
+        if (_config.Interactive) args.AddRange(["--interactive-session", "1"]);
         if (world) args.AddRange(["--connection-token", Number(_assignment.WorldToken)]);
-        else args.AddRange(["--credits", "8", "--max-samples", "65536"]);
+        else args.AddRange(["--credits", "8", "--max-samples",
+            Number(_config.Interactive ? InteractiveSessionLimits.InputSamples(_config.Seconds) : 65536u)]);
         if (!_config.Host)
         {
             uint serverPort = world ? _assignment.WorldPort : _assignment.InputPort;
@@ -194,8 +197,12 @@ internal sealed class LocalChannels : IDisposable
                 (L(bridge, 8) == 0 || L(bridge, 8) == _assignment.WorldToken), "Local World bridge terminal or connection token differs.");
             if (U(bridge, 4) != 3 || L(bridge, 8) == 0 || ap == 0 || sp == 0) return null;
             Require(U(actor, 8) == actorOwner.Process.Id && L(actor, 16) == actorOwner.CreationFileTime && U(actor, 12) != 0 &&
-                U(actor, 36) == 0 && L(actor, 48) == 0 && L(actor, 56) == 0 && U(actor, 4) is 0 or 1,
+                U(actor, 36) == 0 && L(actor, 48) == 0 && L(actor, 56) == 0 &&
+                (U(actor, 4) is 0 or 1 || !_config.Host && U(actor, 4) == 3),
                 "Local World Actor status is not this retained native owner.");
+            // Initializing is transport admission only. Its fixed native
+            // budget belongs to the bridge; this reader never promotes it.
+            if (U(actor, 4) == 3) return null;
             ulong now = checked((ulong)Environment.TickCount64), bridgeTick = L(bridge, 40), actorTick = L(actor, 24);
             Require(bridgeTick != 0 && bridgeTick <= now && now - bridgeTick <= 500 && actorTick != 0 &&
                 actorTick <= now && now - actorTick <= ActorLeaseMilliseconds, "Local bridge/Actor heartbeat is stale.");

@@ -47,7 +47,7 @@ internal sealed class ClientPresentationSession
     internal ClientPresentationSession(ProbeConfiguration config, DebuggerHost host, PEReader image, Action<object> log)
     {
         Require(config.Mode is "client-presentation-probe" or "client-presentation-live" &&
-            config.DurationSeconds is >= 5 and <= 600 && host.IsAtDebugStop &&
+            NativeObservationBudget.DurationAllowed(config) && host.IsAtDebugStop &&
             host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 && host.MainThreadId != 0,
             "Client presentation session requires an explicit bounded mode and owned initial stop.");
         _config = config; _host = host; _image = image; _log = log;
@@ -58,7 +58,7 @@ internal sealed class ClientPresentationSession
             config.EnableWorldEntry && config.DiagnosticGuestCaptureFixture &&
             config.DiagnosticWorldState is { Role: WorldStateRole.Guest },
             "Gardenia03 presentation requires the closed Guest progression entry/capture cohort.");
-        _level = story3 ? 3u : config.WorldBattlePresentation ? 47u : 28u;
+        _level = config.CampaignScene?.Level ?? (story3 ? 3u : config.WorldBattlePresentation ? 47u : 28u);
         _playingTable = config.WorldBattlePresentation ? 0x7105C8u : 0x710874u;
         _exitEntry = config.WorldBattlePresentation ? 0x5F2300u : 0x5F86C0u;
         _deadline = checked(Environment.TickCount64 + (long)config.DurationSeconds * 1000);
@@ -169,10 +169,10 @@ internal sealed class ClientPresentationSession
         {
             if (!mediaVerified || !ReadyAlfea()) return;
             CaptureOwners();
-            _policy = new ClientScenePolicy(_host, _image, _log, _level == 3 ? _config : null);
+            _policy = new ClientScenePolicy(_host, _image, _log, _level == 3 || _config.CampaignScene is not null ? _config : null);
             _policy.Capture();
             _gate = new ClientNativeGate(_host, _image, _log, _config.WorldBattlePresentation,
-                _level == 3 ? _config : null);
+                _level == 3 || _config.CampaignScene is not null ? _config : null);
             _policy.Configure(_gate, _config.DiagnosticGuestCaptureFixture, _config.WorldBattlePresentation);
             if (_config.WorldBattlePresentation && _config.DiagnosticWorldState?.Role == WorldStateRole.Guest)
             {

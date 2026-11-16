@@ -10,14 +10,16 @@ internal sealed class NativeProgressionFlowRequest
     private readonly PEReader _image;
     private readonly Action<object> _log;
     private readonly bool _useSavedReload;
+    private readonly uint _sceneLevel;
     private readonly string? _savedPath;
     private string? _loadFileSha256;
     private int _loadFileBytes;
     private bool _called, _returned;
     internal NativeProgressionFlowRequest(DebuggerHost host, PEReader image, Action<object> log,
-        bool useSavedReload = false, string? savedPath = null)
+        bool useSavedReload = false, string? savedPath = null, CampaignSceneProfile? campaign = null)
     {
         _host = host; _image = image; _log = log; _useSavedReload = useSavedReload;
+        campaign?.Validate(); _sceneLevel = campaign?.Level ?? 28u;
         if (useSavedReload)
         {
             if (savedPath is null || !Path.IsPathFullyQualified(savedPath) ||
@@ -88,7 +90,7 @@ internal sealed class NativeProgressionFlowRequest
         if (depth >= 20) throw new InvalidDataException("Saved progression Flow exceeds its original twenty slots.");
         uint current = U(flow + 0x1B0), top = U(flow + 0x15C + depth * 4), playing = 0;
         bool saveOverlay = current is 69 or 72;
-        if (top < 0x10000 || current != 28 && !saveOverlay)
+        if (top < 0x10000 || current != _sceneLevel && !saveOverlay)
             throw new InvalidDataException("Saved progression reload has neither original Alfea28 nor its native save overlay.");
         if (saveOverlay) VerifyOriginalSaveOverlayAtStop(_host, _image, top, current);
         for (uint index = 0; index <= depth; ++index)
@@ -96,7 +98,7 @@ internal sealed class NativeProgressionFlowRequest
             uint candidate = U(flow + 0x15C + index * 4);
             if (candidate < 0x10000)
                 throw new InvalidDataException("Saved progression Flow contains an empty retained stack slot.");
-            if (U(candidate) != 0x710874 || U(candidate + 0x10) != 28) continue;
+            if (U(candidate) != 0x710874 || U(candidate + 0x10) != _sceneLevel) continue;
             if (playing != 0)
                 throw new InvalidDataException("Saved progression reload found multiple retained Alfea28 owners.");
             playing = candidate;

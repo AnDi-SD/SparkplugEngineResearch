@@ -89,8 +89,8 @@ namespace winxcoop::adapter
         std::uint32_t levelEpoch{};
         std::uint64_t session{};
         wchar_t mappingName[128]{};
-        // PassiveActor only. Absolute ASCII drive path; pins the five qualified
-        // Bloom assets before the first command. Observer leaves these zero.
+        // PassiveActor only. Absolute ASCII drive path. Model-file read pins
+        // are acquired at Create; file hashes are not game-version gates.
         char mediaDirectory[MAX_PATH]{};
     };
     static_assert(sizeof(wchar_t) == 2, "Windows UTF16 ABI");

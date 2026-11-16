@@ -4,6 +4,8 @@
 #define NOMINMAX
 #include <windows.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#include <commdlg.h>
 #include "LobbyDiscovery.h"
 #include "PrototypeProfile.h"
 #include "ReplicationCoordinator.h"
@@ -34,7 +36,7 @@ namespace winxcoop::launcher
             }
             result+='\"';return result;
         }
-        enum Control : int { Port=101, Address, Lobbies, Host, Find, Join, Start, Leave, Status };
+        enum Control : int { Port=101, Address, Lobbies, Host, Find, Join, Start, Leave, Status, GameRoot, BrowseGame, OpenLogs, PlainGame };
         struct Options { std::uint16_t port=27025; std::wstring report; PrototypePaths paths; };
         std::optional<std::uint32_t> Number(const std::wstring& text,const std::uint32_t maximum)
         {
@@ -72,6 +74,10 @@ namespace winxcoop::launcher
             if(!arguments) throw std::runtime_error("Command line unavailable");
             struct FreeArgs { wchar_t** p; ~FreeArgs(){LocalFree(p);} } release{arguments};
             Options options;options.paths=ReadPrototypePaths();bool gotPort=false,gotReport=false,gotRoot=false,gotMedia=false;
+            const auto settings=LocalPrototypeDataDirectory()+L"\\launcher-settings.ini";
+            wchar_t remembered[MAX_PATH]{};
+            if(GetPrivateProfileStringW(L"Paths",L"gameRoot",L"",remembered,MAX_PATH,settings.c_str())>0)
+            {options.paths.gameRoot=ResolvePrototypePath(remembered);options.paths.media=options.paths.gameRoot+L"\\Media";}
             std::array<bool,6> gotPath{};bool gotSeconds=false;
             for(int i=1;i<count;++i)
             {
@@ -83,7 +89,7 @@ namespace winxcoop::launcher
                 else if(key==L"--report" && !gotReport && !value.empty() && value.size()<MAX_PATH)
                 { options.report=value; gotReport=true; }
                 else if(key==L"--seconds" && !gotSeconds)
-                {const auto seconds=Number(value,3600);if(!seconds || *seconds<5)throw std::invalid_argument("Prototype seconds must be 5..3600");options.paths.seconds=*seconds;gotSeconds=true;}
+                {const auto seconds=Number(value,3600);if(!seconds || (*seconds && *seconds<5))throw std::invalid_argument("Seconds must be0 (normal) or5..3600 (diagnostic)");options.paths.seconds=*seconds;options.paths.menuFirst=*seconds==0;gotSeconds=true;}
                 else
                 {
                     const std::array<const wchar_t*,6> names{{L"--game-root",L"--media",L"--adapter",L"--helper",L"--outer",L"--case-root"}};
@@ -111,7 +117,14 @@ namespace winxcoop::launcher
         public:
             explicit LobbyWindow(Options options):options_(std::move(options))
             {
-                profileCheck_=std::make_unique<PrototypeProfileCheck>(options_.paths);
+                localDirectory_=LocalPrototypeDataDirectory();
+                const auto made=SHCreateDirectoryExW(nullptr,(localDirectory_+L"\\Sessions").c_str(),nullptr);
+                if(made!=ERROR_SUCCESS && made!=ERROR_ALREADY_EXISTS && made!=ERROR_FILE_EXISTS)throw std::runtime_error("Cannot create local WinxCoop logs/sessions");
+                const auto logPath=localDirectory_+L"\\launcher.log";
+                log_=CreateFileW(logPath.c_str(),FILE_APPEND_DATA,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);
+                if(log_==INVALID_HANDLE_VALUE)throw std::runtime_error("Cannot open local WinxCoop launcher.log");
+                Log("launcher-opened",options_.paths.gameRoot);
+                if(!options_.paths.gameRoot.empty())profileCheck_=std::make_unique<PrototypeProfileCheck>(options_.paths);
                 if(!options_.report.empty())
                 {
                     report_=CreateFileW(options_.report.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
@@ -125,7 +138,7 @@ namespace winxcoop::launcher
                 WNDCLASSEXW wc{}; wc.cbSize=sizeof(wc); wc.hInstance=instance; wc.lpfnWndProc=&Procedure;
                 wc.hCursor=LoadCursorW(nullptr,IDC_ARROW); wc.hbrBackground=reinterpret_cast<HBRUSH>(COLOR_BTNFACE+1); wc.lpszClassName=WindowClass;
                 if(!RegisterClassExW(&wc)) throw std::runtime_error("Cannot register lobby window");
-                window_=CreateWindowExW(0,WindowClass,L"WinxCoop — локальное лобби",WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,840,570,nullptr,nullptr,instance,this);
+                window_=CreateWindowExW(0,WindowClass,L"WinxCoop — штатный запуск и локальное лобби",WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,860,660,nullptr,nullptr,instance,this);
                 if(!window_) throw std::runtime_error("Cannot create lobby window");
                 ShowWindow(window_,show); UpdateWindow(window_);
                 MSG message{}; int result=0;
@@ -138,8 +151,11 @@ namespace winxcoop::launcher
         private:
             Options options_;
             HINSTANCE instance_=nullptr;
-            HWND window_=nullptr,port_=nullptr,address_=nullptr,list_=nullptr,status_=nullptr;
+            HWND window_=nullptr,port_=nullptr,address_=nullptr,list_=nullptr,status_=nullptr,gameRoot_=nullptr;
             HANDLE report_=INVALID_HANDLE_VALUE;
+            HANDLE log_=INVALID_HANDLE_VALUE;
+            std::wstring localDirectory_,lastStatus_;
+            bool launchAfterQualification_=false;
             LobbyDiscovery discovery_;
             std::unique_ptr<WindowsTcpTransport> transport_;
             std::unique_ptr<PrototypeProfileCheck> profileCheck_;
@@ -155,6 +171,7 @@ namespace winxcoop::launcher
 
             void Record(const unsigned code,const int detail=0,const std::uint64_t connection=0) noexcept
             {
+                Log("event-"+std::to_string(code),std::to_wstring(detail)+L" / "+std::to_wstring(connection));
                 if(eventCount_==events_.size()) { ++droppedEvents_; return; }
                 events_[eventCount_++]={GetTickCount64()-started_,connection,code,detail};
             }
@@ -169,7 +186,48 @@ namespace winxcoop::launcher
                 report_=CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr);
                 if(report_==INVALID_HANDLE_VALUE)throw std::runtime_error("Cannot create a fresh launcher metrics report");
             }
-            void SetStatus(const std::wstring& text){if(status_) SetWindowTextW(status_,text.c_str());}
+            void Log(const std::string& event,const std::wstring& detail=L"") noexcept
+            {
+                if(log_==INVALID_HANDLE_VALUE)return;
+                try
+                {
+                    LARGE_INTEGER length{};
+                    if(GetFileSizeEx(log_,&length) && length.QuadPart>16*1024*1024)
+                    {
+                        CloseHandle(log_);log_=INVALID_HANDLE_VALUE;
+                        const auto path=localDirectory_+L"\\launcher.log";
+                        MoveFileW(path.c_str(),(localDirectory_+L"\\launcher-"+std::to_wstring(GetCurrentProcessId())+L'-'+std::to_wstring(GetTickCount64())+L".log").c_str());
+                        log_=CreateFileW(path.c_str(),FILE_APPEND_DATA,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);
+                        if(log_==INVALID_HANDLE_VALUE)return;
+                    }
+                    const auto size=WideCharToMultiByte(CP_UTF8,0,detail.data(),static_cast<int>(detail.size()),nullptr,0,nullptr,nullptr);
+                    std::string utf8(size,'\0');if(size)WideCharToMultiByte(CP_UTF8,0,detail.data(),static_cast<int>(detail.size()),utf8.data(),size,nullptr,nullptr);
+                    const auto line="{\"timeMs\":"+std::to_string(GetTickCount64())+",\"pid\":"+std::to_string(GetCurrentProcessId())+",\"event\":"+JsonString(event)+",\"detail\":"+JsonString(utf8)+"}\n";
+                    DWORD written{};WriteFile(log_,line.data(),static_cast<DWORD>(line.size()),&written,nullptr);
+                }catch(...){}
+            }
+            void SetStatus(const std::wstring& text){if(lastStatus_==text)return;lastStatus_=text;Log("status",text);if(status_)SetWindowTextW(status_,text.c_str());}
+            void BeginProfileCheck(const bool launch)
+            {
+                if(transport_ || (coordinator_ && (coordinator_->GameActive() || !coordinator_->CleanupConfirmed())) || (profileCheck_ && !profileCheck_->Finished()))return;
+                const auto selected=Text(gameRoot_);
+                if(selected.empty()){SetStatus(L"Выберите папку установленной игры.");return;}
+                options_.paths.gameRoot=ResolvePrototypePath(selected);options_.paths.media=options_.paths.gameRoot+L"\\Media";
+                coordinator_.reset();profileCheck_.reset();profileHandled_=false;launchAfterQualification_=launch;
+                profileCheck_=std::make_unique<PrototypeProfileCheck>(options_.paths);
+                Log("game-selected",options_.paths.gameRoot);
+                WritePrivateProfileStringW(L"Paths",L"gameRoot",options_.paths.gameRoot.c_str(),(localDirectory_+L"\\launcher-settings.ini").c_str());
+                SetStatus(L"Проверяем пути игры и компоненты адаптера. Настройки игры сохраняются.");UpdateButtons();
+            }
+            void BrowseInstalledGame()
+            {
+                wchar_t selected[MAX_PATH]{};OPENFILENAMEW dialog{};dialog.lStructSize=sizeof(dialog);dialog.hwndOwner=window_;
+                dialog.lpstrFilter=L"Winx Club (WinxClub.exe)\0WinxClub.exe\0";dialog.lpstrFile=selected;dialog.nMaxFile=MAX_PATH;
+                dialog.lpstrTitle=L"Выберите WinxClub.exe установленной игры";dialog.Flags=OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_NOCHANGEDIR;
+                if(!GetOpenFileNameW(&dialog))return;
+                std::wstring path=selected;path=path.substr(0,path.find_last_of(L"\\/"));SetWindowTextW(gameRoot_,path.c_str());
+                try{BeginProfileCheck(false);}catch(const std::exception& error){SetStatus(WideError(error.what()));Log("selection-failed",WideError(error.what()));}
+            }
             HWND Child(const wchar_t* type,const wchar_t* text,const DWORD style,const int id,const int x,const int y,const int width,const int height)
             {
                 const auto child=CreateWindowExW(lstrcmpW(type,L"EDIT")==0?WS_EX_CLIENTEDGE:0,type,text,WS_CHILD|WS_VISIBLE|style,x,y,width,height,window_,reinterpret_cast<HMENU>(static_cast<INT_PTR>(id)),instance_,nullptr);
@@ -178,36 +236,47 @@ namespace winxcoop::launcher
             }
             void CreateControls()
             {
-                Child(L"STATIC",L"TCP-порт сервера",0,0,16,18,150,22);
-                port_=Child(L"EDIT",std::to_wstring(options_.port).c_str(),ES_NUMBER|ES_AUTOHSCROLL|WS_TABSTOP,Port,170,14,100,25);
+                Child(L"STATIC",L"Установленная игра",0,0,16,18,150,22);
+                gameRoot_=Child(L"EDIT",options_.paths.gameRoot.c_str(),ES_AUTOHSCROLL|WS_TABSTOP,GameRoot,170,14,485,25);
+                SendMessageW(gameRoot_,EM_SETLIMITTEXT,MAX_PATH-1,0);
+                Child(L"BUTTON",L"Выбрать…",WS_TABSTOP,BrowseGame,668,13,150,28);
+                Child(L"STATIC",L"Запуск через обычное меню. Игра и INI не копируются и не изменяются.",0,0,16,54,800,22);
+                Child(L"STATIC",L"TCP-порт сервера",0,0,16,98,150,22);
+                port_=Child(L"EDIT",std::to_wstring(options_.port).c_str(),ES_NUMBER|ES_AUTOHSCROLL|WS_TABSTOP,Port,170,94,100,25);
                 SendMessageW(port_,EM_SETLIMITTEXT,5,0);
-                Child(L"BUTTON",L"Создать лобби",WS_TABSTOP,Host,290,13,160,28);
-                Child(L"BUTTON",L"Найти в LAN",WS_TABSTOP,Find,466,13,160,28);
-                Child(L"STATIC",L"Адрес IPv4:порт",0,0,16,60,150,22);
-                address_=Child(L"EDIT",EndpointText({0x7f000001u,options_.port}).c_str(),ES_AUTOHSCROLL|WS_TABSTOP,Address,170,55,280,25);
+                Child(L"BUTTON",L"Создать лобби",WS_TABSTOP,Host,290,93,160,28);
+                Child(L"BUTTON",L"Найти в LAN",WS_TABSTOP,Find,466,93,160,28);
+                Child(L"STATIC",L"Адрес IPv4:порт",0,0,16,140,150,22);
+                address_=Child(L"EDIT",EndpointText({0x7f000001u,options_.port}).c_str(),ES_AUTOHSCROLL|WS_TABSTOP,Address,170,135,280,25);
                 SendMessageW(address_,EM_SETLIMITTEXT,63,0);
-                Child(L"BUTTON",L"Подключиться",WS_TABSTOP,Join,466,54,160,28);
-                Child(L"STATIC",L"Найденные лобби (двойной щелчок — подключиться)",0,0,16,103,600,22);
-                list_=Child(L"LISTBOX",L"",LBS_NOTIFY|WS_VSCROLL|WS_BORDER|WS_TABSTOP,Lobbies,16,130,790,230);
-                Child(L"BUTTON",L"Начать игру",WS_TABSTOP,Start,16,379,160,30);
-                Child(L"BUTTON",L"Покинуть лобби",WS_TABSTOP,Leave,190,379,180,30);
-                status_=Child(L"STATIC",L"Проверяем подготовленный профиль Alfea 28 и считаем SHA256 Media…",SS_LEFT,Status,16,429,790,70);
+                Child(L"BUTTON",L"Подключиться",WS_TABSTOP,Join,466,134,160,28);
+                Child(L"STATIC",L"Найденные лобби (двойной щелчок — подключиться)",0,0,16,183,600,22);
+                list_=Child(L"LISTBOX",L"",LBS_NOTIFY|WS_VSCROLL|WS_BORDER|WS_TABSTOP,Lobbies,16,210,810,230);
+                Child(L"BUTTON",L"Запустить игру",WS_TABSTOP,Start,16,469,160,30);
+                Child(L"BUTTON",L"Покинуть лобби",WS_TABSTOP,Leave,190,469,180,30);
+                Child(L"BUTTON",L"Папка журналов",WS_TABSTOP,OpenLogs,384,469,160,30);
+                Child(L"BUTTON",L"Без адаптера",WS_TABSTOP,PlainGame,558,469,160,30);
+                status_=Child(L"STATIC",L"Выберите установленную игру. Затем можно открыть штатное меню.",SS_LEFT,Status,16,519,810,70);
                 UpdateButtons();
                 if(!SetTimer(window_,PumpTimer,20,nullptr)) throw std::runtime_error("Cannot start network pump");
             }
             void UpdateButtons()
             {
                 const auto active=transport_!=nullptr;
-                EnableWindow(GetDlgItem(window_,Host),!closing_ && !active && coordinator_ && coordinator_->CanAttach(SessionRole::Host));
-                EnableWindow(GetDlgItem(window_,Join),!closing_ && !active && coordinator_ && coordinator_->CanAttach(SessionRole::Guest));
+                const bool selectedMatches=Text(gameRoot_)==options_.paths.gameRoot;
+                EnableWindow(GetDlgItem(window_,Host),!closing_ && !active && selectedMatches && coordinator_ && coordinator_->CanAttach(SessionRole::Host));
+                EnableWindow(GetDlgItem(window_,Join),!closing_ && !active && selectedMatches && coordinator_ && coordinator_->CanAttach(SessionRole::Guest));
                 EnableWindow(port_,!closing_ && !active);
                 EnableWindow(GetDlgItem(window_,Leave),!closing_ && active);
-                EnableWindow(GetDlgItem(window_,Start),!closing_ && coordinator_ && coordinator_->CanStartHostGame());
+                const bool editable=!closing_ && !active && (!coordinator_ || (!coordinator_->GameActive() && coordinator_->CleanupConfirmed())) && (!profileCheck_ || profileCheck_->Finished());
+                EnableWindow(gameRoot_,editable);EnableWindow(GetDlgItem(window_,BrowseGame),editable);
+                EnableWindow(GetDlgItem(window_,Start),!closing_ && ((coordinator_ && coordinator_->CanStartHostGame()) || (!coordinator_ && editable)));
             }
             std::wstring Text(HWND control) const
-            { std::array<wchar_t,128> value{}; GetWindowTextW(control,value.data(),static_cast<int>(value.size())); return value.data(); }
+            { std::array<wchar_t,MAX_PATH> value{}; GetWindowTextW(control,value.data(),static_cast<int>(value.size())); return value.data(); }
             void HostLobby()
             {
+                if(Text(gameRoot_)!=options_.paths.gameRoot){BeginProfileCheck(false);return;}
                 if(transport_ || !coordinator_ || !coordinator_->CanAttach(SessionRole::Host)) return;
                 const auto port=Number(Text(port_),65535);
                 if(!port || !*port) { SetStatus(L"Введите TCP-порт от 1 до 65535."); return; }
@@ -221,10 +290,11 @@ namespace winxcoop::launcher
                 const bool advertised=discovery_.StartHosting(transport_->BoundEndpoint().port,L"WinxCoop");
                 discoveryUnavailable_=!advertised;
                 Record(10,advertised?0:discovery_.LastSocketError()); UpdateButtons();
-                SetStatus(advertised?L"Лобби создано. Сервер может нажать «Начать игру» до подключения гостя.":L"Лобби создано, но LAN-поиск недоступен. Сервер может начать игру; гость подключается вручную по IPv4:порту.");
+                SetStatus(advertised?L"Лобби создано. Можно открыть обычное меню кнопкой «Запустить игру».":L"Лобби создано, но LAN-поиск недоступен. Гость может подключиться по IPv4:порту.");
             }
             void JoinLobby()
             {
+                if(Text(gameRoot_)!=options_.paths.gameRoot){BeginProfileCheck(false);return;}
                 if(transport_ || !coordinator_ || !coordinator_->CanAttach(SessionRole::Guest)) return;
                 const auto server=ParseEndpoint(Text(address_));
                 if(!server) { SetStatus(L"Введите адрес в формате IPv4:порт, например 192.168.1.10:27025."); return; }
@@ -284,9 +354,13 @@ namespace winxcoop::launcher
                 {
                     profileHandled_=true;
                     if(!closing_ && profileCheck_->Successful())
-                    {OpenDefaultReport();coordinator_=std::make_unique<ReplicationCoordinator>(profileCheck_->Profile());Record(80);SetStatus(L"Профиль Alfea 28 проверен. Создайте лобби или подключитесь к серверу.");}
+                    {
+                        OpenDefaultReport();coordinator_=std::make_unique<ReplicationCoordinator>(profileCheck_->Profile());Record(80);
+                        SetStatus(L"Игра выбрана. Запуск откроет обычное меню; лобби можно создать отдельно.");
+                        if(launchAfterQualification_){launchAfterQualification_=false;coordinator_->StartHostGame(now);SetStatus(coordinator_->Status());}
+                    }
                     else if(!closing_)
-                    {Record(81);SetStatus(L"Профиль не готов: "+WideError(profileCheck_->Failure().c_str())+L". Проверьте WinxCoopLauncher.ini и параметры путей.");}
+                    {launchAfterQualification_=false;Record(81);SetStatus(L"Адаптер не готов: "+WideError(profileCheck_->Failure().c_str())+L". Проверьте выбранную папку игры и компоненты мода.");}
                     UpdateButtons();
                 }
                 if(closing_)
@@ -309,7 +383,7 @@ namespace winxcoop::launcher
                     {
                         lastState_=state;lastPhase_=phase;lastConnection_=connection;
                         if(state==TcpTransportState::Connected && phase==SessionPhase::Running)
-                            SetStatus(isHost_?L"Сетевой канал готов. Гость ждёт фактической готовности уровня сервера.":L"Сетевой канал готов. Ждём назначения уровня сервером; игра клиента пока не запускается.");
+                            SetStatus(L"Сетевой канал готов. Игры открываются через штатное меню; локация определяется после загрузки.");
                         else if(state==TcpTransportState::Listening)
                             SetStatus(discoveryUnavailable_?L"Лобби открыто. LAN-поиск недоступен; гость подключается вручную.":L"Лобби открыто. Ожидаем гостя.");
                         else if(state==TcpTransportState::Closed || state==TcpTransportState::Failed)
@@ -333,7 +407,7 @@ namespace winxcoop::launcher
                 if(transport_){transport_->Close();Accumulate(transport_->Metrics());transport_.reset();}
                 const int controls[]{Host,Find,Join,Start,Leave,Port,Address,Lobbies};
                 for(const auto id:controls)EnableWindow(GetDlgItem(window_,id),FALSE);
-                if(status_)SetWindowTextW(status_,L"Закрываем сеанс. Ждём удаления модели, выхода игры и восстановления MediaPath…");
+                if(status_)SetWindowTextW(status_,L"Закрываем сеанс. Ожидаем завершения принадлежащих ему процессов…");
                 // The timer remains alive until facade reports the outer exit.
                 // No GUI wait and no premature destruction of live IPC owners.
             }
@@ -406,6 +480,7 @@ namespace winxcoop::launcher
                     (!coordinator_ || (coordinator_->Finished() && coordinator_->CleanupConfirmed())) && (!profileCheck_ || profileCheck_->Finished());
                 if(!cleanupConfirmed_) fatal_=true;
                 WriteReport();
+                Log("launcher-closed");if(log_!=INVALID_HANDLE_VALUE){CloseHandle(log_);log_=INVALID_HANDLE_VALUE;}
             }
             void FailClosed() noexcept
             {
@@ -422,20 +497,27 @@ namespace winxcoop::launcher
                     if(closing_)return 0;
                     switch(LOWORD(w))
                     {
+                    case GameRoot:if(HIWORD(w)==EN_CHANGE)UpdateButtons();break;
+                    case BrowseGame:if(HIWORD(w)==BN_CLICKED)BrowseInstalledGame();break;
+                    case OpenLogs:if(HIWORD(w)==BN_CLICKED)ShellExecuteW(window_,L"open",localDirectory_.c_str(),nullptr,nullptr,SW_SHOWNORMAL);break;
+                    case PlainGame:
+                        if(HIWORD(w)==BN_CLICKED)
+                        {const auto root=Text(gameRoot_);Log("plain-game-launch",root);ShellExecuteW(window_,L"open",(root+L"\\WinxClub.exe").c_str(),nullptr,root.c_str(),SW_SHOWNORMAL);}
+                        break;
                     case Host: if(HIWORD(w)==BN_CLICKED) HostLobby(); break;
                     case Find: if(HIWORD(w)==BN_CLICKED) FindLobbies(); break;
                     case Join: if(HIWORD(w)==BN_CLICKED) JoinLobby(); break;
                     case Leave: if(HIWORD(w)==BN_CLICKED) LeaveLobby(); break;
                     case Start:
-                        if(HIWORD(w)==BN_CLICKED && coordinator_)
-                        {const auto began=coordinator_->StartHostGame(GetTickCount64());Record(began?82:83);SetStatus(coordinator_->Status());UpdateButtons();}
+                        if(HIWORD(w)==BN_CLICKED)
+                        {if(coordinator_ && Text(gameRoot_)==options_.paths.gameRoot){const auto began=coordinator_->StartHostGame(GetTickCount64());Record(began?82:83);SetStatus(coordinator_->Status());}else BeginProfileCheck(true);UpdateButtons();}
                         break;
                     case Lobbies: if(HIWORD(w)==LBN_SELCHANGE || HIWORD(w)==LBN_DBLCLK) SelectLobby(HIWORD(w)==LBN_DBLCLK); break;
                     } return 0;
                 case WM_TIMER: if(w==PumpTimer) Pump(); return 0;
-                case WM_GETMINMAXINFO: reinterpret_cast<MINMAXINFO*>(l)->ptMinTrackSize={680,520}; return 0;
+                case WM_GETMINMAXINFO: reinterpret_cast<MINMAXINFO*>(l)->ptMinTrackSize={840,650}; return 0;
                 case WM_SIZE:
-                    if(list_) { const int width=LOWORD(l),height=HIWORD(l); MoveWindow(list_,16,130,width-32,height-280,TRUE); MoveWindow(GetDlgItem(window_,Start),16,height-130,160,30,TRUE); MoveWindow(GetDlgItem(window_,Leave),190,height-130,180,30,TRUE); MoveWindow(status_,16,height-80,width-32,70,TRUE); } return 0;
+                    if(list_) { const int width=LOWORD(l),height=HIWORD(l); MoveWindow(list_,16,210,width-32,height-360,TRUE); MoveWindow(GetDlgItem(window_,Start),16,height-130,160,30,TRUE); MoveWindow(GetDlgItem(window_,Leave),190,height-130,180,30,TRUE); MoveWindow(GetDlgItem(window_,OpenLogs),384,height-130,160,30,TRUE);MoveWindow(GetDlgItem(window_,PlainGame),558,height-130,160,30,TRUE);MoveWindow(status_,16,height-80,width-32,70,TRUE); } return 0;
                 case WM_CLOSE: BeginClose(); return 0;
                 case WM_DESTROY: Close(); PostQuitMessage(fatal_?1:0); return 0;
                 default: return DefWindowProcW(window_,message,w,l);

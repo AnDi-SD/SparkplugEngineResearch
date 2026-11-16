@@ -120,19 +120,21 @@ internal sealed class NativeWorldEntrySeed
     private bool _installed, _active, _placementActive, _placementReturned, _spawnObserved;
     private bool _loadReturned, _worldQualified, _retired, _failed;
     private readonly bool _storyLevel3Authorized;
+    private readonly CampaignSceneProfile? _campaign;
     private byte[]? _witness;
 
     internal NativeWorldEntrySeed(DebuggerHost host, PEReader image, Action<object> log,
         WorldStateRole role, uint level, uint levelEpoch, uint generation,
         byte[]? guestSeed = null, uint captureEntryOrdinal = 1, uint nativeOrdinalBase = 0,
         NativeWorldEntryRouter? router = null, bool authoritativeHostContinuation = false,
-        ProgressionControlPermit? storyProgression = null)
+        ProgressionControlPermit? storyProgression = null, CampaignSceneProfile? campaign = null)
     {
         Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ImageBase == 0x400000 &&
-            role is WorldStateRole.Host or WorldStateRole.Guest && level is 3 or 28 or 47 &&
+            role is WorldStateRole.Host or WorldStateRole.Guest && (level is 3 or 28 or 47 || campaign?.Admits(level) == true) &&
             levelEpoch != 0 && generation != 0 && captureEntryOrdinal is > 0 and <= 8 &&
             nativeOrdinalBase < captureEntryOrdinal,
             "Entry observer requires an explicit owned Alfea28/Battle47 initial epoch.");
+        _campaign = campaign;
         _storyLevel3Authorized = level == 3 && router is not null &&
             storyProgression is { OwnerPid: > 0, OwnerCreationFileTime: > 0 };
         Require(level != 3 || _storyLevel3Authorized,
@@ -170,6 +172,7 @@ internal sealed class NativeWorldEntrySeed
     internal bool HasPendingOriginalEntry => _active || _placementActive;
     internal uint Level => _level;
     internal bool StoryLevel3Authorized => _storyLevel3Authorized;
+    internal bool CampaignLevelAdmitted => _campaign?.Admits(_level) == true;
     internal byte[] GetSeed() => EntryCompleted && _seed is not null ? _seed.Pack() :
         throw new InvalidDataException("Native entry seed was requested before actual original entry completion.");
     internal byte[] GetWitness() => WorldQualified && _witness is not null ? (byte[])_witness.Clone() :

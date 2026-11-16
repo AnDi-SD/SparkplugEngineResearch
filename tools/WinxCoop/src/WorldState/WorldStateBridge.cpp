@@ -3,6 +3,7 @@
 #define NOMINMAX
 #include <windows.h>
 #include "WorldStateSession.h"
+#include "ActorLeasePolicy.h"
 #include "Networking/WindowsTcpTransport.h"
 #include "Networking/WindowsPumpWait.h"
 #include <algorithm>
@@ -51,8 +52,18 @@ namespace
         DWORD written=0;const bool ok=data.size()<=MAXDWORD&&WriteFile(file,data.data(),static_cast<DWORD>(data.size()),&written,nullptr)&&written==data.size();
         const bool closed=CloseHandle(file)!=0;if(!ok||!closed)throw std::runtime_error("WorldState output write/close failed");
     }
+    bool OutputExists(const std::filesystem::path& path)
+    {
+        // Keep this preflight on Win7 APIs. Newer static STL filesystem code
+        // can introduce a loader-time CreateFile2 dependency even on Win7 builds.
+        if(GetFileAttributesW(path.c_str())!=INVALID_FILE_ATTRIBUTES)return true;
+        const auto error=GetLastError();
+        if(error==ERROR_FILE_NOT_FOUND||error==ERROR_PATH_NOT_FOUND)return false;
+        throw std::runtime_error("WorldState output query failed: "+std::to_string(error));
+    }
     struct Options final
     {
+        bool interactiveSession=false;
         Role role=Role::Host;TcpTransportConfig tcp;std::wstring mapping;std::filesystem::path ready,report;
         std::uint64_t nonce=0,session=0,scenario=0,connectionToken=0,runMilliseconds=60000;
         std::uint32_t levelEpoch=0,generation=0,actorLeaseMilliseconds=DefaultActorLeaseMilliseconds;
@@ -75,18 +86,20 @@ namespace
             else if(key==L"--connection-token")o.connectionToken=Number(value,UINT64_MAX);
             else if(key==L"--level-epoch")o.levelEpoch=static_cast<std::uint32_t>(Number(value,UINT32_MAX));
             else if(key==L"--generation")o.generation=static_cast<std::uint32_t>(Number(value,UINT32_MAX));
-            else if(key==L"--run-ms")o.runMilliseconds=Number(value,600000);
+            else if(key==L"--interactive-session"){if(value!=L"1")throw std::invalid_argument("Explicit interactive-session requires1");o.interactiveSession=true;}
+            else if(key==L"--run-ms")o.runMilliseconds=Number(value,14400000);
             else if(key==L"--actor-lease-ms")o.actorLeaseMilliseconds=static_cast<std::uint32_t>(Number(value,5000));
             else if(key==L"--token")o.startToken=static_cast<std::uint16_t>(Number(value,65535));
             else if(key==L"--ready-file")o.ready=value;
             else if(key==L"--report")o.report=value;
             else throw std::invalid_argument("UnknownWorldState option");
         }
+        if(!o.interactiveSession&&o.runMilliseconds>600000)throw std::invalid_argument("LongWorldState lifetime requires explicit interactive-session");
         const std::wstring prefix=L"Local\\WinxCoop.WorldState1.";
         if(!role||!bind||!o.nonce||!o.session||!o.scenario||!o.connectionToken||!o.levelEpoch||!o.generation||!o.startToken||
             o.runMilliseconds<100||o.actorLeaseMilliseconds<500||(o.role==Role::Guest)!=o.tcp.server.has_value()||
             o.mapping.size()<=prefix.size()||o.mapping.size()>160||o.mapping.compare(0,prefix.size(),prefix)!=0||o.ready.empty()||o.report.empty()||
-            !o.ready.is_absolute()||!o.report.is_absolute()||o.ready==o.report||std::filesystem::exists(o.ready)||std::filesystem::exists(o.report))
+            !o.ready.is_absolute()||!o.report.is_absolute()||o.ready==o.report||OutputExists(o.ready)||OutputExists(o.report))
             throw std::invalid_argument("Missing explicit freshWorldState identity, output or endpoint");
         for(std::size_t i=prefix.size();i<o.mapping.size();++i)
         {const auto c=o.mapping[i];if(!((c>=L'a'&&c<=L'z')||(c>=L'A'&&c<=L'Z')||(c>=L'0'&&c<=L'9')||c==L'.'||c==L'-'||c==L'_'))throw std::invalid_argument("Mapping suffix is not bounded ASCII");}
@@ -123,6 +136,7 @@ namespace
         Options o_;Mapping mapping_;Shared& ipc_;Header header_;Session world_;WindowsTcpTransport tcp_;
         WindowsPumpWait wait_;WindowsPumpCadence cadence_;
         ActorStatus actor_{};BridgeStatus status_{};HANDLE participant_=nullptr;bool admitted_=false,running_=false;
+        ActorLeasePolicy actorLease_;
         std::uint64_t connection_=0,lastNow_=0;std::uint32_t snapshotPublication_=0;
         std::uint64_t sentFrames_=0,receivedFrames_=0,snapshotsForwarded_=0,snapshotReads_=0,coherentRetries_=0;
         DWORD participantCloseError_=0;
@@ -140,15 +154,18 @@ namespace
                 ++coherentRetries_;
                 // A stalled writer is still bounded, but an old cached
                 // observation must not reject a newer coherent publication.
-                if(admitted_&&actor_.availability==static_cast<unsigned>(Availability::Ready)&&
-                    now-actor_.observedAtMilliseconds>o_.actorLeaseMilliseconds)Stop(Terminal::ActorLeaseExpired);
+                if(admitted_)
+                {
+                    const auto failure=actorLease_.Check(now,actor_);
+                    if(failure!=Terminal::None)Stop(failure);
+                }
                 return false;
             }
             if(!next.participantPid)return false;
             const auto after=GetTickCount64();
             if(after<now||next.observedAtMilliseconds>after){Stop(Terminal::Clock);return false;}
             if(!next.participantCreationFileTime||!next.readinessRevision||next.reserved1||next.reserved2||
-                next.availability>static_cast<unsigned>(Availability::Retired)||next.terminalReason>static_cast<unsigned>(Terminal::NativeApply)||
+                next.availability>static_cast<unsigned>(Availability::Initializing)||next.terminalReason>static_cast<unsigned>(Terminal::NativeApply)||
                 (Host()&&(next.appliedEpoch||next.appliedRevision))) {Stop(Terminal::Identity);return false;}
             if(!admitted_)
             {
@@ -162,8 +179,8 @@ namespace
             actor_=next;
             if(WaitForSingleObject(participant_,0)!=WAIT_TIMEOUT){Stop(Terminal::ActorClosed);return false;}
             if(actor_.terminalReason){Stop(static_cast<Terminal>(actor_.terminalReason));return false;}
-            if(actor_.availability==static_cast<unsigned>(Availability::Ready)&&after-actor_.observedAtMilliseconds>o_.actorLeaseMilliseconds)
-            {Stop(Terminal::ActorLeaseExpired);return false;}
+            const auto leaseFailure=actorLease_.Observe(after,actor_);
+            if(leaseFailure!=Terminal::None){Stop(leaseFailure);return false;}
             if(!world_.ObserveActor(static_cast<Availability>(actor_.availability),actor_.readinessRevision))return false;
             if(!Host()&&!world_.ObserveApplied(actor_.appliedEpoch,actor_.appliedRevision))return false;return true;
         }
@@ -217,7 +234,8 @@ namespace
         }
     public:
         explicit Bridge(Options options):o_(std::move(options)),mapping_(o_),ipc_(mapping_.Get()),header_(ipc_.header),
-            world_(o_.role,{o_.session,o_.scenario,o_.connectionToken,o_.levelEpoch,o_.generation}),tcp_(o_.tcp){}
+            world_(o_.role,{o_.session,o_.scenario,o_.connectionToken,o_.levelEpoch,o_.generation}),tcp_(o_.tcp),
+            actorLease_(o_.role,o_.actorLeaseMilliseconds){}
         ~Bridge(){if(participant_)CloseHandle(participant_);}
         int Run()try
         {
@@ -266,6 +284,7 @@ namespace
                 "\",\"receivedRevisionDecimal\":\""+std::to_string(world_.ReceivedRevision())+"\",\"sentFrames\":"+std::to_string(sentFrames_)+",\"receivedFrames\":"+std::to_string(receivedFrames_)+
                 ",\"snapshotReads\":"+std::to_string(snapshotReads_)+",\"snapshotsForwarded\":"+std::to_string(snapshotsForwarded_)+",\"coalescedUnpublished\":"+std::to_string(world_.CoalescedUnpublished())+
                 ",\"nativeAppliedSnapshotCount\":"+std::to_string(world_.AppliedSnapshotCount())+",\"coherentReadRetries\":"+std::to_string(coherentRetries_)+",\"actorLeaseMillis\":"+std::to_string(o_.actorLeaseMilliseconds)+
+                ",\"initialNativeApplyMillis\":"+std::to_string(InitialNativeApplyMilliseconds)+
                 ",\"socketsOpened\":"+std::to_string(metrics.socketsOpened)+",\"socketsClosed\":"+std::to_string(metrics.socketsClosed)+
                 ",\"stopFlushed\":"+(stopFlushed_?"true":"false")+",\"peerStopReceived\":"+(peerStopReceived_?"true":"false")+
                 ",\"mappingClosed\":"+(mapping_.Balanced()?"true":"false")+",\"mappingCloseError\":"+std::to_string(mapping_.Error())+",\"participantCloseError\":"+std::to_string(participantCloseError_)+

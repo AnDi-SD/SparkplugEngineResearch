@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Runtime.InteropServices;
 
 namespace WinxCoop.SessionHost;
 
@@ -7,8 +8,14 @@ internal static class SessionMain
     [STAThread]
     private static int Main(string[] arguments)
     {
+        LauncherLocalState? local = null;
+        bool gui = arguments.Length == 0 && !File.Exists((Environment.ProcessPath ?? "") + ".json");
         try
         {
+            local = new LauncherLocalState();
+            local.Write("process-start", new { executable = Environment.ProcessPath,
+                framework = RuntimeInformation.FrameworkDescription, gui, argumentCount = arguments.Length,
+                localData = local.RootDirectory, launcherLog = local.LogPath });
             string adjacent = (Environment.ProcessPath ?? throw new InvalidOperationException("Missing application path.")) + ".json";
             if (arguments.Length == 2 && arguments[0] == "--worker" || arguments.Length == 0 && File.Exists(adjacent))
             {
@@ -17,12 +24,15 @@ internal static class SessionMain
                     ?? throw new InvalidDataException("Missing worker configuration.");
                 config.Validate();
                 SessionConfiguration.Require(config.Worker, "A native-parent worker configuration is required.");
-                return SessionWorker.Run(config);
+                local.Write("worker-start", new { config.Role, config.CaseDirectory });
+                int result = SessionWorker.Run(config);
+                local.TryWrite("worker-exit", new { exitCode = result, config.Role, config.CaseDirectory });
+                return result;
             }
             if (arguments.Length == 4 && arguments[0] == "--check-profile" && arguments[2] == "--report")
             {
                 string directory = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
-                var config = new SessionConfiguration { BundleDirectory = directory, GameRoot = Path.GetFullPath(arguments[1]), CaseDirectory = directory };
+                var config = new SessionConfiguration { BundleDirectory = directory, GameRoot = Path.GetFullPath(arguments[1]), CaseDirectory = local.CasesDirectory };
                 config.Validate();
                 using var bundle = new RuntimeBundle(directory);
                 using var profile = new GameProfile(config, bundle);
@@ -35,23 +45,38 @@ internal static class SessionMain
             SessionConfiguration.Require(arguments.Length == 0, "Use the launcher, --worker <config>, or --check-profile <game> --report <new.json>.");
             using var uiBundle = new RuntimeBundle(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar));
             uiBundle.InstallNativeResolver();
+            local.Write("program-bundle-opened", new { source = uiBundle.DirectoryPath,
+                uiBundle.Manifest.Architecture, uiBundle.Manifest.SourceProfileSha256 });
+            LauncherLocalState logger = local;
+            AppDomain.CurrentDomain.UnhandledException += (_, failure) =>
+                logger.TryWrite("unhandled-exception", new { error = failure.ExceptionObject.ToString(), failure.IsTerminating });
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (_, failure) =>
+            {
+                logger.TryWrite("gui-unhandled-exception", new { error = failure.Exception.ToString() });
+                MessageBox.Show(failure.Exception.Message + "\n\n" + logger.LogPath, "WinxCoop",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            };
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LobbyForm(uiBundle));
+            Application.Run(new LobbyForm(uiBundle, local));
+            local.TryWrite("gui-closed");
             return 0;
         }
         catch (Exception error)
         {
             // Worker writes its own complete report; an early CLI failure is
             // retained without opening a dialog over an unattended game test.
-            if (arguments.Length == 0 && !File.Exists((Environment.ProcessPath ?? "") + ".json"))
-                MessageBox.Show(error.Message, "WinxCoop", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            local?.TryWrite("process-failed", new { error = error.ToString() });
+            if (gui)
+                MessageBox.Show(error.Message + (local is null ? "" : "\n\n" + local.LogPath), "WinxCoop", MessageBoxButtons.OK, MessageBoxIcon.Error);
             else
             {
-                try { File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "WinxCoop.SessionHost.error.log"), error + Environment.NewLine); }
+                try { Console.Error.WriteLine(error); }
                 catch (IOException) { }
             }
             return 4;
         }
+        finally { local?.Dispose(); }
     }
 }

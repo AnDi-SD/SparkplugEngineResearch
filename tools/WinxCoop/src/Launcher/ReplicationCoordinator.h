@@ -38,6 +38,8 @@ namespace winxcoop::launcher
         // Call before releasing the transport. Host game may remain running;
         // guest retires its native generation after removing the old visual.
         void Detach() noexcept;
+        // Menu-first opens the installed game normally, including before a
+        // lobby exists. No game-duration timer is armed. Legacy diagnostics only:
         // Per-game duration contract: helper hard bound=max(30, profile.seconds)
         // (profile is5..3600); soft run=min(profile.seconds, hard-15), reserving
         // at least15 seconds. Examples:5=>soft5/hard30;29=>15/30;900=>885/900;

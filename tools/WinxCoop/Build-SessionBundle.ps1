@@ -98,7 +98,7 @@ function Get-BundleSourceProfile([switch]$Pin) {
         'tools/WinxCoop/WinxCoop.CompatCore.csproj','tools/WinxCoop/CMakeLists.txt',
         'tools/WinxCoop/Build-NetworkChecks.ps1','tools/WinxCoop/Build-SessionBundle.ps1',
         'tools/WinxCoop/src/Launcher/LobbyDiscovery.cpp','tools/WinxCoop/src/Launcher/LobbyDiscovery.h',
-        'tools/WinxCoop/tests/XpGameProbe.c','Sparkplug/CMakeLists.txt')) { & $add (Join-Path $bundleRepo $relative) }
+        'tools/WinxCoop/tests/XpGameProbe.c','tools/WinxCoop/tests/XpGameProbe.manifest','Sparkplug/CMakeLists.txt')) { & $add (Join-Path $bundleRepo $relative) }
     foreach ($relative in @('global.json','NuGet.Config','Directory.Build.props','Directory.Build.targets','Directory.Packages.props',
         'tools/Directory.Build.props','tools/Directory.Build.targets','tools/Directory.Packages.props',
         'tools/WinxCoop/Directory.Build.props','tools/WinxCoop/Directory.Build.targets','tools/WinxCoop/Directory.Packages.props',

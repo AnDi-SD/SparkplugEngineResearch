@@ -803,21 +803,23 @@ internal sealed class NativeCallDispatcher
     /// The caller separately owns the actual original Exit-return receipt.
     /// </summary>
     internal void ReleaseRetiredBeforeProgressionExit(DebuggerHost host, uint threadId,
-        ref Win32Native.X86Context ctx, uint entry, byte expectedFirstByte)
+        ref Win32Native.X86Context ctx, uint entry, byte expectedFirstByte, CampaignSceneProfile? campaign = null)
     {
+        campaign?.Validate();
         if (Pending) throw new InvalidOperationException("Cannot release an active progression request page.");
         if (!_retired) return;
         if (_terminalFailure || !ReferenceEquals(host, _host) || !_retiredOrdinaryProgression ||
             _entryBatch || _dependencyActive || _completedCallSequence != _sequence || _completed != _sequence ||
             _sequence == 0 || host.DebugStopSequence <= _completedDebugStop || threadId != _threadId ||
             entry != 0x5F86C0 || expectedFirstByte != 0x53 || _page == IntPtr.Zero || _pageAddress == 0 ||
+            campaign is not null && (_ordinaryFunction != 0x4E7580 || !_ordinaryArguments.AsSpan().SequenceEqual(new uint[] { 0 })) ||
             _resumeEip != _originalReturnAddress || _resumeEsp != checked(_saved.Esp + 4))
             throw new InvalidDataException("Progression Exit release does not own its later completed ordinary reload page.");
         Win32Native.X86Context full = VerifyEntryStop(host, threadId, ref ctx, entry, expectedFirstByte);
         uint U(uint address) => Win32Native.ReadUInt32(host.ProcessHandle, address);
         uint flow = U(0x755294), receiver = ctx.Ecx;
         if (flow < 0x10000 || U(flow) != 0x702D2C || receiver < 0x10000 || (receiver & 3) != 0 ||
-            U(receiver) != 0x710874 || U(receiver + 0x10) != 28 || ctx.Esp < 0x10000 || (ctx.Esp & 3) != 0)
+            U(receiver) != 0x710874 || U(receiver + 0x10) != (campaign?.Level ?? 28u) || ctx.Esp < 0x10000 || (ctx.Esp & 3) != 0)
             throw new InvalidDataException("Progression Exit release lost its original typed Alfea28 Flow/receiver/stack.");
         uint depth = U(flow + 0x1AC), caller = U(ctx.Esp);
         if (depth >= 20 || U(flow + 0x15C + depth * 4) != receiver ||
@@ -851,8 +853,9 @@ internal sealed class NativeCallDispatcher
     /// <summary>Only the explicitly captured Guest MainMenu request may use this later original replace-Exit stop.</summary>
     internal void ReleaseRetiredBeforeGuestProgressionExit(DebuggerHost host, uint threadId,
         ref Win32Native.X86Context ctx, uint entry, byte expectedFirstByte,
-        uint menuId, uint menuObject, uint level)
+        uint menuId, uint menuObject, uint level, CampaignSceneProfile? campaign = null)
     {
+        campaign?.Validate();
         if (Pending) throw new InvalidOperationException("Cannot release an active Guest menu request page.");
         if (!_retired) return;
         if (_terminalFailure || !ReferenceEquals(host, _host) || !_retiredOrdinaryGuestMenu ||
@@ -860,7 +863,7 @@ internal sealed class NativeCallDispatcher
             _sequence == 0 || host.DebugStopSequence <= _completedDebugStop || threadId != _threadId ||
             entry != 0x5F86C0 || expectedFirstByte != 0x53 || _page == IntPtr.Zero || _pageAddress == 0 ||
             _resumeEip != _originalReturnAddress || _resumeEsp != checked(_saved.Esp + 4) ||
-            level is not (3 or 28) || menuId is < 51 or > 80 ||
+            (campaign is null ? level is not (3 or 28) : !campaign.Admits(level)) || menuId is < 51 or > 80 ||
             _ordinaryFunction != 0x595450 || !_ordinaryArguments.AsSpan().SequenceEqual(new uint[] { menuId, 0 }))
             throw new InvalidDataException("Guest progression Exit release does not own its completed exact MainMenu request page.");
         Win32Native.X86Context full = VerifyEntryStop(host, threadId, ref ctx, entry, expectedFirstByte);

@@ -21,11 +21,16 @@ internal static class SessionActorProfiles
             ["Mode"] = session.Host ? "template-bloom-body-hair-idle" : "client-presentation-live",
             ["EnableWorldEntry"] = true, ["WorldEntryCaptureOrdinal"] = savedSha256 is null ? 1 : 2,
             ["EnableProgressionAuthority"] = true, ["UseProcessLocalMediaPath"] = true,
-            ["ProgressionSceneLevel"] = 28, ["WorldBattlePresentation"] = false,
+            ["ProgressionSceneLevel"] = session.InitialLevel, ["WorldBattlePresentation"] = false,
             ["TemplateNetworkInputBackpressureFixture"] = false,
             ["ProgressionSavedReload"] = session.Host,
             ["ProgressionPreWaitingReloadPreparation"] = session.Host,
             ["ProgressionHostContinuationSeed"] = session.Host && seed is not null
+        };
+        if (session.Campaign) config["CampaignScene"] = new JsonObject
+        {
+            ["Version"] = 1, ["InitialLevel"] = session.InitialLevel, ["Level"] = session.InitialLevel,
+            ["TransitionOrdinal"] = 0, ["DescriptorSha256"] = CampaignSceneProfile.InitialDescriptorSha256
         };
         if (seed is not null)
         {
@@ -38,7 +43,7 @@ internal static class SessionActorProfiles
             Require(template is not null, "The Host requires its locally generated body template.");
             config["TemplateFile"] = template;
             config["TemplateSha256"] = "70818B42F9592109F276B379176E8F212F1D2F21BCE11D628306E27D53EA15E6";
-            config["TemplateSharedPlayerProfile"] = "alfea-28-network-input";
+            config["TemplateSharedPlayerProfile"] = session.Campaign ? CampaignSceneProfile.BodyProfile : "alfea-28-network-input";
             config["TemplateHostBackgroundFixture"] = true;
             config["TemplateNetworkInputFixture"] = true;
             config["TemplateProjectileManagerFixture"] = true;

@@ -9,7 +9,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
 {
     private DebuggerHost _host = null!;
     private uint _updates, _samples, _readySamples, _factoryReturns;
-    private bool _mediaVerified;
+    private bool _mediaVerified, _sceneInventoryObserved, _sceneInventoryFailed;
     private NativeCallDispatcher _calls = new(log,
         TimeSpan.FromSeconds(config.ReacquireOriginalGamePadDiagnostic ? 5 : config.Mode is "visual-actor" or "visual-unload" or "template-create" or "template-init" or "template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-idle" or "template-near-idle" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn" ? 30 : 10));
     private bool _callCheckBegun, _callCheckPassed;
@@ -65,7 +65,8 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         (_saveReload is null || _saveReload.ModeSucceeded);
     internal bool ModeCompleted => config.ProgressionControl is not null
         ? _progressionHost?.Completed == true || _progressionGuest?.ModeCompleted == true
-        : config.Mode == "process-media-path-check" && ProcessMediaPathVerified ||
+        : config.ObserveSceneInventory && _sceneInventoryObserved && _readySamples > 0 ||
+        config.Mode == "process-media-path-check" && ProcessMediaPathVerified ||
         _savePointProbe?.ModeCompleted == true && (_saveReload is null || _saveReload.ModeCompleted) ||
         _sharedState?.ModeCompleted == true || _clientPresentation?.ModeCompleted == true || _clientDispatch?.ModeCompleted == true || config.Mode is ("template-bloom-body-init" or "template-bloom-body-hair-init" or "template-bloom-body-idle" or "template-bloom-body-hair-idle" or "template-bloom-body-hair-live" or "template-bloom-body-walk" or "template-bloom-body-hair-walk" or "template-bloom-body-turn" or "template-bloom-body-hair-turn" or "template-bloom-body-jump" or "template-bloom-body-hair-jump" or "template-near-walk" or "template-near-turn" or "template-bloom-idle" or "template-bloom-jump" or "template-bloom-walk" or "template-bloom-turn") && _template?.ModeCompleted == true;
     internal bool ModeSucceeded => config.ProgressionControl is not null
@@ -83,7 +84,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         (!config.DiagnosticAutoBattlePauseFixture || _template?.DiagnosticBattlePauseQualified == true) &&
         (config.DiagnosticWorldState is null || _world is { GoalPassed: true, Retired: true }) && (config.Mode switch
     {
-        "observe" => _readySamples > 0,
+        "observe" => config.ObserveSceneInventory ? _sceneInventoryObserved : _readySamples > 0,
         "process-media-path-check" => ProcessMediaPathVerified,
         "progression-save-check" => NativeProgressionSaveCheckQualified,
         "shared-state-observe" => _sharedState?.ModeSucceeded == true,
@@ -100,6 +101,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
     });
     internal object Summary => new { worldUpdates = _updates, samples = _samples,
         readySamples = ReadySamples, mediaVerified = _mediaVerified, factoryReturns = _factoryReturns,
+        sceneInventoryObserved = _sceneInventoryObserved, sceneInventoryFailed = _sceneInventoryFailed,
         observedBloomMachines = _machines.Select(Hex).ToArray(), observedBodyReceivers = _bodyReceivers.Select(Hex).ToArray(),
         nativeCallCheckPassed = _callCheckPassed, nativeCalls = _calls.Summary, visual = _visual?.Summary,
         control = _control?.Summary, template = _template?.Summary, movement = _movement?.Summary,
@@ -147,8 +149,8 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 throw new InvalidDataException("Progression authority lost its explicit World role.");
             _saveAuthority = new(host, image, log, role);
             _transitionAuthority = new(host, image, log, role, config.ProgressionSceneLevel,
-                config.ProgressionControl, config.DiagnosticWorldState);
-            _progressionExit = new(host, image, log, config.ProgressionSceneLevel, config.ProgressionControl);
+                config.ProgressionControl, config.DiagnosticWorldState, config.CampaignScene);
+            _progressionExit = new(host, image, log, config.ProgressionSceneLevel, config.ProgressionControl, config.CampaignScene);
             _saveAuthority.InstallStopped(); _transitionAuthority.InstallStopped();
             if (config.Mode == "progression-save-check")
                 _savePointProbe = new(host, image, log, role, _saveAuthority, config.ProgressionCaptureSaveBeforeWriter);
@@ -178,7 +180,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                     else
                     {
                         _progressionFlow = new(host, image, log, config.ProgressionSavedReload,
-                            config.ProgressionSavedReload ? Path.Combine(config.MediaDirectory, "Saved", "Saved00.wxs") : null);
+                            config.ProgressionSavedReload ? Path.Combine(config.MediaDirectory, "Saved", "Saved00.wxs") : null, config.CampaignScene);
                         if (config.ProgressionSavedReload)
                             _progressionSaved = new(config, host, image, log, _saveAuthority!);
                     }
@@ -188,7 +190,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             _entry = new(host, image, log, identity.Role, config.WorldBattlePresentation ? 47u : config.ProgressionSceneLevel,
                 identity.LevelEpoch, identity.Generation, config.WorldEntrySeed, config.WorldEntryCaptureOrdinal,
                 router: _progressionRouter, authoritativeHostContinuation: config.ProgressionHostContinuationSeed,
-                storyProgression: config.ProgressionControl);
+                storyProgression: config.ProgressionControl, campaign: config.CampaignScene);
             if (_progressionRouter is null) _entry.InstallStopped(); else _progressionRouter.AttachScope(_entry);
             if (config.ProgressionOverlayFixture)
                 _progressionOverlay = new(config, host, image, log,
@@ -204,10 +206,11 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 config.DiagnosticWorldState is not null, config.LimitContinuousGuestInput,
                 qualifiedSceneLevel: config.ProgressionControl is null ? null : config.ProgressionSceneLevel,
                 progressionControl: config.ProgressionControl,
-                progressionNeutralCaptureWhileUnfocused: config.ProgressionNeutralCaptureWhileUnfocused);
+                progressionNeutralCaptureWhileUnfocused: config.ProgressionNeutralCaptureWhileUnfocused, campaign: config.CampaignScene);
             log(new { @event = "diagnostic-input-capture-installed",
                 guestPresentationFixture = config.DiagnosticGuestCaptureFixture,
-                readyRequiresNativeInputReturn = true, readyRequiresInitializedOwner = true });
+                readyRequiresNativeInputReturn = true, readyRequiresInitializedOwner = true,
+                readyRequiresFirstCompleteWorldApply = config.DiagnosticWorldState is not null && config.DiagnosticGuestCaptureFixture });
         }
         if (config.Mode is "shared-state-observe" or "shared-state-combat-live")
             _sharedState = new SharedStateObservation(host, image, log, config.Mode == "shared-state-combat-live", config.PrepareFirstMagicStage);
@@ -228,11 +231,14 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             {
                 _progressionControl?.ObserveInputReturn(tid, ref ctx);
                 _control?.Observe(tid, at, ref ctx, _updates, _mediaVerified);
-                // Do not publish Ready while private native construction is
-                // stopped. Its first lease starts with the retained controller.
+                // Guest transport initialization may span several original
+                // frames and long native visual calls. Admit input only after
+                // the first complete WCS native apply/readback, at a fresh
+                // actual InputRET; initialization never manufactures input.
                 _nativeInputCapture?.ObserveAtInputReturn(tid, at, ref ctx,
                     _mediaVerified && (_template?.NetworkInputCaptureReady == true ||
-                        config.DiagnosticGuestCaptureFixture && _clientPresentation?.InputCaptureReady == true),
+                        config.DiagnosticGuestCaptureFixture && _clientPresentation?.InputCaptureReady == true &&
+                            (_world is null || _world.GuestNativeReady)),
                     progressionUnfocusedNeutralPermit: config.ProgressionNeutralCaptureWhileUnfocused && !_calls.Pending &&
                         _clientPresentation?.WorldQuarantineActive == true && _world is { GoalPassed: true, Retired: false } &&
                         _progressionControl?.CanCaptureUnfocusedNeutralAtInputReturn(tid, ctx) == true);
@@ -260,6 +266,25 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         Persistent(0x45A802, 8, "SceneManager.return", (uint tid, uint at, ref Win32Native.X86Context ctx) =>
         {
             ++_updates;
+            if (config.ObserveSceneInventory && !_sceneInventoryObserved && !_sceneInventoryFailed && _mediaVerified)
+            {
+                object? inventory = null; bool captured = false;
+                try { captured = ClientScenePolicy.TryObserveInitialGardeniaInventory(host, image, tid, ref ctx, out inventory); }
+                catch (Exception error) when (error is InvalidDataException or Win32Exception or InvalidOperationException)
+                {
+                    _sceneInventoryFailed = true;
+                    log(new { @event = "scene-inventory-failed", initialOnly = true, actualWorld = _updates,
+                        error = error.Message, requestedCompletion = false, retryWithinThisRun = false,
+                        originalFiniteObserveRunContinues = true, gameDataWrites = 0, nativeCalls = 0 });
+                }
+                if (captured)
+                {
+                    log(new { @event = "scene-inventory-observed", initialOnly = true, actualWorld = _updates,
+                        inventory, gameDataWrites = 0, nativeCalls = 0, additionalBreakpoints = 0,
+                        futureScriptCreatedTypesOrEntireLevelAbsenceClaimed = false });
+                    _sceneInventoryObserved = true;
+                }
+            }
             if (_progressionControl is not null && !_calls.Pending)
             {
                 _calls.ReleaseRetiredAtWorldStop(host, tid, ref ctx);
@@ -494,7 +519,8 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
                 return;
             }
             _control?.Observe(tid, at, ref ctx, _updates, _mediaVerified);
-            if (_updates % config.SampleEvery == 0 && _samples < 512) Snapshot(tid);
+            if (_updates % config.SampleEvery == 0 && (_samples < 512 || config.InteractiveSession && _readySamples == 0))
+                Snapshot(tid, recordObservation: _samples < 512);
             if (_readySamples > 0) _clientDispatch?.ObserveWorld(tid, _updates, _mediaVerified);
             if (_readySamples > 0 && _clientPresentation is not null)
             {
@@ -596,7 +622,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             ++_unloadGuardHits;
             if (config.ProgressionControl is not null && _progressionHost is not null &&
                 _progressionFlow?.Returned == true && entry == 0x5F86C0 && _calls.HasRetiredPage)
-                _calls.ReleaseRetiredBeforeProgressionExit(_host, tid, ref ctx, entry, expected[0]);
+                _calls.ReleaseRetiredBeforeProgressionExit(_host, tid, ref ctx, entry, expected[0], config.CampaignScene);
             if (config.ProgressionControl is not null && _progressionGuest?.Started == true &&
                 entry == 0x5F86C0 && _calls.HasRetiredPage)
                 _progressionGuest.ReleaseRetiredRequestPageAtExit(tid, ref ctx, _calls, entry, expected[0]);
@@ -685,7 +711,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             checked(identity.LevelEpoch + 1), checked(identity.Generation + 1),
             captureEntryOrdinal: checked(_progressionRouter!.NativeEntryOrdinal + 1),
             nativeOrdinalBase: _progressionRouter.NativeEntryOrdinal, router: _progressionRouter,
-            storyProgression: config.ProgressionControl);
+            storyProgression: config.ProgressionControl, campaign: config.CampaignScene);
         _progressionRouter.AttachScope(_progressionNextEntry);
     }
     private void ObserveProgressionNextEntry(uint tid, ref Win32Native.X86Context context)
@@ -799,9 +825,9 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
         return menu;
     }
 
-    private void Snapshot(uint thread)
+    private void Snapshot(uint thread, bool recordObservation = true)
     {
-        ++_samples;
+        if (recordObservation) ++_samples;
         uint engine = TryU(0x755274), defaultScene = TryU(engine + 0x18), defaultCamera = TryU(engine + 0x1C);
         uint manager = TryU(0x75DB90), flow = TryU(0x755294), input = TryU(0x7552A0);
         uint state = TryU(flow + 0x1B0), pending = TryU(flow + 0x1B8);
@@ -854,6 +880,7 @@ internal sealed class ActorObserver(ProbeConfiguration config, ExecutableProfile
             recordTyped && nodeTyped && listConsistent && bloomFound && controllerFound &&
             manager != 0 && TryU(manager + 0x20) == 0;
         if (ready) ++_readySamples;
+        if (!recordObservation) return;
         log(new { @event = "world-observation", update = _updates, sample = _samples, threadId = thread,
             stoppedAt = "SceneManager.return", ready, mediaVerified = _mediaVerified,
             flow = new { address = Hex(flow), state, pending, stack, active = Hex(active), activeId },

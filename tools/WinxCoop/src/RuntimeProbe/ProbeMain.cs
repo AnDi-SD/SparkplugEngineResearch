@@ -39,7 +39,13 @@ internal sealed record ProbeConfiguration(
     bool ProgressionSavedReload = false, NativeProgressionOutcomeCheckpoint? ProgressionOutcomeCheckpoint = null,
     bool ProgressionOverlayFixture = false, int WorldPresentationSmoothingMilliseconds = 0,
     bool GuestPresentationBackgroundFixture = false, bool ProgressionNeutralCaptureWhileUnfocused = false,
-    bool ProgressionPreWaitingReloadPreparation = false);
+    bool ProgressionPreWaitingReloadPreparation = false, CampaignSceneProfile? CampaignScene = null, bool InteractiveSession = false, bool ObserveSceneInventory = false)
+{
+    // .NET 6 limits parameterized JSON constructors to64 arguments. Preserve
+    // the positional defaults, then let JSON populate the existing init properties.
+    [System.Text.Json.Serialization.JsonConstructor]
+    public ProbeConfiguration() : this("", "", "", "") { }
+}
 
 internal static class ProbeMain
 {
@@ -95,6 +101,26 @@ internal static class ProbeMain
         !config.ProgressionHostContinuationSeed && !config.ProgressionSavedReload &&
         !config.ProgressionCaptureSaveBeforeWriter && !config.ProgressionReloadSavedSlot && config.ProgressionOutcomeCheckpoint is null;
 
+    internal static bool IsCampaign(ProbeConfiguration config)
+    {
+        if (config.CampaignScene is null) return false;
+        config.CampaignScene.Validate();
+        return config.ProgressionControl is { OwnerPid: > 0, OwnerCreationFileTime: > 0 } &&
+            config.CampaignScene.Admits(config.ProgressionSceneLevel) && config.EnableProgressionAuthority &&
+            config.EnableWorldEntry && config.UseProcessLocalMediaPath && !config.WorldBattlePresentation &&
+            !config.TemplateStoryDeathFixture && !config.TemplateDeathBattleFixture &&
+            !config.TemplateNetworkOrdinaryAttackFixture && !config.PrepareFirstMagicStage &&
+            !config.TemplateMosquitoPlayerTargets && config.ProgressionOutcomeCheckpoint is null &&
+            config.DiagnosticWorldState is { } world &&
+            (world.Role == WorldStateRole.Host
+                ? config.Mode == "template-bloom-body-hair-idle" && config.TemplateNetworkInputFixture &&
+                    config.TemplateSharedPlayerProfile == CampaignSceneProfile.BodyProfile &&
+                    config.DiagnosticHostInput is { Role: DiagnosticInputRole.Host } && config.DiagnosticGuestInput is null
+                : world.Role == WorldStateRole.Guest && config.Mode == "client-presentation-live" &&
+                    config.DiagnosticGuestCaptureFixture && config.DiagnosticGuestInput is { Role: DiagnosticInputRole.Guest } &&
+                    config.DiagnosticHostInput is null);
+    }
+
     private static int Main(string[] args)
     {
         try
@@ -107,18 +133,26 @@ internal static class ProbeMain
             };
             ProbeConfiguration config = JsonSerializer.Deserialize<ProbeConfiguration>(File.ReadAllText(configPath))
                 ?? throw new InvalidDataException("Missing case configuration");
-            if (config.DurationSeconds is < 5 or > 600 || config.SampleEvery is < 1 or > 1000)
-                throw new InvalidDataException("Duration must be 5..600 seconds, sample interval 1..1000 updates");
+            // This one-shot diagnostic admits only the pure observe defaults.
+            // No Campaign, transport, template, input or progression role is invented.
+            if (config.ObserveSceneInventory && config != new ProbeConfiguration(
+                config.Executable, config.WorkingDirectory, config.MediaDirectory, config.OutputDirectory,
+                config.DurationSeconds, config.SampleEvery, Mode: "observe", ObserveSceneInventory: true))
+                throw new InvalidDataException("Scene inventory requires the isolated pure observe configuration.");
+            if (config.InteractiveSession && !IsCampaign(config))
+                throw new InvalidDataException("Interactive lifetime requires the campaign session profile.");
+            if (!NativeObservationBudget.DurationAllowed(config) || config.SampleEvery is < 1 or > 1000)
+                throw new InvalidDataException("Duration requires5..600s diagnostics or explicit60..14400s interactive authority; sample interval1..1000");
             if (config.WorldPresentationSmoothingMilliseconds != 0 &&
                 (config.WorldPresentationSmoothingMilliseconds is < 1 or > 200 ||
                  config.Mode != "client-presentation-live" || config.DiagnosticWorldState?.Role != WorldStateRole.Guest ||
                  !config.DiagnosticGuestCaptureFixture || !config.EnableWorldEntry || !config.EnableProgressionAuthority ||
-                 config.ProgressionControl is null || config.ProgressionSceneLevel != 28 || config.WorldBattlePresentation))
+                 config.ProgressionControl is null || config.ProgressionSceneLevel != 28 && !IsCampaign(config) || config.WorldBattlePresentation))
                 throw new InvalidDataException("Display smoothing requires the explicit two-Bloom Alfea Guest progression quarantine.");
             if (config.GuestPresentationBackgroundFixture &&
                 (config.Mode != "client-presentation-live" || config.DiagnosticWorldState?.Role != WorldStateRole.Guest ||
                  !config.DiagnosticGuestCaptureFixture || !config.EnableWorldEntry || !config.EnableProgressionAuthority ||
-                 config.ProgressionControl is null || config.ProgressionSceneLevel != 28 || config.WorldBattlePresentation ||
+                 config.ProgressionControl is null || config.ProgressionSceneLevel != 28 && !IsCampaign(config) || config.WorldBattlePresentation ||
                  config.TemplateHostBackgroundFixture || config.DiagnosticHostInput is not null ||
                  config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest))
                 throw new InvalidDataException("Background Guest animation requires the explicit Alfea E2 presentation/capture progression cohort.");
@@ -127,13 +161,15 @@ internal static class ProbeMain
                  config.DiagnosticGuestInput?.Role != DiagnosticInputRole.Guest || config.DiagnosticHostInput is not null ||
                  !config.DiagnosticGuestCaptureFixture || !config.GuestPresentationBackgroundFixture || !config.EnableWorldEntry ||
                  !config.EnableProgressionAuthority || !config.UseProcessLocalMediaPath || config.ProgressionControl is null ||
-                 config.ProgressionSceneLevel != 28 || config.WorldBattlePresentation || config.TemplateHostBackgroundFixture))
+                 config.ProgressionSceneLevel != 28 && !IsCampaign(config) || config.WorldBattlePresentation || config.TemplateHostBackgroundFixture))
                 throw new InvalidDataException("Unfocused held-neutral capture requires the explicit controlled Alfea Guest E2 quarantine/background cohort.");
+            if (config.CampaignScene is not null && !IsCampaign(config))
+                throw new InvalidDataException("Campaign admission requires its explicit role/owner/scene profile.");
             NativeObservationBudget.Configure(config);
             NativeSharedPlayerProfile sharedProfile = NativeSharedPlayerProfile.Select(config);
             bool story3Host = IsClosedStory3Host(config), story3Guest = IsClosedStory3Guest(config);
-            if (config.ProgressionSceneLevel is not (28 or 3) ||
-                config.ProgressionSceneLevel != 28 && config.ProgressionControl is null)
+            if (!IsCampaign(config) && (config.ProgressionSceneLevel is not (28 or 3) ||
+                config.ProgressionSceneLevel != 28 && config.ProgressionControl is null))
                 throw new InvalidDataException("Progression scene admission is limited to explicit Alfea28 or Story3 cohorts.");
             if (config.ProgressionSceneLevel == 3 && !story3Host && !story3Guest)
                 throw new InvalidDataException("Story3 progression requires its closed seven-body Host outcome or isolated Guest presentation cohort.");
@@ -166,8 +202,8 @@ internal static class ProbeMain
                 (config.ProgressionControl is null || config.DiagnosticWorldState?.Role != WorldStateRole.Host))
                 throw new InvalidDataException("Host continuation seed requires explicit progression ownership.");
             if (config.ProgressionSavedReload && (config.ProgressionControl is null ||
-                config.ProgressionSceneLevel != 28 || config.DiagnosticWorldState?.Role != WorldStateRole.Host ||
-                config.TemplateSharedPlayerProfile != "alfea-28-network-input" || !config.TemplateNetworkInputFixture))
+                config.ProgressionSceneLevel != 28 && !IsCampaign(config) || config.DiagnosticWorldState?.Role != WorldStateRole.Host ||
+                config.TemplateSharedPlayerProfile != "alfea-28-network-input" && !IsCampaign(config) || !config.TemplateNetworkInputFixture))
                 throw new InvalidDataException("Saved progression requires the explicit Alfea28 Host network-body owner.");
             if (config.ProgressionPreWaitingReloadPreparation && (!config.ProgressionSavedReload ||
                 !config.EnableProgressionAuthority || !config.UseProcessLocalMediaPath || !config.EnableWorldEntry ||
@@ -307,7 +343,7 @@ internal static class ProbeMain
                 throw new InvalidDataException("Extended diagnostic drain hold requires same-game Host/Guest endpoints, its network/backpressure fixture and50ms source heartbeat.");
             if (config.TemplateNetworkInputFixture && !story3Host &&
                 (config.Mode != "template-bloom-body-hair-idle" ||
-                 config.TemplateSharedPlayerProfile != (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "alfea-28-network-input") ||
+                 config.TemplateSharedPlayerProfile != (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "alfea-28-network-input") && !IsCampaign(config) ||
                  config.DiagnosticHostInput?.Role != DiagnosticInputRole.Host ||
                  !config.TemplateProjectileManagerFixture || !config.TemplatePlayerTraitsFixture ||
                  !config.TemplatePlayerTraitsPickupFx || !config.TemplateTargetRegionFixture ||
@@ -436,8 +472,19 @@ internal static class ProbeMain
             using var log = new StreamWriter(new FileStream(Path.Combine(config.OutputDirectory, "events.jsonl"), FileMode.CreateNew)) { AutoFlush = true };
             void Emit(object value)
             {
-                if (log.BaseStream.Position > 16 * 1024 * 1024) throw new IOException("Diagnostic log cap reached");
-                log.WriteLine(JsonSerializer.Serialize(new { utc = DateTime.UtcNow, data = value }));
+                if (!config.InteractiveSession)
+                {
+                    if (log.BaseStream.Position > 16 * 1024 * 1024) throw new IOException("Diagnostic log cap reached");
+                    log.WriteLine(JsonSerializer.Serialize(new { utc = DateTime.UtcNow, data = value }));
+                    return;
+                }
+                string record = JsonSerializer.Serialize(new { utc = DateTime.UtcNow, data = value });
+                int bytes = checked(System.Text.Encoding.UTF8.GetByteCount(record) +
+                    System.Text.Encoding.UTF8.GetByteCount(log.NewLine));
+                if (bytes > InteractiveSessionLimits.ActorRecordBytes ||
+                    log.BaseStream.Position > InteractiveSessionLimits.ActorJournalBytes - bytes)
+                    throw new IOException("Interactive native journal reached its2GiB/1MiB record bound");
+                log.WriteLine(record);
             }
             Emit(new { @event = "case", configuration = config, executableSha256 = hash,
                 adapterMode = config.Mode switch { "control-observe" => "owned-debugger-control-observation",

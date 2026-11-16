@@ -5,7 +5,7 @@ namespace WinxCoop.RuntimeProbe;
 
 internal enum WorldStateRole : uint { Host = 1, Guest = 2 }
 internal enum WorldStatePhase : uint { Waiting = 1, Connected = 2, Ready = 3, Closed = 4 }
-internal enum WorldStateAvailability : uint { Waiting = 0, Ready = 1, Retired = 2 }
+internal enum WorldStateAvailability : uint { Waiting = 0, Ready = 1, Retired = 2, Initializing = 3 }
 internal enum WorldStateTerminal : uint
 {
     None = 0, Identity = 1, InvalidRecord = 2, Sequence = 3, Transport = 4, PeerClosed = 5,

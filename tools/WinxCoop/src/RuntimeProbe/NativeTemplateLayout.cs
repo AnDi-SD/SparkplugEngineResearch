@@ -87,7 +87,7 @@ internal sealed record NativeTemplateLayout(string Name, string Sha256, int Byte
                  config.Mode == "template-bloom-body-hair-idle" && config.TemplatePlayerTraitsPickupFx &&
                  config.TemplateConfigureTargetRegion && config.TemplateSharedHealthAlias &&
                  (config.TemplateBodyInputFixture && config.TemplateSharedPlayerProfile == "alfea-28-input" ||
-                  config.TemplateNetworkInputFixture && config.TemplateSharedPlayerProfile == "alfea-28-network-input" ||
+                  config.TemplateNetworkInputFixture && (config.TemplateSharedPlayerProfile == "alfea-28-network-input" || ProbeMain.IsCampaign(config)) ||
                   config.TemplateNetworkInputFixture && config.TemplateNetworkOrdinaryAttackFixture && config.TemplateSharedPlayerProfile == "battle-01-network-input" ||
                   config.TemplateOrdinaryAttackFixture && config.TemplateSharedPlayerProfile == "battle-01-ordinary-attack")) &&
                 !string.IsNullOrWhiteSpace(config.TemplateFile)) return ProjectileManagerBody;

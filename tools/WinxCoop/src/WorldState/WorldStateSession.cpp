@@ -63,11 +63,19 @@ namespace winxcoop::world_state
     {
         if(terminal_!=Terminal::None) return false;
         if(availability==Availability::Retired) return Fail(Terminal::ActorClosed);
-        if((availability!=Availability::Waiting&&availability!=Availability::Ready)||!revision||revision<localRevision_)
+        if((availability!=Availability::Waiting&&availability!=Availability::Ready&&availability!=Availability::Initializing)||
+            (availability==Availability::Initializing&&(role_!=Role::Guest||nativeReadyObserved_))||!revision||revision<localRevision_)
             return Fail(Terminal::Identity);
-        const bool ready=availability==Availability::Ready;
-        if(revision==localRevision_) return ready==localReady_ || Fail(Terminal::Sequence);
+        const bool ready=availability==Availability::Ready||availability==Availability::Initializing;
+        if(revision==localRevision_) return availability==localAvailability_ || Fail(Terminal::Sequence);
+        const bool initialPromotion=localAvailability_==Availability::Initializing&&availability==Availability::Ready;
+        localAvailability_=availability;
+        if(availability==Availability::Ready) nativeReadyObserved_=true;
         const bool wasReady=localReady_;localRevision_=revision;localReady_=ready;
+        // Only the first complete native apply promotes this Guest's existing
+        // transport epoch. The exact ACK still has to pass ObserveApplied;
+        // promotion alone sends no Ready/SourceState and acknowledges nothing.
+        if(initialPromotion) return true;
         if(role_==Role::Guest)
         {
             if(!helloSent_)
@@ -105,6 +113,7 @@ namespace winxcoop::world_state
     {
         if(terminal_!=Terminal::None||role_!=Role::Guest) return false;
         if(!revision) return epoch==0 || Fail(Terminal::Sequence);
+        if(localAvailability_==Availability::Initializing) return Fail(Terminal::NativeApply);
         if(epoch<epoch_) return true; // Previous native fence remains visible until the Actor observes new epoch.
         if(epoch!=epoch_) return Fail(Terminal::Sequence);
         if(!epochActive_) return true; // Cached ACK from the just-paused epoch is not a new native apply.

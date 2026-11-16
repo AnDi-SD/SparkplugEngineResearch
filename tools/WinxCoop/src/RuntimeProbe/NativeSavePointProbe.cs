@@ -25,6 +25,7 @@ internal sealed class NativeSavePointProbe
     private readonly NativeSaveAuthorityGate _gate;
     private readonly byte[] _wrapper;
     private readonly bool _captureBeforeWriter;
+    private readonly uint _level;
     private readonly byte[]? _captureCallback;
     private readonly WorldPresentationEntityReader? _captureReader;
     private readonly IntPtr _process;
@@ -45,7 +46,7 @@ internal sealed class NativeSavePointProbe
         string WorldPosition584Hex, uint CurrentHealth590, uint MaximumHealth594);
 
     internal NativeSavePointProbe(DebuggerHost host, PEReader image, Action<object> log,
-        WorldStateRole role, NativeSaveAuthorityGate gate, bool captureBeforeWriter = false)
+        WorldStateRole role, NativeSaveAuthorityGate gate, bool captureBeforeWriter = false, CampaignSceneProfile? campaign = null)
     {
         ArgumentNullException.ThrowIfNull(host); ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(log); ArgumentNullException.ThrowIfNull(gate);
@@ -60,6 +61,7 @@ internal sealed class NativeSavePointProbe
         Require(!captureBeforeWriter || role == WorldStateRole.Host,
             "Current-state capture is a separate Host-only diagnostic, never a Guest save permission.");
         _captureBeforeWriter = captureBeforeWriter;
+        campaign?.Validate(); _level = campaign?.Level ?? 28u;
         _process = host.ProcessHandle; _pid = host.ProcessPid; _thread = host.MainThreadId;
         _owner = Environment.CurrentManagedThreadId;
         _wrapper = Image(image, Wrapper, 0x42);
@@ -288,7 +290,7 @@ internal sealed class NativeSavePointProbe
             "Capture source world position is nonfinite or exceeds the existing scene budget.");
         uint hp = U(rig.Traits + 0x124), maximum = U(rig.Traits + 0x128);
         Require(hp <= maximum && maximum is > 0 and <= 100000, "Capture source HP leaves its original bounded domain.");
-        return new(U(_savePoint + 0x1C8), 28, U(_profile + 0x514), Convert.ToHexString(position), hp, maximum);
+        return new(U(_savePoint + 0x1C8), _level, U(_profile + 0x514), Convert.ToHexString(position), hp, maximum);
     }
     private CaptureTuple ReadSavedCaptureTuple() => new(U(_profile + 0x6D8), U(_profile + 0x57C),
         U(_profile + 0x580), Convert.ToHexString(Read(_profile + 0x584, 12)), U(_profile + 0x590), U(_profile + 0x594));
@@ -305,10 +307,10 @@ internal sealed class NativeSavePointProbe
         uint flow = U(0x755294);
         if (flow < 0x10000 || U(flow) != FlowTable) return false;
         uint depth = U(flow + 0x1AC);
-        if (depth == uint.MaxValue || U(flow + 0x1B0) != 28 || U(flow + 0x1B8) != 0) return false;
+        if (depth == uint.MaxValue || U(flow + 0x1B0) != _level || U(flow + 0x1B8) != 0) return false;
         Require(depth < 20, "SavePoint ready Flow exceeds the original twenty stack slots.");
         uint playing = P(flow + 0x15C + depth * 4);
-        if (U(playing) != 0x710874 || U(playing + 0x10) != 28) return false;
+        if (U(playing) != 0x710874 || U(playing + 0x10) != _level) return false;
         uint profile = P(0x765AD4), primary = P(profile + 0x2B4), root = P(primary + 0x24);
         uint engine = P(0x755274), scene = P(engine + 0x18), input = P(0x7552A0);
         uint device = P(input + 0x1C), timer = P(0x755298), manager = P(0x765ACC);
@@ -337,14 +339,14 @@ internal sealed class NativeSavePointProbe
         uint retained = 0;
         for (uint index = 0; index <= depth; ++index)
             if (U(_flow + 0x15C + index * 4) == _playing) ++retained;
-        bool playingReady = current == 28 && pending == 0 && top == _playing;
+        bool playingReady = current == _level && pending == 0 && top == _playing;
         bool retainedSaveMenu = allowRetainedSaveMenu && current is 69 or 72 && pending == 0 &&
             top != _playing && U(top + 0x10) == current && OriginalFlowAccessor(top);
         bool pendingSaveMenu = allowRetainedSaveMenu && allowPendingSaveMenu && pending is 69 or 72 &&
-            (current == 28 && top == _playing || current is 69 or 72 && top != _playing &&
+            (current == _level && top == _playing || current is 69 or 72 && top != _playing &&
                 U(top + 0x10) == current && OriginalFlowAccessor(top));
         Require((playingReady || retainedSaveMenu || pendingSaveMenu) && retained == 1 && U(_playing) == 0x710874 &&
-            U(_playing + 0x10) == 28 &&
+            U(_playing + 0x10) == _level &&
             U(_profile + 0x2B4) == _primary && U(_primary) == 0x710F80 && U(_primary + 0x24) == _root &&
             U(_root) == VisualGraphReader.NodeVtable && U(_root + 0x3C) == _scene &&
             U(0x7552A0) == _input && U(_input) == 0x6F5508 && U(_input + 0x1C) == _device &&

@@ -12,15 +12,19 @@ namespace winxcoop::launcher
         std::wstring game, media, adapter, gameHost, outer, caseDirectory;
         std::uint64_t session{};
         std::uint32_t levelEpoch{}, seconds{};
+        bool menuFirst = true;
     };
     struct GameProcessClientIdentity final
     {
         std::uint32_t ownerPid{}, outerPid{}, helperPid{}, gamePid{}, mainThreadId{};
         std::uint64_t ownerCreationTime{}, nonce{}, session{};
+        std::uint64_t helperCreationTime{}, gameCreationTime{};
         std::uint32_t levelEpoch{};
     };
     struct GameProcessClientResult final
     {
+        bool directHost{}, helperStarted{}, helperExited{}, originalGameStarted{}, visualEpochRetired{};
+        bool gameExitIndependentlyVerified{}, directCleanupVerified{};
         bool completed{}, successful{}, outerStarted{}, outerExited{}, outerExitCodeKnown{};
         std::uint32_t outerExitCode{};
         bool outerReportValid{}, outerProbeCompleted{}, mediaRestoreAttempted{}, mediaRestoreVerified{};
@@ -35,10 +39,14 @@ namespace winxcoop::launcher
     };
 
     // GUI-side ownership only: one immutable generation, one command writer.
+    // Menu-first owns GameHost directly with no outer/registry preparation or
+    // game lifetime timer. Legacy bounded outer launch is explicit menuFirst=false.
     // No native bootstrap, game attachment or registry preparation is present.
     // Call Start/Pump/Submit on one GUI thread. Pump performs no waits and never
     // reads a report until the held outer process has exited. Keep this object
-    // alive and pump until Finished before treating rollback as confirmed.
+    // alive and pump until Finished before treating cleanup as confirmed.
+    // Direct finalization binds helper/game PID+creation identities and checks
+    // the original game instance has exited; no fake outer rollback is emitted.
     class GameProcessClient final
     {
     public:

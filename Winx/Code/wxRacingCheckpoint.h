@@ -1,0 +1,27 @@
+#pragma once
+#include <array>
+#include <cstdint>
+
+// Captured value facade. This does not declare the native object's full layout.
+class wxRacingCheckpoint
+{
+public:
+    using CapturedPrefixForAnalysis = std::array<std::uint8_t, 0x13C>;
+    enum class ProfileForAnalysis { Unqualified, PcCapturedPrimaryRawDwords128138 };
+    enum class PropertyForAnalysis { BonusTimeRaw138, CheckpointIdRaw128 };
+    struct ComposedPropertiesForAnalysis
+    {
+        std::array<std::uint32_t, 6> rawGetterResults{};
+        CapturedPrefixForAnalysis afterBonusTimeSet{};
+        CapturedPrefixForAnalysis afterCheckpointIdSet{};
+    };
+    static bool ReadRawPropertyForAnalysis(const CapturedPrefixForAnalysis& before,
+        PropertyForAnalysis property, std::uint32_t& output,
+        ProfileForAnalysis profile = ProfileForAnalysis::Unqualified);
+    static bool WriteRawPropertyForAnalysis(const CapturedPrefixForAnalysis& before,
+        PropertyForAnalysis property, std::uint32_t rawBits, CapturedPrefixForAnalysis& output,
+        ProfileForAnalysis profile = ProfileForAnalysis::Unqualified);
+    static bool ComposeRawPropertiesForAnalysis(const CapturedPrefixForAnalysis& before,
+        std::uint32_t rawBonusTime, std::uint32_t rawCheckpointId, ComposedPropertiesForAnalysis& output,
+        ProfileForAnalysis profile = ProfileForAnalysis::Unqualified);
+};

@@ -102,7 +102,8 @@ internal sealed partial class NativeTemplateProbe
         SharedBattleWorld(tid, ref context);
         Require(_progressionSavedReloadCohort && _sharedBattleCaptured && !_sharedBattleUnloadStarted &&
             _stage == 6 && _idleActive && !_dependentInterval && _healthBattleHolding && _healthBattleFastRouteStarted &&
-            _level == 28 && _sharedPlayerProfile.Level == 28 && _sharedPlayerProfile.Story &&
+            (_level == 28 && _sharedPlayerProfile.Level == 28 ||
+                _sharedPlayerProfile.Name == CampaignSceneProfile.BodyProfile && _level == _sharedPlayerProfile.Level) && _sharedPlayerProfile.Story &&
             !_deathBattleFixture && _mosquitoPlayerTargets is null && !HairHasLiveOwnership && HairModeSucceeded &&
             _commandMovement is null && Environment.TickCount64 <= _sharedBattleDeadline,
             "Saved reload preparation requires its explicit live Alfea28 progression World.");
@@ -132,7 +133,7 @@ internal sealed partial class NativeTemplateProbe
             for (uint index = 0; index <= depth; ++index)
             {
                 uint state = Pointer(_flow + 0x15C + index * 4);
-                if (U(state) != 0x710874 || U(state + 0x10) != 28) continue;
+                if (U(state) != 0x710874 || U(state + 0x10) != _sharedPlayerProfile.Level) continue;
                 Require(retained == 0 && state == _active,
                     "Save overlay does not retain exactly the captured Alfea28 playing owner.");
                 retained = state;
@@ -170,7 +171,7 @@ internal sealed partial class NativeTemplateProbe
             _stage == 6 && _idleActive && !_dependentInterval && _idleWorldStops == 2 &&
             _ownCharacterTicks == 2 && _ownMoveUpdates == 2 && _ownBloomNotifyTicks == 2 && _ownBloomUpdates == 2 &&
             _bloomIntervalVerified && _bloomBodyGraphVerified && _nearPositioned && HairModeSucceeded && !HairHasLiveOwnership &&
-            _commandMovement is null && _sharedHealthAlias?.Active == true && durationSeconds is >= 5 and <= 600,
+            _commandMovement is null && _sharedHealthAlias?.Active == true && NativeObservationBudget.DurationAllowed(durationSeconds),
             "Shared Battle lifetime must activate at its two qualified own worlds before live hold.");
         _sharedBattleAnimationManager = Pointer(0x765ADC); Table(_sharedBattleAnimationManager, 0x703470);
         _sharedBattleTimer = Pointer(0x755298); Table(_sharedBattleTimer, 0x702F94);

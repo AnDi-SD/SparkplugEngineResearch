@@ -31,16 +31,17 @@ internal sealed class NativeHostProgression
         bool storyOutcome = config.ProgressionControl is not null && config.ProgressionSceneLevel == 3 &&
             config.TemplateSharedPlayerProfile == "gardenia-03-network-input" && config.TemplateStoryDeathFixture &&
             !config.TemplateProjectileManagerFixture;
+        bool campaign = ProbeMain.IsCampaign(config);
         bool alfea = config.ProgressionSceneLevel == 28 && config.TemplateSharedPlayerProfile == "alfea-28-network-input" &&
             !config.TemplateStoryDeathFixture;
         Require(config.EnableProgressionAuthority &&
             config.DiagnosticWorldState is { Role: WorldStateRole.Host } &&
             config.DiagnosticHostInput is { Role: DiagnosticInputRole.Host } &&
             config.DiagnosticGuestInput is null && config.TemplateNetworkInputFixture &&
-            (alfea || storyOutcome) && !config.WorldBattlePresentation &&
+            (alfea || storyOutcome || campaign) && !config.WorldBattlePresentation &&
             !config.TemplateNetworkOrdinaryAttackFixture && !config.TemplateDeathBattleFixture &&
             !config.TemplateMosquitoPlayerTargets &&
-            config.DurationSeconds is >= 5 and <= 600,
+            NativeObservationBudget.DurationAllowed(config),
             "Host progression requires its explicit bounded Alfea28 Host network-body cohort.");
         WorldStateIdentity world = config.DiagnosticWorldState!.Value;
         DiagnosticInputIdentity input = config.DiagnosticHostInput!.Value;
@@ -55,10 +56,10 @@ internal sealed class NativeHostProgression
             "Host progression requires the exact original image in its owned stopped process.");
         _host = host; _log = log; _process = host.ProcessHandle; _pid = host.ProcessPid;
         _thread = host.MainThreadId; _owner = Environment.CurrentManagedThreadId;
-        _oldEpoch = world.LevelEpoch; _oldGeneration = world.Generation; _durationSeconds = config.DurationSeconds;
-        _storyOutcome = storyOutcome; _level = storyOutcome ? 3u : 28u;
+        _oldEpoch = world.LevelEpoch; _oldGeneration = world.Generation; _durationSeconds = NativeObservationBudget.OperationSeconds(config);
+        _storyOutcome = storyOutcome; _level = config.CampaignScene?.Level ?? (storyOutcome ? 3u : 28u);
         _destinationLevel = config.ProgressionControl?.NextLevel ?? 28;
-        Require(_destinationLevel == 28, "Host continuation currently requires its explicit checkpoint/reload28 destination.");
+        Require(_destinationLevel == 28 || campaign && config.CampaignScene!.Admits(_destinationLevel), "Host continuation currently requires its explicit checkpoint/reload28 destination.");
         log(new { @event = "host-progression-observer-created", level = _level, oldEpoch = _oldEpoch,
             oldGeneration = _oldGeneration, requestAuthorizationOwnedByCoordinator = true,
             nativeRequestCalls = 0, oldProcessBodyRecreation = false });

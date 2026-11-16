@@ -537,6 +537,11 @@
       "category": "engine/physics"
     },
     {
+      "path": "docs/engine/physics/contact-raw-dot-row.md",
+      "title": "Contact: одна строка и raw dot-ветвь",
+      "category": "engine/physics"
+    },
+    {
       "path": "docs/engine/physics/contact-single-body-multirow.md",
       "title": "Contact: две и три строки для одного supplied body",
       "category": "engine/physics"
@@ -554,6 +559,11 @@
     {
       "path": "docs/engine/physics/contact-two-body-multirow.md",
       "title": "Contact: две и три строки с двумя supplied body",
+      "category": "engine/physics"
+    },
+    {
+      "path": "docs/engine/physics/contact-two-body-raw-dot-row.md",
+      "title": "Contact: два body и две ordered raw dot-суммы",
       "category": "engine/physics"
     },
     {
@@ -1222,6 +1232,16 @@
       "category": "game/characters"
     },
     {
+      "path": "docs/game/characters/character-traits-property.md",
+      "title": "wxCharacterTraits: опубликованное значение Fairy Stars",
+      "category": "game/characters"
+    },
+    {
+      "path": "docs/game/characters/player-traits-reset.md",
+      "title": "PlayerTraits и сброс captured prefix",
+      "category": "game/characters"
+    },
+    {
       "path": "docs/game/characters/projectile-families.md",
       "title": "Снаряды и менеджеры: два семейства PC/PS2",
       "category": "game/characters"
@@ -1232,8 +1252,33 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/breakable-vase-value.md",
+      "title": "Raw Value of Fairy Stars у BreakableVase (PC)",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/cabinet-puzzle-digits.md",
+      "title": "wxCabinetPuzzle: captured PC combination words",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/challenge-params-defaults.md",
+      "title": "wxChallengeParams: defaults блока параметров на PC",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/collectible-proximity.md",
       "title": "CollectibleGem: flags и проверка близости",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/cylindrical-door-properties.md",
+      "title": "wxCylindricalDoor: два опубликованных свойства на PC",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/damage-proxy-properties.md",
+      "title": "wxDamageProxy: raw-параметры",
       "category": "game/entities"
     },
     {
@@ -1277,13 +1322,68 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/eye-ball-sentry-damage.md",
+      "title": "Raw Damage у EyeBallSentry (PC)",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/falling-rock-properties.md",
+      "title": "Falling rock raw properties",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/game-remainder.md",
       "title": "Оставшиеся игровые классы: независимый проход PC и PS2",
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/glyph-facing-no-op.md",
+      "title": "Facing Glyph: no-op setter и FLD getter (PC)",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/kiko-hole-radius.md",
+      "title": "wxKikoHole: captured PC Radius",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/knut-node-entry.md",
       "title": "Knut: полный вход, поиск Node и cached эффекты",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/moving-platform-near-state.md",
+      "title": "wxMovingPlatform: проверка близости на PC",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/pendulum-raw-properties.md",
+      "title": "Два DWORD-свойства Pendulum (PC)",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/racing-checkpoint-properties.md",
+      "title": "Два DWORD-свойства RacingCheckpoint (PC)",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/side-quest-given-object.md",
+      "title": "wxSideQuestGivenObject: captured PC Scale",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/swamp-gaz-bubble-damage.md",
+      "title": "Swamp gaz bubble raw damage property",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/swamp-platform-ring-properties.md",
+      "title": "Свойства скалярных полей wxSwampPlatformRing",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/thunder-maker.md",
+      "title": "wxThunderMaker: captured PC delay property bits",
       "category": "game/entities"
     },
     {
@@ -2629,6 +2729,11 @@
     {
       "path": "docs/reference/classes/wx-character.md",
       "title": "wxCharacter",
+      "category": "reference/classes"
+    },
+    {
+      "path": "docs/reference/classes/wx-collectible-gem.md",
+      "title": "wxCollectibleGem",
       "category": "reference/classes"
     },
     {

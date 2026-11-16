@@ -17,9 +17,10 @@ namespace winxcoop::world_state
     constexpr std::uint32_t MaximumSnapshotBytes = 16384, MaximumBodies = 2, MaximumEntities = 64;
     constexpr std::uint32_t SharedProfileBytes = 411, EntryWitnessBytes = 64;
     constexpr std::uint32_t DefaultActorLeaseMilliseconds = 2000;
+    constexpr std::uint32_t InitialNativeApplyMilliseconds = 30000;
     enum class Role : std::uint32_t { Host = 1, Guest = 2 };
     enum class Phase : std::uint32_t { Waiting = 1, Connected = 2, Ready = 3, Closed = 4 };
-    enum class Availability : std::uint32_t { Waiting = 0, Ready = 1, Retired = 2 };
+    enum class Availability : std::uint32_t { Waiting = 0, Ready = 1, Retired = 2, Initializing = 3 };
     enum class Terminal : std::uint32_t
     { None = 0, Identity = 1, InvalidRecord = 2, Sequence = 3, Transport = 4,
       PeerClosed = 5, ActorClosed = 6, RunLimit = 7, Clock = 8, CounterExhausted = 9,
@@ -45,6 +46,9 @@ namespace winxcoop::world_state
     };
     // Actor only writer. Availability is scene/canonical-world readiness,
     // independent of Input5 readiness and ordinary Diary/native pause.
+    // Guest Initializing admits transport while its first full native apply is
+    // pending. It has a fixed non-renewable budget, not the Ready heartbeat.
+    // Initializing -> Ready and the first exact native ACK publish together.
     // Guest ACK is published only after a complete stopped native apply.
     struct alignas(8) ActorStatus final
     {

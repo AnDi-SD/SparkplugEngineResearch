@@ -51,7 +51,8 @@ internal sealed partial class NativeTemplateProbe
     private sealed record NetworkInputPose(float[] Position, uint State, float Vertical);
     private bool StoryNetworkOutcomeCohort => _networkInputFixture &&
         _sharedPlayerProfile.Name == "gardenia-03-network-input";
-    private uint RetainedInputLevel => StoryNetworkOutcomeCohort ? 3u : _ordinaryNetwork ? 47u : 28u;
+    private uint RetainedInputLevel => _sharedPlayerProfile.Name == CampaignSceneProfile.BodyProfile
+        ? _sharedPlayerProfile.Level : StoryNetworkOutcomeCohort ? 3u : _ordinaryNetwork ? 47u : 28u;
     private uint RetainedInputDescriptorCount => StoryNetworkOutcomeCohort ? 7u : 8u;
     // A cached actual native outcome, not a transport failure or an invented
     // GameOver. Root keeps WCS1 Waiting heartbeats alive until original Exit.
@@ -174,7 +175,7 @@ internal sealed partial class NativeTemplateProbe
         if (StoryNetworkOutcomeCohort)
             ConfigureStoryNetworkOutcomeFixture(config);
         else Require(_networkInputIdentity is { Role: DiagnosticInputRole.Host } &&
-            config.TemplateSharedPlayerProfile == (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "alfea-28-network-input") &&
+            (config.TemplateSharedPlayerProfile == (config.TemplateNetworkOrdinaryAttackFixture ? "battle-01-network-input" : "alfea-28-network-input") || ProbeMain.IsCampaign(config)) &&
             config.Mode == "template-bloom-body-hair-idle" &&
             config.TemplateProjectileManagerFixture && config.TemplatePlayerTraitsFixture && config.TemplatePlayerTraitsPickupFx &&
             config.TemplateTargetRegionFixture && config.TemplateConfigureTargetRegion && config.TemplateSharedHealthAlias &&
@@ -190,7 +191,7 @@ internal sealed partial class NativeTemplateProbe
         _progressionInputEnabled = config.ProgressionControl is not null;
         if (_progressionInputEnabled)
         {
-            Require((StoryNetworkOutcomeCohort || config.TemplateSharedPlayerProfile == "alfea-28-network-input") &&
+            Require((StoryNetworkOutcomeCohort || config.TemplateSharedPlayerProfile == "alfea-28-network-input" || ProbeMain.IsCampaign(config)) &&
                 !config.TemplateNetworkOrdinaryAttackFixture && config.DiagnosticGuestInput is null &&
                 config.DiagnosticWorldState is { Role: WorldStateRole.Host } && config.EnableProgressionAuthority,
                 "Progression input barrier requires the explicit Alfea28 Host progression cohort.");
@@ -575,7 +576,7 @@ internal sealed partial class NativeTemplateProbe
         if (map.Record.JumpHeld && _networkInputJumpBaseline is null) _networkInputJumpBaseline = before.Position[1];
         ObserveNetworkInputTypedJump(tid, context, map, pose);
         _networkInputLastAppliedNeutral = map.Record.Magnitude == 0 && !map.Record.JumpHeld && !map.Record.OrdinaryAttackHeld;
-        uint nativeAckBefore = _progressionInputEnabled ? _networkInputNativeAckCount : 0;
+        uint nativeAckBefore = _networkInputNativeAckCount;
         ++_networkInputAppliedCount; AcknowledgeNetworkInputAtWorld(tid, context, map, "actual-ready-native-world");
         if (_progressionInputEnabled && !_progressionInputAllowed && !_progressionInputFencePending &&
             _networkInputLastAppliedNeutral && _networkInputNativeAckCount != nativeAckBefore)
@@ -595,6 +596,8 @@ internal sealed partial class NativeTemplateProbe
             sourceSequence = map.Record.SourceSequence, captureOrdinal = map.Record.CaptureOrdinal,
             destinationSequence = map.DestinationSequence, hostIngress = map.Record.HostIngressMilliseconds,
             actualWorld = _networkInputWorlds, nativePose = pose, moved = _networkInputMoved });
+        if (_networkInputNativeAckCount == nativeAckBefore + 1)
+            ObserveNetworkOrdinaryAfterAcknowledgedInput(tid, context, map, pose);
     }
     private void AcknowledgeNetworkInputAtWorld(uint tid, in Win32Native.X86Context context, NetworkInputMap map, string reason)
     {

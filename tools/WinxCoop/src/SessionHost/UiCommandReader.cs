@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -38,25 +39,39 @@ internal sealed class UiCommandReader : IDisposable
     internal UiCommand Poll()
     {
         Require(!_disposed && Environment.CurrentManagedThreadId == _thread, "UI control reader owner changed or closed.");
-        VerifyOwner(); RuntimeBundle.Ordinary(_config.UiCommandPath, false);
-        byte[] bytes = ReadLastComplete(_config.UiCommandPath);
-        using var document = JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 4 });
-        JsonElement value = document.RootElement;
-        Require(value.ValueKind == JsonValueKind.Object, "UI command must be an object.");
-        var names = new HashSet<string>(StringComparer.Ordinal);
-        foreach (JsonProperty property in value.EnumerateObject()) Require(names.Add(property.Name), "Duplicate UI command property.");
-        Require(names.SetEquals(new[] { "Version", "CapabilityNonce", "Sequence", "Operation", "Action", "IssuedAtMilliseconds" }),
-            "UI command schema differs from the local control contract.");
-        var next = new UiCommand(value.GetProperty("Version").GetUInt32(), value.GetProperty("CapabilityNonce").GetString()!,
-            value.GetProperty("Sequence").GetUInt64(), value.GetProperty("Operation").GetUInt64(),
-            value.GetProperty("Action").GetString()!, value.GetProperty("IssuedAtMilliseconds").GetInt64());
-        long now = Environment.TickCount64;
-        Require(next.Version == 1 && next.Sequence != 0 && next.CapabilityNonce is { Length: 32 } &&
-            next.CapabilityNonce.All(Uri.IsHexDigit) && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(next.CapabilityNonce), _capability) &&
-            next.Action is "Start" or "Reload" or "Save" or "Load" or "Stop" &&
-            (next.Operation != 0 || next.Action == "Start") && next.IssuedAtMilliseconds >= 0 &&
-            next.IssuedAtMilliseconds <= now && now - next.IssuedAtMilliseconds <= 5000,
-            "UI command capability, action or fresh local lease is invalid.");
+        UiCommand next; byte[] bytes;
+        for (int attempt = 0; ; ++attempt)
+        {
+            VerifyOwner(); RuntimeBundle.Ordinary(_config.UiCommandPath, false);
+            bytes = ReadLastComplete(_config.UiCommandPath,
+                _config.Interactive ? InteractiveSessionLimits.CommandJournalBytes : 2097152);
+            using var document = JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 4 });
+            JsonElement value = document.RootElement;
+            Require(value.ValueKind == JsonValueKind.Object, "UI command must be an object.");
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (JsonProperty property in value.EnumerateObject()) Require(names.Add(property.Name), "Duplicate UI command property.");
+            Require(names.SetEquals(new[] { "Version", "CapabilityNonce", "Sequence", "Operation", "Action", "IssuedAtMilliseconds" }),
+                "UI command schema differs from the local control contract.");
+            next = new UiCommand(value.GetProperty("Version").GetUInt32(), value.GetProperty("CapabilityNonce").GetString()!,
+                value.GetProperty("Sequence").GetUInt64(), value.GetProperty("Operation").GetUInt64(),
+                value.GetProperty("Action").GetString()!, value.GetProperty("IssuedAtMilliseconds").GetInt64());
+            long now = Environment.TickCount64;
+            long age = next.IssuedAtMilliseconds >= 0 ? now - next.IssuedAtMilliseconds : -1;
+            bool capabilityMatch = next.CapabilityNonce is { Length: 32 } &&
+                next.CapabilityNonce.All(Uri.IsHexDigit) &&
+                CryptographicOperations.FixedTimeEquals(Convert.FromHexString(next.CapabilityNonce), _capability);
+            bool valid = next.Version == 1 && next.Sequence != 0 && capabilityMatch &&
+                next.Action is "Start" or "Reload" or "Save" or "Load" or "Stop" &&
+                (next.Operation != 0 || next.Action == "Start") && next.IssuedAtMilliseconds >= 0 &&
+                next.IssuedAtMilliseconds <= now;
+            // Reading a real record can straddle a scheduling stall. Resnapshot
+            // once immediately; never extend the lease or accept an invalid row.
+            if (attempt == 0 && valid && age > 5000) continue;
+            Require(valid && age <= 5000,
+                $"UI command capability, action or fresh local lease is invalid. sequence={next.Sequence}, " +
+                $"issued={next.IssuedAtMilliseconds}, now={now}, age={age}, capabilityMatch={capabilityMatch}.");
+            break;
+        }
         string hash = Convert.ToHexString(SHA256.HashData(bytes));
         if (_last is not null)
         {
@@ -75,14 +90,14 @@ internal sealed class UiCommandReader : IDisposable
     private void VerifyOwner() => Require(!_owner.HasExited && OwnedChild.NativeCreation(_owner) == _config.UiOwnerCreationFileTime,
         "The exact local UI process closed or changed.");
 
-    private static byte[] ReadLastComplete(string path)
+    private static byte[] ReadLastComplete(string path, long maximumBytes)
     {
         for (int attempt = 0; ; ++attempt)
         {
             try
             {
                 using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                Require(file.Length is > 0 and <= 2097152, "UI command journal exceeds its2MiB bound.");
+                Require(file.Length > 0 && file.Length <= maximumBytes, "UI command journal exceeds its selected byte bound.");
                 int count = checked((int)Math.Min(file.Length, 8192)); long length = file.Length;
                 file.Position = length - count; byte[] bytes = new byte[count]; file.ReadExactly(bytes);
                 int end = Array.LastIndexOf(bytes, (byte)'\n');

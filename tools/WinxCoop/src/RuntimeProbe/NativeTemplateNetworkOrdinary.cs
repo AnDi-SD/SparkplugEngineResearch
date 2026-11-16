@@ -24,6 +24,7 @@ internal sealed partial class NativeTemplateProbe
     private uint _networkOrdinaryHurtSuppressed, _networkOrdinaryHurtNeutralRearms;
     private readonly Dictionary<uint, NetworkOrdinaryAction> _networkOrdinaryProjectiles = [];
     private readonly List<object> _networkOrdinaryCompleted = [];
+    private readonly List<object> _networkOrdinaryCancelled = [];
 
     private sealed class NetworkOrdinaryAction(uint id, DiagnosticInputRecord source, uint destination, uint world)
     {
@@ -37,6 +38,11 @@ internal sealed partial class NativeTemplateProbe
         internal bool TrajectoryMoved;
         internal float[]? Origin, LastPosition;
         internal OrdinaryNativeFrame? ActivationFrame;
+        internal NetworkInputMap? ReleaseSource, HurtSource;
+        internal uint ReleaseWorld, HurtWorld, CancellationBaselineWorld;
+        internal NativeCharacterHurtWitness? PostAdmissionHurt;
+        internal uint? CancellationHeldTimer, CancellationModeFlags;
+        internal bool CancellationBaselineWaitingLogged;
     }
 
     private sealed class NetworkOrdinarySend(NetworkOrdinaryAction action, uint projectile, uint target,
@@ -73,6 +79,9 @@ internal sealed partial class NativeTemplateProbe
         hurtAwaitingActualNeutral = _networkOrdinaryHurtAwaitNeutral,
         pendingEnemySend = _networkOrdinarySend is not null, pendingDamage = _networkOrdinaryDamage is not null,
         rolePolicy = _ordinaryRole?.Summary, completedActions = _networkOrdinaryCompleted.ToArray(),
+        cancelledBeforeCommitActions = _networkOrdinaryCancelled.Count,
+        cancelledActions = _networkOrdinaryCancelled.ToArray(),
+        activeAction = NetworkOrdinaryActiveActionSummary,
         optionalPolicies = NetworkOrdinaryOptionalPolicySummary,
         ownCommandWritesByThisObserver = 0, enemyHealthWrites = 0, syntheticHitMessages = 0,
         command21Written = false, chargedShieldSnowQualified = false, wholeE4Qualified = false
@@ -204,7 +213,10 @@ internal sealed partial class NativeTemplateProbe
             uint elapsed = unchecked(U(_sharedBattleTimer + 0x1C) - action.Clock);
             Require(elapsed <= 300, "Bounded network ordinary press exceeded300 native milliseconds.");
             action.Released = true; action.HeldNativeMilliseconds = elapsed;
-            LogNetworkOrdinary("release-observed", action, new { nativeHeldMilliseconds = elapsed, releaseSourceSequence = map.Record.SourceSequence });
+            action.ReleaseSource = map; action.ReleaseWorld = _networkInputWorlds;
+            LogNetworkOrdinary("release-observed", action, new { nativeHeldMilliseconds = elapsed,
+                releaseSourceSequence = map.Record.SourceSequence,
+                releaseSource = NetworkOrdinarySourceView(map, action.ReleaseWorld, acknowledged: false) });
         }
         _networkOrdinaryLastHeld = held;
         return true;
@@ -243,6 +255,129 @@ internal sealed partial class NativeTemplateProbe
             sourceAcknowledgmentReason = "safe-world-neutral-suppressed",
             nativeAppliedEventEmitted = false, originalNativeWorldNotYetResumed = true,
             commandNeutralizedByExistingControllerOnly = true, nativeFsmWrites = 0 });
+    }
+
+    // These are cached observations only. A report never reads a native object.
+    private object? NetworkOrdinaryActiveActionSummary => _networkOrdinaryAction is { } action ? new
+    {
+        action.Id, action.Epoch, action.SourceSequence, action.CaptureOrdinal, action.DestinationSequence,
+        action.BeginWorld, action.Released, action.TimerStores, action.Clock, action.HeldNativeMilliseconds,
+        action.Proposed, action.Chosen, action.Committed, action.StoreSeen, action.ChooserPending,
+        action.LookupPending, action.AnimationMapped, action.EventPending, action.EventReturned,
+        action.ActivationPending, action.ActivationRetSeen, action.Completed, action.Animation,
+        action.Events, action.Wrappers, action.Activations, action.ActivationReturns, action.Projectile,
+        action.Node, action.TrajectorySamples, action.EnemyCommits,
+        releaseSource = action.ReleaseSource is null ? null : NetworkOrdinarySourceView(action.ReleaseSource, action.ReleaseWorld, false),
+        typedHurt = action.PostAdmissionHurt,
+        hurtSource = action.HurtSource is null ? null : NetworkOrdinarySourceView(action.HurtSource, action.HurtWorld, true),
+        action.CancellationHeldTimer, action.CancellationModeFlags, action.CancellationBaselineWorld,
+        nativeActionFlagsPristine = NetworkOrdinaryPristineBeforeChooser(action)
+    } : null;
+
+    private static object NetworkOrdinarySourceView(NetworkInputMap map, uint actualWorld, bool acknowledged) => new
+    {
+        epoch = map.Record.InputEpoch, sourceSequence = map.Record.SourceSequence,
+        captureOrdinal = map.Record.CaptureOrdinal, destinationSequence = map.DestinationSequence,
+        actualWorld, magnitude = map.Record.Magnitude, jumpHeld = map.Record.JumpHeld,
+        ordinaryAttackHeld = map.Record.OrdinaryAttackHeld, nativeApplyAcknowledged = acknowledged
+    };
+
+    private bool NetworkOrdinaryPristineBeforeChooser(NetworkOrdinaryAction action) =>
+        action.Released && action.TimerStores == 1 && action.Clock != 0 && !action.Completed &&
+        !action.Proposed && !action.Chosen && !action.Committed && !action.StoreSeen && !action.ChooserPending &&
+        !action.LookupPending && !action.AnimationMapped && !action.EventPending && !action.EventReturned &&
+        !action.ActivationPending && !action.ActivationRetSeen && action.Animation == 0 && action.Events == 0 &&
+        action.Wrappers == 0 && action.Activations == 0 && action.ActivationReturns == 0 &&
+        action.Projectile == 0 && action.Node == 0 && action.TrajectorySamples == 0 && action.EnemyCommits == 0 &&
+        action.ActivationFrame is null && action.Origin is null && action.LastPosition is null &&
+        _networkOrdinarySend is null && _networkOrdinaryDamage is null &&
+        !_networkOrdinaryProjectiles.Values.Any(value => ReferenceEquals(value, action));
+
+    // Sole caller is the completed original input interval AFTER its genuine
+    // ACK and native-applied log. No suppression/ACK/controller/native write is
+    // performed here. Only an untouched pre-chooser observer can be cancelled.
+    private void ObserveNetworkOrdinaryAfterAcknowledgedInput(uint tid, in Win32Native.X86Context context,
+        NetworkInputMap map, NetworkInputPose pose)
+    {
+        if (!_ordinaryNetwork || !_ordinaryStarted || _networkOrdinaryRetired || _sharedBattleUnloadStarted ||
+            _networkOrdinaryAction is not { } action || !_ordinaryAuthorization ||
+            action.ReleaseSource is not { } release || !NetworkOrdinaryPristineBeforeChooser(action) ||
+            !NetworkInputRecordIsNeutral(map.Record) || map.Record.InputEpoch != action.Epoch ||
+            map.Record.SourceSequence <= action.SourceSequence || map.Record.CaptureOrdinal <= action.CaptureOrdinal ||
+            map.DestinationSequence <= action.DestinationSequence ||
+            map.Record.SourceSequence < release.Record.SourceSequence || map.Record.CaptureOrdinal < release.Record.CaptureOrdinal ||
+            map.DestinationSequence < release.DestinationSequence) return;
+        Require(_networkInputInFlight is null && _networkInputBeforeFlight is null &&
+            _networkInputLastAppliedNeutral && _networkInputEpoch == action.Epoch,
+            "Ordinary interruption observation escaped its completed acknowledged neutral source interval.");
+        if (action.PostAdmissionHurt is null)
+        {
+            if (pose.State != 10) return;
+            VerifyNetworkOrdinaryOwners();
+            Win32Native.X86Context stopped = context;
+            _ordinaryRole!.VerifyAtWorldStopped(tid, ref stopped);
+            if (_mosquitoPlayerTargets?.Active == true) _mosquitoPlayerTargets.VerifyAtWorld(tid, ref stopped);
+            _networkOrdinaryHurtObserver ??= new(_host, _image);
+            NativeCharacterHurtWitness? hurt = _networkOrdinaryHurtObserver.ReadAtWorld(tid, context, _machine, _animator, pose.State);
+            if (hurt is null) return; // Unknown states never authorize cancellation.
+            action.PostAdmissionHurt = hurt; action.HurtSource = map; action.HurtWorld = _networkInputWorlds;
+            LogNetworkOrdinary("typed-post-admission-hurt-observed", action, new
+            {
+                typedHurt = hurt, hurtSource = NetworkOrdinarySourceView(map, action.HurtWorld, true),
+                releaseSource = NetworkOrdinarySourceView(release, action.ReleaseWorld, false),
+                cancelled = false, retryAuthorized = false, nativeFsmWrites = 0, nativeCalls = 0,
+                nativeApplyAcknowledgmentsAdded = 0
+            });
+            return;
+        }
+        NetworkInputMap hurtSource = action.HurtSource!;
+        if (pose.State != 0 || !float.IsFinite(pose.Vertical) || MathF.Abs(pose.Vertical) >= .1f ||
+            map.Record.SourceSequence <= hurtSource.Record.SourceSequence ||
+            map.Record.CaptureOrdinal <= hurtSource.Record.CaptureOrdinal ||
+            map.DestinationSequence <= hurtSource.DestinationSequence || _networkInputWorlds <= action.HurtWorld) return;
+        VerifyNetworkOrdinaryOwners();
+        Win32Native.X86Context idleStopped = context;
+        _ordinaryRole!.VerifyAtWorldStopped(tid, ref idleStopped);
+        if (_mosquitoPlayerTargets?.Active == true) _mosquitoPlayerTargets.VerifyAtWorld(tid, ref idleStopped);
+        NetworkInputNeutralReadback();
+        uint timer = U(_machine + 0x298), flags = U(_machine + 0x140) & 0x1F800F;
+        action.CancellationHeldTimer = timer; action.CancellationModeFlags = flags;
+        action.CancellationBaselineWorld = _networkInputWorlds;
+        if (timer != 0 || flags != 0 || Read(_ownCommand + 0x1F, 1)[0] != 0 || Read(_machine + 0x294, 1)[0] != 0)
+        {
+            if (!action.CancellationBaselineWaitingLogged)
+            {
+                action.CancellationBaselineWaitingLogged = true;
+                LogNetworkOrdinary("cancel-before-commit-waits-for-native-idle-baseline", action, new
+                {
+                    nativeHeldTimer = timer, nativeModeFlags = flags, nativeState = pose.State,
+                    actualNeutralSource = NetworkOrdinarySourceView(map, _networkInputWorlds, true),
+                    cancelled = false, scratchOrFsmWrites = 0, retryAuthorized = false
+                });
+            }
+            return;
+        }
+        Require(ReferenceEquals(_networkOrdinaryAction, action) && !_networkOrdinaryLastHeld &&
+            NetworkOrdinaryPristineBeforeChooser(action) && action.PostAdmissionHurt.Owner == _machine &&
+            action.PostAdmissionHurt.Animator == _animator,
+            "Ordinary cancellation lost its untouched action or exact typed Hurt owners.");
+        object proof = new
+        {
+            outcome = "CancelledBeforeCommit", completed = false, nativeActivation = false,
+            typedHurt = action.PostAdmissionHurt, releaseSource = NetworkOrdinarySourceView(release, action.ReleaseWorld, false),
+            hurtSource = NetworkOrdinarySourceView(hurtSource, action.HurtWorld, true),
+            neutralIdleSource = NetworkOrdinarySourceView(map, _networkInputWorlds, true),
+            nativeHeldTimer = timer, nativeModeFlags = flags, nativeState = pose.State,
+            allNativeActionFlagsPristine = true, pendingNativeFrames = 0,
+            nativeFsmWrites = 0, nativeCalls = 0, nativeApplyAcknowledgmentsAdded = 0,
+            attemptCounterPreserved = _networkOrdinaryActions, nativeActionBudget = NetworkOrdinaryMaximumActions,
+            retryRequiresFreshActualInput = true, sceneOwnersRetired = false
+        };
+        _networkOrdinaryCancelled.Add(new { actionId = action.Id, epoch = action.Epoch,
+            sourceSequence = action.SourceSequence, captureOrdinal = action.CaptureOrdinal,
+            destinationSequence = action.DestinationSequence, data = proof });
+        _ordinaryAuthorization = false; _networkOrdinaryAction = null;
+        LogNetworkOrdinary("cancelled-before-commit", action, proof);
     }
 
     private void StepNetworkOrdinaryAtWorld(uint tid, ref Win32Native.X86Context context, bool ready)

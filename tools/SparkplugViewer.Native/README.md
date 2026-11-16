@@ -25,7 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/SparkplugViewer.Native
 `VectorWrapper`, `Perception`, `GameFlowState`, `GameFlowNavigation`,
 `LoadSaveGameFlowState`, `DebugDialogGameFlowState`, `CreditsMenuGameFlowState`,
 `IdleAIAction`, `MinotaurDefendAIAction`, `CentreScreenGameFlowState`,
-`WxButton`, `WxEntity`, `HUDPart`, `GameTimer`, `LogoAnimGameFlowState`,
+`WxButton`, `WxEntity`, `CollectibleGem`, `HUDPart`, `GameTimer`, `LogoAnimGameFlowState`,
 `MessageQueue`, `Notification`, `SleepingAIAction`, `TrollBeforeFightAIAction`,
 `TargetManager`, `WxButtonNotify`, `MenuGameFlowState`
 и существующий общий `SparkBase`.
@@ -55,5 +55,45 @@ Suite `ContactMultirows` проверяет [две и три строки од�
 Suite `ContactProvidedTangents` проверяет [строки с заданным tangent](../../docs/engine/physics/contact-provided-tangent-rows.md): отдельный staged raw384B, полный07E5-профиль, normal FCHS/F32, supplied tangent и F32 cross rereads, opaque DWORD overrides и отказ по умолчанию. Прежние Multirow/physics/AI consumers проверяются отдельно; native graph, ABI, lifetime и общий solver остаются открытыми.
 
 Suite `ContactTwoBodyMultirows` проверяет [две и три строки с двумя заданными body](../../docs/engine/physics/contact-two-body-multirow.md): staged raw480B, конечный профиль, различие primary/additional J2, positive T2 и точные F32 spill/reload на прежних kernels. Прежние ProvidedTangent/physics/AI consumers проверяются отдельно; native graph, ABI, lifetime и общий solver остаются открытыми.
+
+Suite `ContactRawDotRows` проверяет [одну строку и raw dot-ветвь](../../docs/engine/physics/contact-raw-dot-row.md): staged raw384B и отдельный diagnostic выбора записи до F32, ordered nearest64 и прежние kernels. Прежние physics/AI consumers проверяются отдельно; native graph, ABI, lifetime и общий solver остаются открытыми.
+
+Suite `ContactTwoBodyRawDotRows` проверяет [одну строку и две raw dot-суммы](../../docs/engine/physics/contact-two-body-raw-dot-row.md). Операция выдаёт staged raw480B и отдельный diagnostic выбора записи до F32, сохраняет порядок двух nearest64-сумм и первичные x87 spill. Границы native graph, ABI, lifetime и общего solver остаются открытыми.
+
+Suite `PlayerTraitsReset` проверяет [сброс captured prefix PlayerTraits](../../docs/game/characters/player-traits-reset.md), полную sparse value-проекцию 589 байт, default refusal, alias и идемпотентность. Полный native объект, lifecycle и gameplay остаются открытыми.
+
+Suite `CharacterTraitsProperty` проверяет [raw-свойство captured prefix CharacterTraits](../../docs/game/characters/character-traits-property.md), raw read/write/readback-проекцию 424 байт и двух DWORD, default refusal, alias и повторную запись. Полный native объект, lifecycle и gameplay остаются открытыми.
+
+Suite `MovingPlatformNear` проверяет [global0 near-state captured MovingPlatform](../../docs/game/entities/moving-platform-near-state.md), raw-проекцию 361 байт receiver, 12 байт cached Node position и 36 байт point, AL1, finite/global0 отказ и alias. Полный native объект, lifecycle и gameplay остаются открытыми.
+
+Suite `CylindricalDoorProperty` проверяет [два именованных byte-свойства CylindricalDoor](../../docs/game/entities/cylindrical-door-properties.md), raw DWORD-to-byte truncation, getter readback, соседнее поле и полный375-байтный captured prefix, alias и явный отказ. Native bool/signature, sizeof, lifecycle и gameplay остаются открытыми.
+
+Suite `SwampPlatformRingProperty` проверяет [четыре scalar-свойства SwampPlatformRing](../../docs/game/entities/swamp-platform-ring-properties.md), raw DWORD stores, фактические10-байтные FLD returns,308-байтные prefixes, cross-field preservation и явный finite-profile отказ. Native return signature, sizeof, lifecycle и gameplay остаются открытыми.
+
+Suite `ChallengeParamsDefaults` проверяет [captured interior parameter defaults](../../docs/game/entities/challenge-params-defaults.md), 19 raw DWORD записей внутри префикса 368 байт, сохранение 292 opaque байт, alias, повторный вызов и отказ профиля. Native sizeof, конструктор, lifecycle и gameplay остаются открытыми.
+
+Suite `DamageProxyProperty` проверяет [два raw DWORD-свойства DamageProxy](../../docs/game/entities/damage-proxy-properties.md), полные32-битные getter results и два304-байтных after-prefix, cross-field/opaque preservation, alias и явный профильный отказ. Current ctor защищён; native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `RacingCheckpointProperty` проверяет [два raw DWORD-свойства RacingCheckpoint](../../docs/game/entities/racing-checkpoint-properties.md), полные32-битные getter results и два316-байтных after-prefix, cross-field/opaque preservation, alias и явный профильный отказ. Current ctor защищён; native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `PendulumProperty` проверяет [два raw DWORD-свойства Pendulum](../../docs/game/entities/pendulum-raw-properties.md), полные32-битные getter results и два300-байтных after-prefix, cross-field/opaque preservation, alias и явный профильный отказ. Current ctor защищён; native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `FallingRockProperty` проверяет [четыре raw DWORD-свойства FallingRock](../../docs/game/entities/falling-rock-properties.md), восемь полных32-битных getter results и четыре396-байтных after-prefix в порядке GET/SET/GET каждого свойства. Сохраняются opaque/cross-field bytes, alias и явный профильный отказ; current ctor, native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `SwampGazBubbleDamage` проверяет [одно raw DWORD-свойство SwampGazBubble](../../docs/game/entities/swamp-gaz-bubble-damage.md), два полных32-битных getter results и один336-байтный after-prefix в порядке GET/SET/GET. Сохраняются opaque/cross-field bytes, alias и явный профильный отказ; current ctor, native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `GlyphFacing` проверяет [Facing callback Glyph с no-op setter и FLD getter](../../docs/game/entities/glyph-facing-no-op.md), два10-байтовых x87 getter payload и один неизменённый352-байтный prefix в порядке GET/no-op/GET. Сохраняются opaque/cross-field bytes, alias и явный профильный отказ; current ctor, native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `SideQuestGivenObjectScale` проверяет [Scale callback SideQuestGivenObject с записью F32 и FLD getter](../../docs/game/entities/side-quest-given-object.md), два10-байтовых x87 getter payload и один308-байтный after-prefix в порядке GET/SET/GET. Сохраняются opaque bytes, alias и явный finite-normal/signedzero профиль; current ctor, native sizeof/типы, lifecycle и gameplay остаются открытыми.
+
+Suite `BreakableVaseValue` проверяет [raw Value of Fairy Stars у BreakableVase](../../docs/game/entities/breakable-vase-value.md), два полных32-битных getter results и один384-байтный after-prefix в порядке GET/SET/GET. Сохраняются opaque bytes, alias и профильный отказ; current constructor, sizeof/native types, применение значения и gameplay остаются открытыми.
+
+Suite `ThunderMakerProperty` проверяет [две rawDWORD пары Delay у ThunderMaker](../../docs/game/entities/thunder-maker.md), шесть полных32-битных getter values и два304-байтных after-prefix в восьми последовательных callback на одном предоставленном состоянии. Numeric8hex слова, opaque bytes, cross-property сохранение и alias остаются явными; current constructor, native types/sizeof, порядок min/max, единицы, производство погоды и gameplay неизвестны.
+
+Suite `EyeBallSentryDamage` проверяет [одну rawDWORD пару Damage у EyeBallSentry](../../docs/game/entities/eye-ball-sentry-damage.md), два полных32-битных getter values и328-байтный after-prefix в GET/SET/GET на одном предоставленном состоянии. Слова вводятся и выводятся как четыре little-endian байта памяти; opaque bytes и alias сохраняются. Historical416B allocation не доказывает sizeof; current constructor, native types/signedness/units, применение Damage, другие FLD/byte свойства и gameplay неизвестны.
+
+Suite `KikoHoleRadius` проверяет [одну Radius F32-store/FLD пару KikoHole](../../docs/game/entities/kiko-hole-radius.md), два фактических10-байтных extended getter payload и полный324-байтный after-prefix в GET/SET/GET. Setter сохраняет все32 raw бита аргумента; профиль допускает finite normals или signed zero. Сохраняются opaque bytes и alias; historical332B allocation, неизвестный current constructor, sizeof/native ABI/единицы/lifecycle/production callers/gameplay остаются отдельными границами.
+
+Suite `CabinetPuzzleProperty` проверяет [четыре rawDWORD пары цифр CabinetPuzzle](../../docs/game/entities/cabinet-puzzle-digits.md), восемь полных EAX getter values и четыре372-байтных after-prefix в12 callback на одном предоставленном состоянии. Все32 бита сохраняются; слова ввода/вывода имеют порядок четырёх little-endian байтов памяти. Названия Digit не задают диапазон0..9, signedness или механику пазла; historical468B allocation отдельно от minimum372B, constructor/sizeof/physicalinheritance/nativeABI/lifecycle/productioncallers/gameplay неизвестны.
 
 [Архитектура общего ядра](../shared-core.md) · [Правила разработки](../../CONTRIBUTING.md).

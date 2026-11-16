@@ -20,10 +20,13 @@ namespace winxcoop::adapter
         std::uint32_t nativeCalls{}, created{}, destroyed{}, nodes{}, skins{}, materials{};
     };
 
-    // Own Alfea28 adapter, ported from the qualified A diagnostic. Only native
-    // graph/Actor APIs are called; no player/controller/input/camera is created.
-    // The caller admits the pinned EXE/assets and keeps this DLL loaded until
-    // its own game exits. All entry points require the root's world/pre-unload
+    // Own passive adapter, ported from the qualified Alfea28 A diagnostic.
+    // The bounded stock model graph recipe is retained; generic typed Playing
+    // admission does not claim that every modded graph was runtime-qualified.
+    // Only native graph/Actor APIs are called; no player/controller/input/camera is created.
+    // The caller admits necessary image functions and pins visual files only
+    // on explicit Create; content hashes do not select a game release. The DLL
+    // stays loaded until its own game exits. All entry points require the root's world/pre-unload
     // phase witness and the original main thread. No native calls in destructors.
     class PassiveActor final
     {

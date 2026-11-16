@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -43,16 +44,19 @@ internal static class SessionStatusJournal
     internal sealed class Writer : IDisposable
     {
         private readonly FileStream _file;
+        private readonly int _maximumBytes;
         private ulong _sequence;
         private long _bytes;
         private bool _failed, _disposed;
         internal ulong RecordsWritten => _sequence;
         internal long BytesWritten => _bytes;
+        internal int MaximumBytes => _maximumBytes;
         internal bool Failed => _failed;
         internal bool Closed => _disposed;
 
-        internal Writer(string directory)
+        internal Writer(string directory, bool interactive = false)
         {
+            _maximumBytes = interactive ? InteractiveSessionLimits.StatusJournalBytes : MaxJournalBytes;
             string path = JournalPath(directory);
             _file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
             try { RuntimeBundle.Ordinary(path, false); }
@@ -74,8 +78,8 @@ internal static class SessionStatusJournal
             using (JsonDocument document = JsonDocument.Parse(record, Document))
                 Require(document.RootElement.GetProperty("status").ValueKind == JsonValueKind.Object,
                     "Local status must serialize as an object.");
-            Require(record.Length + 1 <= MaxRecordBytes && _bytes <= MaxJournalBytes - record.Length - 1L,
-                "Local status journal exceeded its8MiB/64KiB bounds.");
+            Require(record.Length + 1 <= MaxRecordBytes && _bytes <= _maximumBytes - record.Length - 1L,
+                "Local status journal exceeded its selected byte/64KiB record bounds.");
             Require(_file.Position == _bytes && _file.Length == _bytes, "Retained local status journal changed length.");
             try
             {
@@ -99,6 +103,7 @@ internal static class SessionStatusJournal
     internal sealed class Reader : IDisposable
     {
         private readonly string _path;
+        private readonly int _maximumBytes;
         private readonly byte[] _read = new byte[8192], _partial = new byte[MaxRecordBytes - 1];
         private FileStream? _file;
         private Exception? _failure;
@@ -112,7 +117,11 @@ internal static class SessionStatusJournal
         internal bool HasUnreadBytes => _hasUnreadBytes;
         internal bool FinalComplete { get; private set; }
 
-        internal Reader(string directory) => _path = JournalPath(directory);
+        internal Reader(string directory, bool interactive = false)
+        {
+            _path = JournalPath(directory);
+            _maximumBytes = interactive ? InteractiveSessionLimits.StatusJournalBytes : MaxJournalBytes;
+        }
 
         // Returns the newest NEW complete status in this bounded pump, or null.
         // final=true comes only from the retained native parent's actual exit.
@@ -176,8 +185,8 @@ internal static class SessionStatusJournal
         private long VerifyLength()
         {
             long length = _file!.Length;
-            Require(length >= _observedLength && length >= _bytesRead && length <= MaxJournalBytes,
-                "Local status journal was truncated or exceeded its8MiB bound.");
+            Require(length >= _observedLength && length >= _bytesRead && length <= _maximumBytes,
+                "Local status journal was truncated or exceeded its selected byte bound.");
             _observedLength = length;
             return length;
         }

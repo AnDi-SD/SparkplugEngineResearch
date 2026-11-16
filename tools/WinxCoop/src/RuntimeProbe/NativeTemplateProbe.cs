@@ -103,14 +103,18 @@ internal sealed partial class NativeTemplateProbe
         _playerTraitsPreparePickupFx = config.TemplatePlayerTraitsPickupFx;
         _sharedHealthAliasEnabled = config.TemplateSharedHealthAlias;
         _sharedHealthInitializeFromCanonical = config.InitialSaveSha256 is not null && config.EnableWorldEntry ||
-            ProbeMain.IsClosedStory3Host(config);
+            ProbeMain.IsClosedStory3Host(config) || ProbeMain.IsCampaign(config);
         _sharedPlayerProfile = NativeSharedPlayerProfile.Select(config);
+        _campaignInitialStartup = ProbeMain.IsCampaign(config) &&
+            config.DiagnosticWorldState is { Role: WorldStateRole.Host } &&
+            config.CampaignScene is { Level: 1, TransitionOrdinal: 0 } &&
+            config.InitialSaveSha256 is null && !config.ProgressionHostContinuationSeed;
         _preWaitingReloadPreparationEnabled = config.ProgressionPreWaitingReloadPreparation;
         _progressionSavedReloadCohort = config.ProgressionControl is not null &&
             config.EnableProgressionAuthority && config.UseProcessLocalMediaPath && config.EnableWorldEntry &&
             config.DiagnosticWorldState is { Role: WorldStateRole.Host } &&
             config.DiagnosticHostInput is { Role: DiagnosticInputRole.Host } && config.DiagnosticGuestInput is null &&
-            config.TemplateSharedPlayerProfile == "alfea-28-network-input" && config.TemplateNetworkInputFixture &&
+            (config.TemplateSharedPlayerProfile == "alfea-28-network-input" || ProbeMain.IsCampaign(config)) && config.TemplateNetworkInputFixture &&
             !config.WorldBattlePresentation && !config.TemplateNetworkOrdinaryAttackFixture &&
             !config.TemplateDeathBattleFixture && !config.TemplateStoryDeathFixture && !config.TemplateMosquitoPlayerTargets;
         _healthBattleFixture = _sharedPlayerProfile.LiveResources;
@@ -320,6 +324,7 @@ internal sealed partial class NativeTemplateProbe
             });
         if (_layout.IsDerivedBloom) InstallBloomInitWitnesses();
         InstallProjectileManagerWitnesses();
+        InstallCampaignStartupWitnesses();
     }
 
     internal void Step(DebuggerHost host, uint tid, ref Win32Native.X86Context ctx,
@@ -330,6 +335,7 @@ internal sealed partial class NativeTemplateProbe
         Require(!_bodyUnloadStarted, "Post-unload body worlds must use the fresh flow-only route before old local reads.");
         Require(!SharedBattleUnloadStarted, "Shared battle post-unload requires the fresh flow-only route.");
         if (_cleaned) return;
+        if (_campaignInitialStartup && _stage == 0 && !AdmitCampaignStartupAtWorld()) return;
         VerifyStoryGameOverAtWorld(tid, ref ctx);
         if (_sharedBattleLifetimeEnabled && SharedBattleLifetimeCaptured && !ObserveSharedBattleLifetimeAtWorld(tid, ref ctx)) return;
         if (_stage != 0) VerifyLocal();
@@ -936,9 +942,19 @@ internal sealed partial class NativeTemplateProbe
         else
         {
             int stack = unchecked((int)U(_flow + 0x1AC));
-            Require(U(_flow + 0x1B0) == _level && U(_flow + 0x1B8) == 0 && U(_active + 0x10) == _level &&
-                stack is >= 0 and <= 20 && U(_flow + 0x15C + (uint)stack * 4) == _active,
-                "Active playing flow changed during the bounded experiment.");
+            uint? actualCurrent = null, actualPending = null, actualRetainedId = null, actualTop = null;
+            bool flowMatches = (actualCurrent = U(_flow + 0x1B0)) == _level &&
+                (actualPending = U(_flow + 0x1B8)) == 0 && (actualRetainedId = U(_active + 0x10)) == _level &&
+                stack is >= 0 and <= 20 && (actualTop = U(_flow + 0x15C + (uint)stack * 4)) == _active;
+            static string FlowNumber(uint? value) => value?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "not-read-short-circuit";
+            static string FlowAddress(uint? value) => value.HasValue ? $"0x{value.Value:X8}" : "not-read-short-circuit";
+            Require(flowMatches, flowMatches ? "Active playing flow changed during the bounded experiment." :
+                $"Active playing flow changed during the bounded experiment. diagnostic=flow-guard-v1 stage={_stage} " +
+                $"flow=0x{_flow:X8} expectedCurrent={_level} actualCurrent={FlowNumber(actualCurrent)} " +
+                $"expectedPending=0 actualPending={FlowNumber(actualPending)} retainedActive=0x{_active:X8} " +
+                $"expectedRetainedId={_level} actualRetainedId={FlowNumber(actualRetainedId)} " +
+                $"expectedStack=0..20 actualStack={stack} expectedTop=0x{_active:X8} actualTop={FlowAddress(actualTop)} " +
+                "readOrder=stack,current,pending,retainedId,bounds,top shortCircuitPreserved=true");
         }
         Require(U(Pointer(0x75DB90) + 0x20) == 0 && Read(_fileManager + 0x21C, 1)[0] == 0,
             "World/template-setup phase changed during the experiment.");

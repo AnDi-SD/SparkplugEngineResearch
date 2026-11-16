@@ -79,7 +79,7 @@ namespace winxcoop::adapter
         Graph local{}, sourceGraph{}, hairGraph{}, combined{};
         BYTE matrixScratch[MaxBones * 64]{};
         U profile{}, record{}, localRoot{}, parent{}, scene{}, input{}, inputState{}, inputDevice{}, camera{};
-        U capturedFlow{}, capturedSceneManager{}, playingState{};
+        U capturedFlow{}, capturedSceneManager{}, playingState{}, playingLevel{};
         U source{}, hair{}, wrapper{}, actor{}, clips[3]{}, activeAnimation{}, playback{};
         bool sourceOwned{}, hairOwned{}, wrapperOwned{}, sourceQualified{}, hairQualified{}, wrapperQualified{}, attached{}, created{}, busy{}, readFailed{};
         Transform initial{};
@@ -181,8 +181,14 @@ namespace winxcoop::adapter
             if (!at) return true;
             USHORT count{}; U parentAt{}, table{}, deleting{};
             if (!owned || !References(at, count) || count != 1 || !Get(at + 0x2C, parentAt) || parentAt ||
-                !Get(at, table) || !Get(table, deleting))
+                !Get(at, table) ||
+                (table != NodeTable && table != RenderTable && table != LightTable && table != LightDataTable && table != DXLightTable) ||
+                !Get(table, deleting))
                 return Fail(PassiveActorError::Ownership, "detached root does not have exactly the adapter owner", true);
+            const U expectedDeleting = table == NodeTable ? 0x422220 : table == RenderTable ? 0x4255D0 :
+                table == LightTable ? 0x428F70 : table == LightDataTable ? 0x435430 : 0x4B58B0;
+            if (deleting != expectedDeleting)
+                return Fail(PassiveActorError::Signature, "typed detached-root deleting method differs from its native ABI", true);
             if (!Function(deleting) || !SetReferences(at, 0)) return false;
             owned = false;
             if (!Void1(deleting, at, 1)) return false;
@@ -420,12 +426,12 @@ namespace winxcoop::adapter
         {
             U p{}, r{}, n{}, flow{}, manager{}, level{}, pending{}, stack{}, active{}, inputAt{}, engine{};
             if (!Get(0x765AD4, p) || !Table(p, 0x6F5A44) || !Get(p + 0x2B4, r) || !Table(r, 0x710F80) ||
-                !Get(r + 0x24, n) || !Table(n, NodeTable) || !Get(0x755294, flow) || !Get(0x75DB90, manager) ||
-                !Get(flow + 0x1B0, level) || (requirePlaying && level != 28) || !Get(flow + 0x1B8, pending) ||
+                !Get(r + 0x24, n) || !Table(n, NodeTable) || !Get(0x755294, flow) || !Table(flow, 0x702D2C) || !Get(0x75DB90, manager) ||
+                !Get(flow + 0x1B0, level) || (requirePlaying && (level < 1 || level > 50)) || !Get(flow + 0x1B8, pending) ||
                 !Get(flow + 0x1AC, stack) || stack > 20 || !Get(flow + 0x15C + stack * 4, active) ||
-                (requirePlaying && (pending || Value(active + 0x10) != 28)) ||
+                (requirePlaying && (pending || !Table(active, 0x710874) || Value(active + 0x10) != level)) ||
                 !Get(0x7552A0, inputAt) || !Table(inputAt, 0x6F5508) ||
-                !Get(0x755274, engine)) return Fail(PassiveActorError::LocalIdentity, "current stock Alfea28 local identity is unavailable");
+                !Get(0x755274, engine)) return Fail(PassiveActorError::LocalIdentity, "current typed Playing local identity is unavailable");
             U currentScene{}, componentCount{};
             if (!Get(manager + 0x20, currentScene) || currentScene || !Get(r + 0x20, componentCount) || componentCount != 11)
                 return Fail(PassiveActorError::LocalIdentity, "world context or stock component count is unavailable");
@@ -441,7 +447,7 @@ namespace winxcoop::adapter
                     if (state == playingState) foundPlaying = true;
                 }
                 U playingId{};
-                if (!foundPlaying || !Table(playingState, 0x710874) || !Get(playingState + 0x10, playingId) || playingId != 28)
+                if (!foundPlaying || !Table(playingState, 0x710874) || !Get(playingState + 0x10, playingId) || playingId != playingLevel)
                     return Fail(PassiveActorError::LocalIdentity, "original playing state is no longer retained beneath the overlay");
             }
             U parentAt{}, sceneAt{}, inputStateAt{}, inputDeviceAt{}, cameraAt{};
@@ -468,13 +474,14 @@ namespace winxcoop::adapter
             {
                 profile = p; record = r; localRoot = n; parent = parentAt; scene = sceneAt; input = inputAt;
                 inputState = inputStateAt; inputDevice = inputDeviceAt; camera = cameraAt;
-                capturedFlow = flow; capturedSceneManager = manager; playingState = active;
+                capturedFlow = flow; capturedSceneManager = manager; playingState = active; playingLevel = level;
                 if (!Read(n + 0x20, initial.position, 12) || !Read(n + 0x30, initial.scale, 12) || !Read(n + 0x40, initial.orientation, 36) ||
                     !FiniteWords(initial.position, 3) || !FiniteWords(initial.scale, 3) || !Matrix(initial.orientation))
                     return Fail(PassiveActorError::Transform, "local PRS is not qualified");
             }
             else if (profile != p || record != r || localRoot != n || parent != parentAt || scene != sceneAt || input != inputAt ||
-                inputState != inputStateAt || inputDevice != inputDeviceAt || camera != cameraAt)
+                inputState != inputStateAt || inputDevice != inputDeviceAt || camera != cameraAt ||
+                (requirePlaying && (flow != capturedFlow || manager != capturedSceneManager || active != playingState || level != playingLevel)))
                 return Fail(PassiveActorError::LocalIdentity, "local player/input/camera identity changed");
             return true;
         }

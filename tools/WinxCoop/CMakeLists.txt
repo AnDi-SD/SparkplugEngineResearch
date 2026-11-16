@@ -120,7 +120,7 @@ if(WIN32)
         src/Launcher/ReplicationCoordinator.h
         src/Launcher/PrototypeProfile.cpp
         src/Launcher/PrototypeProfile.h)
-    target_link_libraries(WinxCoopLauncher PRIVATE WinxCoopGameplay WinxCoopGameProcessClient WinxCoopLobbyDiscovery user32 shell32 bcrypt)
+    target_link_libraries(WinxCoopLauncher PRIVATE WinxCoopGameplay WinxCoopGameProcessClient WinxCoopLobbyDiscovery user32 shell32 comdlg32 bcrypt)
     target_compile_definitions(WinxCoopLauncher PRIVATE UNICODE _UNICODE WINVER=0x0601 _WIN32_WINNT=0x0601)
     if(MSVC)
         target_compile_options(WinxCoopLauncher PRIVATE /W4 /utf-8)
@@ -133,6 +133,7 @@ if(WIN32)
             src/Adapter/PassiveActor.h
             src/Adapter/PinnedImage.cpp
             src/Adapter/PinnedImage.h
+            src/Adapter/PassiveImageCompatibility.h
             src/Adapter/NativeAdapter.def
             src/Adapter/RuntimeContract.h)
         set_target_properties(WinxCoopNativeAdapter PROPERTIES OUTPUT_NAME "WinxCoop.NativeAdapter")
@@ -170,7 +171,11 @@ if(WIN32)
             target_compile_options(WinxCoopGameHostClientProbe PRIVATE /W4 /utf-8)
             target_link_options(WinxCoopGameHostClientProbe PRIVATE /SUBSYSTEM:CONSOLE,6.01)
             target_compile_options(WinxCoopXpGameProbe PRIVATE /W4 /O1 /GS- /Oi- /Zl /utf-8)
-            target_link_options(WinxCoopXpGameProbe PRIVATE /NODEFAULTLIB /ENTRY:ProbeEntry /SUBSYSTEM:WINDOWS,5.01 /MANIFEST:NO /MACHINE:X86)
+            # Avoid Win7 PCA's compatibility Job without requesting elevation.
+            # Children still require an owned Job before ResumeThread.
+            target_link_options(WinxCoopXpGameProbe PRIVATE /NODEFAULTLIB /ENTRY:ProbeEntry /SUBSYSTEM:WINDOWS,5.01 /MANIFEST:EMBED /MANIFESTUAC:NO /MACHINE:X86
+                "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/tests/XpGameProbe.manifest")
+            set_property(TARGET WinxCoopXpGameProbe APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/XpGameProbe.manifest")
         endif()
         target_compile_definitions(WinxCoopNativeAdapter PRIVATE WINVER=0x0601 _WIN32_WINNT=0x0601)
         if(MSVC)

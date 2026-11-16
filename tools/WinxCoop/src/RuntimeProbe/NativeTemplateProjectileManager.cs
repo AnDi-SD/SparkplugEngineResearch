@@ -12,9 +12,14 @@ internal sealed partial class NativeTemplateProbe
         OrdinaryAttackFixtureRetired && (!_networkInputFixture || NetworkInputFixtureRetired) :
         _networkInputFixture ? NetworkInputFixtureRetired : BodyInputFixtureRetired;
     private uint ProjectileExpectedRole => _projectileRetainedBattle ? 1u : 0u;
-    private uint ProjectileFixtureLevel => _projectileBattleInit ? 47u : 28u;
-    private uint ProjectileInitC3 => _projectileBattleInit ? 0x50A0DCu : 0x50980Cu;
-    private uint ProjectileInitAl => _projectileBattleInit ? 1u : 0u;
+    private uint ProjectileFixtureLevel => _projectileBattleInit ? 47u :
+        _sharedPlayerProfile.Name == CampaignSceneProfile.BodyProfile ? _sharedPlayerProfile.Level : 28u;
+    // Gardenia1 and Battle47 take the same native full-init branch, while
+    // their profile, game-flow state and projectile role remain distinct.
+    private bool ProjectileNativeFullInit => _projectileBattleInit ||
+        _sharedPlayerProfile.Name == CampaignSceneProfile.BodyProfile;
+    private uint ProjectileInitC3 => ProjectileNativeFullInit ? 0x50A0DCu : 0x50980Cu;
+    private uint ProjectileInitAl => ProjectileNativeFullInit ? 1u : 0u;
     private uint _projectileManager, _projectilePrimaryManager, _projectilePrimaryMove, _projectileEventManager;
     private uint _projectileConstructedCaptures, _projectileInitEntries, _projectileInitReturns;
     private uint _projectileInitEsp, _projectileInitCaller, _projectileInitC3;
@@ -54,7 +59,7 @@ internal sealed partial class NativeTemplateProbe
             _projectileRetainedDeletePrimarySnapshot is not null) &&
         (!_projectileRetainedAlfea || !_projectileBattleInit) &&
         (!_projectileRetainedBattle || _projectileBattleInit) &&
-        (!_projectileBattleInit || _projectileBattlePools.Count == 18 && _projectileDeletedPools.Count == 18 &&
+        (!ProjectileNativeFullInit || _projectileBattlePools.Count == 18 && _projectileDeletedPools.Count == 18 &&
             _projectilePoolDeleteEntries == 18 && _projectilePoolDeleteReturns == 18 && _projectilePoolDeleteC3 == 18 &&
             _projectileUnregisteredPools.Count == 18 && !_projectilePoolDeletePending);
 
@@ -63,6 +68,7 @@ internal sealed partial class NativeTemplateProbe
         enabled = _projectileManagerFixture, scopedInitOnly = !ProjectileManagerRetained,
         retainedAlfea = _projectileRetainedAlfea, retainedOrdinaryBattle = _projectileRetainedBattle,
         battleFullInit = _projectileBattleInit, expectedNativeProjectileRole50 = ProjectileExpectedRole,
+        nativeFullInit = ProjectileNativeFullInit,
         level = ProjectileFixtureLevel, expectedInitC3 = Hex(ProjectileInitC3), expectedInitAl = ProjectileInitAl,
         manager = Hex(_projectileManager), primaryManager = Hex(_projectilePrimaryManager),
         borrowedPrimaryMove = Hex(_projectilePrimaryMove), constructionCaptures = _projectileConstructedCaptures,
@@ -116,7 +122,7 @@ internal sealed partial class NativeTemplateProbe
             : _projectileRetainedAlfea
             ? config.Mode == "template-bloom-body-hair-idle" &&
                 (config.TemplateBodyInputFixture && config.TemplateSharedPlayerProfile == "alfea-28-input" ||
-                 config.TemplateNetworkInputFixture && config.TemplateSharedPlayerProfile == "alfea-28-network-input") &&
+                 config.TemplateNetworkInputFixture && (config.TemplateSharedPlayerProfile == "alfea-28-network-input" || ProbeMain.IsCampaign(config))) &&
                 config.TemplatePlayerTraitsPickupFx && config.TemplateConfigureTargetRegion && config.TemplateSharedHealthAlias
             : config.Mode == "template-bloom-body-hair-init" && !config.TemplatePlayerTraitsPickupFx &&
                 !config.TemplateConfigureTargetRegion && !config.TemplateSharedHealthAlias &&
@@ -155,7 +161,7 @@ internal sealed partial class NativeTemplateProbe
             Require(_projectilePrimarySnapshot is null, "Projectile stopped baseline was captured twice.");
             _projectilePrimarySnapshot = ReadProjectilePrimarySnapshot();
             _projectileSceneChildrenBefore = U(_parent + 0x1C);
-            if (_projectileBattleInit) CaptureProjectileForeignObjects();
+            if (ProjectileNativeFullInit) CaptureProjectileForeignObjects();
         }
         _log(new { @event = "template-projectile-baseline", manager = Hex(manager), move = Hex(move),
             eventManager = Hex(_projectileEventManager), stoppedBeforeCreate = _stage == 6,
@@ -198,6 +204,7 @@ internal sealed partial class NativeTemplateProbe
             _sharedBattleLifetimeEnabled && _sharedBattleCaptured && !_sharedBattleUnloadStarted &&
             _sharedPlayerProfile.Name == (_projectileRetainedBattle ?
                 (_ordinaryNetwork ? "battle-01-network-input" : "battle-01-ordinary-attack") :
+                _sharedPlayerProfile.Name == CampaignSceneProfile.BodyProfile ? CampaignSceneProfile.BodyProfile :
                 _networkInputFixture ? "alfea-28-network-input" : "alfea-28-input") &&
             _level == ProjectileFixtureLevel && _projectileBattleInit == _projectileRetainedBattle &&
             ProjectileManagerInputRetired && _projectileRetainedDeleteBaselineCaptures == 0 &&
@@ -210,7 +217,7 @@ internal sealed partial class NativeTemplateProbe
         Require(U(_projectileManager + 0x24) == _instance && U(_projectileManager + 0x18) == _ownRoot &&
             U(_projectileManager + 0x124) == _character && U(_projectileManager + 0x130) == _projectilePrimaryMove,
             "Retained projectile ownership changed before its stopped deletion baseline.");
-        if (_projectileRetainedBattle) VerifyRetainedBattlePoolDeleteOwnership();
+        if (ProjectileNativeFullInit) VerifyRetainedBattlePoolDeleteOwnership();
         else Require(Read(_projectileManager + 0x1D0, 42 * 4).All(value => value == 0) &&
             new uint[] { 0x360, 0x364, 0x368, 0x39C, 0x3A0, 0x3A4, 0x3A8, 0x3E8, 0x3EC, 0x3F0, 0x3F4, 0x400, 0x404 }
                 .All(offset => U(_projectileManager + offset) == 0),
@@ -223,7 +230,7 @@ internal sealed partial class NativeTemplateProbe
             freshStoppedPrimaryBaseline = true, comparedWithInitBytes = false,
             bodyInputRetired = _bodyInputFixture && BodyInputFixtureRetired,
             networkInputRetired = _networkInputFixture && NetworkInputFixtureRetired,
-            ordinaryAttackRetired = _projectileRetainedBattle, allOwnPoolsUnallocated = !_projectileRetainedBattle,
+            ordinaryAttackRetired = _projectileRetainedBattle, allOwnPoolsUnallocated = !ProjectileNativeFullInit,
             retainedBattlePools = _projectileBattlePools.Count, expectedNativeProjectileRole50 = ProjectileExpectedRole,
             sceneParentChildren = _projectileSceneChildrenBeforeRetainedDelete,
             sceneParentChildDeltaSinceBeforeCreate = (long)_projectileSceneChildrenBeforeRetainedDelete - _projectileSceneChildrenBefore,
@@ -235,7 +242,7 @@ internal sealed partial class NativeTemplateProbe
     // compared with init; only the eighteen original owning pool identities.
     private void VerifyRetainedBattlePoolDeleteOwnership()
     {
-        Require(_projectileRetainedBattle && _projectileBattleInit && _projectileBattlePools.Count == 18 &&
+        Require(ProjectileManagerRetained && ProjectileNativeFullInit && _projectileBattlePools.Count == 18 &&
             _projectileDeletedPools.Count == 0 && !_projectilePoolDeletePending,
             "Retained Battle pool deletion lacks its original initialized ownership set.");
         byte[] pools = Read(_projectileManager + 0x1D0, 42 * 4);
@@ -296,7 +303,7 @@ internal sealed partial class NativeTemplateProbe
         Require(right == otherRight && right != left, "Projectile emitters do not match right/right/left native bindings.");
         uint[] rightAncestry = ProjectileEmitterAncestry(right), leftAncestry = ProjectileEmitterAncestry(left);
         byte[] pools = Read(_projectileManager + 0x1D0, 7 * 6 * 4);
-        if (_projectileBattleInit) CaptureBattleProjectileResources(pools);
+        if (ProjectileNativeFullInit) CaptureBattleProjectileResources(pools);
         else Require(pools.All(value => value == 0) &&
             new uint[] { 0x360, 0x364, 0x368, 0x39C, 0x3A0, 0x3A4, 0x3A8, 0x3E8, 0x3EC, 0x3F0, 0x3F4, 0x400, 0x404 }
                 .All(offset => U(_projectileManager + offset) == 0),
@@ -305,7 +312,7 @@ internal sealed partial class NativeTemplateProbe
             character = Hex(_character), borrowedPrimaryMove = Hex(_projectilePrimaryMove),
             right = Hex(right), left = Hex(left), rightAncestry = rightAncestry.Select(Hex).ToArray(),
             leftAncestry = leftAncestry.Select(Hex).ToArray(), initReturnAl = ProjectileInitAl,
-            poolPointers = 42, allPoolsUnallocated = !_projectileBattleInit,
+            poolPointers = 42, allPoolsUnallocated = !ProjectileNativeFullInit,
             ordinaryPoolCount = _projectileBattlePools.Count, nativeRegistryFlag348 = 1,
             primaryUnchangedInStoppedInterval = true, originalSchedulerResumed = false,
             attackAndTargetingQualified = false, nativeRegistryContentQualified = false };
@@ -327,7 +334,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void CaptureProjectileForeignObjects()
     {
-        Require(_projectileBattleInit && _dependentInterval && _projectileForeignObjects.Count == 0,
+        Require(ProjectileNativeFullInit && _dependentInterval && _projectileForeignObjects.Count == 0,
             "Battle projectile foreign-object baseline must be captured once before Create.");
         _projectileForeignObjects.UnionWith(_localNodes);
         _projectileForeignObjects.UnionWith(new[] { _projectilePrimaryManager, _projectilePrimaryMove, _localActor });
@@ -378,7 +385,7 @@ internal sealed partial class NativeTemplateProbe
 
     private void CaptureBattleProjectileResources(byte[] pools)
     {
-        Require(_projectileBattleInit && _projectileBattlePools.Count == 0 &&
+        Require(ProjectileNativeFullInit && _projectileBattlePools.Count == 0 &&
             _projectileForeignObjects.Count != 0 && pools.Length == 42 * 4,
             "Battle projectile graph must be observed once after native full init.");
         VisualGraphReadResult body = new VisualGraphReader(_host.ProcessHandle).Read(_ownRoot, _localNodes, inspectSkins: false);
@@ -546,7 +553,7 @@ internal sealed partial class NativeTemplateProbe
             Require(_projectileUnregister8 == 1 && ++_projectileUnregister8Returned == 1,
                 "Own projectile cleanup missed its expected unregister continuation.");
         });
-        if (_projectileBattleInit) InstallBattleProjectileDeleteWitnesses();
+        if (ProjectileNativeFullInit) InstallBattleProjectileDeleteWitnesses();
     }
 
     private void InstallBattleProjectileDeleteWitnesses()
@@ -605,7 +612,7 @@ internal sealed partial class NativeTemplateProbe
             _projectileInitReturns == 1 && _projectileDeleteReturns == 1 && _projectileBodyReturns == 1 &&
             _projectileRegister8 == 1 && _projectileUnregister8 == 1 && _projectileUnregister8Returned == 1,
             "Projectile deletion lacks its paired native lifecycle or retained pre-unload witnesses.");
-        Require(!_projectileBattleInit || _projectileBattlePools.Count == 18 &&
+        Require(!ProjectileNativeFullInit || _projectileBattlePools.Count == 18 &&
             _projectileDeletedPools.Count == 18 && _projectilePoolDeleteEntries == 18 &&
             _projectilePoolDeleteReturns == 18 && _projectilePoolDeleteC3 == 18 &&
             _projectileUnregisteredPools.Count == 18 && !_projectilePoolDeletePending,

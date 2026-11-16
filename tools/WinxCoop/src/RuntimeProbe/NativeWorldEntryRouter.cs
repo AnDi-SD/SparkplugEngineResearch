@@ -125,7 +125,7 @@ internal sealed class NativeWorldEntryRouter
                 {
                     uint level = U(context.Ecx + 0x10);
                     Require(scope is { Retired: false, Failed: false } && scope.Level == level &&
-                        (table == 0x710874 && (level == 28 || level == 3 && scope.StoryLevel3Authorized) ||
+                        (table == 0x710874 && (level == 28 || level == 3 && scope.StoryLevel3Authorized || scope.CampaignLevelAdmitted) ||
                             table == 0x7105C8 && level == 47) &&
                         _nativeOrdinal < MaximumOrdinals,
                         "Original native load has no live authorized bounded entry scope or exhausts its process ordinal.");

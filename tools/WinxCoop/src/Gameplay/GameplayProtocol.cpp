@@ -35,6 +35,10 @@ namespace winxcoop::gameplay
         { return std::any_of(hash.begin(), hash.end(), [](const std::uint8_t v) { return v != 0; }); }
         bool Valid(const Compatibility& c) { return Nonzero(c.executable) && Nonzero(c.adapter); }
         bool Valid(const LevelDescriptor& l) { return l.levelId != 0 && Nonzero(l.resources) && Nonzero(l.scenario); }
+        bool SameCapabilities(const LevelDescriptor& a, const LevelDescriptor& b)
+        { return a.entryId == b.entryId && a.resources == b.resources && a.scenario == b.scenario; }
+        bool Offer(const LevelDescriptor& l)
+        { return l.entryId == 0 && Nonzero(l.resources) && Nonzero(l.scenario); }
         void PutCompatibility(std::uint8_t* p, const Compatibility& c)
         { std::copy(c.executable.begin(), c.executable.end(), p); std::copy(c.adapter.begin(), c.adapter.end(), p + 32); }
         Compatibility GetCompatibility(const std::uint8_t* p)
@@ -129,7 +133,8 @@ namespace winxcoop::gameplay
     GameplayProtocol::GameplayProtocol(Config config) : config_(std::move(config))
     {
         if((config_.role != networking::SessionRole::Host && config_.role != networking::SessionRole::Guest) ||
-           !Valid(config_.compatibility) || !Valid(config_.qualifiedLevel) ||
+           !Valid(config_.compatibility) ||
+           !(Valid(config_.qualifiedLevel) || (config_.allowDeferredLevel && Offer(config_.qualifiedLevel))) ||
            (config_.role == networking::SessionRole::Host ? config_.hostSession == 0 : config_.hostSession != 0))
             throw std::invalid_argument("Gameplay protocol requires exact qualified identity and a fresh host session");
         session_ = config_.hostSession;
@@ -194,7 +199,14 @@ namespace winxcoop::gameplay
     }
     bool GameplayProtocol::HostAssignLevel(const std::uint32_t epoch, const LevelDescriptor& level)
     {
-        if(config_.role != networking::SessionRole::Host || Terminal() || phase_ == Phase::Idle || epoch == 0 || !(level == config_.qualifiedLevel)) return false;
+        if(config_.role != networking::SessionRole::Host || Terminal() || phase_ == Phase::Idle || epoch == 0 || !Valid(level)) return false;
+        if(config_.allowDeferredLevel && !assigned_ && config_.qualifiedLevel.levelId == 0)
+        {
+            if(!SameCapabilities(level,config_.qualifiedLevel) ||
+               (phase_ != Phase::AwaitingHello && phase_ != Phase::WaitingForHostLevel)) return false;
+            config_.qualifiedLevel = level;
+        }
+        if(!(level == config_.qualifiedLevel)) return false;
         if(assigned_) return epoch == epoch_;
         if(phase_ != Phase::AwaitingHello && phase_ != Phase::WaitingForHostLevel) return false;
         epoch_ = epoch; assigned_ = localReady_ = true;
@@ -341,16 +353,25 @@ namespace winxcoop::gameplay
         {
             case MessageKind::Hello:
                 if(phase_ != Phase::AwaitingHello) { Fail(Error::WrongPhase); break; }
-                if(!(GetCompatibility(body) == config_.compatibility) || !(GetLevel(body + CompatibilitySize) == config_.qualifiedLevel))
+                if(!(GetCompatibility(body) == config_.compatibility) ||
+                   !(config_.allowDeferredLevel
+                       ? Offer(GetLevel(body + CompatibilitySize)) && SameCapabilities(GetLevel(body + CompatibilitySize),config_.qualifiedLevel) &&
+                         (!GetLevel(body + CompatibilitySize).levelId || !config_.qualifiedLevel.levelId ||
+                          GetLevel(body + CompatibilitySize).levelId == config_.qualifiedLevel.levelId)
+                       : GetLevel(body + CompatibilitySize) == config_.qualifiedLevel))
                 { Fail(Error::Incompatible); break; }
                 helloReceived_ = true; phase_ = Phase::WaitingForHostLevel;
                 if(!assigned_ || SendWelcome()) return ReceiveResult::Accepted;
                 break;
             case MessageKind::Welcome:
                 if(phase_ != Phase::AwaitingAssignment) { Fail(Error::WrongPhase); break; }
-                if(!(GetCompatibility(body) == config_.compatibility) || !(GetLevel(body + CompatibilitySize) == config_.qualifiedLevel) ||
+                if(!(GetCompatibility(body) == config_.compatibility) ||
+                   !(config_.allowDeferredLevel
+                       ? Valid(GetLevel(body + CompatibilitySize)) && SameCapabilities(GetLevel(body + CompatibilitySize),config_.qualifiedLevel)
+                       : GetLevel(body + CompatibilitySize) == config_.qualifiedLevel) ||
                    Get32(body + CompatibilitySize + LevelSize) != HostEntity || Get32(body + CompatibilitySize + LevelSize + 4) != GuestEntity)
                 { Fail(Error::Incompatible); break; }
+                if(config_.allowDeferredLevel) config_.qualifiedLevel = GetLevel(body + CompatibilitySize);
                 session_ = h.session; epoch_ = h.epoch; assigned_ = true; phase_ = Phase::Loading;
                 alive_[HostEntity] = alive_[GuestEntity] = true;
                 if(Push(MakeEvent(EventKind::LevelAssigned, 0, h.sequence))) return ReceiveResult::Accepted;

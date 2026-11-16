@@ -7,11 +7,9 @@
 #include <windows.h>
 #include <bcrypt.h>
 #include "PrototypeProfile.h"
-#include <algorithm>
 #include <array>
 #include <atomic>
 #include <exception>
-#include <limits>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -55,15 +53,15 @@ namespace winxcoop::launcher
         }
         std::uint32_t Seconds(const std::wstring& text)
         {
-            std::uint32_t value{};Require(!text.empty() && text.size()<5,"Prototype seconds must be 5..3600");
+            std::uint32_t value{};Require(!text.empty() && text.size()<5,"Prototype seconds must be 0 or 5..3600");
             for(const auto c:text){Require(c>=L'0' && c<=L'9',"Invalid prototype seconds");value=value*10+static_cast<unsigned>(c-L'0');}
-            Require(value>=5 && value<=3600,"Prototype seconds must be 5..3600");return value;
+            Require(value==0 || (value>=5 && value<=3600),"Prototype seconds must be 0 or 5..3600");return value;
         }
         void Ordinary(const std::wstring& path,const bool directory)
         {
             const auto attr=GetFileAttributesW(path.c_str());
             Require(attr!=INVALID_FILE_ATTRIBUTES && bool(attr&FILE_ATTRIBUTE_DIRECTORY)==directory && !(attr&FILE_ATTRIBUTE_REPARSE_POINT),
-                "Prepared game, media or helper path is missing or is a reparse point");
+                "Installed game, media or helper path is missing or is a reparse point");
         }
         class Sha256 final
         {
@@ -81,8 +79,6 @@ namespace winxcoop::launcher
             ~Sha256(){if(hash_)BCryptDestroyHash(hash_);if(algorithm_)BCryptCloseAlgorithmProvider(algorithm_,0);}
             void Add(const void* data,const std::size_t size)
             {Require(size<=MAXDWORD && BCryptHashData(hash_,static_cast<PUCHAR>(const_cast<void*>(data)),static_cast<ULONG>(size),0)>=0,"SHA256 update failed");}
-            void Integer(std::uint64_t value,const unsigned bytes)
-            {std::array<std::uint8_t,8> wire{};for(unsigned i=0;i<bytes;++i){wire[i]=static_cast<std::uint8_t>(value);value>>=8;}Add(wire.data(),bytes);}
             gameplay::Digest256 Finish()
             {gameplay::Digest256 result{};Require(BCryptFinishHash(hash_,result.data(),static_cast<ULONG>(result.size()),0)>=0,"SHA256 finish failed");return result;}
         private:
@@ -106,123 +102,88 @@ namespace winxcoop::launcher
             const auto digest=hash.Finish();if(fileBytes)*fileBytes=total;
             if(retainReadPin){*retainReadPin=file.value;file.value=INVALID_HANDLE_VALUE;}return digest;
         }
-        std::string LowerAscii(std::string value)
-        {for(auto& c:value)if(c>='A' && c<='Z')c=static_cast<char>(c+('a'-'A'));return value;}
-        std::wstring LowerAscii(std::wstring value)
-        {for(auto& c:value)if(c>=L'A' && c<=L'Z')c=static_cast<wchar_t>(c+(L'a'-L'A'));return value;}
-        std::string Utf8(const std::wstring& value)
+        gameplay::Digest256 OwnProtocolTag(const char* text,const std::size_t bytes)
+        { Sha256 hash;hash.Add(text,bytes);return hash.Finish(); }
+        HANDLE PinGameImage(const std::wstring& path,const std::atomic<bool>& cancel)
         {
-            const auto count=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),nullptr,0,nullptr,nullptr);
-            Require(count>0,"Invalid Media filename encoding");std::string result(static_cast<std::size_t>(count),'\0');
-            Require(WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),result.data(),count,nullptr,nullptr)==count,"Media filename encoding failed");return result;
-        }
-        bool Volatile(const std::wstring& name,const bool directory)
-        {
-            const auto lower=LowerAscii(name);
-            if(directory)return lower==L"saved" || lower==L"logs";
-            const auto dot=lower.find_last_of(L'.');const auto extension=dot==std::wstring::npos?L"":lower.substr(dot);
-            return extension==L".log" || extension==L".tmp" || extension==L".dmp";
-        }
-        struct MediaFile final {std::wstring path;std::string name;};
-        void Inventory(const std::wstring& root,const std::wstring& relative,std::vector<MediaFile>& files,const std::atomic<bool>& cancel,const unsigned depth)
-        {
-            NotCancelled(cancel);Require(depth<=64,"Media tree is too deep");
-            const auto folder=relative.empty()?root:root+L'\\'+relative;Ordinary(folder,true);
-            WIN32_FIND_DATAW entry{};const auto search=FindFirstFileW((folder+L"\\*").c_str(),&entry);
-            if(search==INVALID_HANDLE_VALUE){Require(GetLastError()==ERROR_FILE_NOT_FOUND,"Media inventory failed");return;}
-            struct Search final {HANDLE handle;~Search(){FindClose(handle);}} close{search};
-            for(;;)
-            {
-                NotCancelled(cancel);const std::wstring name(entry.cFileName);const bool directory=(entry.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)!=0;
-                if(name!=L"." && name!=L".." && !Volatile(name,directory))
-                {
-                    Require(!(entry.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT),"Media reparse points are not qualified");
-                    const auto next=relative.empty()?name:relative+L'\\'+name;
-                    if(directory)Inventory(root,next,files,cancel,depth+1);
-                    else
-                    {
-                        Require(files.size()<200000,"Media inventory exceeds 200000 files");
-                        auto key=Utf8(next);for(auto& c:key)if(c=='\\')c='/';
-                        files.push_back({root+L'\\'+next,LowerAscii(std::move(key))});
-                    }
-                }
-                if(!FindNextFileW(search,&entry)){Require(GetLastError()==ERROR_NO_MORE_FILES,"Media inventory was interrupted");break;}
-            }
-        }
-        gameplay::Digest256 MediaHash(const std::wstring& root,const std::atomic<bool>& cancel,std::uint64_t& count,std::uint64_t& bytes)
-        {
-            std::vector<MediaFile> files;Inventory(root,L"",files,cancel,0);Require(!files.empty(),"Prepared Media tree is empty");
-            std::sort(files.begin(),files.end(),[](const auto& a,const auto& b){return a.name<b.name;});
-            Sha256 hash;constexpr char domain[]="WinxCoop.MediaTree.v1\n";hash.Add(domain,sizeof(domain)-1);
-            hash.Integer(files.size(),8);std::string previous;
-            for(const auto& file:files)
-            {
-                Require(file.name!=previous,"Media filenames alias after ASCII case normalization");previous=file.name;
-                std::uint64_t size{};const auto digest=FileHash(file.path,cancel,&size);
-                Require(size<=std::numeric_limits<std::uint64_t>::max()-bytes,"Media byte count overflow");bytes+=size;
-                hash.Integer(file.name.size(),4);hash.Add(file.name.data(),file.name.size());hash.Integer(size,8);hash.Add(digest.data(),digest.size());
-            }
-            count=files.size();return hash.Finish();
-        }
-        gameplay::Digest256 ExpectedExecutable()
-        {
-            constexpr char hex[]="3F022480BF55045DA4BF692E4BC8862ED38FC024E8A964A558FBDFDF646DFC4F";
-            const auto digit=[](char c){return c<='9'?c-'0':c-'A'+10;};gameplay::Digest256 result{};
-            for(std::size_t i=0;i<result.size();++i)result[i]=static_cast<std::uint8_t>((digit(hex[i*2])<<4)|digit(hex[i*2+1]));return result;
-        }
-        std::string Trim(std::string text)
-        {const auto begin=text.find_first_not_of(" \t\r");if(begin==std::string::npos)return {};return text.substr(begin,text.find_last_not_of(" \t\r")-begin+1);}
-        void CheckStartLevel(const std::wstring& path)
-        {
-            Ordinary(path,false);Handle file;file.value=CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,0,nullptr);
-            Require(file.value!=INVALID_HANDLE_VALUE,"Prepared winx.ini unavailable");LARGE_INTEGER size{};
-            Require(GetFileSizeEx(file.value,&size) && size.QuadPart>0 && size.QuadPart<=65536,"Prepared winx.ini size is invalid");
-            std::string text(static_cast<std::size_t>(size.QuadPart),'\0');DWORD got{};
-            Require(ReadFile(file.value,text.data(),static_cast<DWORD>(text.size()),&got,nullptr) && got==text.size(),"Prepared winx.ini read failed");
-            if(text.compare(0,3,"\xEF\xBB\xBF")==0)text.erase(0,3);
-            bool section=false,found=false;std::size_t begin{};
-            while(begin<text.size())
-            {
-                const auto end=text.find('\n',begin);auto line=Trim(text.substr(begin,end==std::string::npos?end:end-begin));begin=end==std::string::npos?text.size():end+1;
-                if(line.empty() || line[0]==';' || line[0]=='#')continue;
-                if(line[0]=='['){section=true;continue;}
-                const auto equals=line.find('=');if(equals==std::string::npos)continue;
-                if(LowerAscii(Trim(line.substr(0,equals)))!="startlevel")continue;
-                Require(!section && !found,"startLevel must occur exactly once before any section in winx.ini");
-                auto value=Trim(line.substr(equals+1));const auto comment=value.find_first_of(";#");if(comment!=std::string::npos)value=Trim(value.substr(0,comment));
-                Require(value=="28","Stage P requires an already prepared sectionless startLevel=28");found=true;
-            }
-            Require(found,"Stage P requires an already prepared sectionless startLevel=28; the launcher does not edit winx.ini");
+            NotCancelled(cancel);Ordinary(path,false);Handle file;
+            file.value=CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr);
+            Require(file.value!=INVALID_HANDLE_VALUE,"Cannot retain installed game source");
+            LARGE_INTEGER size{};
+            Require(GetFileSizeEx(file.value,&size) && size.QuadPart>=4096 && size.QuadPart<=64*1024*1024,"Installed game PE size exceeds reader bound");
+            IMAGE_DOS_HEADER dos{};DWORD got{};
+            Require(ReadFile(file.value,&dos,static_cast<DWORD>(sizeof(dos)),&got,nullptr) && got==sizeof(dos) &&
+                dos.e_magic==IMAGE_DOS_SIGNATURE && dos.e_lfanew>=0 &&
+                static_cast<ULONGLONG>(dos.e_lfanew)+sizeof(IMAGE_NT_HEADERS32)<=static_cast<ULONGLONG>(size.QuadPart),"Installed game DOS/PE header bounds differ");
+            LARGE_INTEGER at{};at.QuadPart=dos.e_lfanew;IMAGE_NT_HEADERS32 pe{};
+            Require(SetFilePointerEx(file.value,at,nullptr,FILE_BEGIN) && ReadFile(file.value,&pe,static_cast<DWORD>(sizeof(pe)),&got,nullptr) && got==sizeof(pe) &&
+                pe.Signature==IMAGE_NT_SIGNATURE && pe.FileHeader.Machine==IMAGE_FILE_MACHINE_I386 &&
+                pe.FileHeader.SizeOfOptionalHeader==sizeof(IMAGE_OPTIONAL_HEADER32) &&
+                pe.OptionalHeader.Magic==IMAGE_NT_OPTIONAL_HDR32_MAGIC && pe.OptionalHeader.ImageBase==0x400000 &&
+                pe.FileHeader.NumberOfSections>0 && pe.FileHeader.NumberOfSections<=96,
+                "Installed game requires the native x86 PE32/base layout");
+            NotCancelled(cancel);const auto result=file.value;file.value=INVALID_HANDLE_VALUE;return result;
         }
         PrototypeProfile Qualify(PrototypePaths paths,const std::atomic<bool>& cancel)
         {
-            for(auto* path:{&paths.gameRoot,&paths.media,&paths.adapter,&paths.helper,&paths.outer,&paths.caseRoot})*path=Absolute(*path);
-            Require(paths.seconds>=5 && paths.seconds<=3600 && paths.caseRoot.size()<MAX_PATH-80,"Prototype duration or caseRoot exceeds the bounded contract");
-            Ordinary(paths.gameRoot,true);Ordinary(paths.media,true);Ordinary(paths.helper,false);Ordinary(paths.outer,false);
-            PrototypeProfile profile;profile.paths=std::move(paths);profile.game=profile.paths.gameRoot+L"\\WinxClub.exe";profile.ini=profile.paths.gameRoot+L"\\winx.ini";
+            Require(!paths.gameRoot.empty(),"Select the installed game directory first");
+            paths.gameRoot=Absolute(paths.gameRoot);
+            if(paths.media.empty())paths.media=paths.gameRoot+L"\\Media";
+            for(auto* path:{&paths.media,&paths.adapter,&paths.helper,&paths.caseRoot})*path=Absolute(*path);
+            if(!paths.outer.empty())paths.outer=Absolute(paths.outer);
+            Require((paths.menuFirst ? paths.seconds==0 || (paths.seconds>=5 && paths.seconds<=3600) :
+                (paths.seconds>=5 && paths.seconds<=3600)) && paths.caseRoot.size()<MAX_PATH-80,
+                "Prototype service/legacy duration or caseRoot exceeds its contract");
+            Ordinary(paths.gameRoot,true);Ordinary(paths.media,true);Ordinary(paths.gameRoot+L"\\Shaders",true);
+            Ordinary(paths.helper,false);
+            if(!paths.menuFirst)Ordinary(paths.outer,false);
+            PrototypeProfile profile;profile.paths=std::move(paths);profile.game=profile.paths.gameRoot+L"\\WinxClub.exe";
             const auto pins=std::make_shared<PrototypeFilePins>();profile.filePins=pins;
-            CheckStartLevel(profile.ini);profile.compatibility.executable=FileHash(profile.game,cancel,nullptr,&pins->executable);
-            Require(profile.compatibility.executable==ExpectedExecutable(),"Unsupported original WinxClub.exe SHA256");
+            pins->executable=PinGameImage(profile.game,cancel);
             profile.compatibility.adapter=FileHash(profile.paths.adapter,cancel,nullptr,&pins->adapter);
-            profile.level.levelId=28;profile.level.entryId=0;
-            profile.level.resources=MediaHash(profile.paths.media,cancel,profile.mediaFiles,profile.mediaBytes);
-            // Explicit situation contract. This digest is independent of paths,
-            // timestamps and PC identity; assets and full DLL have their own SHA.
-            constexpr char scenario[]="WinxCoop.StageP.Alfea28.entry0.v3\nstartLevel=28\nstock-local-movement\nhost-observation-decisions\npassive-remote-root\nno-level-transitions\n";
-            Sha256 hash;hash.Add(scenario,sizeof(scenario)-1);profile.level.scenario=hash.Finish();NotCancelled(cancel);return profile;
+            // Kept wire fields describe our protocol/capabilities, not a digest
+            // of the selected game EXE or resources. Typed native feature pins
+            // are checked separately before the adapter uses them.
+            constexpr char protocol[]="WinxCoop.PassiveCompanion.PoseProtocol.V3.v1\n";
+            constexpr char visual[]="WinxCoop.PassiveCompanion.VisualGraph.BloomHairColor.IdleWalkJump.v1\n";
+            constexpr char scenario[]="WinxCoop.PassiveCompanion.StockLocalPhysics.PassiveRemotePose.v1\n";
+            profile.compatibility.executable=OwnProtocolTag(protocol,sizeof(protocol)-1);
+            profile.level.levelId=0;profile.level.entryId=0; // No scene has been selected/observed yet.
+            profile.level.resources=OwnProtocolTag(visual,sizeof(visual)-1);
+            profile.level.scenario=OwnProtocolTag(scenario,sizeof(scenario)-1);
+            NotCancelled(cancel);return profile;
         }
     }
     std::wstring ResolvePrototypePath(const std::wstring& path){return Absolute(path);}
+    std::wstring LocalPrototypeDataDirectory()
+    {
+        wchar_t value[MAX_PATH]{};const auto count=GetEnvironmentVariableW(L"LOCALAPPDATA",value,MAX_PATH);
+        Require(count>0 && count<MAX_PATH,"Local application data is unavailable or exceeds MAX_PATH");
+#if defined(_WIN64)
+        constexpr wchar_t program[]=L"Windows-x64";
+#else
+        constexpr wchar_t program[]=L"Win7-x86";
+#endif
+        const auto directory=Absolute(std::wstring(value,count)+L"\\WinxCoop\\"+program);
+        const auto drive=directory.substr(0,3);const auto type=GetDriveTypeW(drive.c_str());
+        Require(type!=DRIVE_REMOTE && type!=DRIVE_UNKNOWN && type!=DRIVE_NO_ROOT_DIR,"Program data requires an available local drive");
+        return directory;
+    }
     PrototypePaths ReadPrototypePaths()
     {
         const auto base=ModuleDirectory();const auto ini=base+L"\\WinxCoopLauncher.ini";PrototypePaths result;
-        result.gameRoot=Absolute(Ini(ini,L"Paths",L"gameRoot",L"PreparedGame"));
-        result.media=Absolute(Ini(ini,L"Paths",L"media",result.gameRoot+L"\\Media"));
+        result.gameRoot=Ini(ini,L"Paths",L"gameRoot",L"");
+        if(!result.gameRoot.empty())result.gameRoot=Absolute(result.gameRoot);
+        result.media=Ini(ini,L"Paths",L"media",result.gameRoot.empty()?L"":result.gameRoot+L"\\Media");
+        if(!result.media.empty())result.media=Absolute(result.media);
         result.adapter=Absolute(Ini(ini,L"Paths",L"adapter",L"WinxCoop.NativeAdapter.dll"));
         result.helper=Absolute(Ini(ini,L"Paths",L"helper",L"WinxCoopGameHost.exe"));
         result.outer=Absolute(Ini(ini,L"Paths",L"outer",L"XpGameProbe.exe"));
-        result.caseRoot=Absolute(Ini(ini,L"Paths",L"caseRoot",L"Cases"));
-        result.seconds=Seconds(Ini(ini,L"Prototype",L"seconds",L"900"));return result;
+        result.caseRoot=Absolute(Ini(ini,L"Paths",L"caseRoot",LocalPrototypeDataDirectory()+L"\\Sessions"));
+        result.seconds=Seconds(Ini(ini,L"Prototype",L"seconds",L"0"));
+        const auto menu=Ini(ini,L"Prototype",L"menuFirst",L"true");
+        Require(menu==L"true" || menu==L"1" || menu==L"false" || menu==L"0","menuFirst must be true or false");
+        result.menuFirst=menu==L"true" || menu==L"1";return result;
     }
     struct PrototypeProfileCheck::Impl final
     {

@@ -1,3 +1,4 @@
+using WinxCoop.RuntimeProbe;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -34,6 +35,7 @@ internal static class SessionWorker
         private static readonly JsonSerializerOptions Json = new(SessionConfiguration.Json) { IncludeFields = true };
         private static readonly JsonSerializerOptions JournalJson = new(Json) { WriteIndented = false };
         private readonly long _started = Environment.TickCount64;
+        private readonly SessionLifecycleBudget _budget = new(config.Seconds, Environment.TickCount64, config.Interactive);
         private readonly List<Generation> _generations = [];
         private readonly List<object> _runningReceipts = [], _focusAttempts = [], _checkpointHistory = [];
         private readonly Dictionary<(uint Kind, ulong Operation), BootstrapPeer.OwnerNotice> _notices = [];
@@ -55,7 +57,7 @@ internal static class SessionWorker
         private byte[]? _outgoing;
         private FileStream? _journal;
         private SessionStatusJournal.Writer? _statusWriter;
-        private string? _template, _error, _runningReceiptFile;
+        private string? _template, _error, _runningReceiptFile, _qualificationReceiptFile;
         private string? _advertisementError;
         private string _advertisementSkipReason = "";
         private string _phase = "starting", _message = "Подготавливаем сеанс…", _stopReason = "";
@@ -74,14 +76,31 @@ internal static class SessionWorker
             {
                 config.Validate(); Require(config.Worker && Directory.Exists(config.CaseDirectory), "Worker requires its prepared local case.");
                 _journal = new FileStream(Path.Combine(config.CaseDirectory, "worker-events.jsonl"), FileMode.CreateNew, FileAccess.Write, FileShare.Read);
-                _statusWriter = new(config.CaseDirectory);
+                _statusWriter = new(config.CaseDirectory, config.Interactive);
                 _ui = new(config); _bundle = new(config.BundleDirectory); _bundle.InstallNativeResolver();
                 _policy = RuntimeProcessPolicy.CreateE7(_bundle.DirectoryPath, config.CaseDirectory, config.JobName, _bundle.ImagePins);
                 VerifyOwnJob(config.JobName);
                 SetPhase("qualifying", "Проверяем игру…");
-                _game = new(config, _bundle, message => { ObserveUi(); if (_stopRequested) throw new EarlyStop(); SetPhase("qualifying", message); });
+                _game = new(config, _bundle, message => { _message = message; WriteStatus(); }, CheckBudgetAndUi);
                 _checkpoint = new(_game, config.CaseDirectory);
                 if (config.Host) _template = SessionTemplateBuilder.Create(_game.Media, Path.Combine(config.CaseDirectory, "template"));
+                CheckBudgetAndUi(); _budget.CompleteQualification(Environment.TickCount64);
+                string qualificationReceiptFile = Path.Combine(config.CaseDirectory, "game-qualification.json");
+                WriteFresh(qualificationReceiptFile, new
+                {
+                    kind = "WinxCoop-E7-complete-worker-game-qualification", role = config.Role,
+                    gameRoot = _game.GameRoot, executableSha256 = GameProfile.OriginalExecutableSha256,
+                    gameResourceDigest = _game.MediaDigest, filesHashed = _game.FilesHashed, bytesHashed = _game.BytesHashed,
+                    sourceProfileSha256 = _bundle.Manifest.SourceProfileSha256,
+                    peerCompatibilityDigest = Convert.ToHexString(_game.CompatibilityDigest),
+                    completedAtMonotonicMilliseconds = _budget.QualifiedAt,
+                    elapsedMilliseconds = _budget.QualifiedAt - _started,
+                    completeResourceSha256 = true, executableReadPinRetained = true,
+                    nativeReadinessClaimed = false, gameStarted = false
+                });
+                _qualificationReceiptFile = qualificationReceiptFile;
+                Log("complete-local-game-qualification", new { path = _qualificationReceiptFile,
+                    _game.FilesHashed, _game.BytesHashed, _game.MediaDigest, nativeReadinessClaimed = false });
                 _peer = new(config, _game.CompatibilityDigest);
                 _nativeControlPort = _peer.Snapshot.BoundPort;
                 StartAdvertisement();
@@ -129,8 +148,12 @@ internal static class SessionWorker
         private void RunHost()
         {
             _acceptUi = true;
-            Until(() => _pendingUi is { Action: "Start", Operation: > 0 }, 600, "server Start");
+            Until(() => _pendingUi is { Action: "Start", Operation: > 0 }, config.Interactive ? SessionLifecycleBudget.PreGameSeconds : 600, "server Start");
             _pendingUi = null; _acceptUi = false;
+            SetPhase("waiting-for-client", "Ожидаем окончания проверки игры клиента…");
+            Until(() => _peer!.Snapshot.ProfileMatched == 1, SessionLifecycleBudget.PreGameSeconds,
+                "actual peer compatibility/profile handshake before native game creation");
+            BeginNativeGameBudget();
             _assignment = NewAssignment(null);
             Generation first = StartHost(_assignment, null, null, null, 1); _assignment = first.Assignment;
             Publish(first, null);
@@ -138,7 +161,7 @@ internal static class SessionWorker
             while (true)
             {
                 _acceptUi = true; _running = true; SetPhase("running", "Можно играть.");
-                Until(() => _stopRequested || _pendingUi is not null || HasNotice(5, null), 600, "server action");
+                Until(() => _stopRequested || _pendingUi is not null || HasNotice(5, null), config.Interactive ? config.Seconds : 600, "server action");
                 UiCommand? command = _pendingUi; _pendingUi = null; _acceptUi = false;
                 bool shutdown = _stopRequested || HasNotice(5, null);
                 if (!shutdown && command?.Action == "Start") { Log("ui-command-ignored", new { reason = "already-running", command.Operation }); continue; }
@@ -153,15 +176,17 @@ internal static class SessionWorker
         {
             BootstrapPeer.Assignment assignment = default; byte[] seed = [], witness = [], checkpoint = [];
             SetPhase("waiting-server", "Ожидаем запуска игры сервером…");
-            Until(() => _peer!.TryRead(out assignment, out seed, out witness, out checkpoint), 180, "initial authoritative bootstrap");
+            Until(() => _peer!.TryRead(out assignment, out seed, out witness, out checkpoint),
+                SessionLifecycleBudget.PreGameSeconds, "initial authoritative bootstrap");
             ValidateAssignment(assignment, 1); _assignment = assignment;
             CreateCore(assignment);
+            BeginNativeGameBudget();
             Generation first = StartGuest(assignment, seed, witness); InitialReady(first);
             while (true)
             {
                 _running = true; SetPhase("running", "Можно играть.");
                 bool leaveSent = false;
-                Until(() => _prepared is not null, 600, "server Prepare", () =>
+                Until(() => _prepared is not null, config.Interactive ? config.Seconds : 600, "server Prepare", () =>
                 {
                     if (_stopRequested && !leaveSent)
                     { leaveSent = SendNotice(5, Math.Max(1, _lastUiOperation)); SetPhase("waiting-stop", "Ожидаем завершения сеанса сервером…"); }
@@ -176,9 +201,17 @@ internal static class SessionWorker
             Generation value = StartLocal(assignment, seed, witness, savedSha);
             using var decoder = new EntrySnapshotReader(_bundle!.DirectoryPath, _bundle.Hash("WinxCoop.ActorProbe.dll"), _bundle.Hash("SmoNativeValidator.Core.dll"));
             EntrySnapshotCapture? capture = null;
+            int readinessSeconds = 300;
+            if (config.Interactive && assignment.Generation == 1 && expectedOrdinal == 1)
+            {
+                long began = _budget.NativeGameStartedAt ?? throw new InvalidDataException("The original game has no owned session lifetime.");
+                long remaining = checked(began + _budget.NativeGameStopAfterMilliseconds) - Environment.TickCount64;
+                readinessSeconds = checked((int)Math.Max(1, (remaining + 999) / 1000));
+                SetPhase("waiting-level", "Начните игру в её обычном меню. Ожидаем поддерживаемую игровую сцену…");
+            }
             Until(() => value.Actor.NativeReady && value.Actor.HeldNeutral &&
-                (capture = decoder.TryRead(value.Channels.CaptureIdentity(28, expectedOrdinal))) is not null,
-                90, "actual local Host entry/body/neutral");
+                (capture = decoder.TryRead(value.Channels.CaptureIdentity(config.InitialLevel, expectedOrdinal))) is not null,
+                readinessSeconds, "actual local Host entry/body/neutral");
             value.Entry = capture!;
             Require(seed is null || capture!.Seed.AsSpan().SequenceEqual(seed) && capture.Witness.AsSpan().SequenceEqual(witness),
                 "Restarted Host changed the original authoritative seed/witness.");
@@ -195,10 +228,21 @@ internal static class SessionWorker
         private Generation StartLocal(BootstrapPeer.Assignment assignment, byte[]? seed, byte[]? witness, string? savedSha)
         {
             ValidateAssignment(assignment, assignment.LevelEpoch);
+            Require(!config.Interactive || _generations.Count < InteractiveSessionLimits.MaximumRetainedGenerations,
+                "Interactive prototype exhausted its eight retained native generations.");
             string directory = Path.Combine(config.CaseDirectory, "generation-" + assignment.Generation.ToString("D4", CultureInfo.InvariantCulture));
             Require(!Directory.Exists(directory) && !File.Exists(directory), "Native generation output must be fresh."); Directory.CreateDirectory(directory);
             var channels = new LocalChannels(config, _bundle!, _policy!, assignment, directory);
-            try { channels.Start(Pump); }
+            try
+            {
+                channels.Start(Pump);
+                if (config.Interactive && config.Host && _generations.Count == 0)
+                {
+                    Require(assignment.LevelEpoch == 1 && assignment.Generation == 1,
+                        "Initial network permissions belong only to the first Host generation.");
+                    AwaitInitialNetworkPermissions(channels);
+                }
+            }
             catch { try { channels.StopOwned(); channels.Dispose(); } catch (Exception) { } throw; }
             RoleActor actor;
             try
@@ -214,15 +258,45 @@ internal static class SessionWorker
             return value;
         }
 
+        private void AwaitInitialNetworkPermissions(LocalChannels channels)
+        {
+            // Both actual listeners exist, but no Actor/game has been created.
+            // Opening the game's window first can hide Windows' firewall prompt.
+            CheckBudgetAndUi();
+            ulong operationBoundary = _lastUiOperation;
+            bool previousAcceptUi = _acceptUi;
+            _pendingUi = null; _acceptUi = true;
+            try
+            {
+                SetPhase("network-permissions", "Разрешите WinxCoopInputBridge и WinxCoopWorldBridge в брандмауэре Windows, затем снова нажмите «Начать игру». Игра ещё не запущена.");
+                Log("initial-network-permissions-awaiting-ui", new
+                {
+                    afterUiOperation = operationBoundary, timeoutSeconds = 900,
+                    inputPort = channels.InputPort, worldPort = channels.WorldPort,
+                    nativeActorStarted = false, nativeReadinessClaimed = false, firewallRulesChangedByWorker = false
+                });
+                Until(() => _pendingUi is { Action: "Start" } command && command.Operation > operationBoundary,
+                    900, "initial Host network permissions continuation");
+                Log("initial-network-permissions-continued", new
+                {
+                    afterUiOperation = operationBoundary, continuedUiOperation = _pendingUi!.Operation,
+                    firewallPermissionVerified = false, nativeReadinessClaimed = false
+                });
+            }
+            finally
+            {
+                // Consume setup-only operations even on Stop/timeout; they may
+                // never become a later checkpoint/reload request.
+                _pendingUi = null; _acceptUi = previousAcceptUi;
+            }
+            SetPhase("starting-game", "Запускаем игру…");
+        }
+
         private void Publish(Generation value, byte[]? checkpoint)
         {
             Require(config.Host && value.Entry is not null, "Only the actual Host entry owner can publish bootstrap bytes.");
             EntrySnapshotCapture entry = value.Entry!;
-            if (_peer!.Snapshot.ProfileMatched != 1)
-            {
-                SetPhase("waiting-for-client", "Ожидаем клиента…");
-                Until(() => _peer.Snapshot.ProfileMatched == 1, 180, "actual peer compatibility/profile handshake");
-            }
+            Require(_peer!.Snapshot.ProfileMatched == 1, "Native game publication requires the actual peer profile handshake.");
             Until(() => _peer!.Publish(value.Assignment, entry.Seed, entry.Witness, checkpoint), 15, "authoritative bootstrap publication");
             _assignment = value.Assignment; _notices.Clear();
             Log("authoritative-bootstrap-published", new { assignment = _assignment, entry = entry.Evidence,
@@ -236,7 +310,7 @@ internal static class SessionWorker
             {
                 Role = config.Host ? P.Role.Host : P.Role.Guest,
                 Connection = new() { SessionId = initial.SessionId, ScenarioId = initial.ScenarioId, Token = initial.InputToken },
-                InitialScene = initial.Scene, InitialDescriptor = NativeRetirementReceipts.Descriptor,
+                InitialScene = initial.Scene, InitialDescriptor = NativeRetirementReceipts.DescriptorFor(config.InitialLevel, config.Campaign),
                 InitialChannels = initial.Channels, TransitionTimeoutMilliseconds = 180000
             });
         }
@@ -294,7 +368,7 @@ internal static class SessionWorker
             ulong operation = checked(_core!.Snapshot.CompletedOperation + 1);
             var decision = new P.Decision { Operation = operation, Previous = _assignment.Scene,
                 Next = new() { LevelEpoch = checked(_assignment.LevelEpoch + 1), Generation = checked(_assignment.Generation + 1) },
-                Reason = P.Reason.Reload, Destination = NativeRetirementReceipts.Descriptor };
+                Reason = P.Reason.Reload, Destination = NativeRetirementReceipts.DescriptorFor(config.InitialLevel, config.Campaign) };
             int primaryBefore = old.Actor.Count("progression-input-native-neutral"), privateBefore = old.Actor.Count("template-progression-neutral-native-applied");
             _prepared = decision; _core.Begin(decision, BootstrapPeer.Now); old.Actor.Command("Hold", 0);
             Until(() => old.Actor.Count("progression-input-native-neutral") > primaryBefore &&
@@ -423,12 +497,7 @@ internal static class SessionWorker
         // cleanup separate; none of them implements the Progression codec/FSM.
         private void Pump()
         {
-            ObserveUi();
-            if (Environment.TickCount64 - _started >= (long)(config.Seconds + 90) * 1000)
-                throw new TimeoutException("Owned session exhausted its cleanup reserve.");
-            if (Environment.TickCount64 - _started >= (long)Math.Max(15, config.Seconds - 90) * 1000)
-            { _stopRequested = true; if (_stopReason.Length == 0) _stopReason = "time-limit"; }
-            if (_stopRequested && !_everReady) throw new EarlyStop();
+            CheckBudgetAndUi();
             if (_current is { Disposed: false } current) current.Actor.Tick();
             if (_peer is not null && !_transportEnded)
             {
@@ -456,7 +525,7 @@ internal static class SessionWorker
                         Require(_everReady && accepted.Decision.Previous.Equals(_assignment.Scene) &&
                             accepted.Decision.Next.LevelEpoch == _assignment.LevelEpoch + 1 &&
                             accepted.Decision.Next.Generation == _assignment.Generation + 1 &&
-                            accepted.Decision.Destination.Equals(NativeRetirementReceipts.Descriptor),
+                            accepted.Decision.Destination.Equals(NativeRetirementReceipts.DescriptorFor(config.InitialLevel, config.Campaign)),
                             "Actual native Prepare cannot broaden the admitted running generation/profile.");
                         if (_prepared is not null) Require(_prepared.Value.Equals(accepted.Decision), "Active native decision changed.");
                         _prepared = accepted.Decision;
@@ -469,6 +538,8 @@ internal static class SessionWorker
                 }
                 if (!live)
                 {
+                    if (!config.Host && !_everReady && _current is null && _peer.Snapshot is { Terminal: 3, ConnectionId: 0 })
+                        throw new IOException("Не удалось подключиться к серверу. Дождитесь сообщения об открытом лобби сервера, затем после очистки создайте новый клиентский сеанс.");
                     _core?.Stop(P.Terminal.Disconnected);
                     if (_current is null && (!config.Host && _endedNotice || config.Host && _closing && _sessionEndedSent && _sessionEndedDrained))
                         _transportEnded = true;
@@ -582,12 +653,29 @@ internal static class SessionWorker
                 // A coordinated pre-ready Stop may already have closed the
                 // peer's MMF. Observe the owned UI command before a predicate
                 // reads that terminal mapping; it authorizes only early abort.
-                ObserveUi();
-                if (_stopRequested && !_everReady) throw new EarlyStop();
+                CheckBudgetAndUi();
                 if (condition()) return;
                 Require(Environment.TickCount64 < end, "Timed out: " + label);
                 Pump(); waiting?.Invoke(); Thread.Sleep(5);
             }
+        }
+
+        private void CheckBudgetAndUi()
+        {
+            ObserveUi();
+            if (_budget.StopDue(Environment.TickCount64))
+            { _stopRequested = true; if (_stopReason.Length == 0) _stopReason = "time-limit"; }
+            if (_stopRequested && !_everReady) throw new EarlyStop();
+        }
+
+        private void BeginNativeGameBudget()
+        {
+            Require(_peer!.Snapshot.ProfileMatched == 1,
+                "Local native game budget requires the actual complete peer compatibility handshake.");
+            _budget.BeginNativeGame(Environment.TickCount64);
+            Log("native-game-budget-started", new { startedAtMonotonicMilliseconds = _budget.NativeGameStartedAt,
+                includesInitialNativeReadinessAndCleanup = true, excludesQualificationAndPeerWait = true,
+                stopAfterMilliseconds = _budget.NativeGameStopAfterMilliseconds, config.Seconds });
         }
 
         private bool SendNotice(uint kind, ulong operation) => _peer!.SendNotice(_assignment, !config.Host, kind, operation);
@@ -615,14 +703,14 @@ internal static class SessionWorker
                 ScenarioId = previous?.ScenarioId ?? 280007, InputToken = input, WorldToken = Fresh(),
                 HostInputNonce = Fresh(), HostWorldNonce = Fresh(), GuestInputNonce = Fresh(), GuestWorldNonce = Fresh(),
                 LevelEpoch = previous is null ? 1 : checked(previous.Value.LevelEpoch + 1),
-                Generation = previous is null ? 1 : checked(previous.Value.Generation + 1), Level = 28, Entry = 0,
+                Generation = previous is null ? 1 : checked(previous.Value.Generation + 1), Level = config.InitialLevel, Entry = 0,
                 ControlPort = _peer!.Snapshot.BoundPort
             };
         }
 
-        private static void ValidateAssignment(BootstrapPeer.Assignment value, uint expectedEpoch)
+        private void ValidateAssignment(BootstrapPeer.Assignment value, uint expectedEpoch)
         {
-            Require(value.Level == 28 && value.Entry == 0 && value.LevelEpoch == expectedEpoch && value.Generation == expectedEpoch &&
+            Require(value.Level == config.InitialLevel && value.Entry == 0 && value.LevelEpoch == expectedEpoch && value.Generation == expectedEpoch &&
                 value.SessionId != 0 && value.ScenarioId != 0 && value.InputToken is > 0 and <= ushort.MaxValue && value.WorldToken != 0 &&
                 value.HostInputNonce != 0 && value.HostWorldNonce != 0 && value.GuestInputNonce != 0 && value.GuestWorldNonce != 0,
                 "Native bootstrap does not name the admitted Alfea28 generation.");
@@ -710,7 +798,11 @@ internal static class SessionWorker
         private void WriteStatus(bool force = false)
         {
             long now = Environment.TickCount64;
-            if (!force && now - _lastStatus < 200) return; _lastStatus = now;
+            // Preparation may last45min without a native game. Keep its
+            // advisory records at1Hz within the existing8MiB journal bound;
+            // real native gameplay retains the existing5Hz UI cadence.
+            int interval = _budget.NativeGameStartedAt is null ? 1000 : 200;
+            if (!force && now - _lastStatus < interval) return; _lastStatus = now;
             bool listening = config.Host && _peer is not null && !_transportEnded && _phase == "listening";
             bool actions = config.Host && _running && _acceptUi && !_stopRequested;
             object value = new
@@ -722,6 +814,11 @@ internal static class SessionWorker
                 lanAdvertisementActive = _advertisement is not null,
                 levelEpoch = _assignment.LevelEpoch, epoch = _assignment.LevelEpoch, generation = _assignment.Generation,
                 runningReceiptFile = _running ? _runningReceiptFile : null, monotonicMilliseconds = now,
+                gameQualificationReceiptFile = _qualificationReceiptFile,
+                gameQualificationComplete = _qualificationReceiptFile is not null,
+                qualificationBudgetSeconds = SessionLifecycleBudget.QualificationSeconds,
+                preGameBudgetSeconds = SessionLifecycleBudget.PreGameSeconds,
+                nativeGameBudgetStartedAtMonotonicMilliseconds = _budget.NativeGameStartedAt,
                 serverControlsProgression = true
             };
             long began = Environment.TickCount64;
@@ -765,6 +862,14 @@ internal static class SessionWorker
                 kind = "WinxCoop-E7-local-role-worker", success = _success, graceful = _graceful && retired,
                 error = _error, actualNativeRetirement = retired, expectedStopBeforeReady = _expectedEarlyStop,
                 stopReason = _stopReason, role = config.Role, elapsedMilliseconds = Environment.TickCount64 - _started,
+                gameQualificationReceiptFile = _qualificationReceiptFile,
+                lifecycleBudget = new { qualificationSeconds = SessionLifecycleBudget.QualificationSeconds,
+                    preGameSeconds = SessionLifecycleBudget.PreGameSeconds, nativeGameSeconds = config.Seconds,
+                    qualifiedAtMonotonicMilliseconds = _budget.QualifiedAt,
+                    nativeGameStartedAtMonotonicMilliseconds = _budget.NativeGameStartedAt,
+                    nativeGameStopAfterMilliseconds = _budget.NativeGameStopAfterMilliseconds,
+                    nativeSupervisorMilliseconds = _budget.NativeSupervisorMilliseconds,
+                    qualificationAndPeerWaitConsumeNativeGameBudget = false, nativeGameIncludesStartupAndCleanup = true },
                 generations, runningGenerations = _runningReceipts, checkpoints = _checkpointHistory,
                 nativeProgression = _finalCore, bootstrap = _finalBootstrap, focusAttempts = _focusAttempts,
                 lanDiscovery = new { attempted = _advertisementAttempted, skippedReason = _advertisementSkipReason,
@@ -779,7 +884,7 @@ internal static class SessionWorker
                 statusWriteAttempts = _statusWriteAttempts, statusWriteTotalMilliseconds = _statusWriteTotalMilliseconds,
                 statusWriteMaximumMilliseconds = _statusWriteMaximumMilliseconds, statusWriteDurationsIncludeAppendAndFlush = true,
                 statusJournal = new { fileName = SessionStatusJournal.FileName, version = 1,
-                    maximumBytes = SessionStatusJournal.MaxJournalBytes, maximumRecordBytes = SessionStatusJournal.MaxRecordBytes,
+                    maximumBytes = _statusWriter?.MaximumBytes ?? SessionStatusJournal.MaxJournalBytes, maximumRecordBytes = SessionStatusJournal.MaxRecordBytes,
                     successfulRecords = _statusWriter?.RecordsWritten ?? 0, successfulBytes = _statusWriter?.BytesWritten ?? 0,
                     appendFailed = _statusWriter?.Failed ?? false, writerDisposed = _statusWriter?.Closed ?? false,
                     advisoryOnly = true, nativeReadinessOrAcknowledgmentGranted = false },

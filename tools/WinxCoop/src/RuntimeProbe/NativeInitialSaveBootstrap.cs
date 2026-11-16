@@ -15,6 +15,7 @@ internal sealed class NativeInitialSaveBootstrap
     private readonly long _deadline;
     private readonly byte[] _entryPin, _returnPin;
     private readonly bool _e6HostContinuation;
+    private readonly uint _sceneLevel;
     private uint _stage, _profile, _originalPlaying, _originalRoot, _worlds;
     private bool _complete;
 
@@ -24,14 +25,15 @@ internal sealed class NativeInitialSaveBootstrap
             config.WorldEntrySeed is not null;
         if (config.InitialSaveSha256 is not { Length: 64 } hash || !hash.All(Uri.IsHexDigit) ||
             config.DiagnosticWorldState?.Role != WorldStateRole.Host ||
-            config.TemplateSharedPlayerProfile != "alfea-28-network-input" || !config.EnableWorldEntry ||
+            config.TemplateSharedPlayerProfile != "alfea-28-network-input" && !ProbeMain.IsCampaign(config) || !config.EnableWorldEntry ||
             config.WorldEntryCaptureOrdinal != 2 ||
             (config.WorldEntrySeed is not null && !e6Continuation) ||
             (config.ProgressionHostContinuationSeed && !e6Continuation))
             throw new InvalidDataException("Initial save bootstrap requires the explicit Host Alfea28 second-entry cohort.");
         _host = host; _log = log; _expectedHash = hash; _e6HostContinuation = e6Continuation;
+        _sceneLevel = config.CampaignScene?.Level ?? 28u;
         _savedFile = Path.GetFullPath(Path.Combine(config.MediaDirectory, "Saved", "Saved00.wxs"));
-        _deadline = checked(Environment.TickCount64 + config.DurationSeconds * 1000L);
+        _deadline = checked(Environment.TickCount64 + NativeObservationBudget.OperationSeconds(config) * 1000L);
         _entryPin = image.GetSectionData(checked((int)(LoadSave - 0x400000))).GetContent(0, 7).ToArray();
         _returnPin = image.GetSectionData(0x4E7B88 - 0x400000).GetContent(0, 3).ToArray();
         Require(Convert.ToHexString(_entryPin) == "6AFFE9AF70F3FF" &&
@@ -62,10 +64,10 @@ internal sealed class NativeInitialSaveBootstrap
         if (!mediaVerified) return true;
         uint flow = U(0x755294), profile = U(0x765AD4);
         if (flow < 0x10000 || profile < 0x10000 || U(profile) != ProfileTable ||
-            U(flow + 0x1B0) != 28 || U(flow + 0x1B8) != 0) return true;
+            U(flow + 0x1B0) != _sceneLevel || U(flow + 0x1B8) != 0) return true;
         uint depth = U(flow + 0x1AC); Require(depth <= 20, "Initial save bootstrap flow bound exceeded.");
         uint playing = U(flow + 0x15C + depth * 4), record = U(profile + 0x2B4);
-        if (playing < 0x10000 || U(playing) != 0x710874 || U(playing + 0x10) != 28 ||
+        if (playing < 0x10000 || U(playing) != 0x710874 || U(playing + 0x10) != _sceneLevel ||
             record < 0x10000 || U(record) != 0x710F80) return true;
         uint root = U(record + 0x24);
         if (root < 0x10000 || U(root) != 0x6DC4F4 || U(root + 0x3C) < 0x10000) return true;
@@ -78,7 +80,7 @@ internal sealed class NativeInitialSaveBootstrap
             _profile = profile; _originalPlaying = playing; _originalRoot = root; _stage = 1;
             _log(new { @event = "world-initial-native-save-load-begin", slot = 0, fileSha256 = _expectedHash,
                 existingTypedPrimaryRequired = true, ownTemplateNotStarted = true,
-                initialLevel = 28, nativeFunction = LoadSave, nativeArguments = new uint[] { 0 } });
+                initialLevel = _sceneLevel, nativeFunction = LoadSave, nativeArguments = new uint[] { 0 } });
             calls.Begin(_host, tid, ref context, LoadSave, profile, [0], false, value =>
             {
                 Require((value & 0xFF) == 1, "Original initial LoadSave returned false.");
@@ -96,7 +98,7 @@ internal sealed class NativeInitialSaveBootstrap
         if (!originalSecondEntryQualified) return true;
         if (_e6HostContinuation) VerifyFile();
         _complete = true; _stage = 3;
-        _log(new { @event = "world-initial-native-save-bootstrap-complete", nativeLevel = 28,
+        _log(new { @event = "world-initial-native-save-bootstrap-complete", nativeLevel = _sceneLevel,
             originalSecondEntryQualified = true, playingAddressReused = playing == _originalPlaying,
             rootAddressReused = root == _originalRoot, currentStars = U(profile + 0x6F0),
             nativeSaveSlot = Win32Native.ReadMemory(_host.ProcessHandle, profile + 0x6DC, 1)[0],

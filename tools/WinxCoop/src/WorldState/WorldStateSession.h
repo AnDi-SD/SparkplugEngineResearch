@@ -34,6 +34,8 @@ namespace winxcoop::world_state
         Role role_; SessionIdentity id_; Phase phase_=Phase::Waiting; Terminal terminal_=Terminal::None;
         bool localReady_=false,peerReady_=false,hello_=false,helloSent_=false,handshake_=false,epochActive_=false;
         bool receivedTaken_=false,waitingNative_=false;
+        Availability localAvailability_=Availability::Waiting;
+        bool nativeReadyObserved_=false;
         std::uint32_t localRevision_=0,peerRevision_=0,epoch_=0;
         std::uint64_t token_=0,sent_=0,applied_=0,received_=0,latestRevision_=0,latestTick_=0,coalesced_=0;
         std::uint64_t appliedCount_=0;

@@ -52,6 +52,43 @@ namespace
     { ObservedState s; s.entity=2; s.observationTick=tick; s.position={{1,2,3}}; s.velocity={{4,0,0}}; s.animation=Animation::Walk; return s; }
     Event Observe(Pair& p, std::uint32_t tick)
     { Check(p.guest.SubmitObservedState(Observation(tick)),"guest observes own stock state"); Receive(p.host,Next(p.guest)); return EventOf(p.host,EventKind::ObservedState); }
+    void MenuFirstDeferredLevel()
+    {
+        for(const std::uint32_t actualId : {1u,3u,28u,47u})
+        {
+            auto h=Configuration(SessionRole::Host),g=Configuration(SessionRole::Guest);
+            h.allowDeferredLevel=g.allowDeferredLevel=true;
+            h.qualifiedLevel.levelId=g.qualifiedLevel.levelId=0;
+            h.qualifiedLevel.entryId=g.qualifiedLevel.entryId=0;
+            GameplayProtocol host(h),guest(g);
+            Check(host.Begin(11)&&guest.Begin(11),"menu-first connection begins without a chosen scene");
+            Receive(host,Next(guest));
+            Check(!host.TakeOutbound()&&host.CurrentPhase()==Phase::WaitingForHostLevel,"menu wait publishes no fabricated Ready");
+            Check(!host.HostAssignLevel(1,h.qualifiedLevel),"menu ID0 is never an actual ready scene");
+            auto actual=h.qualifiedLevel;actual.levelId=actualId;
+            auto incompatible=actual;incompatible.scenario[0]^=1;
+            Check(!host.HostAssignLevel(1,incompatible),"deferred scene retains capability checks");
+            Check(host.HostAssignLevel(1,actual),"Host assigns its actual observed scene");
+            Receive(guest,Next(host));
+            Check(guest.AssignedLevel()==actual,"Guest adopts authoritative scene, not a configured test level");
+            auto other=actual;other.levelId=actualId+1;
+            Check(!guest.NotifyLocalReady(other)&&!guest.TakeOutbound(),"another local scene cannot cross Ready barrier");
+            Check(guest.NotifyLocalReady(actual),"actual matching Guest scene becomes ready");
+            Receive(host,Next(guest));Receive(guest,Next(host));
+            Check(host.CurrentPhase()==Phase::Running&&guest.CurrentPhase()==Phase::Running,"real matching levels resume");
+        }
+        auto h=Configuration(SessionRole::Host),g=Configuration(SessionRole::Guest);
+        h.allowDeferredLevel=g.allowDeferredLevel=true;
+        h.qualifiedLevel.levelId=g.qualifiedLevel.levelId=0;
+        h.qualifiedLevel.entryId=g.qualifiedLevel.entryId=0;
+        GameplayProtocol host(h),guest(g);Check(host.Begin(11),"early Host begin");
+        auto actual=h.qualifiedLevel;actual.levelId=3;
+        Check(host.HostAssignLevel(1,actual)&&guest.Begin(11),"Host may load before Guest connects");
+        Receive(host,Next(guest));Receive(guest,Next(host));
+        Check(guest.AssignedLevel()==actual,"late Guest receives actual scene");
+        bool refused=false;try{auto legacy=Configuration(SessionRole::Host);legacy.qualifiedLevel.levelId=0;GameplayProtocol invalid(legacy);}catch(const std::invalid_argument&){refused=true;}
+        Check(refused,"legacy profiles still reject unselected scenes");
+    }
     void BarrierAndCompatibility()
     {
         Pair p; p.Begin(); auto hello=Next(p.guest);
@@ -177,6 +214,6 @@ namespace
 }
 int main()
 {
-    try { BarrierAndCompatibility(); GoldenObservationAndAuthority(); FifoAndRejection(); InvalidPosesAndDecisions(); SequenceAndBackpressure(); GenerationsRemovalAndSourceIds(); MalformedStaleAndRetiredInput(); std::cout<<"WinxCoop gameplay protocol V3: PASS "<<checks<<" checks\n"; return 0; }
+    try { MenuFirstDeferredLevel(); BarrierAndCompatibility(); GoldenObservationAndAuthority(); FifoAndRejection(); InvalidPosesAndDecisions(); SequenceAndBackpressure(); GenerationsRemovalAndSourceIds(); MalformedStaleAndRetiredInput(); std::cout<<"WinxCoop gameplay protocol V3: PASS "<<checks<<" checks\n"; return 0; }
     catch(const std::exception& e) { std::cerr<<"WinxCoop gameplay protocol V3: FAIL "<<e.what()<<'\n'; return 1; }
 }

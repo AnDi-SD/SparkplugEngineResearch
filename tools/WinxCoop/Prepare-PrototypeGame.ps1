@@ -1,7 +1,7 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-Creates a new isolated Alfea28 game copy for the WinxCoop Stage P prototype.
+Creates a new isolated game copy: default alfea28 or campaign-prototype level1.
 .DESCRIPTION
 Reads the source without changing it. Copies the pinned WinxClub.exe, two pinned
 CRT71 DLLs, Media and Shaders, using independent ordinary files. Existing destinations,
@@ -22,7 +22,10 @@ param(
     [string]$Destination,
 
     [ValidateNotNullOrEmpty()]
-    [string]$RuntimeDirectory
+    [string]$RuntimeDirectory,
+
+    [ValidateSet('alfea28', 'campaign-prototype')]
+    [string]$Profile = 'alfea28'
 )
 
 Set-StrictMode -Version Latest
@@ -33,6 +36,10 @@ $prepareRuntimeFiles = @(
     [pscustomobject]@{ name = 'msvcr71.dll'; bytes = [long]344064; sha256 = 'DCA0E5FAF6C94B6ADFF4D90D40795D5A91BA3A3059EA408E992A0F039A494D46' },
     [pscustomobject]@{ name = 'msvcp71.dll'; bytes = [long]503808; sha256 = '71D3CC0EDD1866C77DE6444A260512F54C40A8413F673ABF79FA24BE27495C23' }
 )
+# Legacy defaults remain exact; only the explicit campaign profile selects level1.
+$prepareStartLevel = if ($Profile -eq 'campaign-prototype') { '1' } else { '28' }
+$prepareSceneLabel = if ($Profile -eq 'campaign-prototype') { 'campaign prototype level1' } else { 'Alfea28' }
+$prepareSettingsSource = if ($Profile -eq 'campaign-prototype') { 'FixedCampaignPrototypeSettings' } else { 'FixedStagePSettings' }
 $prepareBufferBytes = 65536
 $prepareMaximumFiles = 200000
 $prepareMaximumDepth = 64
@@ -262,7 +269,7 @@ if (Test-PrepareExists $prepareSourceConfig) {
 $prepareEstimatedBytes = [long]0
 foreach ($entry in $prepareFiles) { $prepareEstimatedBytes += $entry.bytes }
 Write-Verbose "Read-only source: $prepareSource; Media+Shaders files=$($prepareFiles.Count), bytes=$prepareEstimatedBytes; CRT source=$prepareRuntimeRoot."
-if (-not $PSCmdlet.ShouldProcess($prepareDestination, 'Create a NEW independent WinxCoop Alfea28 game and verify copied bytes')) { return }
+if (-not $PSCmdlet.ShouldProcess($prepareDestination, "Create a NEW independent WinxCoop $prepareSceneLabel game and verify copied bytes")) { return }
 
 $prepareCreated = $false
 $prepareVerified = New-Object 'System.Collections.Generic.List[object]'
@@ -270,7 +277,7 @@ $prepareStarted = [DateTime]::UtcNow.ToString('o')
 $prepareSettings = [ordered]@{
     showCinematics = 'false'; useGamePad = 'false'; fullScreen = 'false'
     enableSound = 'false'; enableShadows = 'false'; language = 'en'
-    startLevel = '28'; testCinematic = 'false'; cinematicToTest = '0'
+    startLevel = $prepareStartLevel; testCinematic = 'false'; cinematicToTest = '0'
 }
 $prepareManifest = [ordered]@{
     kind = 'WinxCoop-isolated-prototype-preparation'; version = 2; completed = $false
@@ -311,7 +318,7 @@ try {
     $prepareWinxIni = Join-Path $prepareDestination 'winx.ini'
     Write-PrepareFreshText $prepareWinxIni (($prepareIniLines -join "`r`n") + "`r`n") $prepareAscii
     $prepareGenerated = New-Object 'System.Collections.Generic.List[object]'
-    $prepareGenerated.Add([pscustomobject]@{ path = 'winx.ini'; sha256 = (Get-PrepareDigest $prepareWinxIni); encoding = 'ASCII'; source = 'FixedStagePSettings' })
+    $prepareGenerated.Add([pscustomobject]@{ path = 'winx.ini'; sha256 = (Get-PrepareDigest $prepareWinxIni); encoding = 'ASCII'; source = $prepareSettingsSource })
     $prepareManifest.generatedFiles = @($prepareGenerated.ToArray())
     $prepareConfig = Join-Path $prepareDestination 'config.ini'
     if ($prepareConfigCopy) { $prepareVerified.Add((Copy-PrepareVerified $prepareSourceConfig $prepareConfig 'config.ini' $prepareOriginalConfigSha)) }
@@ -328,7 +335,7 @@ try {
     $prepareManifest.finishedUtc = [DateTime]::UtcNow.ToString('o')
     $prepareManifestPath = Join-Path $prepareDestination 'WinxCoop-preparation.json'
     Write-PrepareFreshText $prepareManifestPath (($prepareManifest | ConvertTo-Json -Depth 8) + "`n") $prepareUtf8
-    Write-Output "Prepared isolated Alfea28 game: $prepareDestination"
+    Write-Output "Prepared isolated $prepareSceneLabel game: $prepareDestination"
     Write-Output "Verified physical copies: $($prepareManifest.verifiedFiles) files, $($prepareManifest.verifiedBytes) bytes. Manifest: $prepareManifestPath"
 }
 catch {

@@ -23,6 +23,7 @@ internal sealed class ClientScenePolicy
     private readonly PEReader _image;
     private readonly Action<object> _log;
     private readonly bool _controlledStory3;
+    private readonly uint _level;
     private readonly Dictionary<uint, NativeType> _types = [];
     private readonly Dictionary<uint, NativeType> _quarantine = [];
     private readonly List<object> _clockWitness = [], _controllerWitness = [];
@@ -34,14 +35,15 @@ internal sealed class ClientScenePolicy
     internal ClientScenePolicy(DebuggerHost host, PEReader image, Action<object> log,
         ProbeConfiguration? controlledStory3 = null)
     {
-        Require(controlledStory3 is null || ProbeMain.IsClosedStory3Guest(controlledStory3),
+        Require(controlledStory3 is null || ProbeMain.IsClosedStory3Guest(controlledStory3) || ProbeMain.IsCampaign(controlledStory3),
             "Additional Story predicates require the explicit closed Guest progression cohort.");
         _host = host; _image = image; _log = log; _controlledStory3 = controlledStory3 is not null;
+        _level = controlledStory3?.CampaignScene?.Level ?? (_controlledStory3 ? 3u : 28u);
     }
 
     internal object Summary => new
     {
-        captured = _captured, supportedLevel = _controlledStory3 ? 3 : 28, entityCount = _entityCount,
+        captured = _captured, supportedLevel = _level, entityCount = _entityCount,
         controllerCount = _controllerCount, clockCount = _clockCount,
         keyboard = Hex(_keyboard),
         quarantine = _quarantine.Values.OrderBy(t => t.Table).Select(Describe).ToArray(),
@@ -50,6 +52,57 @@ internal sealed class ClientScenePolicy
         frameCallback30 = Hex(_frameCallback30), frameCallback34 = Hex(_frameCallback34),
         profileIsFinite = true, otherScenesQualified = false
     };
+
+    // A one-shot read-only census, composed only from the existing owned
+    // WorldRET callback. Reuses this policy's literal RTTI and reciprocal-list
+    // readers; never invokes Capture/Configure or creates a quarantine.
+    internal static bool TryObserveInitialGardeniaInventory(DebuggerHost host, PEReader image,
+        uint tid, ref Win32Native.X86Context context, out object? inventory)
+    {
+        inventory = null;
+        Require(host.IsAtDebugStop && host.ProcessHandle != IntPtr.Zero && host.ProcessPid != 0 &&
+            host.ImageBase == 0x400000 && tid == host.MainThreadId &&
+            context.Eip == NativeCallDispatcher.WorldReturn, "Inventory requires its owned original WorldRET.");
+        var reader = new ClientScenePolicy(host, image, _ => { });
+        uint flow = reader.U(0x755294), input = reader.U(0x7552A0), timer = reader.U(0x755298);
+        if (flow < 0x10000 || reader.U(flow) != 0x702D2C || reader.U(flow + 0x1B0) != 1 ||
+            reader.U(flow + 0x1B8) != 0 || input < 0x10000 || timer < 0x10000) return false;
+        uint depth = reader.U(flow + 0x1AC);
+        Require(depth < 20, "Inventory Flow stack exceeds its original bounded extent.");
+        uint playing = reader.Pointer(flow + 0x15C + depth * 4), device = reader.U(input + 0x1C);
+        if (device < 0x10000 || reader.U(device + 0x14) != 3 || reader.Read(timer + 0x40, 1)[0] != 0) return false;
+        Require(reader.U(playing) == 0x710874 && reader.U(playing + 0x10) == 1 &&
+            reader.U(flow + 0x1C) == playing && reader.U(input) == 0x6F5508 &&
+            reader.U(device) == 0x7116CC && reader.U(timer) == 0x702F94,
+            "Inventory target is not the original registered ready Gardenia1 playing/input/timer tuple.");
+        uint profile = reader.U(0x765AD4);
+        if (profile < 0x10000) return false;
+        Require(reader.U(profile) == 0x6F5A44, "Inventory primary profile type differs.");
+        uint primary = reader.U(profile + 0x2B4);
+        if (primary < 0x10000) return false;
+        var bodies = new WorldPresentationEntityReader(host, image);
+        WorldPresentationNativeRig rig = bodies.ReadRigAtWorld(tid, ref context, primary, WorldPresentationActorState.BloomType);
+        uint core = reader.Pointer(0x755274), sceneManager = reader.Pointer(0x75DB90);
+        Require(reader.U(core + 0x18) == rig.Scene && reader.U(sceneManager + 0x20) == 0,
+            "Inventory primary scene differs from the completed original scene World.");
+        uint manager = reader.Pointer(0x765ACC);
+        Require(reader.U(manager) == 0x70069C, "Inventory requires the typed native EntityManager.");
+        var rows = new List<object>();
+        foreach (uint offset in new uint[] { 0x18, 0x24 })
+        foreach (uint entity in reader.List(reader.Pointer(manager + offset), reader.U(manager + offset + 4)))
+        {
+            Require(rows.Count < Limit, "Inventory combined entity lists exceed4096 entries.");
+            NativeType type = reader.Type(entity);
+            rows.Add(new { address = Hex(entity), managerListOffset = Hex(offset), type = Describe(type),
+                word14Raw = Hex(reader.U(entity + 0x14)), node18Raw = Hex(reader.U(entity + 0x18)),
+                owner24Raw = Hex(reader.U(entity + 0x24)) });
+        }
+        inventory = new { level = 1, initialOnly = true, flow = Hex(flow), playing = Hex(playing),
+            primaryInstance = Hex(primary), scene = Hex(rig.Scene), entityManager = Hex(manager),
+            entityCount = rows.Count, literalRttiTypes = reader._types.Count, entities = rows,
+            pendingNativeFlow = 0, nativeGameTimerPaused = false, sourceWasActualReadyWorld = true };
+        return true;
+    }
 
     internal void Capture()
     {

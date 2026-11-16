@@ -7253,8 +7253,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/breakable-vase-value.md"
+      ],
+      "sources": [
+        "Winx/Code/wxBreakableVase.h"
+      ]
     },
     {
       "name": "wxBush",
@@ -7337,8 +7341,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/cabinet-puzzle-digits.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCabinetPuzzle.h"
+      ]
     },
     {
       "name": "wxCentreScreenGameFlowState",
@@ -7387,8 +7395,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/challenge-params-defaults.md"
+      ],
+      "sources": [
+        "Winx/Code/wxChallengeParams.h"
+      ]
     },
     {
       "name": "wxChangeCharacterPlacement",
@@ -7544,8 +7556,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/characters/character-traits-property.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCharacterTraits.h"
+      ]
     },
     {
       "name": "wxChargedAttackState",
@@ -7669,8 +7685,14 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/reference/classes/wx-collectible-gem.md",
+        "docs/game/entities/collectible-proximity.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCollectibleGem.h",
+        "Winx/Code/wxCollectibleGem.cpp"
+      ]
     },
     {
       "name": "wxCollisionDetector",
@@ -7829,8 +7851,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/cylindrical-door-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCylindricalDoor.h"
+      ]
     },
     {
       "name": "wxDamageProxy",
@@ -7844,8 +7870,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/damage-proxy-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDamageProxy.h"
+      ]
     },
     {
       "name": "wxDarcyAttackAIAction",
@@ -8457,8 +8487,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/eye-ball-sentry-damage.md"
+      ],
+      "sources": [
+        "Winx/Code/wxEyeBallSentry.h"
+      ]
     },
     {
       "name": "wxFaceData",
@@ -8519,8 +8553,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/falling-rock-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxFallingRock.h"
+      ]
     },
     {
       "name": "wxFallingState",
@@ -9217,8 +9255,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/glyph-facing-no-op.md"
+      ],
+      "sources": [
+        "Winx/Code/wxGlyph.h"
+      ]
     },
     {
       "name": "wxGlyphDroidAIBehavior",
@@ -10096,8 +10138,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/kiko-hole-radius.md"
+      ],
+      "sources": [
+        "Winx/Code/wxKikoHole.h"
+      ]
     },
     {
       "name": "wxKikoHoleAIAction",
@@ -11028,8 +11074,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/moving-platform-near-state.md"
+      ],
+      "sources": [
+        "Winx/Code/wxMovingPlatform.h"
+      ]
     },
     {
       "name": "wxMovingState",
@@ -11309,8 +11359,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/pendulum-raw-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxPendulum.h"
+      ]
     },
     {
       "name": "wxPerception",
@@ -11453,8 +11507,12 @@
         "pc": "0x1BC6108E",
         "ps2": "0x1BC6108E"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/characters/player-traits-reset.md"
+      ],
+      "sources": [
+        "Winx/Code/wxPlayerTraits.h"
+      ]
     },
     {
       "name": "wxPlayingLevelGameFlowState",
@@ -11710,8 +11768,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/racing-checkpoint-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxRacingCheckpoint.h"
+      ]
     },
     {
       "name": "wxReadingState",
@@ -11993,8 +12055,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/side-quest-given-object.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSideQuestGivenObject.h"
+      ]
     },
     {
       "name": "wxSideQuestManager",
@@ -12634,8 +12700,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/swamp-gaz-bubble-damage.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSwampGazBubble.h"
+      ]
     },
     {
       "name": "wxSwampPlatformRing",
@@ -12649,8 +12719,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/swamp-platform-ring-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSwampPlatformRing.h"
+      ]
     },
     {
       "name": "wxTargetManager",
@@ -12749,8 +12823,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/thunder-maker.md"
+      ],
+      "sources": [
+        "Winx/Code/wxThunderMaker.h"
+      ]
     },
     {
       "name": "wxTidalFlame",
