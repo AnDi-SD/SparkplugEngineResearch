@@ -19,6 +19,7 @@
 - [AIAction: случайные параметры Minotaur и Mosquito](ai-random-entry.md).
 - [IceWormHoles: raw сообщение в профиле NoNodeCalls](ice-worm-holes-message.md).
 - [KikoMoving: сообщение и два raw DWORD](kiko-moving-message.md).
+- [SparxBehavior Test Animation byte (PC)](sparx-test-animation-byte.md).
 - [Активация IceWormHoles и начальные связи Kiko](ai-activation-fields.md).
 - [Выход из двадцати AI-состояний](ai-exit-cleanup.md).
 - [Семейство wxBaseAIBehavior: конструкция и выбор действий](ai-behavior-family.md).

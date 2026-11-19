@@ -68,3 +68,43 @@ bool wxRacingCheckpoint::ComposeRawPropertiesForAnalysis(const CapturedPrefixFor
     output = staged;
     return true;
 }
+
+namespace
+{
+bool AdmitFinishByte(const wxRacingCheckpoint::CapturedFinishPrefixForAnalysis& bytes,
+    wxRacingCheckpoint::ProfileForAnalysis profile)
+{
+    const auto primary = std::uint32_t(bytes[0]) | (std::uint32_t(bytes[1]) << 8)
+        | (std::uint32_t(bytes[2]) << 16) | (std::uint32_t(bytes[3]) << 24);
+    return profile == wxRacingCheckpoint::ProfileForAnalysis::PcCapturedPrimaryFinishLowByte140Prefix141
+        && primary == wxRacingCheckpointAbi::CapturedPrimary;
+}
+}
+bool wxRacingCheckpoint::ReadFinishByteForAnalysis(const CapturedFinishPrefixForAnalysis& before,
+    std::uint8_t& output, ProfileForAnalysis profile)
+{
+    if (!AdmitFinishByte(before, profile)) return false;
+    output = before[wxRacingCheckpointAbi::FinishRawByteOffset];
+    return true;
+}
+bool wxRacingCheckpoint::WriteFinishLowByteForAnalysis(const CapturedFinishPrefixForAnalysis& before,
+    std::uint32_t rawArgumentWord, CapturedFinishPrefixForAnalysis& output, ProfileForAnalysis profile)
+{
+    if (!AdmitFinishByte(before, profile)) return false;
+    auto staged = before;
+    staged[wxRacingCheckpointAbi::FinishRawByteOffset] = std::uint8_t(rawArgumentWord & 0xFFu);
+    output = staged;
+    return true;
+}
+bool wxRacingCheckpoint::ComposeFinishLowByteForAnalysis(const CapturedFinishPrefixForAnalysis& before,
+    std::uint32_t rawArgumentWord, ComposedFinishByteForAnalysis& output, ProfileForAnalysis profile)
+{
+    if (!AdmitFinishByte(before, profile)) return false;
+    ComposedFinishByteForAnalysis staged{};
+    staged.beforeRaw = before[wxRacingCheckpointAbi::FinishRawByteOffset];
+    staged.afterSet = before;
+    staged.afterSet[wxRacingCheckpointAbi::FinishRawByteOffset] = std::uint8_t(rawArgumentWord & 0xFFu);
+    staged.afterRaw = staged.afterSet[wxRacingCheckpointAbi::FinishRawByteOffset];
+    output = staged;
+    return true;
+}

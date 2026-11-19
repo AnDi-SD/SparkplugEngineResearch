@@ -1162,6 +1162,11 @@
       "category": "game/ai"
     },
     {
+      "path": "docs/game/ai/sparx-test-animation-byte.md",
+      "title": "SparxBehavior Test Animation byte (PC)",
+      "category": "game/ai"
+    },
+    {
       "path": "docs/game/assets/README.md",
       "title": "Игровые ресурсы",
       "category": "game/assets"
@@ -1282,6 +1287,16 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/dispel-game-speed.md",
+      "title": "Game Speed descriptor in DispelGame",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/dragon-properties.md",
+      "title": "Dragon captured F32 properties (PC)",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/entity-aggregate-copy.md",
       "title": "Entity: строки, векторы и блок параметров при Copy",
       "category": "game/entities"
@@ -1342,6 +1357,11 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/intelli-cam-properties.md",
+      "title": "IntelliCam captured scalar properties (PC)",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/kiko-hole-radius.md",
       "title": "wxKikoHole: captured PC Radius",
       "category": "game/entities"
@@ -1352,13 +1372,28 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/lever-action-token.md",
+      "title": "Lever Action descriptor raw DWORD getter (PC)",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/moving-platform-near-state.md",
       "title": "wxMovingPlatform: проверка близости на PC",
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/particle-animation-word.md",
+      "title": "ParticleCtrl Animation file descriptor raw DWORD getter (PC)",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/pendulum-raw-properties.md",
       "title": "Два DWORD-свойства Pendulum (PC)",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/quietus-carnivorous-damage.md",
+      "title": "Inflicted Damage descriptor in QuietusCarnivorous",
       "category": "game/entities"
     },
     {
@@ -1372,8 +1407,23 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/spider-upsie-daisy-number.md",
+      "title": "Spider Num descriptor in SpiderUpsieDaisyAIBehavior",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/entities/swamp-gaz-bubble-damage.md",
       "title": "Swamp gaz bubble raw damage property",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/swamp-gaz-bubble-green-byte.md",
+      "title": "SwampGazBubble raw Green byte callback value",
+      "category": "game/entities"
+    },
+    {
+      "path": "docs/game/entities/swamp-gaz-bubble-scalar-properties.md",
+      "title": "SwampGazBubble scalar properties (PC)",
       "category": "game/entities"
     },
     {
@@ -1387,6 +1437,11 @@
       "category": "game/entities"
     },
     {
+      "path": "docs/game/entities/upsie-daisy-guard-number.md",
+      "title": "Guard Num descriptor in UpsieDaisyGuardAIBehavior",
+      "category": "game/entities"
+    },
+    {
       "path": "docs/game/flow/README.md",
       "title": "Состояния игры и меню",
       "category": "game/flow"
@@ -1394,6 +1449,11 @@
     {
       "path": "docs/game/flow/cinematic-game-flow-state.md",
       "title": "CinematicGameFlowState: сообщения и переключение ввода",
+      "category": "game/flow"
+    },
+    {
+      "path": "docs/game/flow/cutscene-properties.md",
+      "title": "Cutscene captured F32 property (PC)",
       "category": "game/flow"
     },
     {

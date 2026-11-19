@@ -1,0 +1,9 @@
+# SparxBehavior Test Animation byte (PC)
+
+The own typed publisher of `wxSparxBehavior` labels the selected property `Test Animation`. Setter `0x00505800` reads one byte from argument-slot `+4` into AL, stores AL at primary-receiver offset `+0x128` (296), and returns with stack adjustment 4. Getter `0x00505810` reads the same byte into AL and returns. Neither callback normalizes the value to Boolean; all 256 byte values remain distinct. The four-byte supplied argument slot and the setter's one-byte read are separate facts.
+
+The bounded value facade requires its explicit PC profile and primary `0x006F6F60` in a supplied 297-byte prefix. It reads one raw byte, stores the low byte of a supplied raw argument word, and composes GET/SET/GET on a staged prefix. Input/output aliasing is supported. Other bytes remain opaque and unchanged. Unknown profiles and wrong primaries leave every output unchanged. Its byte result does not declare the original return signature or expose a normalized full EAX result.
+
+The selected access ends at byte 297. A historical factory allocation of 376 bytes and a future diagnostic guard span of 329 bytes have different responsibilities and do not establish native `sizeof`. The current typed primary, RTTI, clone-prefix factory call, registration and own publisher establish the selected ownership chain; the opaque factory and incomplete clone remain outside this value operation. Registration base `wxEntity` does not establish physical C++ inheritance.
+
+The other string descriptor, constructors, lifetime, animation dispatch, production callers, PS2 behavior, rendering, gameplay and whole-class completeness remain unqualified. This operation belongs with the existing [AI behavior family](ai-behavior-family.md); it does not reconstruct that family's decision logic.

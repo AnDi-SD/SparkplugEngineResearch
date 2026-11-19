@@ -22,4 +22,26 @@ public:
     static bool ComposeDamageRawForAnalysis(const CapturedPrefixForAnalysis& before,
         std::uint32_t rawBits, ComposedDamageForAnalysis& output,
         ProfileForAnalysis profile = ProfileForAnalysis::Unqualified);
+
+    using ScalarReturnForAnalysis = std::array<std::uint8_t, 10>;
+    enum class ScalarPropertyForAnalysis
+    {
+        AngleMaximum, AngleMinimum, OscillationPeriod
+    };
+    enum class ScalarProfileForAnalysis { Unqualified, PcCapturedPrimaryFiniteNormalOrZeroF32 };
+    enum class ScalarResultForAnalysis
+    {
+        Completed, UnqualifiedProfile, CapturedPrimaryNotAdmitted,
+        UnknownProperty, CapturedScalarNotAdmitted, ArgumentNotAdmitted
+    };
+
+    // The scalar profile admits finite normal binary32 values and signed zero
+    // at its three selected fields and in setter arguments. A getter supplies
+    // the physical ten-byte FLD value. Refusal preserves every output byte.
+    static ScalarResultForAnalysis ReadScalarForAnalysis(const CapturedPrefixForAnalysis& before,
+        ScalarPropertyForAnalysis property, ScalarReturnForAnalysis& output,
+        ScalarProfileForAnalysis profile = ScalarProfileForAnalysis::Unqualified) noexcept;
+    static ScalarResultForAnalysis WriteScalarBitsForAnalysis(const CapturedPrefixForAnalysis& before,
+        ScalarPropertyForAnalysis property, std::uint32_t rawArgument, CapturedPrefixForAnalysis& output,
+        ScalarProfileForAnalysis profile = ScalarProfileForAnalysis::Unqualified) noexcept;
 };

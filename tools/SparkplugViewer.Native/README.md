@@ -96,4 +96,36 @@ Suite `KikoHoleRadius` проверяет [одну Radius F32-store/FLD пар�
 
 Suite `CabinetPuzzleProperty` проверяет [четыре rawDWORD пары цифр CabinetPuzzle](../../docs/game/entities/cabinet-puzzle-digits.md), восемь полных EAX getter values и четыре372-байтных after-prefix в12 callback на одном предоставленном состоянии. Все32 бита сохраняются; слова ввода/вывода имеют порядок четырёх little-endian байтов памяти. Названия Digit не задают диапазон0..9, signedness или механику пазла; historical468B allocation отдельно от minimum372B, constructor/sizeof/physicalinheritance/nativeABI/lifecycle/productioncallers/gameplay неизвестны.
 
+Suite `FallingRockScalar` проверяет [шесть F32-пар FallingRock](../../docs/game/entities/falling-rock-properties.md#six-binary32-scalar-properties) на одном396-байтном состоянии в порядке GET/SET/GET/повторный SET/GET для каждого свойства. Сохраняются18 ten-byte extended getter payloads,12полных after-prefix, signed zero, opaque bytes и alias. Отдельный `FallingRockProperty` проверяет прежние четыре arbitrary-bit RAW-пары.
+
+Suite `SwampGazBubbleGreenByte` проверяет [raw byte Green](../../docs/game/entities/swamp-gaz-bubble-green-byte.md) на одном336-байтном captured prefix в GET/SET/GET: raw low8 аргумента, без bool normalization, полный after-prefix и alias. Отдельный `SwampGazBubbleDamage` сохраняет arbitrary-bit RAW DWORD контракт.
+
+Suite `EyeBallSentryScalar` проверяет [три F32-пары EyeBallSentry](../../docs/game/entities/eye-ball-sentry-damage.md) на одном 328-байтном captured prefix в порядке GET/SET/GET/повторный SET/GET для каждого свойства. Проверяются девять ten-byte getter payloads, шесть полных after-prefix, signed zero и alias. Прежний `EyeBallSentryDamage` проверяет отдельный arbitrary-bit RAW-контракт.
+
+Suite `RacingCheckpointFinishByte` проверяет [raw byte Finish](../../docs/game/entities/racing-checkpoint-properties.md) на отдельном 321-байтном captured prefix в GET/SET/GET: low8 аргумента, полный after-prefix, отказ без изменения выхода и alias. Прежний `RacingCheckpointProperty` проверяет самостоятельный RAW316 DWORD API.
+
+Suite `DispelGameSpeed` проверяет [Game Speed descriptor](../../docs/game/entities/dispel-game-speed.md): stateless pristine-global +zero getter, raw32 no-op setter, default refusal и физические 10-байтные результаты. Native layout, live-global state, физическое наследование и gameplay остаются открытыми.
+
+Suite `SwampGazBubbleScalar` проверяет [пять scalar-свойств](../../docs/game/entities/swamp-gaz-bubble-scalar-properties.md) на отдельном 352-байтном captured prefix: finite-normal/signedzero, точные 10-байтные getter результаты, повторные raw32 записи, alias и отказ с сохранением выхода. Прежние Damage и Green сохраняют свой 336-байтный RAW API.
+
+Suite `QuietusCarnivorousDamage` проверяет [Inflicted Damage](../../docs/game/entities/quietus-carnivorous-damage.md): raw DWORD GET/SET/GET на360B captured prefix, все32бита, opaqueостальныебайты, stagedalias и defaultrefusal. Native sizeof, физическое наследование, AI/gameplay и lifecycle остаются открытыми.
+
+Suite `UpsieDaisyGuardAIBehaviorGuardNum` проверяет [Guard Num](../../docs/game/entities/upsie-daisy-guard-number.md): raw DWORD GET/SET/GET на392B captured prefix, все32бита, opaqueостальныебайты, stagedalias и defaultrefusal. Native sizeof, физическое наследование, AI/gameplay и lifecycle остаются открытыми.
+
+Suite `IntelliCamScalar` проверяет [десять scalar-свойств](../../docs/game/entities/intelli-cam-properties.md): предоставленный1000B prefix, finite normal/signedzero во всех10полях, точные10B физические getter значения, повторные raw32 записи, stagedalias и отказ с сохранением выхода. Native sizeof, физическое наследование, camera update, rendering, lifecycle и gameplay остаются открытыми.
+
+Suite `CutsceneScalar` проверяет [одно scalar-свойство cutscene](../../docs/game/flow/cutscene-properties.md): предоставленный448B prefix, finite normal/signedzero, точные10B физические getter значения, повторные raw32 записи, stagedalias и отказ с сохранением выхода. Исходные22байта имени сохраняются; кодировка, единицы, native sizeof, физическое наследование, cinematic playback и lifecycle остаются открытыми.
+
+Suite `SpiderUpsieDaisyAIBehaviorSpiderNum` проверяет [Spider Num](../../docs/game/entities/spider-upsie-daisy-number.md): raw DWORD GET/SET/GET на312B captured prefix, все32бита, opaqueостальныебайты, stagedalias и defaultrefusal. Native sizeof, физическое наследование, AI/gameplay и lifecycle остаются открытыми.
+
+Suite `DragonAIBehaviorScalar` проверяет [Walk Speed и Backoff Speed](../../docs/game/entities/dragon-properties.md): предоставленный328B prefix, finite normal/signedzero в обоих полях и аргументах, точные10B физические getter значения, повторные raw32 записи, stagedalias и отказ с сохранением выхода. Native sizeof, физическое наследование, AI, lifecycle и gameplay остаются открытыми.
+
+Suite `SparxBehaviorTestAnimationByte` проверяет [Test Animation byte](../../docs/game/ai/sparx-test-animation-byte.md): GET/SET/GET на297B captured prefix, raw low8 аргумента DWORD, все256значений без bool-нормализации, opaqueостальныебайты, stagedalias и defaultrefusal. Native полный EAX/ABI, sizeof, физическое наследование, AI/animation dispatch и lifecycle остаются открытыми.
+
+Suite `LeverActionToken` проверяет [Action raw DWORD getter](../../docs/game/entities/lever-action-token.md): один GET,296B supplied prefix, все32бита без интерпретации, readonly opaque остальные байты и default refusal. Setter, pointer/string meaning, output-prefix alias, native sizeof и gameplay остаются открытыми.
+
+Suite `ParticleCtrlAnimationFile` проверяет [Animation file raw DWORD getter](../../docs/game/entities/particle-animation-word.md): один GET,296B supplied prefix, все32бита без интерпретации, receiver dereferenced для4B read, returnedword не dereferenced. Setter, filename/string/pointer meaning, output-prefix alias, native sizeof и gameplay остаются открытыми.
+
+Suite `PendulumScalar` проверяет [два finite F32-свойства Pendulum](../../docs/game/entities/pendulum-raw-properties.md) на отдельном340-байтном captured prefix: finite normals/signed zero, точные10-байтные getter результаты, повторные raw32 записи, alias и отказ с сохранением выхода. Прежние Period/Damage сохраняют отдельный RAW300 API.
+
 [Архитектура общего ядра](../shared-core.md) · [Правила разработки](../../CONTRIBUTING.md).

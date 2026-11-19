@@ -257,6 +257,20 @@ else()
 endif()
 
 add_library(WinxEntities STATIC
+    Code/wxParticleCtrl.h
+    Code/wxParticleCtrl.cpp
+    Analysis/PC/wxParticleCtrlAbi.h
+    Code/wxLever.h
+    Code/wxLever.cpp
+    Analysis/PC/wxLeverAbi.h
+    Code/wxIntelliCam.h
+    Code/wxIntelliCam.cpp
+    Analysis/PC/wxIntelliCamAbi.h
+    Code/wxQuietusCarnivorous.h
+    Code/wxQuietusCarnivorous.cpp
+    Analysis/PC/wxQuietusCarnivorousAbi.h
+    Code/wxDispelGame.h
+    Code/wxDispelGame.cpp
     Code/wxCylindricalDoor.h
     Code/wxCylindricalDoor.cpp
     Analysis/PC/wxCylindricalDoorAbi.h
@@ -443,6 +457,18 @@ endif()
 
 # Verified wxBaseAIBehavior selection/gate and Baco construction contract.
 add_library(WinxAIBehaviors STATIC
+    Code/wxSparxBehavior.h
+    Code/wxSparxBehavior.cpp
+    Analysis/PC/wxSparxBehaviorAbi.h
+    Code/wxDragonAIBehavior.h
+    Code/wxDragonAIBehavior.cpp
+    Analysis/PC/wxDragonAIBehaviorAbi.h
+    Code/wxSpiderUpsieDaisyAIBehavior.h
+    Code/wxSpiderUpsieDaisyAIBehavior.cpp
+    Analysis/PC/wxSpiderUpsieDaisyAIBehaviorAbi.h
+    Code/wxUpsieDaisyGuardAIBehavior.h
+    Code/wxUpsieDaisyGuardAIBehavior.cpp
+    Analysis/PC/wxUpsieDaisyGuardAIBehaviorAbi.h
     Code/wxBaseAIBehavior.cpp
     Code/wxBaseAIBehavior.h
     Code/wxBacoAIBehavior.cpp
@@ -1028,6 +1054,9 @@ else()
 endif()
 
 add_library(WinxGameCore STATIC
+    Code/wxCutscene.h
+    Code/wxCutscene.cpp
+    Analysis/PC/wxCutsceneAbi.h
     Code/wxMovingPlatform.h
     Code/wxMovingPlatform.cpp
     Analysis/PC/wxMovingPlatformAbi.h
@@ -1095,7 +1124,7 @@ if(BUILD_TESTING)
     target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
     add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
     set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
-    foreach(suite IN ITEMS VectorWrapper CabinetPuzzleProperty KikoHoleRadius EyeBallSentryDamage ThunderMakerProperty BreakableVaseValue SideQuestGivenObjectScale GlyphFacing SwampGazBubbleDamage FallingRockProperty PendulumProperty RacingCheckpointProperty DamageProxyProperty ChallengeParamsDefaults SwampPlatformRingProperty CylindricalDoorProperty MovingPlatformNear CharacterTraitsProperty PlayerTraitsReset Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+    foreach(suite IN ITEMS VectorWrapper PendulumScalar ParticleCtrlAnimationFile LeverActionToken SparxBehaviorTestAnimationByte DragonAIBehaviorScalar SpiderUpsieDaisyAIBehaviorSpiderNum CutsceneScalar IntelliCamScalar UpsieDaisyGuardAIBehaviorGuardNum QuietusCarnivorousDamage SwampGazBubbleScalar DispelGameSpeed RacingCheckpointFinishByte EyeBallSentryScalar SwampGazBubbleGreenByte FallingRockScalar CabinetPuzzleProperty KikoHoleRadius EyeBallSentryDamage ThunderMakerProperty BreakableVaseValue SideQuestGivenObjectScale GlyphFacing SwampGazBubbleDamage FallingRockProperty PendulumProperty RacingCheckpointProperty DamageProxyProperty ChallengeParamsDefaults SwampPlatformRingProperty CylindricalDoorProperty MovingPlatformNear CharacterTraitsProperty PlayerTraitsReset Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
         add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
         target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
         add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)

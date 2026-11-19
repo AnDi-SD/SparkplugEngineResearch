@@ -289,6 +289,7 @@
 - [AIAction: случайные параметры Minotaur и Mosquito](game/ai/ai-random-entry.md).
 - [IceWormHoles: raw сообщение в профиле NoNodeCalls](game/ai/ice-worm-holes-message.md).
 - [KikoMoving: сообщение и два raw DWORD](game/ai/kiko-moving-message.md).
+- [SparxBehavior Test Animation byte (PC)](game/ai/sparx-test-animation-byte.md).
 - [Активация IceWormHoles и начальные связи Kiko](game/ai/ai-activation-fields.md).
 - [Выход из двадцати AI-состояний](game/ai/ai-exit-cleanup.md).
 - [Искусственный интеллект](game/ai/README.md).
@@ -320,16 +321,26 @@
 ## Игра / Игровые объекты
 
 - [CollectibleGem: flags и проверка близости](game/entities/collectible-proximity.md).
+- [Dragon captured F32 properties (PC)](game/entities/dragon-properties.md).
 - [Entity: копирование изменённых полей 24 подклассов](game/entities/entity-modified-copy.md).
 - [Entity: собственные predicates персонажа, анимации и расстояния](game/entities/entity-runtime-predicates.md).
 - [Entity: ссылки, общие флаги и переход между менеджерами](game/entities/entity-reference-flags.md).
 - [Entity: строки, векторы и блок параметров при Copy](game/entities/entity-aggregate-copy.md).
 - [Facing Glyph: no-op setter и FLD getter (PC)](game/entities/glyph-facing-no-op.md).
 - [Falling rock raw properties](game/entities/falling-rock-properties.md).
+- [Game Speed descriptor in DispelGame](game/entities/dispel-game-speed.md).
+- [Guard Num descriptor in UpsieDaisyGuardAIBehavior](game/entities/upsie-daisy-guard-number.md).
+- [Inflicted Damage descriptor in QuietusCarnivorous](game/entities/quietus-carnivorous-damage.md).
+- [IntelliCam captured scalar properties (PC)](game/entities/intelli-cam-properties.md).
 - [Knut: полный вход, поиск Node и cached эффекты](game/entities/knut-node-entry.md).
+- [Lever Action descriptor raw DWORD getter (PC)](game/entities/lever-action-token.md).
+- [ParticleCtrl Animation file descriptor raw DWORD getter (PC)](game/entities/particle-animation-word.md).
 - [Raw Damage у EyeBallSentry (PC)](game/entities/eye-ball-sentry-damage.md).
 - [Raw Value of Fairy Stars у BreakableVase (PC)](game/entities/breakable-vase-value.md).
+- [Spider Num descriptor in SpiderUpsieDaisyAIBehavior](game/entities/spider-upsie-daisy-number.md).
 - [Swamp gaz bubble raw damage property](game/entities/swamp-gaz-bubble-damage.md).
+- [SwampGazBubble raw Green byte callback value](game/entities/swamp-gaz-bubble-green-byte.md).
+- [SwampGazBubble scalar properties (PC)](game/entities/swamp-gaz-bubble-scalar-properties.md).
 - [wxCabinetPuzzle: captured PC combination words](game/entities/cabinet-puzzle-digits.md).
 - [wxChallengeParams: defaults блока параметров на PC](game/entities/challenge-params-defaults.md).
 - [wxCylindricalDoor: два опубликованных свойства на PC](game/entities/cylindrical-door-properties.md).
@@ -351,6 +362,7 @@
 ## Игра / Состояния игры и меню
 
 - [CinematicGameFlowState: сообщения и переключение ввода](game/flow/cinematic-game-flow-state.md).
+- [Cutscene captured F32 property (PC)](game/flow/cutscene-properties.md).
 - [Debug menu и маршруты runtime-проверки Winx Club](game/flow/winx-debug-runtime-inventory.md).
 - [DebugMenu, DialogWindow и LoadSave: короткие active hooks](game/flow/game-flow-small-hooks.md).
 - [Game flow: навигация HUD и переназначение ресурсов PC/PS2](game/flow/game-flow-navigation-remap.md).

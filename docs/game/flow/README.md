@@ -7,6 +7,7 @@ Game flow управляет состояниями приложения и ур
 ## Статьи
 
 - [CinematicGameFlowState: сообщения и переключение ввода](cinematic-game-flow-state.md).
+- [Cutscene captured F32 property (PC)](cutscene-properties.md).
 - [Debug menu и маршруты runtime-проверки Winx Club](winx-debug-runtime-inventory.md).
 - [DebugMenu, DialogWindow и LoadSave: короткие active hooks](game-flow-small-hooks.md).
 - [Game flow: навигация HUD и переназначение ресурсов PC/PS2](game-flow-navigation-remap.md).

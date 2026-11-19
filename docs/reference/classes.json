@@ -7836,8 +7836,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/flow/cutscene-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxCutscene.h"
+      ]
     },
     {
       "name": "wxCylindricalDoor",
@@ -8166,8 +8170,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/dispel-game-speed.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDispelGame.h"
+      ]
     },
     {
       "name": "wxDispelState",
@@ -8246,8 +8254,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/dragon-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxDragonAIBehavior.h"
+      ]
     },
     {
       "name": "wxDragonFlowerTrigger",
@@ -10063,8 +10075,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/intelli-cam-properties.md"
+      ],
+      "sources": [
+        "Winx/Code/wxIntelliCam.h"
+      ]
     },
     {
       "name": "wxInventoryMenuGameFlowState",
@@ -10387,8 +10403,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/lever-action-token.md"
+      ],
+      "sources": [
+        "Winx/Code/wxLever.h"
+      ]
     },
     {
       "name": "wxLeversForCircularDoor",
@@ -11297,8 +11317,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/particle-animation-word.md"
+      ],
+      "sources": [
+        "Winx/Code/wxParticleCtrl.h"
+      ]
     },
     {
       "name": "wxParticleManager",
@@ -11738,8 +11762,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/quietus-carnivorous-damage.md"
+      ],
+      "sources": [
+        "Winx/Code/wxQuietusCarnivorous.h"
+      ]
     },
     {
       "name": "wxRacingChallengeGameFlowState",
@@ -12239,8 +12267,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/ai/sparx-test-animation-byte.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSparxBehavior.h"
+      ]
     },
     {
       "name": "wxSpecialistsStateMachine",
@@ -12376,8 +12408,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/spider-upsie-daisy-number.md"
+      ],
+      "sources": [
+        "Winx/Code/wxSpiderUpsieDaisyAIBehavior.h"
+      ]
     },
     {
       "name": "wxSpinningStatuesPuzzle",
@@ -12701,7 +12737,9 @@
         "ps2": "0x796A1869"
       },
       "documentation": [
-        "docs/game/entities/swamp-gaz-bubble-damage.md"
+        "docs/game/entities/swamp-gaz-bubble-damage.md",
+        "docs/game/entities/swamp-gaz-bubble-green-byte.md",
+        "docs/game/entities/swamp-gaz-bubble-scalar-properties.md"
       ],
       "sources": [
         "Winx/Code/wxSwampGazBubble.h"
@@ -13069,8 +13107,12 @@
         "pc": "0x796A1869",
         "ps2": "0x796A1869"
       },
-      "documentation": [],
-      "sources": []
+      "documentation": [
+        "docs/game/entities/upsie-daisy-guard-number.md"
+      ],
+      "sources": [
+        "Winx/Code/wxUpsieDaisyGuardAIBehavior.h"
+      ]
     },
     {
       "name": "wxUserInput",

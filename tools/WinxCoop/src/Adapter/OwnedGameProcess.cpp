@@ -1295,7 +1295,7 @@ namespace winxcoop::adapter
         {
             HANDLE process=heldProcess.Valid()?heldProcess.value:pi.hProcess;
             if(!process){cleanupConfirmed=true;return;}
-            if(WaitForSingleObject(process,0)!=WAIT_OBJECT_0 && TerminateProcess(process,failure.empty() && startComplete?0:124))forced=true;
+            if(!exitContinued && WaitForSingleObject(process,0)!=WAIT_OBJECT_0 && TerminateProcess(process,failure.empty() && startComplete?0:124))forced=true;
             RestoreCallerBreakpointBestEffort(false);
             const auto until=GetTickCount64()+5000;
             while(!exitContinued && GetTickCount64()<until)

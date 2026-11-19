@@ -24,4 +24,29 @@ public:
     static bool ComposeRawPropertiesForAnalysis(const CapturedPrefixForAnalysis& before,
         std::uint32_t rawPeriod, std::uint32_t rawDamage, ComposedPropertiesForAnalysis& output,
         ProfileForAnalysis profile = ProfileForAnalysis::Unqualified);
+
+    // Separate scalar extent: the original RAW300 facade remains unchanged.
+    using CapturedScalarPrefixForAnalysis = std::array<std::uint8_t, 0x154>;
+
+    using ScalarReturnForAnalysis = std::array<std::uint8_t, 10>;
+    enum class ScalarPropertyForAnalysis
+    {
+        MaximumAngle, InitialOffset
+    };
+    enum class ScalarProfileForAnalysis { Unqualified, PcCapturedPrimaryFiniteNormalOrZeroF32 };
+    enum class ScalarResultForAnalysis
+    {
+        Completed, UnqualifiedProfile, CapturedPrimaryNotAdmitted,
+        UnknownProperty, CapturedScalarNotAdmitted, ArgumentNotAdmitted
+    };
+
+    // The scalar profile admits finite normal binary32 values and signed zero
+    // at its two selected fields and in setter arguments. A getter supplies
+    // the physical ten-byte FLD value. Refusal preserves every output byte.
+    static ScalarResultForAnalysis ReadScalarForAnalysis(const CapturedScalarPrefixForAnalysis& before,
+        ScalarPropertyForAnalysis property, ScalarReturnForAnalysis& output,
+        ScalarProfileForAnalysis profile = ScalarProfileForAnalysis::Unqualified) noexcept;
+    static ScalarResultForAnalysis WriteScalarBitsForAnalysis(const CapturedScalarPrefixForAnalysis& before,
+        ScalarPropertyForAnalysis property, std::uint32_t rawArgument, CapturedScalarPrefixForAnalysis& output,
+        ScalarProfileForAnalysis profile = ScalarProfileForAnalysis::Unqualified) noexcept;
 };

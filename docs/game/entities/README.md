@@ -7,16 +7,26 @@
 ## Статьи
 
 - [CollectibleGem: flags и проверка близости](collectible-proximity.md).
+- [Dragon captured F32 properties (PC)](dragon-properties.md).
 - [Entity: копирование изменённых полей 24 подклассов](entity-modified-copy.md).
 - [Entity: собственные predicates персонажа, анимации и расстояния](entity-runtime-predicates.md).
 - [Entity: ссылки, общие флаги и переход между менеджерами](entity-reference-flags.md).
 - [Entity: строки, векторы и блок параметров при Copy](entity-aggregate-copy.md).
 - [Facing Glyph: no-op setter и FLD getter (PC)](glyph-facing-no-op.md).
 - [Falling rock raw properties](falling-rock-properties.md).
+- [Game Speed descriptor in DispelGame](dispel-game-speed.md).
+- [Guard Num descriptor in UpsieDaisyGuardAIBehavior](upsie-daisy-guard-number.md).
+- [Inflicted Damage descriptor in QuietusCarnivorous](quietus-carnivorous-damage.md).
+- [IntelliCam captured scalar properties (PC)](intelli-cam-properties.md).
 - [Knut: полный вход, поиск Node и cached эффекты](knut-node-entry.md).
+- [Lever Action descriptor raw DWORD getter (PC)](lever-action-token.md).
+- [ParticleCtrl Animation file descriptor raw DWORD getter (PC)](particle-animation-word.md).
 - [Raw Damage у EyeBallSentry (PC)](eye-ball-sentry-damage.md).
 - [Raw Value of Fairy Stars у BreakableVase (PC)](breakable-vase-value.md).
+- [Spider Num descriptor in SpiderUpsieDaisyAIBehavior](spider-upsie-daisy-number.md).
 - [Swamp gaz bubble raw damage property](swamp-gaz-bubble-damage.md).
+- [SwampGazBubble raw Green byte callback value](swamp-gaz-bubble-green-byte.md).
+- [SwampGazBubble scalar properties (PC)](swamp-gaz-bubble-scalar-properties.md).
 - [wxCabinetPuzzle: captured PC combination words](cabinet-puzzle-digits.md).
 - [wxChallengeParams: defaults блока параметров на PC](challenge-params-defaults.md).
 - [wxCylindricalDoor: два опубликованных свойства на PC](cylindrical-door-properties.md).
