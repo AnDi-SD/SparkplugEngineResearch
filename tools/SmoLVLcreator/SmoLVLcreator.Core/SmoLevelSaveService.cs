@@ -138,7 +138,7 @@ public static class SmoLevelSaveService
                 source.Data.Length);
             pipeline.Report(
                 SmoLevelSaveStage.Preparing,
-                "Подготовка списка изменений");
+                LevelText.Get("Save.Preparing"));
             log.Info(
                 "SOURCE",
                 $"bytes={source.Data.Length}; objects={source.Objects.Count}; " +
@@ -181,7 +181,7 @@ public static class SmoLevelSaveService
             byte[] resourceData = source.Data.ToArray();
             pipeline.Complete(
                 SmoLevelSaveStage.Preparing,
-                "Список изменений подготовлен",
+                LevelText.Get("Save.Prepared"),
                 resourceData.LongLength);
             int addedResourceObjectCount = 0;
             var replacementMeshIds = new Dictionary<uint, uint>();
@@ -193,7 +193,7 @@ public static class SmoLevelSaveService
                 cancellationToken.ThrowIfCancellationRequested();
                 pipeline.Report(
                     SmoLevelSaveStage.ReplacingModel,
-                    $"Замена модели [{replacement.MeshObjectIndex}]");
+                    LevelText.Get("Save.ReplacingModel", replacement.MeshObjectIndex));
                 log.Info(
                     "RESOURCE_MODEL",
                     $"object={replacement.MeshObjectIndex}; " +
@@ -214,7 +214,8 @@ public static class SmoLevelSaveService
                         replacement.ImportedScene,
                         replacement.Transform,
                         referenceWorldTransform:
-                            replacement.ReferenceWorldTransform);
+                            replacement.ReferenceWorldTransform,
+                        options: SmoLevelModelGraphWriteOptions.LevelEditor);
                 resourceData = result.Data;
                 addedResourceObjectCount += result.AddedObjectCount;
                 foreach ((uint oldId, uint newId) in result.MeshObjectIds)
@@ -235,14 +236,14 @@ public static class SmoLevelSaveService
                 ReleasePipelineIntermediates(log, resourceData, "MODEL_REPLACED");
                 pipeline.Complete(
                     SmoLevelSaveStage.ReplacingModel,
-                    $"Модель [{replacement.MeshObjectIndex}] заменена",
+                    LevelText.Get("Save.ModelReplaced", replacement.MeshObjectIndex),
                     resourceData.LongLength);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             pipeline.Report(
                 SmoLevelSaveStage.PatchingTransforms,
-                $"Применение трансформаций: {editedEntities.Count:N0}");
+                LevelText.Get("Save.PatchingTransforms", editedEntities.Count));
             SmoDocument resourceDocument = SmoDocument.ParseOwned(
                 resourceData,
                 source.SourcePath);
@@ -277,7 +278,7 @@ public static class SmoLevelSaveService
             ReleasePipelineIntermediates(log, outputData, "TRANSFORMS_PATCHED");
             pipeline.Complete(
                 SmoLevelSaveStage.PatchingTransforms,
-                $"Трансформации применены: {editedEntities.Count:N0}",
+                LevelText.Get("Save.TransformsPatched", editedEntities.Count),
                 outputData.LongLength);
             uint[] textureObjectIds = source.Objects
                 .Where(entry => entry.TypeHash == SmoClassIds.TextureData)
@@ -290,7 +291,7 @@ public static class SmoLevelSaveService
                 cancellationToken.ThrowIfCancellationRequested();
                 pipeline.Report(
                     SmoLevelSaveStage.ReplacingTexture,
-                    $"Замена текстуры [{replacement.TextureObjectIndex}]");
+                    LevelText.Get("Save.ReplacingTexture", replacement.TextureObjectIndex));
                 uint sourceTextureId = source.Objects[
                     replacement.TextureObjectIndex].Id;
                 SmoDocument currentTextureDocument = SmoDocument.ParseOwned(
@@ -329,7 +330,7 @@ public static class SmoLevelSaveService
                 ReleasePipelineIntermediates(log, outputData, "TEXTURE_REPLACED");
                 pipeline.Complete(
                     SmoLevelSaveStage.ReplacingTexture,
-                    $"Текстура [{replacement.TextureObjectIndex}] заменена",
+                    LevelText.Get("Save.TextureReplaced", replacement.TextureObjectIndex),
                     outputData.LongLength);
             }
             log.Info(
@@ -353,7 +354,7 @@ public static class SmoLevelSaveService
                 SmoLevelExternalModel model = state.ExternalModels[group.Key];
                 pipeline.Report(
                     SmoLevelSaveStage.AddingExternalModel,
-                    $"Упаковка внешней модели {model.Name}");
+                    LevelText.Get("Save.PackingModel", model.Name));
                 SmoDocument current = SmoDocument.ParseOwned(
                     outputData,
                     source.SourcePath);
@@ -384,14 +385,11 @@ public static class SmoLevelSaveService
                         model.ImportedScene,
                         placementTransforms,
                         model.Name,
-                        model.SourcePath,
                         state.BatchWorkerExecutable,
                         state.BatchWorkerAssembly,
-                        state.NativeFbxBridgePath,
                         (completedParts, totalParts) => pipeline.Report(
                             SmoLevelSaveStage.AddingExternalModel,
-                            $"Упаковка {model.Name}: детали " +
-                            $"{completedParts:N0}/{totalParts:N0}"),
+                            LevelText.Get("Save.PackingParts", model.Name, completedParts, totalParts)),
                         cancellationToken);
                 outputData = appended.Data;
                 addedObjectCount += appended.AddedObjectCount;
@@ -411,7 +409,7 @@ public static class SmoLevelSaveService
                 ReleasePipelineIntermediates(log, outputData, "EXTERNAL_MODEL_ADDED");
                 pipeline.Complete(
                     SmoLevelSaveStage.AddingExternalModel,
-                    $"Внешняя модель {model.Name} упакована",
+                    LevelText.Get("Save.ModelPacked", model.Name),
                     outputData.LongLength);
             }
             // Materialize pending clones before removing original placements.
@@ -424,7 +422,7 @@ public static class SmoLevelSaveService
                 cancellationToken.ThrowIfCancellationRequested();
                 pipeline.Report(
                     SmoLevelSaveStage.AddingPlacement,
-                    $"Добавление размещения {addition.Name}");
+                    LevelText.Get("Save.AddingPlacement", addition.Name));
                 SmoDocument current = SmoDocument.ParseOwned(
                     outputData,
                     source.SourcePath);
@@ -457,7 +455,7 @@ public static class SmoLevelSaveService
                 ReleasePipelineIntermediates(log, outputData, "PLACEMENT_ADDED");
                 pipeline.Complete(
                     SmoLevelSaveStage.AddingPlacement,
-                    $"Размещение {addition.Name} добавлено",
+                    LevelText.Get("Save.PlacementAdded", addition.Name),
                     outputData.LongLength);
             }
             foreach (SmoLevelSaveRemoval removedEntity in
@@ -467,7 +465,7 @@ public static class SmoLevelSaveService
                 cancellationToken.ThrowIfCancellationRequested();
                 pipeline.Report(
                     SmoLevelSaveStage.RemovingEntity,
-                    $"Удаление объекта [{removedId.SceneObjectIndex}]");
+                    LevelText.Get("Save.RemovingObject", removedId.SceneObjectIndex));
                 SmoDocument current = SmoDocument.ParseOwned(outputData, source.SourcePath);
                 if (!TryResolveCurrentObjectIndex(
                     source,
@@ -481,7 +479,7 @@ public static class SmoLevelSaveService
                         $"scene={removedId.SceneObjectIndex}; already removed with a shared branch");
                     pipeline.Complete(
                         SmoLevelSaveStage.RemovingEntity,
-                        $"Объект [{removedId.SceneObjectIndex}] уже удалён общей веткой",
+                        LevelText.Get("Save.AlreadyRemoved", removedId.SceneObjectIndex),
                         outputData.LongLength);
                     continue;
                 }
@@ -514,7 +512,7 @@ public static class SmoLevelSaveService
                 ReleasePipelineIntermediates(log, outputData, "ENTITY_REMOVED");
                 pipeline.Complete(
                     SmoLevelSaveStage.RemovingEntity,
-                    $"Объект [{removedId.SceneObjectIndex}] удалён",
+                    LevelText.Get("Save.ObjectRemoved", removedId.SceneObjectIndex),
                     outputData.LongLength);
             }
             foreach (SmoLevelSaveCollision generated in
@@ -523,7 +521,7 @@ public static class SmoLevelSaveService
                 cancellationToken.ThrowIfCancellationRequested();
                 pipeline.Report(
                     SmoLevelSaveStage.AddingCollision,
-                    $"Добавление коллизии {generated.Name}");
+                    LevelText.Get("Save.AddingCollision", generated.Name));
                 Vector3[] worldPositions = generated.Positions
                     .Select(position => Vector3.Transform(
                         position,
@@ -553,14 +551,14 @@ public static class SmoLevelSaveService
                 ReleasePipelineIntermediates(log, outputData, "COLLISION_ADDED");
                 pipeline.Complete(
                     SmoLevelSaveStage.AddingCollision,
-                    $"Коллизия {generated.Name} добавлена",
+                    LevelText.Get("Save.CollisionAdded", generated.Name),
                     outputData.LongLength);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             pipeline.Report(
                 SmoLevelSaveStage.RepairingCollisions,
-                "Проверка реестра коллизий");
+                LevelText.Get("Save.CheckingRegistry"));
             SmoDocument collisionRegistrationDocument = SmoDocument.ParseOwned(
                 outputData,
                 source.SourcePath);
@@ -579,13 +577,13 @@ public static class SmoLevelSaveService
             ReleasePipelineIntermediates(log, outputData, "COLLISION_REGISTRY_REPAIRED");
             pipeline.Complete(
                 SmoLevelSaveStage.RepairingCollisions,
-                "Реестр коллизий проверен",
+                LevelText.Get("Save.RegistryChecked"),
                 outputData.LongLength);
 
             cancellationToken.ThrowIfCancellationRequested();
             pipeline.Report(
                 SmoLevelSaveStage.RepairingCollisions,
-                "Проверка совместимости collision-мешей");
+                LevelText.Get("Save.CheckingCollisionMeshes"));
             SmoDocument collisionCompatibilityDocument = SmoDocument.ParseOwned(
                 outputData,
                 source.SourcePath);
@@ -604,13 +602,13 @@ public static class SmoLevelSaveService
             ReleasePipelineIntermediates(log, outputData, "COLLISION_MESHES_REPAIRED");
             pipeline.Complete(
                 SmoLevelSaveStage.RepairingCollisions,
-                "Collision-меши проверены",
+                LevelText.Get("Save.CollisionMeshesChecked"),
                 outputData.LongLength);
 
             cancellationToken.ThrowIfCancellationRequested();
             pipeline.Report(
                 SmoLevelSaveStage.WritingTemporaryFile,
-                "Запись и проверка временного файла");
+                LevelText.Get("Save.WritingTemporary"));
             log.Info("TEMP_WRITE", $"path={temporaryPath}");
             File.WriteAllBytes(temporaryPath, outputData);
             SmoDocument verification = SmoDocument.Load(temporaryPath);
@@ -627,14 +625,14 @@ public static class SmoLevelSaveService
             ReleasePipelineIntermediates(log, outputData, "TEMP_FILE_VERIFIED");
             pipeline.Complete(
                 SmoLevelSaveStage.WritingTemporaryFile,
-                "Временный файл проверен",
+                LevelText.Get("Save.TemporaryVerified"),
                 outputData.LongLength);
 
             // Installation is deliberately non-cancellable: from this point the
             // pipeline must finish the atomic replace and verify its result.
             pipeline.Report(
                 SmoLevelSaveStage.Installing,
-                "Атомарная установка сохранённого уровня");
+                LevelText.Get("Save.Installing"));
             if (File.Exists(fullOutputPath))
             {
                 backupPath = fullOutputPath +
@@ -672,7 +670,7 @@ public static class SmoLevelSaveService
             finalVerification = null!;
             pipeline.Complete(
                 SmoLevelSaveStage.Complete,
-                "Уровень сохранён и проверен",
+                LevelText.Get("Save.Complete"),
                 outputData.LongLength);
 
             // The caller owns editor history and marks it saved on its UI thread.

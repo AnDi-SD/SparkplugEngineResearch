@@ -1,3 +1,4 @@
+using SmoLVLcreator.Core;
 using SmoViewer.Core;
 using System.Buffers.Binary;
 using System.Globalization;
@@ -16,7 +17,7 @@ public partial class MainWindow
             return;
         if (_workspace is null)
         {
-            RawDataText.Text = "Нет данных: откройте SMO и выберите объект.";
+            RawDataText.Text = LevelText.Get("Main.Inspector.RawEmpty");
             return;
         }
 
@@ -31,8 +32,7 @@ public partial class MainWindow
         if (valid.Length == 0)
         {
             RawDataText.Text =
-                "Объект существует только в сессии редактора. Его SBOO-поля " +
-                "будут назначены во время сохранения.";
+                LevelText.Get("Main.Raw.TheObjectExistsOnlyInThis");
             return;
         }
 
@@ -54,26 +54,27 @@ public partial class MainWindow
         SmoDocument document = _workspace!.Document;
         SmoObjectEntry entry = document.Objects[objectIndex];
         string name = entry.Name.TrimEnd('\0');
-        text.Append('[').Append(label).Append("] object [")
+        text.Append('[').Append(label).Append(LevelText.Get("Main.Raw.Object"))
             .Append(entry.Index).Append("] ").AppendLine(name);
-        text.Append("id 0x").Append(entry.Id.ToString("X8", CultureInfo.InvariantCulture))
-            .Append("  class ").Append(entry.ClassName ?? "unknown")
-            .Append("  hash 0x")
+        text.Append(LevelText.Get("Main.Raw.IdX")).Append(entry.Id.ToString("X8", CultureInfo.InvariantCulture))
+            .Append(LevelText.Get("Main.Raw.Class")).Append(entry.ClassName ?? LevelText.Get("Main.Raw.Unknown"))
+            .Append(LevelText.Get("Main.Raw.HashX"))
             .AppendLine(entry.TypeHash.ToString("X8", CultureInfo.InvariantCulture));
-        text.Append("table 0x").Append(entry.TableOffset.ToString("X", CultureInfo.InvariantCulture))
-            .Append("  logical 0x").Append(entry.LogicalOffset.ToString("X", CultureInfo.InvariantCulture))
-            .Append("  physical 0x").Append(entry.PhysicalOffset.ToString("X", CultureInfo.InvariantCulture))
-            .Append("  size ").Append(entry.SerializedSize.ToString(CultureInfo.InvariantCulture))
-            .AppendLine(" bytes");
-        text.Append("parent ").Append(entry.ParentIndex?.ToString(CultureInfo.InvariantCulture) ?? "—")
-            .Append("  depth ").Append(entry.NestingDepth.ToString(CultureInfo.InvariantCulture))
-            .Append("  signature ").AppendLine(entry.SignatureMatches ? "SBOO OK" : "INVALID");
+        text.Append(LevelText.Get("Main.Raw.TableX")).Append(entry.TableOffset.ToString("X", CultureInfo.InvariantCulture))
+            .Append(LevelText.Get("Main.Raw.LogicalX")).Append(entry.LogicalOffset.ToString("X", CultureInfo.InvariantCulture))
+            .Append(LevelText.Get("Main.Raw.PhysicalX")).Append(entry.PhysicalOffset.ToString("X", CultureInfo.InvariantCulture))
+            .Append(LevelText.Get("Main.Raw.Size")).Append(entry.SerializedSize.ToString(CultureInfo.InvariantCulture))
+            .AppendLine(LevelText.Get("Main.Raw.Bytes"));
+        text.Append(LevelText.Get("Main.Raw.Parent")).Append(entry.ParentIndex?.ToString(CultureInfo.InvariantCulture) ?? "—")
+            .Append(LevelText.Get("Main.Raw.Depth")).Append(entry.NestingDepth.ToString(CultureInfo.InvariantCulture))
+            .Append(LevelText.Get("Main.Raw.Signature")).AppendLine(LevelText.Get(entry.SignatureMatches
+                ? "Main.Raw.ValidSignature" : "Main.Raw.INVALID"));
 
         try
         {
             SmoObjectCapabilities capabilities = SmoSchemaRegistry.Describe(document, entry);
-            text.Append("fields ").Append(capabilities.RawFields.Count)
-                .Append("  schema properties ").AppendLine(capabilities.Properties.Count.ToString(CultureInfo.InvariantCulture));
+            text.Append(LevelText.Get("Main.Raw.Fields")).Append(capabilities.RawFields.Count)
+                .Append(LevelText.Get("Main.Raw.SchemaProperties")).AppendLine(capabilities.Properties.Count.ToString(CultureInfo.InvariantCulture));
             for (int fieldIndex = 0; fieldIndex < capabilities.RawFields.Count; fieldIndex++)
             {
                 SmoObjectField field = capabilities.RawFields[fieldIndex];
@@ -91,17 +92,17 @@ public partial class MainWindow
                         .Append(" (").Append(serializedField.PayloadLayout).Append(')');
                 }
                 text
-                    .Append("  rel 0x").Append(field.RelativePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
-                    .Append("  abs 0x").Append(field.AbsolutePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
+                    .Append(LevelText.Get("Main.Raw.RelX")).Append(field.RelativePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
+                    .Append(LevelText.Get("Main.Raw.AbsX")).Append(field.AbsolutePayloadOffset.ToString("X", CultureInfo.InvariantCulture))
                     .Append("  ").Append(field.PayloadSize.ToString(CultureInfo.InvariantCulture))
-                    .Append(" bytes  ").AppendLine(HexPreview(field.Payload.Span));
+                    .Append(LevelText.Get("Main.Raw.Bytes2")).AppendLine(HexPreview(field.Payload.Span));
 
                 foreach (SmoPropertyCapability property in capabilities.Properties
                              .Where(candidate => candidate.Descriptor.Field.Matches(field)))
                 {
                     text.Append("    ").Append(property.Descriptor.Key)
                         .Append(" = ").Append(FormatPropertyValue(field, property.Descriptor))
-                        .Append("  [").Append(property.CanWrite ? "writable" : "read-only")
+                        .Append("  [").Append(property.CanWrite ? LevelText.Get("Main.Raw.Writable") : LevelText.Get("Main.Raw.ReadOnly"))
                         .AppendLine("]");
                 }
             }
@@ -110,16 +111,16 @@ public partial class MainWindow
                          .Where(property => !property.IsPresent))
             {
                 text.Append("  ").Append(property.Descriptor.Key)
-                    .Append(" = <absent>  [")
-                    .Append(property.CanWrite ? "materializable" : "unsupported")
+                    .Append(LevelText.Get("Main.Raw.Absent"))
+                    .Append(property.CanWrite ? LevelText.Get("Main.Raw.Materializable") : LevelText.Get("Main.Raw.Unsupported"))
                     .AppendLine("]");
             }
             if (capabilities.Properties.Count == 0)
-                text.AppendLine("  schema: класс пока не имеет подтверждённых редактируемых свойств");
+                text.AppendLine(LevelText.Get("Main.Raw.SchemaThisClassHasNoConfirmed"));
         }
         catch (Exception exception)
         {
-            text.Append("RAW READ ERROR: ").AppendLine(exception.Message);
+            text.Append(LevelText.Get("Main.Raw.RAWREADERROR")).AppendLine(exception.Message);
         }
     }
 
@@ -130,7 +131,7 @@ public partial class MainWindow
         if (descriptor.PayloadOffset < 0 ||
             descriptor.PayloadOffset > field.Payload.Length - descriptor.ValueSize)
         {
-            return "<payload out of range>";
+            return LevelText.Get("Main.Raw.PayloadOutOfRange");
         }
         ReadOnlySpan<byte> value = descriptor.ValueSize == 0
             ? field.Payload.Span
@@ -179,29 +180,17 @@ public partial class MainWindow
 
     private void ControlsHelp_Click(object sender, RoutedEventArgs e)
     {
-        const string help =
-            "КАМЕРА\n" +
-            "ПКМ — вращение/свободный обзор; Shift+ПКМ — панорама; колесо — приближение.\n" +
-            "WASD + Q/E — полёт; F — показать выделенное целиком.\n\n" +
-            "ВЫДЕЛЕНИЕ И ПРАВКА\n" +
-            "ЛКМ — объект целиком; Alt+ЛКМ — отдельная mesh-часть; Ctrl+ЛКМ — несколько объектов.\n" +
-            "Move/Rotate/Scale — гизмо; Ctrl при перетаскивании — привязка.\n" +
-            "Ctrl+C/V/D — копировать, вставить и дублировать размещение; Delete — удалить.\n" +
-            "Ctrl+Z/Y — отмена и повтор. MOVE LINKED двигает связанную коллизию вместе с моделью.\n\n" +
-            "КАТАЛОГ И ФАЙЛЫ\n" +
-            "Двойной клик по карточке показывает ресурс; модель можно перетащить в сцену или разместить кнопкой.\n" +
-            "Ctrl+S — сохранить; Ctrl+Shift+S — сохранить как; Ctrl+E — быстрый экспорт.\n" +
-            "Перед проверкой в игре сохраняйте копию уровня; рядом всегда создаётся подробный журнал.";
-        MessageBox.Show(this, help, "SmoLVLcreator — управление",
+        string help =
+            LevelText.Get("Main.Help.ControlsText");
+        MessageBox.Show(this, help, LevelText.Get("Main.Help.ControlsTitle"),
             MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private void About_Click(object sender, RoutedEventArgs e) =>
         MessageBox.Show(
             this,
-            $"SmoLVLcreator {App.VersionText}\nРедактор уровней Sparkplug SMO\n\n" +
-            "Использует общие ядра SmoViewer, SmoImporter и SmoExporter.",
-            "О программе",
+            LevelText.Get("Main.Help.AboutText", App.VersionText),
+            LevelText.Get("Main.Menu.About"),
             MessageBoxButton.OK,
             MessageBoxImage.Information);
 }

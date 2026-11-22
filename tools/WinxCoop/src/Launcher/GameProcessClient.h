@@ -11,7 +11,7 @@ namespace winxcoop::launcher
     {
         std::wstring game, media, adapter, gameHost, outer, caseDirectory;
         std::uint64_t session{};
-        std::uint32_t levelEpoch{}, seconds{};
+        std::uint32_t levelEpoch{}, seconds{}, startupLevel{}, startupEntry{};
         bool menuFirst = true;
     };
     struct GameProcessClientIdentity final
@@ -30,7 +30,9 @@ namespace winxcoop::launcher
         bool outerReportValid{}, outerProbeCompleted{}, mediaRestoreAttempted{}, mediaRestoreVerified{};
         bool mediaLeaseAcquired{}, mediaLeaseInherited{}, mediaLeaseReleased{};
         bool outerChildStopped{}, outerChildTimedOut{}, outerTerminatedChild{};
-        bool helperExitCodeKnown{}, helperLimitReached{}, commandUnconfirmed{};
+        // Retirement can cancel one immutable outstanding command. It remains
+        // unacknowledged; this evidence never increments commandsAcknowledged.
+        bool helperExitCodeKnown{}, helperLimitReached{}, commandUnconfirmed{}, commandCancelledOnRetirement{};
         std::uint32_t helperExitCode{};
         bool helperReportValid{}, helperCompleted{}, gameExitCodeKnown{}, gameExitEventContinued{}, gameCleanupConfirmed{}, gameForcedTermination{};
         std::uint32_t gameExitCode{}, commandsPublished{}, commandsAcknowledged{};
@@ -41,6 +43,8 @@ namespace winxcoop::launcher
     // GUI-side ownership only: one immutable generation, one command writer.
     // Menu-first owns GameHost directly with no outer/registry preparation or
     // game lifetime timer. Legacy bounded outer launch is explicit menuFirst=false.
+    // The guest's immutable startupLevel selects original direct-level boot;
+    // zero leaves the server's original menu path unchanged.
     // No native bootstrap, game attachment or registry preparation is present.
     // Call Start/Pump/Submit on one GUI thread. Pump performs no waits and never
     // reads a report until the held outer process has exited. Keep this object

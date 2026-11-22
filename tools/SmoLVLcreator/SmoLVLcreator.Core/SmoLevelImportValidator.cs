@@ -25,6 +25,18 @@ public sealed record SmoLevelImportValidationReport(
 /// </summary>
 public static class SmoLevelImportValidator
 {
+    public static IEnumerable<string> DescribeWarnings(ImportedScene scene)
+    {
+        var translated = scene.ImportDiagnostics.ToLookup(item => item.Message, StringComparer.Ordinal);
+        foreach (string warning in scene.ImportWarnings)
+        {
+            ImportedDiagnostic? diagnostic = translated[warning].FirstOrDefault();
+            yield return diagnostic is null
+                ? warning
+                : LevelText.Get("Import.Warning." + diagnostic.Code, diagnostic.Arguments);
+        }
+    }
+
     public static SmoLevelImportValidationReport Validate(
         ImportedScene scene,
         SmoLevelImportPurpose purpose,
@@ -32,50 +44,45 @@ public static class SmoLevelImportValidator
     {
         ArgumentNullException.ThrowIfNull(scene);
         var errors = new List<string>();
-        var warnings = new List<string>(scene.ImportWarnings);
+        var warnings = new List<string>(DescribeWarnings(scene));
         if (scene.Meshes.Count == 0)
-            errors.Add("Модель не содержит мешей.");
+            errors.Add(LevelText.Get("Import.NoMeshes"));
         if (expectedMeshCount is int expected && scene.Meshes.Count != expected)
         {
-            errors.Add(
-                $"Ресурс SMO содержит {expected} mesh-частей, а импортируемая " +
-                $"модель — {scene.Meshes.Count}. Для ресурсной замены число " +
-                "частей должно совпадать.");
+            errors.Add(LevelText.Get("Import.MeshCountMismatch", expected, scene.Meshes.Count));
         }
         if (scene.HasSkinning)
         {
-            errors.Add(
-                "Уровни принимают только rigid-модели. Skin/joints/weights " +
-                "нужно удалить или запечь во внешнем редакторе.");
+            errors.Add(LevelText.Get("Import.RigidOnly"));
         }
 
         for (int meshIndex = 0; meshIndex < scene.Meshes.Count; meshIndex++)
         {
             ImportedMesh mesh = scene.Meshes[meshIndex];
             string name = string.IsNullOrWhiteSpace(mesh.Name)
-                ? $"mesh {meshIndex}"
-                : $"mesh {meshIndex} «{mesh.Name}»";
+                ? LevelText.Get("Import.Mesh", meshIndex)
+                : LevelText.Get("Import.NamedMesh", meshIndex, mesh.Name);
             if (mesh.Positions.Length < 3)
-                errors.Add($"{name}: меньше трёх вершин.");
+                errors.Add(LevelText.Get("Import.TooFewVertices", name));
             if (mesh.TriangleIndices.Length == 0 ||
                 mesh.TriangleIndices.Length % 3 != 0)
             {
-                errors.Add($"{name}: индексный буфер не образует треугольники.");
+                errors.Add(LevelText.Get("Import.NonTriangleIndices", name));
             }
             if (mesh.TriangleIndices.Any(index => index >= mesh.Positions.Length))
-                errors.Add($"{name}: индекс выходит за границы массива вершин.");
+                errors.Add(LevelText.Get("Import.IndexOutOfRange", name));
             if (mesh.Positions.Any(position => !IsFinite(position)))
-                errors.Add($"{name}: координаты содержат NaN или Infinity.");
+                errors.Add(LevelText.Get("Import.NonFinitePosition", name));
             ValidateOptionalChannel(mesh.Normals.Length, mesh.Positions.Length,
-                name, "нормали", errors);
+                name, LevelText.Get("Import.Normals"), errors);
             ValidateOptionalChannel(mesh.TextureCoordinates.Length, mesh.Positions.Length,
                 name, "UV0", errors);
             ValidateOptionalChannel(mesh.SecondaryTextureCoordinates.Length, mesh.Positions.Length,
                 name, "UV1", errors);
             ValidateOptionalChannel(mesh.DiffuseColors.Length, mesh.Positions.Length,
-                name, "vertex colors", errors);
+                name, LevelText.Get("Import.VertexColors"), errors);
             if (mesh.MaterialIndex < -1 || mesh.MaterialIndex >= scene.Materials.Count)
-                errors.Add($"{name}: неверный индекс материала {mesh.MaterialIndex}.");
+                errors.Add(LevelText.Get("Import.BadMaterialIndex", name, mesh.MaterialIndex));
         }
 
         for (int materialIndex = 0;
@@ -86,22 +93,16 @@ public static class SmoLevelImportValidator
             if (material.BaseColorTextureIndex < -1 ||
                 material.BaseColorTextureIndex >= scene.Textures.Count)
             {
-                errors.Add(
-                    $"Материал {materialIndex} «{material.Name}» ссылается на " +
-                    $"несуществующую текстуру {material.BaseColorTextureIndex}.");
+                errors.Add(LevelText.Get("Import.BadTextureIndex", materialIndex, material.Name,
+                    material.BaseColorTextureIndex));
             }
             if (material.UsesTextureAlpha && material.BaseColorTextureIndex < 0)
             {
-                warnings.Add(
-                    $"Материал «{material.Name}» использует {material.AlphaMode}, " +
-                    "но не имеет base-color текстуры; прозрачность в SMO будет неприменима.");
+                warnings.Add(LevelText.Get("Import.AlphaWithoutTexture", material.Name, material.AlphaMode));
             }
             if (material.AlphaMode == ImportedMaterialAlphaMode.Mask)
             {
-                warnings.Add(
-                    $"Материал «{material.Name}»: MASK {material.AlphaCutoff:0.###} " +
-                    "будет записан через подтверждённый alpha-blend путь движка; " +
-                    "отдельный cutoff в SMO не подтверждён.");
+                warnings.Add(LevelText.Get("Import.MaskAsBlend", material.Name, material.AlphaCutoff));
             }
         }
 
@@ -109,13 +110,13 @@ public static class SmoLevelImportValidator
         {
             ImportedTexture texture = scene.Textures[textureIndex];
             if (texture.Width <= 0 || texture.Height <= 0 || texture.Data.Length == 0)
-                errors.Add($"Текстура {textureIndex} «{texture.Name}» пуста.");
+                errors.Add(LevelText.Get("Import.EmptyTexture", textureIndex, texture.Name));
         }
 
         if (purpose == SmoLevelImportPurpose.ReplaceModelResource &&
             expectedMeshCount is null)
         {
-            errors.Add("Для ресурсной замены не задано число mesh-частей SMO.");
+            errors.Add(LevelText.Get("Import.MissingExpectedMeshCount"));
         }
         return new SmoLevelImportValidationReport(
             new ReadOnlyCollection<string>(errors.Distinct().ToArray()),
@@ -127,9 +128,7 @@ public static class SmoLevelImportValidator
         ArgumentNullException.ThrowIfNull(report);
         if (report.CanImport)
             return;
-        throw new InvalidDataException(
-            "Модель не подходит для уровня:\n• " +
-            string.Join("\n• ", report.Errors));
+        throw new InvalidDataException(LevelText.Get("Import.InvalidForLevel", string.Join("\n• ", report.Errors)));
     }
 
     private static void ValidateOptionalChannel(
@@ -140,7 +139,7 @@ public static class SmoLevelImportValidator
         ICollection<string> errors)
     {
         if (count != 0 && count != vertexCount)
-            errors.Add($"{meshName}: канал {channel} содержит {count} значений для {vertexCount} вершин.");
+            errors.Add(LevelText.Get("Import.ChannelCountMismatch", meshName, channel, count, vertexCount));
     }
 
     private static bool IsFinite(Vector3 value) =>

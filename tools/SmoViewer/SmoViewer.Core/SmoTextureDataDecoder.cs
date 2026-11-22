@@ -78,6 +78,7 @@ public sealed record SmoTextureDataInfo(
     public bool HasOpaqueRepresentations { get; internal init; }
     /// <summary>Host restriction for the existing lossless editor operation.</summary>
     public string? EditingIssue { get; internal init; } = "Texture source editing path has not been verified.";
+    internal bool HasCanonicalNativeMipFields { get; init; }
     public uint? RuntimeMipLevelCount { get; internal init; }
     public int MipLevelCount => Math.Max(
         CrossPlatform?.MipLevels.Count ?? 0,
@@ -203,16 +204,33 @@ public static class SmoTextureDataDecoder
             field.FrameOffset == selectedField.FrameOffset && field.Depth == selectedField.Depth).ToArray();
         var rootEnd = source.Fields.Last(field => field.Scope == 0 && field.Depth == 0 && field.Outcome == 8);
         bool opaque = source.Fields.Any(field => field.Outcome == 1 && field.PayloadSize != 0 && field.FieldId <= 1);
+        bool editableSource = HasExistingEditorSourcePath(source);
         data = new(rootEnd.HandledAfter != 0 ? SmoTextureSourceKind.Embedded : SmoTextureSourceKind.SourceNone,
             platform.Length != 0 ? platform[^1].PlatformAfter : null, cross, native)
         {
             SelectedRepresentation = decoded[^1], ObservedRepresentations = decoded.AsReadOnly(),
             UsesRuntimeSourceSelection = true,
             HasOpaqueRepresentations = opaque, RuntimeMipLevelCount = source.Info.RuntimeMips,
-            EditingIssue = HasExistingEditorSourcePath(source) ? null :
-                "Замена этой формы source-полей не проверена: данные доступны только для чтения."
+            EditingIssue = editableSource ? null :
+                "Замена этой формы source-полей не проверена: данные доступны только для чтения.",
+            HasCanonicalNativeMipFields = editableSource && native is
+                { Kind: SmoTextureRepresentationKind.Direct3DBgra32 } &&
+                IsCanonicalMipFieldSequence(payload.Span.Slice(checked((int)selectedField.PayloadOffset),
+                    checked((int)selectedField.PayloadSize)), native.MipLevels.Count)
         };
         return true;
+    }
+
+    private static bool IsCanonicalMipFieldSequence(ReadOnlySpan<byte> section, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (!SmoDataBlockReader.TryReadHeader(section, out var header) ||
+                header.FieldType != (i == 0 ? 0 : 1) || header.PayloadSize == 0)
+                return false;
+            section = section[checked((int)header.PayloadEnd)..];
+        }
+        return section is [0];
     }
 
     private static bool HasExistingEditorSourcePath(SmoTextureSourceInspection.Snapshot source)

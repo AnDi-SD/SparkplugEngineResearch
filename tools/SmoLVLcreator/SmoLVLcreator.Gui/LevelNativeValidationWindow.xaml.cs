@@ -42,7 +42,7 @@ public partial class LevelNativeValidationWindow : Window
         _prebuiltCandidatePath = Path.GetFullPath(prebuiltCandidatePath);
         if (!File.Exists(_prebuiltCandidatePath))
             throw new FileNotFoundException(
-                "The prebuilt native-validation candidate was not found.",
+                LevelText.Get("Dialog.Validation.CandidateMissing"),
                 _prebuiltCandidatePath);
         _sourcePath = !string.IsNullOrWhiteSpace(sourcePathHint) &&
                       File.Exists(sourcePathHint)
@@ -76,8 +76,8 @@ public partial class LevelNativeValidationWindow : Window
         }
 
         SetConfigurationEnabled(false);
-        ResultTitleText.Text = "Поиск WinxClub.exe…";
-        ResultDetailText.Text = "Проверяются путь уровня, общие каталоги и 32-битный реестр игры.";
+        ResultTitleText.Text = LevelText.Get("Dialog.Validation.Searching");
+        ResultDetailText.Text = LevelText.Get("Dialog.Validation.SearchDetails");
         string? besideSource = FindGameBesideSource(_sourcePath);
         WinxClubLocationResult location = await Task.Run(() =>
             WinxClubLocator.Locate(new WinxClubLocatorOptions
@@ -88,10 +88,12 @@ public partial class LevelNativeValidationWindow : Window
                     : besideSource
             }));
         _gamePath = location.SelectedPath;
-        GamePathBox.Text = _gamePath ?? "Игра не найдена";
-        ResultTitleText.Text = _gamePath is null ? "WinxClub.exe не найден" : "Игра найдена";
+        GamePathBox.Text = _gamePath ?? LevelText.Get("Dialog.Validation.GameMissing");
+        ResultTitleText.Text = _gamePath is null
+            ? LevelText.Get("Dialog.Validation.ExecutableMissing")
+            : LevelText.Get("Dialog.Validation.GameLocated");
         ResultDetailText.Text = _gamePath is null
-            ? "Укажите WinxClub.exe вручную."
+            ? LevelText.Get("Dialog.Validation.ChooseManually")
             : _gamePath;
         SetConfigurationEnabled(true);
     }
@@ -103,8 +105,8 @@ public partial class LevelNativeValidationWindow : Window
 
         var dialog = new OpenFileDialog
         {
-            Title = "Выбрать WinxClub.exe",
-            Filter = "Winx Club (WinxClub.exe)|WinxClub.exe|Executable (*.exe)|*.exe",
+            Title = LevelText.Get("Dialog.Validation.ChooseGame"),
+            Filter = LevelText.Get("Dialog.Validation.GameFileFilter"),
             CheckFileExists = true,
             Multiselect = false,
             InitialDirectory = _gamePath is null ? null : Path.GetDirectoryName(_gamePath)
@@ -125,8 +127,8 @@ public partial class LevelNativeValidationWindow : Window
         {
             string logicalPath = NormalizeLogicalPath(LogicalPathBox.Text);
             RouteHintText.Text = string.IsNullOrWhiteSpace(logicalPath)
-                ? "Укажите точный путь исходного уровня относительно Media."
-                : $"Тестер будет ждать точный игровой запрос: {logicalPath}";
+                ? LevelText.Get("Dialog.Validation.ExactPathHint")
+                : LevelText.Get("Dialog.Validation.RouteHint", logicalPath);
         }
         UpdateStartState();
     }
@@ -140,8 +142,8 @@ public partial class LevelNativeValidationWindow : Window
         if (string.IsNullOrWhiteSpace(logicalPath))
         {
             ShowSetupFailure(
-                "Не указан путь внутри Media",
-                "Для проверки нужен исходный путь уровня относительно каталога Media.");
+                LevelText.Get("Dialog.Validation.MediaPathMissing"),
+                LevelText.Get("Dialog.Validation.MediaPathRequired"));
             return;
         }
 
@@ -160,10 +162,11 @@ public partial class LevelNativeValidationWindow : Window
         OpenLogButton.IsEnabled = false;
         EventsList.Items.Clear();
         ValidationProgress.Value = 0;
-        ProgressText.Text = "0%";
+        ProgressText.Text = LevelText.Get("Dialog.Validation.Percent", 0);
         ResultTitleText.Foreground = new SolidColorBrush(Color.FromRgb(216, 222, 233));
-        ResultTitleText.Text = "Сборка временного уровня…";
-        ResultDetailText.Text = "Исходный SMO остаётся без изменений.";
+        ResultTitleText.Text = LevelText.Get("Dialog.Validation.BuildingTemporaryLevel");
+        ResultDetailText.Text = LevelText.Get("Dialog.Validation.TemporaryLevelDetails");
+        ResultDetailText.ToolTip = null;
 
         string temporaryDirectory = Path.Combine(
             Path.GetTempPath(),
@@ -186,9 +189,7 @@ public partial class LevelNativeValidationWindow : Window
                         overwrite: false),
                     runCancellation.Token);
                 var candidate = new FileInfo(candidatePath);
-                AddEvent(
-                    $"BUILD · {candidate.Length:N0} bytes · " +
-                    "готовый SMO проектного serializer'а");
+                AddEvent(LevelText.Get("Dialog.Validation.PrebuiltEvent", candidate.Length));
             }
             else
             {
@@ -199,10 +200,8 @@ public partial class LevelNativeValidationWindow : Window
                         progress: null,
                         runCancellation.Token),
                     runCancellation.Token);
-                AddEvent(
-                    $"BUILD · {saved.FileSize:N0} bytes · " +
-                    $"{saved.ResourceEditCount} resource edits");
-                AddEvent($"BUILD LOG · {saved.LogPath}");
+                AddEvent(LevelText.Get("Dialog.Validation.BuiltEvent", saved.FileSize, saved.ResourceEditCount));
+                AddEvent(LevelText.Get("Dialog.Validation.BuildLog", saved.LogPath));
             }
             candidateBuilt = true;
             int? automaticStartLevel =
@@ -214,20 +213,15 @@ public partial class LevelNativeValidationWindow : Window
             bool requireSceneReady = automaticStartLevel is not null;
             if (automaticStartLevel is int startLevel)
             {
-                AddEvent(
-                    $"ROUTE · startLevel={startLevel} · игра автоматически откроет {logicalPath}");
-                ResultTitleText.Text = "Игра запускает проверяемый уровень";
-                ResultDetailText.Text =
-                    $"Для {logicalPath} найден нативный startLevel={startLevel}. " +
-                    "Тест завершится только после выхода из загрузочного состояния и возврата управления игре.";
+                AddEvent(LevelText.Get("Dialog.Validation.AutomaticRouteEvent", startLevel, logicalPath));
+                ResultTitleText.Text = LevelText.Get("Dialog.Validation.LaunchingLevel");
+                ResultDetailText.Text = LevelText.Get("Dialog.Validation.AutomaticRouteDetails", logicalPath, startLevel);
             }
             else
             {
-                AddEvent($"WAIT · откройте в игре уровень, который запрашивает {logicalPath}");
-                ResultTitleText.Text = "Игра запускается — затем откройте уровень";
-                ResultDetailText.Text =
-                    $"Автоматический маршрут для {logicalPath} неизвестен. " +
-                    "В меню игры загрузите сохранение или перейдите в нужную комнату.";
+                AddEvent(LevelText.Get("Dialog.Validation.ManualRouteEvent", logicalPath));
+                ResultTitleText.Text = LevelText.Get("Dialog.Validation.LaunchingGame");
+                ResultDetailText.Text = LevelText.Get("Dialog.Validation.ManualRouteDetails", logicalPath);
             }
 
             var request = new NativeValidationRequest
@@ -259,24 +253,25 @@ public partial class LevelNativeValidationWindow : Window
         }
         catch (OperationCanceledException)
         {
-            ResultTitleText.Text = "Проверка отменена";
-            ResultDetailText.Text = "Дочерний процесс игры остановлен, временный уровень удаляется.";
-            AddEvent("CANCELLED");
+            ResultTitleText.Text = LevelText.Get("Dialog.Validation.Cancelled");
+            ResultDetailText.Text = LevelText.Get("Dialog.Validation.CancelledDetails");
+            AddEvent(LevelText.Get("Dialog.Validation.CancelledEvent"));
         }
         catch (Exception exception)
         {
             ResultTitleText.Foreground = new SolidColorBrush(Color.FromRgb(229, 107, 107));
             ResultTitleText.Text = candidateBuilt
-                ? "Ошибка запуска проверки"
-                : "Временный SMO не собран";
-            ResultDetailText.Text = exception.Message;
+                ? LevelText.Get("Dialog.Validation.StartError")
+                : LevelText.Get("Dialog.Validation.BuildError");
+            ResultDetailText.Text = LevelText.Error(exception.Message);
             if (exception is SmoLevelSaveException saveException)
             {
                 _lastLogPath = saveException.LogPath;
                 OpenLogButton.IsEnabled = File.Exists(_lastLogPath);
-                AddEvent($"SAVE LOG · {_lastLogPath}");
+                AddEvent(LevelText.Get("Dialog.Validation.SaveLog", _lastLogPath));
             }
-            AddEvent($"ERROR · {exception.GetType().Name} · {exception.Message}");
+            AddEvent(LevelText.Get("Dialog.Validation.ExceptionEvent",
+                exception.GetType().Name, LevelText.Error(exception.Message)));
         }
         finally
         {
@@ -298,15 +293,57 @@ public partial class LevelNativeValidationWindow : Window
         if (validationEvent.ProgressPercent is double progress)
         {
             ValidationProgress.Value = Math.Clamp(progress, 0, 100);
-            ProgressText.Text = $"{ValidationProgress.Value:N0}%";
+            ProgressText.Text = LevelText.Get("Dialog.Validation.Percent", ValidationProgress.Value);
         }
 
         string checkpoint = string.IsNullOrWhiteSpace(validationEvent.Checkpoint)
             ? string.Empty
             : $" · {validationEvent.Checkpoint}";
-        AddEvent(
-            $"{validationEvent.Elapsed.TotalSeconds,6:N1}s · " +
-            $"{validationEvent.Stage}{checkpoint} · {validationEvent.Message}");
+        string description = DescribeEvent(validationEvent);
+        AddEvent(LevelText.Get("Dialog.Validation.ProgressEvent",
+            validationEvent.Elapsed.TotalSeconds,
+            LevelText.Get($"Dialog.Validation.Stage.{validationEvent.Stage}"),
+            checkpoint, description), validationEvent.Message == description ? null : validationEvent.Message);
+    }
+
+    private static string DescribeEvent(NativeValidationEvent validationEvent)
+    {
+        IReadOnlyDictionary<string, string?> data = validationEvent.Data;
+        return validationEvent.Kind switch
+        {
+            NativeValidationEventKind.SessionStarted => LevelText.Get("Dialog.Validation.Event.Started"),
+            NativeValidationEventKind.Diagnostic when validationEvent.Stage == NativeValidationStage.Preparing &&
+                data.GetValueOrDefault("triggerGameAssetPath") is string trigger =>
+                LevelText.Get("Dialog.Validation.Event.ExpectedPath", trigger),
+            NativeValidationEventKind.Diagnostic when validationEvent.Stage == NativeValidationStage.Fingerprinting &&
+                validationEvent.Severity == NativeValidationSeverity.Information =>
+                LevelText.Get("Dialog.Validation.Event.IdentifyExecutable"),
+            NativeValidationEventKind.ExecutableFingerprint when validationEvent.Severity == NativeValidationSeverity.Success =>
+                LevelText.Get("Dialog.Validation.Event.ExecutableRecognized"),
+            NativeValidationEventKind.AssetStaged => LevelText.Get("Dialog.Validation.Event.AssetReady"),
+            NativeValidationEventKind.Diagnostic when validationEvent.Stage == NativeValidationStage.LaunchingEngine &&
+                data.ContainsKey("copiedShaderFiles") => LevelText.Get("Dialog.Validation.Event.WorkspaceReady"),
+            NativeValidationEventKind.ProcessStarted when data.GetValueOrDefault("processId") is string pid =>
+                LevelText.Get("Dialog.Validation.Event.ProcessStarted", pid),
+            NativeValidationEventKind.ProcessExited when data.GetValueOrDefault("exitCode") is string exitCode =>
+                LevelText.Get("Dialog.Validation.Event.ProcessExited", exitCode),
+            NativeValidationEventKind.PathObserved when data.GetValueOrDefault("observedPath") is string observed =>
+                LevelText.Get("Dialog.Validation.Event.PathObserved", observed),
+            NativeValidationEventKind.PathRedirected when data.GetValueOrDefault("redirectedPath") is string redirected =>
+                LevelText.Get("Dialog.Validation.Event.Redirected", redirected),
+            NativeValidationEventKind.SceneReady when data.GetValueOrDefault("activeStateId") is string state =>
+                LevelText.Get("Dialog.Validation.Event.SceneReady", state),
+            NativeValidationEventKind.Timeout => LevelText.Get("Dialog.Validation.TimeoutTitle"),
+            NativeValidationEventKind.Cancelled => LevelText.Get("Dialog.Validation.Cancelled"),
+            NativeValidationEventKind.Cleanup when data.GetValueOrDefault("existsAfterCleanup") == "false" =>
+                LevelText.Get("Dialog.Validation.Event.CleanupDone"),
+            NativeValidationEventKind.Cleanup when data.GetValueOrDefault("existsAfterCleanup") == "true" =>
+                LevelText.Get("Dialog.Validation.Event.CleanupPending", data.GetValueOrDefault("sessionDirectory")),
+            NativeValidationEventKind.SessionCompleted when Enum.TryParse(
+                data.GetValueOrDefault("status"), out NativeValidationStatus status) && Enum.IsDefined(status) =>
+                LevelText.Get($"Dialog.Validation.Status.{status}"),
+            _ => LevelText.Error(validationEvent.Message)
+        };
     }
 
     private void ShowReport(NativeValidationReport report)
@@ -315,59 +352,67 @@ public partial class LevelNativeValidationWindow : Window
         OpenLogButton.IsEnabled = _lastLogPath is not null && File.Exists(_lastLogPath);
         if (report.Status == NativeValidationStatus.Passed)
             ValidationProgress.Value = 100;
-        ProgressText.Text = $"{ValidationProgress.Value:N0}%";
+        ProgressText.Text = LevelText.Get("Dialog.Validation.Percent", ValidationProgress.Value);
 
         string passedDetail = report.SceneReadyReached
-            ? "Игра приняла временный SMO, завершила загрузку сцены, вернула управление игровому состоянию и пережила контрольное окно."
-            : "Игра приняла временный SMO и пережила контрольное окно после загрузки.";
+            ? LevelText.Get("Dialog.Validation.SceneReadyDetails")
+            : LevelText.Get("Dialog.Validation.AcceptedDetails");
+        string lastCheckpoint = report.LastTargetCheckpoint ?? report.LastCheckpoint ??
+            LevelText.Get("Dialog.Validation.CheckpointNotReached");
+        string status = LevelText.Get($"Dialog.Validation.Status.{report.Status}");
 
         (string title, string detail, Color color) = report.Status switch
         {
             NativeValidationStatus.Passed => (
-                "✓ ТЕСТ ПРОЙДЕН",
+                LevelText.Get("Dialog.Validation.PassedTitle"),
                 passedDetail,
                 Color.FromRgb(113, 190, 132)),
             NativeValidationStatus.Crash => (
-                "✕ ИГРА УПАЛА",
-                $"Фаза: {report.CrashPhase}; связь с уровнем: " +
-                $"{report.CrashAttributionConfidence}; последняя точка: " +
-                $"{report.LastTargetCheckpoint ?? report.LastCheckpoint ?? "не достигнута"}.",
+                LevelText.Get("Dialog.Validation.CrashTitle"),
+                LevelText.Get("Dialog.Validation.CrashDetails",
+                    report.CrashPhase is { } phase ? LevelText.Get($"Dialog.Validation.CrashPhase.{phase}") : "—",
+                    report.CrashAttributionConfidence is { } confidence
+                        ? LevelText.Get($"Dialog.Validation.CrashConfidence.{confidence}") : "—",
+                    lastCheckpoint),
                 Color.FromRgb(229, 107, 107)),
             NativeValidationStatus.EngineRejected => (
-                "✕ УРОВЕНЬ ОТКЛОНЁН ЗАГРУЗЧИКОМ",
-                $"Последняя точка: {report.LastTargetCheckpoint ?? report.LastCheckpoint ?? "не достигнута"}.",
+                LevelText.Get("Dialog.Validation.RejectedTitle"),
+                LevelText.Get("Dialog.Validation.LastCheckpoint", lastCheckpoint),
                 Color.FromRgb(229, 107, 107)),
             NativeValidationStatus.TargetNotRequested => (
-                "⚠ УРОВЕНЬ НЕ БЫЛ ЗАПРОШЕН",
-                "Игра была закрыта до входа в нужную комнату либо путь уровня внутри Media указан неверно.",
+                LevelText.Get("Dialog.Validation.NotRequestedTitle"),
+                LevelText.Get("Dialog.Validation.NotRequestedDetails"),
                 Color.FromRgb(230, 154, 70)),
             NativeValidationStatus.Timeout => (
-                "⚠ ТАЙМАУТ",
-                report.Summary,
+                LevelText.Get("Dialog.Validation.TimeoutTitle"),
+                LevelText.Get("Dialog.Validation.TimeoutDetails"),
                 Color.FromRgb(230, 154, 70)),
             NativeValidationStatus.Cancelled => (
-                "ПРОВЕРКА ОТМЕНЕНА",
-                report.Summary,
+                LevelText.Get("Dialog.Validation.Cancelled"),
+                LevelText.Get("Dialog.Validation.CancelledDetails"),
                 Color.FromRgb(174, 184, 198)),
             _ => (
-                $"⚠ {report.Status}",
-                report.Summary,
+                LevelText.Get("Dialog.Validation.OtherStatusTitle", status),
+                LevelText.Get($"Dialog.Validation.ResultDetails.{report.Status}"),
                 Color.FromRgb(230, 154, 70))
         };
 
         ResultTitleText.Text = title;
         ResultTitleText.Foreground = new SolidColorBrush(color);
-        ResultDetailText.Text =
-            $"{detail} Время: {report.Duration.TotalSeconds:N1} с. " +
-            $"Exit code: {report.ExitCode?.ToString() ?? "—"}.";
-        AddEvent(
-            $"RESULT · {report.Status} · {report.Summary} · " +
-            $"log={report.LogFilePath ?? "NONE"}");
+        ResultDetailText.Text = LevelText.Get("Dialog.Validation.ReportDetails",
+            detail, report.Duration.TotalSeconds, report.ExitCode?.ToString() ?? "—");
+        ResultDetailText.ToolTip = report.Summary;
+        AddEvent(LevelText.Get("Dialog.Validation.ReportEvent", status, detail,
+            report.LogFilePath ?? LevelText.Get("Dialog.Validation.NoLog")), report.Summary);
     }
 
-    private void AddEvent(string text)
+    private void AddEvent(string text, string? diagnostic = null)
     {
-        EventsList.Items.Add(text);
+        EventsList.Items.Add(diagnostic is null ? text : new ListBoxItem
+        {
+            Content = text,
+            ToolTip = new TextBlock { Text = diagnostic, TextWrapping = TextWrapping.Wrap, MaxWidth = 560 }
+        });
         while (EventsList.Items.Count > MaximumVisibleEvents)
             EventsList.Items.RemoveAt(0);
         if (EventsList.Items.Count > 0)
@@ -398,7 +443,7 @@ public partial class LevelNativeValidationWindow : Window
             return;
         e.Cancel = true;
         _closeAfterCancellation = true;
-        ResultTitleText.Text = "Останавливаю проверку…";
+        ResultTitleText.Text = LevelText.Get("Dialog.Validation.Stopping");
         _cancellation?.Cancel();
     }
 

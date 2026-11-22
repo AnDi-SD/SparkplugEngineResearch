@@ -13,6 +13,7 @@
 | SanToVmd | Перенос SAN-анимаций тела и пальцев на MMD-модель | [Открыть](SanToVmd/README.md) |
 | WinxRemix | Экспериментальный адаптер Winx Club к RTX Remix | [Открыть](WinxRemix/README.md) |
 | WinxCoop | Исследование LAN-кооператива для двух игроков в оригинальной Winx Club | [Открыть](WinxCoop/README.md) |
+| WinxGameControl | Виртуальный геймпад, конечные игровые импульсы и наблюдение ввода оригинальной Winx | [Открыть](WinxGameControl/README.md) |
 
 ## Общие и служебные компоненты
 

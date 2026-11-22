@@ -380,7 +380,7 @@ namespace
         }
         Options options; options.policy=policy;
         if(policy==OwnedGamePolicy::GameHost){options.mode=L"passive-actor";options.menuFirst=true;}
-        bool game=false,adapter=false,report=false,seconds=false,mode=false,media=false,menuFirst=false;
+        bool game=false,adapter=false,report=false,seconds=false,mode=false,media=false,menuFirst=false,startupLevel=false,startupEntry=false;
         bool runtime=false,status=false,stop=false,owner=false,created=false,nonce=false,session=false,epoch=false;
         for(int i=1;i<count;++i)
         {
@@ -391,6 +391,10 @@ namespace
             else if(key==L"--seconds" && !seconds) { options.seconds=policy==OwnedGamePolicy::GameHost && value==L"0"?0:Number(value,policy==OwnedGamePolicy::GameHost?3600:600);seconds=true; }
             else if(policy==OwnedGamePolicy::GameHost && key==L"--menu-first" && !menuFirst)
                 {Require(value==L"0" || value==L"1","--menu-first expects0 or1");options.menuFirst=value==L"1";menuFirst=true;}
+            else if(policy==OwnedGamePolicy::GameHost && key==L"--startup-level" && !startupLevel)
+                {options.startupLevel=value==L"0"?0:static_cast<DWORD>(NonzeroDecimal(value,50));startupLevel=true;}
+            else if(policy==OwnedGamePolicy::GameHost && key==L"--startup-entry" && !startupEntry)
+                {Require(value==L"0","Only the original default startup entry0 is supported");options.startupEntry=0;startupEntry=true;}
             else if(key==L"--mode" && !mode) { options.mode=value;mode=true; }
             else if(key==L"--media" && !media) { options.media=Absolute(value,MAX_PATH-40);media=true; }
             else if(policy==OwnedGamePolicy::GameHost && key==L"--mapping" && !runtime)
@@ -466,6 +470,9 @@ namespace winxcoop::adapter
         bool logCapNotice{},visualRetirementLogged{};
         RuntimeSnapshot latest{};
         RuntimeCommand pendingCommand{};
+        RuntimeCommand terminalPublishedCommand{};
+        RuntimeAck terminalAcknowledgement{};
+        bool terminalCommandsObserved{},terminalCommandsConsistent{},terminalCommandCancelledOnRetirement{};
         std::uint32_t commandsSent{},commandsAcknowledged{},scriptStep{};
         ULONGLONG commandBegan{},lastCommandCompleted{};
         bool actorLifecycleCompleted{},mediaQualifiedObserved{};
@@ -517,6 +524,8 @@ namespace winxcoop::adapter
             Require(options.policy==OwnedGamePolicy::DiagnosticProbe || options.policy==OwnedGamePolicy::GameHost,"Unknown owned game policy");
             Require(!options.menuFirst || Service(),"Menu-first is a GameHost policy, not a diagnostic bypass");
             Require(MenuFirst()?options.seconds==0:options.seconds>=5 && options.seconds<=(Service()?3600u:600u),"Menu-first requires seconds0; diagnostic game limit is outside its policy bound");
+            Require(options.startupLevel<=50 && options.startupEntry==0 && (!options.startupLevel || MenuFirst()),
+                "Direct startup requires an assigned level1..50 and the unbounded GameHost policy");
             Require(options.mode==L"observe" || options.mode==L"passive-actor" || options.mode==L"passive-unload","Unknown owned game diagnostic mode");
             Require((options.mode==L"observe")==options.media.empty(),"Passive mode requires media; observe leaves it empty");
             if(!options.media.empty())options.media=Absolute(options.media,MAX_PATH-40);
@@ -640,6 +649,7 @@ namespace winxcoop::adapter
             {
                 start.mode=RuntimeMode::PassiveActor;start.session=Service()?options.external.session:nonce;
                 start.levelEpoch=Service()?options.external.levelEpoch:1;
+                start.startupLevel=options.startupLevel;start.startupEntry=options.startupEntry;
                 Require(options.media.size()<sizeof(start.mediaDirectory),"Media path exceeds IPC contract");
                 for(std::size_t i=0;i<options.media.size();++i)start.mediaDirectory[i]=static_cast<char>(options.media[i]);
             }
@@ -1278,11 +1288,57 @@ namespace winxcoop::adapter
                 latest.remoteCreated==0 && latest.remoteRemoved==0 && latest.remoteEntity==0 &&
                 latest.lastCommandSequence==0 && commandsSent==0 && commandsAcknowledged==0;
         }
+        bool RetiredPlayingSnapshot() const noexcept
+        {
+            return readySamples>0 && samples>=readySamples && latest.worldUpdates>0 &&
+                latest.phase==RuntimePhase::Stopped && latest.error==RuntimeError::None && latest.epochRetired &&
+                latest.levelId==0 && latest.localComponentCount==0 && !latest.remoteEntity && !latest.actorError &&
+                latest.remoteCreated==latest.remoteRemoved && latest.unloadGuardHits>0 &&
+                latest.unloadCleanups<=latest.remoteRemoved &&
+                (!latest.remoteCreated || (latest.nativeCalls>0 && mediaQualifiedObserved));
+        }
+        void CaptureTerminalCommands() noexcept
+        {
+            if(!Service() || !shared || !TryRead(shared->command,terminalPublishedCommand) ||
+                !TryRead(shared->acknowledgement,terminalAcknowledgement))return;
+            terminalCommandsObserved=true;
+            const auto& command=terminalPublishedCommand;const auto& ack=terminalAcknowledgement;
+            RuntimeCommand emptyCommand;RuntimeAck emptyAck;
+            ZeroMemory(&emptyCommand,sizeof(emptyCommand));ZeroMemory(&emptyAck,sizeof(emptyAck));
+            const bool validCommand=command.sequence?
+                command.bytes==sizeof(command) && command.version==IpcVersion && command.session==pendingStart.session &&
+                    command.levelEpoch==pendingStart.levelEpoch && command.entity>=1 && command.entity<=2 && !command.reserved &&
+                    command.operation>=RuntimeOperation::Create && command.operation<=RuntimeOperation::Remove && command.animation<=RuntimeAnimation::Jump:
+                std::memcmp(&command,&emptyCommand,sizeof(command))==0;
+            const bool validAck=ack.sequence?
+                ack.bytes==sizeof(ack) && ack.version==IpcVersion && ack.session==pendingStart.session && ack.levelEpoch==pendingStart.levelEpoch &&
+                    ack.entity>=1 && ack.entity<=2 && ack.operation>=RuntimeOperation::Create && ack.operation<=RuntimeOperation::Remove &&
+                    ack.status==RuntimeAckStatus::Applied && ack.error==RuntimeError::None && !ack.actorError &&
+                    ack.worldUpdates>0 && ack.worldUpdates<=latest.worldUpdates:
+                std::memcmp(&ack,&emptyAck,sizeof(ack))==0;
+            if(!validCommand || !validAck || ack.sequence!=latest.lastCommandSequence || command.sequence<ack.sequence ||
+                command.sequence-ack.sequence>1 || latest.remoteCreated>ack.sequence)return;
+            if(command.sequence==ack.sequence && command.sequence &&
+                (command.entity!=ack.entity || command.operation!=ack.operation))return;
+            terminalCommandsConsistent=true;
+            // A command one ahead of the last real Applied ACK cannot run
+            // after native epoch retirement. Record cancellation separately;
+            // never advance the ACK or runtime consumed sequence to match it.
+            terminalCommandCancelledOnRetirement=command.sequence>ack.sequence && RetiredPlayingSnapshot();
+        }
+        bool MeasuredPlayingExit() const noexcept
+        {
+            return MenuFirst() && exitKnown && exitContinued && exitCode==1 && fatal==0 && !forced && !stopRequested &&
+                stopReason==GameHostStopReason::GameExit && failure.empty() && loadComplete && startComplete && contextRestored && pageFreed &&
+                ObserverAdmitted() && RetiredPlayingSnapshot() && terminalCommandsObserved && terminalCommandsConsistent &&
+                (terminalPublishedCommand.sequence==terminalAcknowledgement.sequence || terminalCommandCancelledOnRetirement);
+        }
         void FinalizeObservation()
         {
             if(observationFinalized)return;observationFinalized=true;
             Sample(true);
-            if(exitContinued && exitCode!=0 && !MeasuredMenuExit() && failure.empty())
+            CaptureTerminalCommands();
+            if(exitContinued && exitCode!=0 && !MeasuredMenuExit() && !MeasuredPlayingExit() && failure.empty())
                 failure="Owned game exited unexpectedly with code "+std::to_string(exitCode);
         }
         bool QualifiedComplete() const noexcept
@@ -1347,8 +1403,15 @@ namespace winxcoop::adapter
             const std::string actorFields=",\"mode\":"+Quote(options.mode==L"observe"?"observe":options.mode==L"passive-actor"?"passive-actor":"passive-unload")+
                 ",\"ipcVersion\":"+std::to_string(IpcVersion)+",\"commandsSent\":"+std::to_string(commandsSent)+",\"commandsAcknowledged\":"+std::to_string(commandsAcknowledged)+
                 ",\"runtimeLevelId\":"+std::to_string(latest.levelId)+",\"runtimeLastCommandSequence\":"+std::to_string(latest.lastCommandSequence)+
+                ",\"runtimePhase\":"+std::to_string(static_cast<unsigned>(latest.phase))+",\"runtimeError\":"+std::to_string(static_cast<unsigned>(latest.error))+
+                ",\"runtimeLocalComponentCount\":"+std::to_string(latest.localComponentCount)+
+                ",\"runtimeCommandsObserved\":"+Boolean(terminalCommandsObserved)+",\"runtimeCommandStateConsistent\":"+Boolean(terminalCommandsConsistent)+
+                ",\"runtimePublishedCommandSequence\":"+std::to_string(terminalPublishedCommand.sequence)+
+                ",\"runtimeAcknowledgedCommandSequence\":"+std::to_string(terminalAcknowledgement.sequence)+
+                ",\"runtimeAcknowledgementWorldUpdates\":"+std::to_string(terminalAcknowledgement.worldUpdates)+
+                ",\"runtimeCommandCancelledOnRetirement\":"+Boolean(terminalCommandCancelledOnRetirement)+
                 ",\"actorLifecycleCompleted\":"+Boolean(actorLifecycleCompleted)+",\"remoteCreated\":"+std::to_string(latest.remoteCreated)+",\"remoteRemoved\":"+std::to_string(latest.remoteRemoved)+
-                ",\"remoteEntity\":"+std::to_string(latest.remoteEntity)+",\"nativeCalls\":"+std::to_string(latest.nativeCalls)+",\"unloadGuardHits\":"+std::to_string(latest.unloadGuardHits)+
+                ",\"remoteEntity\":"+std::to_string(latest.remoteEntity)+",\"actorError\":"+std::to_string(latest.actorError)+",\"nativeCalls\":"+std::to_string(latest.nativeCalls)+",\"unloadGuardHits\":"+std::to_string(latest.unloadGuardHits)+
                 ",\"unloadCleanups\":"+std::to_string(latest.unloadCleanups)+",\"epochRetired\":"+Boolean(latest.epochRetired!=0)+",\"mediaQualified\":"+Boolean(latest.mediaQualified!=0)+",\"mediaQualifiedObserved\":"+Boolean(mediaQualifiedObserved)+
                 ",\"actorNativeCallsControlledFpWitness\":"+Boolean(ActorFpQualified())+",\"actorFpWitnessIntervalsStarted\":"+std::to_string(actorWitnessIntervalsStarted)+
                 ",\"actorFpWitnessIntervalsPassed\":"+std::to_string(actorWitnessIntervalsPassed)+",\"actorFpWitnessActive\":"+Boolean(actorWitnessActive)+
@@ -1360,6 +1423,7 @@ namespace winxcoop::adapter
                 ",\"helperPid\":"+std::to_string(GetCurrentProcessId())+",\"helperCreationTime\":"+std::to_string(helperCreationTime)+
                 ",\"gameCreationTime\":"+std::to_string(gameCreationTime)+",\"menuFirst\":"+Boolean(MenuFirst())+
                 ",\"gameProcessCreated\":"+Boolean(pi.dwProcessId!=0)+
+                ",\"startupLevel\":"+std::to_string(options.startupLevel)+",\"startupEntry\":"+std::to_string(options.startupEntry)+
                 ",\"gameLifetimeLimitEnabled\":"+Boolean(!MenuFirst())+",\"eventDiagnosticsSuppressedAtCap\":"+Boolean(logCapNotice)+
                 ",\"stopRequested\":"+Boolean(stopRequested)+",\"stopReason\":"+std::to_string(static_cast<unsigned>(stopReason)):std::string();
             WriteAll(report.value,std::string("{\"kind\":")+Quote(Service()?"WinxCoop-owned-x86-game-host":"WinxCoop-owned-x86-adapter-probe")+

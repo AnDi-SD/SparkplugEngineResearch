@@ -9,6 +9,7 @@ internal sealed record SmoExternalModelForestPlanResult(
     SmoAdditiveForestPlan Plan,
     IReadOnlyList<uint> MeshObjectIds,
     IReadOnlyDictionary<int, uint> ImportedTextureObjectIds,
+    IReadOnlyList<uint[]> PlacementRootObjectIdsByPart,
     int PlacementCount);
 
 internal static class SmoExternalModelBatchPipeline
@@ -22,10 +23,8 @@ internal static class SmoExternalModelBatchPipeline
         ImportedScene importedScene,
         IReadOnlyList<System.Numerics.Matrix4x4> worldTransforms,
         string modelName,
-        string sourcePath,
         string workerExecutable,
         string? workerAssembly,
-        string? nativeFbxBridgePath,
         Action<int, int>? batchProgress,
         CancellationToken cancellationToken)
     {
@@ -35,10 +34,8 @@ internal static class SmoExternalModelBatchPipeline
             importedScene,
             worldTransforms,
             modelName,
-            sourcePath,
             workerExecutable,
             workerAssembly,
-            nativeFbxBridgePath,
             batchProgress,
             cancellationToken,
             emitForestPlans: false,
@@ -50,7 +47,8 @@ internal static class SmoExternalModelBatchPipeline
             run.MeshObjectIds,
             worldTransforms.Count)
         {
-            ImportedTextureObjectIds = run.ImportedTextureObjectIds
+            ImportedTextureObjectIds = run.ImportedTextureObjectIds,
+            PlacementRootObjectIdsByPart = run.PlacementRootObjectIdsByPart
         };
     }
 
@@ -65,10 +63,8 @@ internal static class SmoExternalModelBatchPipeline
         ImportedScene importedScene,
         IReadOnlyList<System.Numerics.Matrix4x4> worldTransforms,
         string modelName,
-        string sourcePath,
         string workerExecutable,
         string? workerAssembly,
-        string? nativeFbxBridgePath,
         Action<int, int>? batchProgress,
         CancellationToken cancellationToken)
     {
@@ -78,10 +74,8 @@ internal static class SmoExternalModelBatchPipeline
             importedScene,
             worldTransforms,
             modelName,
-            sourcePath,
             workerExecutable,
             workerAssembly,
-            nativeFbxBridgePath,
             batchProgress,
             cancellationToken,
             emitForestPlans: true,
@@ -91,6 +85,7 @@ internal static class SmoExternalModelBatchPipeline
             { ReferenceRanges = run.ReferenceRanges },
             run.MeshObjectIds,
             run.ImportedTextureObjectIds,
+            run.PlacementRootObjectIdsByPart,
             worldTransforms.Count);
     }
 
@@ -100,10 +95,8 @@ internal static class SmoExternalModelBatchPipeline
         ImportedScene importedScene,
         IReadOnlyList<System.Numerics.Matrix4x4> worldTransforms,
         string modelName,
-        string sourcePath,
         string workerExecutable,
         string? workerAssembly,
-        string? nativeFbxBridgePath,
         Action<int, int>? batchProgress,
         CancellationToken cancellationToken,
         bool emitForestPlans,
@@ -111,9 +104,7 @@ internal static class SmoExternalModelBatchPipeline
     {
         ArgumentNullException.ThrowIfNull(current);
         ArgumentNullException.ThrowIfNull(importedScene);
-        // The worker re-reads the source model, so split it here and again in
-        // the worker through the same deterministic preparer. This keeps part
-        // indices and progress counts identical across the process boundary.
+        // The snapshot uses the same part indices that drive worker progress.
         importedScene = SmoLevelRigidImportPreparer.Prepare(importedScene);
         string root = Path.Combine(
             Path.GetTempPath(),
@@ -137,27 +128,14 @@ internal static class SmoExternalModelBatchPipeline
 
             var referenceRanges = new List<SmoFileReferenceRange>();
             var referenceTransport = new SmoFileReferenceWorkerContext();
-            var textureFiles = new List<SmoExternalBatchTexture>(
-                importedScene.Textures.Count);
-            for (int index = 0; index < importedScene.Textures.Count; index++)
-            {
-                ImportedTexture texture = importedScene.Textures[index];
-                string texturePath = Path.Combine(root, $"texture-{index:D4}.bin");
-                File.WriteAllBytes(texturePath, texture.Data);
-                textureFiles.Add(new SmoExternalBatchTexture(
-                    index,
-                    texture.Name,
-                    texture.MimeType,
-                    texture.Width,
-                    texture.Height,
-                    texturePath,
-                    texture.SourcePath));
-            }
+            string preparedScenePath = Path.Combine(root, "prepared-scene.bin");
+            SmoRigidImportSnapshot.Write(preparedScenePath, importedScene);
 
             uint templateObjectId = current.Objects[templateMeshObjectIndex].Id;
             int totalParts = importedScene.Meshes.Count;
             int addedObjectCount = 0;
             var generatedMeshIds = new List<uint>(totalParts);
+            var placementRootIdsByPart = new List<uint[]>(totalParts);
             var generatedObjectIds = new List<uint>();
             var forestOperations = new List<SmoVisualForestOperation>();
             IReadOnlyDictionary<int, uint> importedTextureObjectIds =
@@ -185,8 +163,7 @@ internal static class SmoExternalModelBatchPipeline
                     InputLevelPath = inputPath,
                     OutputLevelPath = outputPath,
                     ResultPath = resultPath,
-                    ModelSourcePath = sourcePath,
-                    NativeFbxBridgePath = nativeFbxBridgePath,
+                    PreparedScenePath = preparedScenePath,
                     TemplateMeshObjectId = templateObjectId,
                     ModelName = modelName,
                     FirstPartIndex = firstPart,
@@ -194,7 +171,6 @@ internal static class SmoExternalModelBatchPipeline
                     WorldTransforms = worldTransforms
                         .Select(SmoSaveMatrix.From)
                         .ToList(),
-                    PreparedTextures = textureFiles,
                     ReusableImportedTextureObjectIds =
                         new Dictionary<int, uint>(importedTextureObjectIds),
                     EmitForestPlan = emitForestPlans,
@@ -222,6 +198,13 @@ internal static class SmoExternalModelBatchPipeline
                 }
                 addedObjectCount += result.AddedObjectCount;
                 generatedMeshIds.AddRange(result.MeshObjectIds);
+                if (result.PlacementRootObjectIdsByPart.Count != count ||
+                    result.PlacementRootObjectIdsByPart.Any(ids => ids.Length != worldTransforms.Count))
+                {
+                    throw new InvalidDataException(
+                        "External-model worker returned an incomplete placement root map.");
+                }
+                placementRootIdsByPart.AddRange(result.PlacementRootObjectIdsByPart);
                 importedTextureObjectIds = result.ImportedTextureObjectIds;
                 if (emitForestPlans)
                 {
@@ -288,6 +271,7 @@ internal static class SmoExternalModelBatchPipeline
                 addedObjectCount,
                 generatedMeshIds,
                 importedTextureObjectIds,
+                placementRootIdsByPart,
                 forestOperations,
                 generatedObjectIds,
                 referenceRanges);
@@ -317,6 +301,7 @@ internal static class SmoExternalModelBatchPipeline
         // worker instead of forcing the operating system into swap thrashing.
         startInfo.Environment["DOTNET_GCHeapHardLimitPercent"] = "0x32";
         startInfo.Environment["DOTNET_GCConserveMemory"] = "9";
+        startInfo.Environment[LevelText.WorkerLanguageVariable] = LevelText.Language;
         startInfo.ArgumentList.Add("--isolated-external-model-batch");
         startInfo.ArgumentList.Add(jobPath);
         using Process process = Process.Start(startInfo) ??
@@ -389,6 +374,7 @@ internal static class SmoExternalModelBatchPipeline
         int AddedObjectCount,
         IReadOnlyList<uint> MeshObjectIds,
         IReadOnlyDictionary<int, uint> ImportedTextureObjectIds,
+        IReadOnlyList<uint[]> PlacementRootObjectIdsByPart,
         IReadOnlyList<SmoVisualForestOperation> ForestOperations,
         IReadOnlyList<uint> GeneratedObjectIds,
         IReadOnlyList<SmoFileReferenceRange> ReferenceRanges);
@@ -399,14 +385,12 @@ public sealed class SmoExternalModelBatchJob
     public required string InputLevelPath { get; init; }
     public required string OutputLevelPath { get; init; }
     public required string ResultPath { get; init; }
-    public required string ModelSourcePath { get; init; }
-    public string? NativeFbxBridgePath { get; init; }
+    public required string PreparedScenePath { get; init; }
     public uint TemplateMeshObjectId { get; init; }
     public required string ModelName { get; init; }
     public int FirstPartIndex { get; init; }
     public int PartCount { get; init; }
     public List<SmoSaveMatrix> WorldTransforms { get; init; } = [];
-    public List<SmoExternalBatchTexture> PreparedTextures { get; init; } = [];
     public Dictionary<int, uint> ReusableImportedTextureObjectIds { get; init; } = [];
     public bool EmitForestPlan { get; init; }
     public bool WriteOutputContainer { get; init; } = true;
@@ -421,24 +405,7 @@ public sealed class SmoExternalModelBatchJob
                 throw new InvalidDataException(
                     "External-model batch job is empty.");
             SmoDocument document = SmoDocument.Load(job.InputLevelPath);
-            ImportedScene imported = ImportedModelReader.Read(
-                job.ModelSourcePath,
-                job.NativeFbxBridgePath);
-            ImportedTexture[] textures = imported.Textures.ToArray();
-            foreach (SmoExternalBatchTexture item in job.PreparedTextures)
-            {
-                if ((uint)item.Index >= (uint)textures.Length)
-                    throw new InvalidDataException(
-                        $"Prepared texture index {item.Index} is outside the imported scene.");
-                textures[item.Index] = new ImportedTexture(
-                    item.Name,
-                    item.MimeType,
-                    item.Width,
-                    item.Height,
-                    File.ReadAllBytes(item.DataPath),
-                    item.SourcePath);
-            }
-            imported = imported with { EmbeddedTextures = textures };
+            ImportedScene imported = SmoRigidImportSnapshot.Read(job.PreparedScenePath);
             int templateIndex = document.Objects.Single(entry =>
                 entry.Id == job.TemplateMeshObjectId).Index;
             SmoExternalLevelModelAppendResult appended =
@@ -471,7 +438,11 @@ public sealed class SmoExternalModelBatchJob
                 new Dictionary<int, uint>(appended.ImportedTextureObjectIds),
                 null,
                 null,
-                forests));
+                forests)
+            {
+                PlacementRootObjectIdsByPart = appended.PlacementRootObjectIdsByPart
+                    .Select(ids => ids.ToArray()).ToList()
+            });
             return 0;
         }
         catch (Exception exception)
@@ -534,15 +505,6 @@ public sealed class SmoExternalModelBatchJob
     }
 }
 
-public sealed record SmoExternalBatchTexture(
-    int Index,
-    string Name,
-    string MimeType,
-    int Width,
-    int Height,
-    string DataPath,
-    string? SourcePath);
-
 public sealed record SmoExternalModelBatchResult(
     bool Success,
     int AddedObjectCount,
@@ -550,7 +512,10 @@ public sealed record SmoExternalModelBatchResult(
     Dictionary<int, uint> ImportedTextureObjectIds,
     string? Error,
     string? Details,
-    List<SmoExternalBatchForest>? Forests = null);
+    List<SmoExternalBatchForest>? Forests = null)
+{
+    public List<uint[]> PlacementRootObjectIdsByPart { get; init; } = [];
+}
 
 public sealed record SmoExternalBatchForest(
     uint TargetOwnerId,

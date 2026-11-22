@@ -99,6 +99,39 @@ internal static class ImportTextureRecoveryRegression
         Assert(reassigned.EffectiveScene.Materials[1].BaseColorTextureIndex >= 0,
             "An omitted image could not be assigned explicitly later.");
         ImportedScene recoveredObj = ObjModelReader.Read(obj);
+        int missingMaterial = recoveredObj.Materials.Select((material, index) => (material, index))
+            .Single(item => item.material.Name == "Missing").index;
+        ImportedDiagnostic missingWarning = recoveredObj.ImportDiagnostics.Single(item => item.Code == "TEXTURE_MISSING" &&
+            Equals(item.Arguments[1], "Missing"));
+        ImportedDiagnostic corruptWarning = recoveredObj.ImportDiagnostics.Single(item => item.Code == "TEXTURE_PAYLOAD" &&
+            Equals(item.Arguments[1], "Corrupt"));
+        ImportedTexture automaticImage = replacement with { Name = "missing" };
+        ImportedTextureCatalogResult automatic = ImportedTextureCatalog.ResolveExternalOverrides(recoveredObj, [automaticImage]);
+        ImportedTextureSlot missingSlot = automatic.Slots.Single(slot => slot.MaterialIndices.Contains(missingMaterial));
+        Assert(!missingSlot.IsExplicit && missingSlot.EffectiveTextureIndex >= 0 &&
+               automatic.EffectiveScene.Textures[missingSlot.EffectiveTextureIndex].Name == "missing",
+            "An omitted authored image could not be recovered by filename.");
+        var explicitImage = replacement with { Name = "manual" };
+        ImportedTextureCatalogResult manual = ImportedTextureCatalog.ResolveExternalOverrides(recoveredObj,
+            [automaticImage], new Dictionary<int, ImportedTexture> { [missingSlot.Key] = explicitImage });
+        ImportedTextureSlot manualSlot = manual.Slots.Single(slot => slot.Key == missingSlot.Key);
+        Assert(manualSlot.IsExplicit && manual.EffectiveScene.Textures[manualSlot.EffectiveTextureIndex].Name == "manual",
+            "Automatic assignment took priority over an exact image assignment.");
+        foreach (ImportedScene scene in new[] { automatic.EffectiveScene, manual.EffectiveScene })
+        {
+            Assert(!scene.ImportDiagnostics.Contains(missingWarning) && !scene.ImportWarnings.Contains(missingWarning.Message),
+                "A repaired material still reported that its texture was missing.");
+            Assert(scene.ImportDiagnostics.Contains(corruptWarning) && scene.ImportWarnings.Contains(corruptWarning.Message),
+                "Repairing one material removed the warning for another material.");
+        }
+        var corruptImagePath = Path.Combine(objDirectory, "images", "corrupt.png");
+        try
+        {
+            _ = ImportedTextureFileReader.Read(corruptImagePath);
+            throw new InvalidOperationException("A header-only external image was accepted.");
+        }
+        catch (Exception exception) when (exception is InvalidImageContentException or InvalidDataException) { }
+
         int unboundMaterial = recoveredObj.Materials.Select((material, index) => (material, index))
             .Single(item => item.material.Name == "UnboundMaterial").index;
         ImportedTexture nameMatchedImage = replacement with { Name = "UnboundMaterial" };

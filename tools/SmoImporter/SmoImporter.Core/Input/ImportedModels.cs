@@ -89,6 +89,13 @@ public sealed record ImportedMaterial(
         ImportedMaterialAlphaMode.Mask or ImportedMaterialAlphaMode.Blend;
 }
 
+/// <summary>Structured context for an import warning that a consumer can present in its language.</summary>
+public sealed record ImportedDiagnostic(string Code, string Message, params object?[] Arguments)
+{
+    // The warning describes a material that could not be given an image during reading.
+    internal int? UntexturedMaterialIndex { get; init; }
+}
+
 public sealed record ImportedScene(
     IReadOnlyList<ImportedMesh> Meshes,
     IReadOnlyList<ImportedTexture>? EmbeddedTextures = null,
@@ -101,6 +108,7 @@ public sealed record ImportedScene(
     /// source asset. Preparation paths must preserve and surface these messages.
     /// </summary>
     public IReadOnlyList<string> ImportWarnings { get; init; } = [];
+    public IReadOnlyList<ImportedDiagnostic> ImportDiagnostics { get; init; } = [];
     /// <summary>Absolute paths of the material libraries read for an OBJ, in load order.</summary>
     public IReadOnlyList<string> ObjMaterialLibraryPaths { get; init; } = [];
     public bool HasSkinning => Meshes.Any(mesh => mesh.Skinning is not null);

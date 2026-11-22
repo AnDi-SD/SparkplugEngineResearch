@@ -171,6 +171,27 @@ public static class ImportedTextureCatalog
             EmbeddedTextures = effectiveTextures.AsReadOnly(),
             SourceMaterials = Array.AsReadOnly(effectiveMaterials)
         };
+        var repairedWarnings = new HashSet<string>(StringComparer.Ordinal);
+        ImportedDiagnostic[] remainingDiagnostics = source.ImportDiagnostics.Where(diagnostic =>
+        {
+            if (diagnostic.UntexturedMaterialIndex is not int index ||
+                (uint)index >= sourceMaterials.Length ||
+                sourceMaterials[index].BaseColorTextureIndex >= 0 ||
+                effectiveMaterials[index].BaseColorTextureIndex < 0)
+                return true;
+            repairedWarnings.Add(diagnostic.Message);
+            return false;
+        }).ToArray();
+        if (repairedWarnings.Count > 0)
+        {
+            repairedWarnings.ExceptWith(remainingDiagnostics.Select(diagnostic => diagnostic.Message));
+            effectiveScene = effectiveScene with
+            {
+                ImportWarnings = source.ImportWarnings
+                    .Where(warning => !repairedWarnings.Contains(warning)).ToArray(),
+                ImportDiagnostics = remainingDiagnostics
+            };
+        }
         ImportedModelResourceLimits.ValidateTextures(
             effectiveScene.Textures,
             "Imported scene");

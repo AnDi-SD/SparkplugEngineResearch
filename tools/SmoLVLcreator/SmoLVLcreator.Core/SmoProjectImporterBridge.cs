@@ -14,7 +14,11 @@ public sealed record SmoProjectExternalModelAddition(
     IReadOnlyDictionary<int, uint> ImportedTextureObjectIds,
     IReadOnlyList<uint> PlacementRootObjectIds,
     int PlacementCount,
-    IReadOnlyList<Guid> AssetIds);
+    IReadOnlyList<Guid> AssetIds)
+{
+    /// <summary>Each input placement's static roots in mesh-part order.</summary>
+    public IReadOnlyList<IReadOnlyList<uint>> PlacementRootObjectIdsByPlacement { get; init; } = [];
+}
 
 /// <summary>
 /// Adapts serializer-owned importer plans to the immutable project
@@ -59,10 +63,8 @@ public static class SmoProjectImporterBridge
             importedScene,
             worldTransforms,
             modelName,
-            modelSourcePath,
             workerExecutable,
             workerAssembly,
-            nativeFbxBridgePath,
             progress,
             cancellationToken);
         return AddExternalModelPlanResult(project, planned);
@@ -84,19 +86,33 @@ public static class SmoProjectImporterBridge
             .Any()
                 ? SmoAdditiveForestPlanner.RemapObjectIds(plan, idMap)
                 : plan;
+        uint[] placementRootIds = remapped.Operations
+            .SelectMany(operation => operation.Attachment.Entries)
+            .Where(entry => entry.TypeHash == SmoClassIds.StaticRenderObject)
+            .Select(entry => entry.Id)
+            .ToArray();
+        IReadOnlyList<uint>[] placementRootsByPlacement = Enumerable.Range(0, planned.PlacementCount)
+            .Select(ordinal => (IReadOnlyList<uint>)planned.PlacementRootObjectIdsByPart
+                .Select(part => idMap[part[ordinal]]).ToArray())
+            .ToArray();
+        uint[] mappedRootIds = placementRootsByPlacement.SelectMany(ids => ids).ToArray();
+        if (mappedRootIds.Distinct().Count() != mappedRootIds.Length ||
+            !placementRootIds.ToHashSet().IsSupersetOf(mappedRootIds))
+        {
+            throw new InvalidDataException("External-model placement roots do not match the additive plan.");
+        }
         IReadOnlyList<Guid> assets = AddOperations(project, remapped.Operations);
         return new SmoProjectExternalModelAddition(
             planned.MeshObjectIds.Select(id => idMap[id]).ToArray(),
             planned.ImportedTextureObjectIds.ToDictionary(
                 pair => pair.Key,
                 pair => idMap[pair.Value]),
-            remapped.Operations
-                .SelectMany(operation => operation.Attachment.Entries)
-                .Where(entry => entry.TypeHash == SmoClassIds.StaticRenderObject)
-                .Select(entry => entry.Id)
-                .ToArray(),
+            placementRootIds,
             planned.PlacementCount,
-            assets);
+            assets)
+        {
+            PlacementRootObjectIdsByPlacement = placementRootsByPlacement
+        };
     }
 
     public static SmoProjectCollisionAddition AddCollision(

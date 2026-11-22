@@ -12,6 +12,9 @@ public sealed record SmoExternalLevelModelAppendResult(
 {
     public IReadOnlyDictionary<int, uint> ImportedTextureObjectIds { get; init; } =
         new Dictionary<int, uint>();
+
+    /// <summary>Static object IDs in mesh-part order, then input placement order.</summary>
+    public IReadOnlyList<IReadOnlyList<uint>> PlacementRootObjectIdsByPart { get; init; } = [];
 }
 
 /// <summary>
@@ -80,6 +83,7 @@ public static class SmoExternalLevelModelAppender
             : modelName.Trim();
         byte[]? output = null;
         var generatedMeshIds = new List<uint>(partCount);
+        var placementRootIdsByPart = new List<IReadOnlyList<uint>>(partCount);
         IReadOnlyDictionary<int, uint> importedTextureObjectIds =
             reusableImportedTextureObjectIds ?? new Dictionary<int, uint>();
         int end = checked(firstPartIndex + partCount);
@@ -98,6 +102,7 @@ public static class SmoExternalLevelModelAppender
                 importedTextureObjectIds);
             output = part.Data;
             generatedMeshIds.Add(part.MeshObjectId);
+            placementRootIdsByPart.Add(part.PlacementRootObjectIds);
             importedTextureObjectIds = part.ImportedTextureObjectIds;
             part = null!;
             current = null!;
@@ -118,7 +123,8 @@ public static class SmoExternalLevelModelAppender
             generatedMeshIds,
             worldTransforms.Count)
         {
-            ImportedTextureObjectIds = importedTextureObjectIds
+            ImportedTextureObjectIds = importedTextureObjectIds,
+            PlacementRootObjectIdsByPart = placementRootIdsByPart
         };
     }
 
@@ -152,6 +158,7 @@ public static class SmoExternalLevelModelAppender
             worldTransforms[0],
             $"{safeName}_{partIndex + 1}",
             targetPartitionId);
+        var placementRootIds = new List<uint>(worldTransforms.Count) { host.StaticObjectId };
         int hostModelObjectIndex = host.ModelObjectIndex;
         byte[] output = host.Data;
         host = null!;
@@ -224,7 +231,8 @@ public static class SmoExternalLevelModelAppender
                 onePart,
                 ReplacementTransform.Identity,
                 Matrix4x4.Identity,
-                reusableImportedTextureObjectIds);
+            reusableImportedTextureObjectIds,
+            options: SmoLevelModelGraphWriteOptions.LevelEditor);
         output = replaced.Data;
         uint generatedMeshId = replaced.MeshObjectIds[temporaryMeshId];
         IReadOnlyDictionary<int, uint> importedTextureObjectIds =
@@ -245,6 +253,7 @@ public static class SmoExternalLevelModelAppender
                 generatedMeshIndex,
                 worldTransforms[placementIndex],
                 $"{safeName}_{partIndex + 1}");
+            placementRootIds.Add(clone.StaticObjectId);
             output = clone.Data;
             clone = null!;
             current = null!;
@@ -261,7 +270,8 @@ public static class SmoExternalLevelModelAppender
         return new PartAppendResult(
             output,
             generatedMeshId,
-            importedTextureObjectIds);
+            importedTextureObjectIds,
+            placementRootIds);
     }
 
     private static uint? ResolveBspLeaf(SmoDocument document, ImportedMesh mesh, Matrix4x4 world)
@@ -322,5 +332,6 @@ public static class SmoExternalLevelModelAppender
     private sealed record PartAppendResult(
         byte[] Data,
         uint MeshObjectId,
-        IReadOnlyDictionary<int, uint> ImportedTextureObjectIds);
+        IReadOnlyDictionary<int, uint> ImportedTextureObjectIds,
+        IReadOnlyList<uint> PlacementRootObjectIds);
 }

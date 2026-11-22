@@ -1,5 +1,6 @@
 using OpenTK.Wpf;
 using SmoImporter.Core;
+using SmoLVLcreator.Core;
 using SmoLVLcreator.Viewport.Wpf;
 using SmoViewer.Core;
 using SmoViewer.Rendering.Wpf;
@@ -91,7 +92,7 @@ public partial class ModelFitWindow : Window
         : this(
             document,
             sourceMeshes?.FirstOrDefault() ?? throw new ArgumentException(
-                "Composite fitting needs at least one source mesh.",
+                LevelText.Get("Dialog.Fit.EmptyComposite"),
                 nameof(sourceMeshes)),
             sourceMeshes,
             importedScene,
@@ -123,8 +124,7 @@ public partial class ModelFitWindow : Window
                 mesh.Positions.Length > ushort.MaxValue))
         {
             throw new InvalidOperationException(
-                $"Каждый меш внешней модели должен содержать от 1 до " +
-                $"{ushort.MaxValue:N0} вершин.");
+                LevelText.Get("Dialog.Fit.VertexLimit", ushort.MaxValue));
         }
 
         _importedPositions = importedScene.Meshes
@@ -145,9 +145,8 @@ public partial class ModelFitWindow : Window
             SmoLevelModelGraphPlan modelPlan =
                 SmoLevelModelGraphReplacer.ResolvePlan(document, _meshObjectIndex);
             if (modelPlan.Components.Count != importedScene.Meshes.Count)
-                throw new InvalidOperationException(
-                    $"Complete model needs {modelPlan.Components.Count} imported mesh parts, " +
-                    $"but {importedScene.Meshes.Count} were supplied.");
+                throw new InvalidOperationException(LevelText.Get(
+                    "Dialog.Fit.MeshPartCountMismatch", modelPlan.Components.Count, importedScene.Meshes.Count));
             sourceParts = modelPlan.Components.Select(component =>
                 prepared.Meshes.First(mesh =>
                     mesh.Mesh.ObjectIndex == component.MeshObjectIndex &&
@@ -200,7 +199,8 @@ public partial class ModelFitWindow : Window
                 importedScene.Textures,
                 importedScene.Materials)
             {
-                ImportWarnings = importedScene.ImportWarnings
+                ImportWarnings = importedScene.ImportWarnings,
+                ImportDiagnostics = importedScene.ImportDiagnostics
             };
             SmoMesh previewMesh = SmoMeshResourceReplacer.CreatePreviewMesh(
                 document,
@@ -250,22 +250,17 @@ public partial class ModelFitWindow : Window
         FrameTarget();
 
         ModelNameText.Text = composite
-            ? $"Полная замена {compositeName}"
-            : $"Замена Mesh_{_meshObjectIndex}";
+            ? LevelText.Get("Dialog.Fit.ReplaceComposite", compositeName)
+            : LevelText.Get("Dialog.Fit.ReplaceMesh", _meshObjectIndex);
         SourcePathText.Text = sourcePath;
-        GeometryText.Text =
-            $"Внешняя модель: {importedScene.Meshes.Count:N0} мешей · " +
-            $"{_importedPositions.Length:N0} вершин · " +
-            $"{importedScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} треугольников · " +
-            $"alpha-материалов: " +
-            $"{importedScene.Materials.Count(material => material.UsesTextureAlpha):N0}\n" +
-            (composite
-                ? $"Составной ресурс: {sourceParts.Length:N0} старых частей · " +
-                  $"{compositePlacementCount:N0} размещений будут переведены на новый ресурс."
-                : $"Ресурс SMO: [{_meshObjectIndex}] · все его размещения получат новую геометрию.");
-        WarningText.Text = importedScene.ImportWarnings.Count > 0
-            ? string.Join("\n", importedScene.ImportWarnings)
-            : string.Empty;
+        string replacementSummary = composite
+            ? LevelText.Get("Dialog.Fit.CompositeSummary", sourceParts.Length, compositePlacementCount)
+            : LevelText.Get("Dialog.Fit.MeshSummary", _meshObjectIndex);
+        GeometryText.Text = LevelText.Get("Dialog.Fit.GeometrySummary",
+            importedScene.Meshes.Count, _importedPositions.Length,
+            importedScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3),
+            importedScene.Materials.Count(material => material.UsesTextureAlpha), replacementSummary);
+        WarningText.Text = string.Join("\n", SmoLevelImportValidator.DescribeWarnings(importedScene));
         WriteFields();
 
         InitializeGpuViewport();
@@ -287,13 +282,13 @@ public partial class ModelFitWindow : Window
             _gpuRenderer.SetAntialiasingSamples(4);
             _gpuAvailable = true;
             PreviewStateText.Visibility = Visibility.Visible;
-            PreviewStateText.Text = "Запуск GPU-предпросмотра…";
-            StatusText.Text = "Инициализация OpenGL…";
+            PreviewStateText.Text = LevelText.Get("Dialog.Fit.StartingPreview");
+            StatusText.Text = LevelText.Get("Dialog.Fit.InitializingOpenGl");
         }
         catch (Exception exception)
         {
-            PreviewStateText.Text = $"OpenGL-предпросмотр недоступен: {exception.Message}";
-            StatusText.Text = "Предпросмотр не построен";
+            PreviewStateText.Text = LevelText.Get("Dialog.Fit.PreviewUnavailable", LevelText.Error(exception.Message));
+            StatusText.Text = LevelText.Get("Dialog.Fit.PreviewNotBuilt");
         }
     }
 
@@ -348,17 +343,15 @@ public partial class ModelFitWindow : Window
             {
                 _firstFrameRendered = true;
                 PreviewStateText.Visibility = Visibility.Collapsed;
-                StatusText.Text =
-                    $"{_importedPositions.Length:N0} вершин · GPU-предпросмотр · " +
-                    "без перепаковки SMO";
+                StatusText.Text = LevelText.Get("Dialog.Fit.PreviewSummary", _importedPositions.Length);
             }
         }
         catch (Exception exception)
         {
             _gpuAvailable = false;
             PreviewStateText.Visibility = Visibility.Visible;
-            PreviewStateText.Text = $"Ошибка GPU-предпросмотра: {exception.Message}";
-            StatusText.Text = "Предпросмотр остановлен";
+            PreviewStateText.Text = LevelText.Get("Dialog.Fit.PreviewError", LevelText.Error(exception.Message));
+            StatusText.Text = LevelText.Get("Dialog.Fit.PreviewStopped");
         }
     }
 
@@ -507,8 +500,8 @@ public partial class ModelFitWindow : Window
                 _ => rotation
             };
             Transform = _gizmoStartTransform with { RotationDegrees = rotation };
-            StatusText.Text = $"Rotate {_activeAxis} · {degrees:0.##}°" +
-                (snap ? " · snap 15°" : string.Empty);
+            StatusText.Text = LevelText.Get("Dialog.Fit.RotationStatus", _activeAxis, degrees,
+                snap ? LevelText.Get("Dialog.Fit.SnapAngle", 15) : string.Empty);
         }
         else if (_tool == FitTool.Scale && _dragTranslationLayout is not null)
         {
@@ -520,8 +513,8 @@ public partial class ModelFitWindow : Window
             {
                 Scale = Math.Clamp(_gizmoStartTransform.Scale * factor, 0.00001f, 100000f)
             };
-            StatusText.Text = $"Scale · {factor:0.###}" +
-                (snap ? " · snap 0.1" : string.Empty);
+            StatusText.Text = LevelText.Get("Dialog.Fit.ScaleStatus", factor,
+                snap ? LevelText.Get("Dialog.Fit.Snap", 0.1f) : string.Empty);
         }
         else if (_dragTranslationLayout is not null)
         {
@@ -537,10 +530,9 @@ public partial class ModelFitWindow : Window
             {
                 Translation = _gizmoStartTransform.Translation + renderDelta
             };
-            StatusText.Text =
-                $"Move {_activeAxis} · Δ {renderDelta.X:0.###}, " +
-                $"{renderDelta.Y:0.###}, {renderDelta.Z:0.###}" +
-                (snap ? " · snap 1" : string.Empty);
+            StatusText.Text = LevelText.Get("Dialog.Fit.MoveStatus", _activeAxis,
+                renderDelta.X, renderDelta.Y, renderDelta.Z,
+                snap ? LevelText.Get("Dialog.Fit.Snap", 1) : string.Empty);
         }
         ApplyTransform();
         WriteFields();
@@ -611,8 +603,8 @@ public partial class ModelFitWindow : Window
         {
             MessageBox.Show(
                 this,
-                "Проверьте числовые значения трансформации.",
-                "SmoLVLcreator — подгонка модели",
+                LevelText.Get("Dialog.Fit.InvalidTransform"),
+                LevelText.Get("Dialog.Fit.WarningTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;

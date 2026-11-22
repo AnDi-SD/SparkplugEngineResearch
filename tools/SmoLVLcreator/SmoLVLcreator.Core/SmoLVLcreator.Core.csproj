@@ -16,4 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="../../SmoViewer/SmoViewer.Editing/SmoViewer.Editing.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/Strings.en.json" LogicalName="SmoLVLcreator.Strings.en.json" WithCulture="false" />
+    <EmbeddedResource Include="Localization/Strings.ru.json" LogicalName="SmoLVLcreator.Strings.ru.json" WithCulture="false" />
+  </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 <Window x:Class="SmoLVLcreator.Gui.LevelNativeValidationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SmoLVLcreator — проверка уровня в игре"
+        Title="{DynamicResource Loc.Dialog.Validation.Title}"
         Width="780" Height="700" MinWidth="650" MinHeight="560"
         WindowStartupLocation="CenterOwner"
         Background="#0D1117" Foreground="#D8DEE9"
@@ -37,9 +37,9 @@
 
         <StackPanel Grid.Row="0">
             <TextBlock FontSize="21" FontWeight="SemiBold" Foreground="#F2F5F8"
-                       Text="Проверка текущего уровня в WinxClub.exe"/>
+                       Text="{DynamicResource Loc.Dialog.Validation.Heading}"/>
             <TextBlock Margin="0,5,0,12" Foreground="#8F9BAA" TextWrapping="Wrap"
-                       Text="Редактор сначала собирает несохранённые изменения во временный SMO. Исходный уровень и файлы установленной игры не изменяются."/>
+                       Text="{DynamicResource Loc.Dialog.Validation.BuildHint}"/>
         </StackPanel>
 
         <Border Grid.Row="1" Padding="11" Background="#171E27" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="5">
@@ -53,8 +53,8 @@
                     <TextBlock Foreground="#8F9BAA" Text="WinxClub.exe"/>
                     <TextBox x:Name="GamePathBox" Margin="0,4,8,0" IsReadOnly="True" TextWrapping="Wrap"/>
                 </StackPanel>
-                <Button x:Name="FindGameButton" Grid.Column="1" Margin="0,19,6,0" Click="FindGame_Click" Content="Найти"/>
-                <Button x:Name="ChooseGameButton" Grid.Column="2" Margin="0,19,0,0" Click="ChooseGame_Click" Content="Выбрать…"/>
+                <Button x:Name="FindGameButton" Grid.Column="1" Margin="0,19,6,0" Click="FindGame_Click" Content="{DynamicResource Loc.Dialog.Validation.Find}"/>
+                <Button x:Name="ChooseGameButton" Grid.Column="2" Margin="0,19,0,0" Click="ChooseGame_Click" Content="{DynamicResource Loc.Dialog.Validation.Choose}"/>
             </Grid>
         </Border>
 
@@ -62,26 +62,26 @@
                 Background="#171E27" BorderBrush="#2B3542" BorderThickness="1" CornerRadius="5">
             <StackPanel>
                 <TextBlock Foreground="#F2F5F8" FontWeight="SemiBold"
-                           Text="Проверка через настоящий игровой переход"/>
+                           Text="{DynamicResource Loc.Dialog.Validation.RouteHeading}"/>
                 <TextBlock Margin="0,4,0,0" Foreground="#AEB8C8" TextWrapping="Wrap"
-                           Text="Для известных файлов уровней тестер сам выберет нативный startLevel, дождётся полной загрузки сцены и возврата управления игре. Для остальных путей он попросит вручную открыть нужную комнату. Исходный SMO будет заменён только внутри изолированного тестового запуска."/>
+                           Text="{DynamicResource Loc.Dialog.Validation.RouteDescription}"/>
             </StackPanel>
         </Border>
 
         <StackPanel Grid.Row="3" Margin="0,10,0,0">
-            <TextBlock Foreground="#8F9BAA" Text="Исходный путь уровня внутри Media"/>
+            <TextBlock Foreground="#8F9BAA" Text="{DynamicResource Loc.Dialog.Validation.MediaPath}"/>
             <TextBox x:Name="LogicalPathBox" Margin="0,4,0,0" TextWrapping="Wrap" TextChanged="LogicalPathBox_TextChanged"/>
             <TextBlock x:Name="RouteHintText" Margin="0,5,0,0" Foreground="#8290A0" TextWrapping="Wrap"/>
         </StackPanel>
 
         <StackPanel Grid.Row="4" Margin="0,12,0,0">
             <DockPanel>
-                <TextBlock x:Name="ResultTitleText" FontSize="17" FontWeight="Bold" Foreground="#D8DEE9" Text="Ожидание запуска"/>
-                <TextBlock x:Name="ProgressText" HorizontalAlignment="Right" Foreground="#8F9BAA" Text="0%"/>
+                <TextBlock x:Name="ResultTitleText" FontSize="17" FontWeight="Bold" Foreground="#D8DEE9" Text="{DynamicResource Loc.Dialog.Validation.Ready}"/>
+                <TextBlock x:Name="ProgressText" HorizontalAlignment="Right" Foreground="#8F9BAA" Text="{DynamicResource Loc.Dialog.Validation.InitialProgress}"/>
             </DockPanel>
             <ProgressBar x:Name="ValidationProgress" Height="8" Margin="0,7,0,0" Minimum="0" Maximum="100"/>
             <TextBlock x:Name="ResultDetailText" Margin="0,7,0,0" Foreground="#AEB8C8" TextWrapping="Wrap"
-                       Text="Выберите игру и нажмите «Проверить»."/>
+                       Text="{DynamicResource Loc.Dialog.Validation.StartHint}"/>
         </StackPanel>
 
         <ListBox x:Name="EventsList" Grid.Row="5" Margin="0,12,0,0"
@@ -92,11 +92,11 @@
 
         <DockPanel Grid.Row="6" Margin="0,12,0,0">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                <Button x:Name="StartButton" Margin="0,0,7,0" IsEnabled="False" Click="Start_Click" Content="Запустить проверку"/>
-                <Button x:Name="StopButton" Margin="0,0,7,0" IsEnabled="False" Click="Stop_Click" Content="Остановить"/>
-                <Button x:Name="OpenLogButton" IsEnabled="False" Click="OpenLog_Click" Content="Открыть лог"/>
+                <Button x:Name="StartButton" Margin="0,0,7,0" IsEnabled="False" Click="Start_Click" Content="{DynamicResource Loc.Dialog.Validation.Run}"/>
+                <Button x:Name="StopButton" Margin="0,0,7,0" IsEnabled="False" Click="Stop_Click" Content="{DynamicResource Loc.Dialog.Validation.Stop}"/>
+                <Button x:Name="OpenLogButton" IsEnabled="False" Click="OpenLog_Click" Content="{DynamicResource Loc.Dialog.Validation.OpenLog}"/>
             </StackPanel>
-            <Button HorizontalAlignment="Right" Click="Close_Click" Content="Закрыть"/>
+            <Button HorizontalAlignment="Right" Click="Close_Click" Content="{DynamicResource Loc.Dialog.Close}"/>
         </DockPanel>
     </Grid>
 </Window>

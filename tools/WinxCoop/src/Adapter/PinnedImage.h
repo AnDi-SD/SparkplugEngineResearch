@@ -12,6 +12,11 @@ namespace winxcoop::adapter
     public:
         bool Open() noexcept;
         bool Verify(std::uint32_t address, std::size_t bytes) const noexcept;
+        bool VerifyGuestStartup() const noexcept;
+        // Optional adapter-owned feature descriptors, admitted independently
+        // of ordinary server startup. Never a whole-image hash comparison.
+        bool VerifyFeatureCode(std::uint32_t address, const BYTE* expected, std::size_t bytes) const noexcept;
+        bool VerifyFeatureType(std::uint32_t table, std::uint32_t classId, bool allowUninitialized = false) const noexcept;
         const char* Failure() const noexcept { return failure_; }
         std::uint32_t FailureAddress() const noexcept { return failureAddress_; }
         void Close() noexcept;

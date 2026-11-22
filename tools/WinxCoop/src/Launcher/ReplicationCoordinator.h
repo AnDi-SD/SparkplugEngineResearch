@@ -15,6 +15,9 @@ namespace winxcoop::launcher
         std::uint64_t observationsSent{}, observationsReceived{}, observationsAccepted{}, observationsRejected{}, acknowledgementsReceived{};
         std::uint64_t remoteStates{}, visualStatesCoalesced{}, nativeCreatesAcknowledged{}, nativeAppliesAcknowledged{}, nativeRemovesAcknowledged{};
         std::uint64_t nativeCommands{}, nativeAcknowledgements{}, nativeAckLatencyTotalMs{}, nativeAckLatencyMaxMs{};
+        // Final confirmed native retirement may cancel one immutable pending
+        // command. This is never an Applied ACK or a successful operation count.
+        std::uint64_t nativeCommandsCancelledOnRetirement{};
         std::uint64_t observationRttSamples{}, observationRttTotalMs{}, observationRttMaxMs{}, gameCompletions{}, gameSuccessfulCompletions{};
         std::uint64_t gameNativeCleanupCompletions{}, gameNoOuterLaunchCompletions{};
         std::uint64_t nativeAnimationSamples{}, derivedAnimationSamples{}, nativeRemoteCreated{}, nativeRemoteRemoved{};
@@ -35,8 +38,9 @@ namespace winxcoop::launcher
         ReplicationCoordinator(const ReplicationCoordinator&) = delete;
         ReplicationCoordinator& operator=(const ReplicationCoordinator&) = delete;
         bool Attach(networking::WindowsTcpTransport&, networking::SessionRole);
-        // Call before releasing the transport. Host game may remain running;
-        // guest retires its native generation after removing the old visual.
+        // Call before releasing the transport. Menu-first keeps either original
+        // game running and removes only its remote visual. Legacy guest stops
+        // after removing the old visual.
         void Detach() noexcept;
         // Menu-first opens the installed game normally, including before a
         // lobby exists. No game-duration timer is armed. Legacy diagnostics only:

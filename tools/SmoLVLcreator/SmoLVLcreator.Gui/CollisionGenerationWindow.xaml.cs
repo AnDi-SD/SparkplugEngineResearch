@@ -62,13 +62,13 @@ public partial class CollisionGenerationWindow : Window
                 CultureInfo.CurrentCulture,
                 out int budget) || budget is < 12 or > 256)
         {
-            ValidationText.Text = "Лимит должен быть целым числом от 12 до 256.";
+            ValidationText.Text = LevelText.Get("Dialog.Collision.InvalidBudget");
             ConfirmButton.IsEnabled = false;
             return false;
         }
         if (!TryParseFloat(PaddingBox.Text, out float padding) || padding < 0)
         {
-            ValidationText.Text = "Отступ должен быть конечным неотрицательным числом.";
+            ValidationText.Text = LevelText.Get("Dialog.Collision.InvalidPadding");
             ConfirmButton.IsEnabled = false;
             return false;
         }
@@ -82,18 +82,16 @@ public partial class CollisionGenerationWindow : Window
             CollisionPadding = padding;
             Result = generated;
             BuildPreview(generated);
-            ResultStatsText.Text =
-                $"Источник: {_sourcePoints.Length:N0} вершин\n" +
-                $"Коллизия: {generated.Positions.Count:N0} вершин · " +
-                $"{generated.TriangleCount:N0}/{budget:N0} треугольников\n" +
-                $"Отступ: {padding:0.###}";
+            ResultStatsText.Text = LevelText.Get(
+                "Dialog.Collision.Statistics", _sourcePoints.Length, generated.Positions.Count,
+                generated.TriangleCount, budget, padding);
             ConfirmButton.IsEnabled = true;
             return true;
         }
         catch (Exception exception)
         {
             Result = null;
-            ValidationText.Text = exception.Message;
+            ValidationText.Text = LevelText.Error(exception.Message);
             ConfirmButton.IsEnabled = false;
             return false;
         }

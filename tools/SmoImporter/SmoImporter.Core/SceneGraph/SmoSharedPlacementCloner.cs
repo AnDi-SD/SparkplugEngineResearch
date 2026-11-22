@@ -176,7 +176,10 @@ public static class SmoSharedPlacementCloner
             instance.ModelObjectIndex,
             verifiedSourceMeshObjectIndex,
             instance.WorldTransform,
-            branchEntries.Length);
+            branchEntries.Length)
+        {
+            StaticObjectId = idMap[sourceStatic.Id]
+        };
     }
 
     public static bool CanClone(SmoDocument document, int sourceMeshObjectIndex)
@@ -328,7 +331,10 @@ public static class SmoSharedPlacementCloner
             instance.ModelObjectIndex,
             verifiedSourceMeshObjectIndex,
             instance.WorldTransform,
-            verified.Objects.Count - document.Objects.Count);
+            verified.Objects.Count - document.Objects.Count)
+        {
+            StaticObjectId = newStaticId
+        };
     }
 
     private static SmoSharedPlacementCloneResult CloneNodeModelPlacement(
@@ -477,7 +483,10 @@ public static class SmoSharedPlacementCloner
             instance.ModelObjectIndex,
             verifiedSourceMeshObjectIndex,
             instance.WorldTransform,
-            verified.Objects.Count - document.Objects.Count);
+            verified.Objects.Count - document.Objects.Count)
+        {
+            StaticObjectId = shellStaticId
+        };
     }
 
     private static SmoSharedMeshInstanceInfo SelectNearestTemplate(
@@ -693,4 +702,7 @@ public sealed record SmoSharedPlacementCloneResult(
     int ModelObjectIndex,
     int SourceMeshObjectIndex,
     Matrix4x4 WorldTransform,
-    int AddedObjectCount);
+    int AddedObjectCount)
+{
+    internal uint StaticObjectId { get; init; }
+}

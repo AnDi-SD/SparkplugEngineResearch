@@ -39,7 +39,7 @@ public static class SmoCollisionHullGenerator
             .Distinct()
             .ToArray();
         if (points.Length == 0)
-            throw new ArgumentException("Collision source contains no finite vertices.");
+            throw new ArgumentException(LevelText.Get("Dialog.Collision.NoFiniteVertices"));
 
         Vector3 minimum = points.Aggregate(Vector3.Min);
         Vector3 maximum = points.Aggregate(Vector3.Max);
@@ -52,6 +52,11 @@ public static class SmoCollisionHullGenerator
                 padding,
                 "Collision padding must be a finite non-negative number.");
         }
+
+        // Measure plane tolerances around the geometry, independent of its world position.
+        Vector3 center = minimum * 0.5f + maximum * 0.5f;
+        for (int index = 0; index < points.Length; index++)
+            points[index] -= center;
 
         // A convex polyhedron with F planes has at most 4F-12 triangles after
         // its polygonal faces are triangulated. Keeping the plane count below
@@ -68,12 +73,20 @@ public static class SmoCollisionHullGenerator
                 normals,
                 resolvedPadding);
             if (mesh.TriangleCount <= triangleBudget)
-                return mesh;
+            {
+                Vector3[] worldPositions = mesh.Positions.Select(position => position + center).ToArray();
+                if (worldPositions.Any(position => !IsFinite(position)) ||
+                    worldPositions.Distinct().Count() != worldPositions.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(sourcePositions));
+                }
+                return mesh with { Positions = Array.AsReadOnly(worldPositions) };
+            }
             planeCount -= 2;
         }
 
         throw new InvalidOperationException(
-            "Could not construct a collision hull inside the triangle budget.");
+            LevelText.Get("Dialog.Collision.HullOverTriangleLimit"));
     }
 
     private static SmoGeneratedCollisionMesh BuildKDop(

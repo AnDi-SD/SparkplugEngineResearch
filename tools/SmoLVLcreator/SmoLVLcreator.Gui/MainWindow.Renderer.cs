@@ -80,6 +80,7 @@ public partial class MainWindow
     private double _cameraDesiredDistance = 10;
     private readonly HashSet<Key> _cameraMovementKeys = [];
     private Vector3D _cameraVelocity;
+    private double _cameraFlySpeedMultiplier = 1;
     private bool _cameraOrbitingFocus;
     private (int MeshObjectIndex, int SceneObjectIndex, SmoRenderOccurrenceKey? Slot)? _cameraFocusKey;
     private int _activePlacementIndex;
@@ -150,8 +151,8 @@ public partial class MainWindow
         UpdateViewportModeButtons();
         UpdateCamera();
         StatusText.Text = _sceneCamera is OrthographicCamera
-            ? "Проекция: Orthographic"
-            : "Проекция: Perspective";
+            ? LevelText.Get("Main.Message.ProjectionOrthographic")
+            : LevelText.Get("Main.Message.ProjectionPerspective");
     }
 
     private void RenderModeButton_Click(object sender, RoutedEventArgs e)
@@ -164,7 +165,7 @@ public partial class MainWindow
         };
         _gpuRenderer.RenderMode = _sceneRenderMode;
         UpdateViewportModeButtons();
-        StatusText.Text = $"Режим отображения: {_sceneRenderMode}";
+        StatusText.Text = LevelText.Get("Main.Message.RenderMode", RenderModeCaption());
     }
 
     private void GridVisibilityButton_Click(object sender, RoutedEventArgs e)
@@ -172,8 +173,8 @@ public partial class MainWindow
         _showFloorGrid = !_showFloorGrid;
         UpdateViewportModeButtons();
         StatusText.Text = _showFloorGrid
-            ? "Сетка включена"
-            : "Сетка выключена";
+            ? LevelText.Get("Main.Message.GridOn")
+            : LevelText.Get("Main.Message.GridOff");
     }
 
     private void BoundsVisibilityButton_Click(object sender, RoutedEventArgs e)
@@ -181,8 +182,8 @@ public partial class MainWindow
         _showSelectionBounds = !_showSelectionBounds;
         UpdateViewportModeButtons();
         StatusText.Text = _showSelectionBounds
-            ? "Границы выделения включены"
-            : "Границы выделения выключены";
+            ? LevelText.Get("Main.Message.SelectionBoundsOn")
+            : LevelText.Get("Main.Message.SelectionBoundsOff");
     }
 
     private void UpdateViewportModeButtons()
@@ -190,12 +191,19 @@ public partial class MainWindow
         if (ProjectionModeButton is null)
             return;
         ProjectionModeButton.Content = _sceneCamera is OrthographicCamera
-            ? "Orthographic"
-            : "Perspective";
-        RenderModeButton.Content = _sceneRenderMode.ToString();
+            ? LevelText.Get("Main.Viewport.Orthographic")
+            : LevelText.Get("Main.Viewport.Perspective");
+        RenderModeButton.Content = RenderModeCaption();
         SetViewportModeButtonState(GridVisibilityButton, _showFloorGrid);
         SetViewportModeButtonState(BoundsVisibilityButton, _showSelectionBounds);
     }
+
+    private string RenderModeCaption() => LevelText.Get(_sceneRenderMode switch
+    {
+        SmoSceneRenderMode.Unlit => "Main.Viewport.Unlit",
+        SmoSceneRenderMode.Wireframe => "Main.Viewport.Wireframe",
+        _ => "Main.Viewport.Lit"
+    });
 
     private static void SetViewportModeButtonState(Button button, bool active)
     {
@@ -279,16 +287,16 @@ public partial class MainWindow
             if (TryGetGizmoPivot(out Point3D gizmoPivot))
             {
                 NumericsQuaternion orientation = GetGizmoOrientation();
-                _gizmoLayout = _editorTool is "Перемещение" or "Масштаб"
+                _gizmoLayout = _editorTool is "Move" or "Scale"
                     ? _translationGizmoRenderer.CreateLayout(
                         _sceneCamera,
                         width,
                         height,
                         gizmoPivot,
                         orientation,
-                        includeUniform: _editorTool == "Масштаб")
+                        includeUniform: _editorTool == "Scale")
                     : null;
-                _rotationGizmoLayout = _editorTool == "Вращение"
+                _rotationGizmoLayout = _editorTool == "Rotate"
                     ? _rotationGizmoRenderer.CreateLayout(
                         _sceneCamera,
                         width,
@@ -319,10 +327,7 @@ public partial class MainWindow
                 DateTime.UtcNow >= _viewportActionStatusUntilUtc)
             {
                 StatusText.Text =
-                    $"GPU · {upload.GeometryCount:N0} mesh buffers · " +
-                    $"{upload.TextureCount:N0} textures · " +
-                    $"{upload.PlacementCount:N0} placements · " +
-                    $"{upload.ElapsedMilliseconds:F1} ms";
+                    LevelText.Get("Main.Message.GPUMeshBuffersTexturesPlacementsMs", upload.GeometryCount, upload.TextureCount, upload.PlacementCount, upload.ElapsedMilliseconds);
             }
             if (_gpuRenderer.RenderIssues.Count > 0)
             {
@@ -332,7 +337,7 @@ public partial class MainWindow
                     _gpuMaterialIssueText = message;
                     DiagnosticsText.Text = message;
                     DiagnosticsText.Foreground = NoticeBrush;
-                    StatusText.Text = $"Ошибок рендера: {_gpuRenderer.RenderIssues.Count}";
+                    StatusText.Text = LevelText.Get("Main.Viewport.RenderErrors", _gpuRenderer.RenderIssues.Count);
                 }
             }
         }
@@ -353,9 +358,9 @@ public partial class MainWindow
         if (ViewportPlaceholder is not null)
             ViewportPlaceholder.Visibility = Visibility.Visible;
         if (ViewportEmptyTitleText is not null)
-            ViewportEmptyTitleText.Text = "Viewport недоступен";
+            ViewportEmptyTitleText.Text = LevelText.Get("Main.Viewport.Unavailable");
         if (ViewportStateText is not null)
-            ViewportStateText.Text = $"GPU viewport недоступен.\n{reason}";
+            ViewportStateText.Text = LevelText.Get("Main.Viewport.GpuUnavailable", reason);
     }
 
     private void ResetRenderScene()
@@ -436,9 +441,9 @@ public partial class MainWindow
                 : Visibility.Visible;
         if (scene.Meshes.Count == 0)
         {
-            ViewportEmptyTitleText.Text = "Нет отображаемой геометрии";
+            ViewportEmptyTitleText.Text = LevelText.Get("Main.Viewport.NoGeometry");
             ViewportStateText.Text =
-                "SMO-файл открыт, но общая сцена не нашла моделей для отображения.";
+                LevelText.Get("Main.Viewport.NoGeometryDetails");
         }
         ApplyPlacementHighlights();
     }
@@ -598,7 +603,7 @@ public partial class MainWindow
                 // expensive or ambiguous captures each frame or gizmo update.
                 _scenePickingPositions.Add(key, null);
                 _scenePickingReadbackIssues.Add(
-                    $"GPU picking object [{mesh.SceneObjectIndex}], mesh [{mesh.Mesh.ObjectIndex}]: {exception.Message}");
+                    LevelText.Get("Main.Message.GPUPickingObjectMesh", mesh.SceneObjectIndex, mesh.Mesh.ObjectIndex, exception.Message));
             }
         }
         _scenePickIndex = new SmoScenePickIndex(_scenePickMeshes, CachedScenePickingPositions);
@@ -612,14 +617,13 @@ public partial class MainWindow
             if (_scenePickingDiagnosticText is not null &&
                 DiagnosticsText.Text == _scenePickingDiagnosticText)
             {
-                DiagnosticsText.Text = "Позиции для выбора под курсором готовы.";
+                DiagnosticsText.Text = LevelText.Get("Main.Message.ViewportPickingPositionsAreReady");
                 DiagnosticsText.Foreground = HealthyBrush;
             }
-            if (StatusText.Text is
-                "Скелетный picking ожидает GPU readback · выбор через каталог доступен" or
-                "Скелетный picking недоступен · выбор через каталог доступен")
+            if (StatusText.Text == LevelText.Get("Main.Message.SkinnedPickingAwaitsGPUReadbackSelection") ||
+                StatusText.Text == LevelText.Get("Main.Message.SkinnedPickingUnavailableSelectionInCatalog"))
             {
-                StatusText.Text = "Позиции для выбора под курсором готовы";
+                StatusText.Text = LevelText.Get("Main.Message.ViewportPickingPositionsAreReady2");
             }
             _scenePickingDiagnosticText = null;
             return;
@@ -627,13 +631,12 @@ public partial class MainWindow
         // Synchronous click/drop operations use the last completed scene
         // snapshot. Until its first Render, missing captures stay explicit.
         _scenePickingDiagnosticText = string.Join("\n", index.Issues.Concat(_scenePickingReadbackIssues)) +
-            "\nСкелетные поверхности исключены из выбора и размещения под курсором; " +
-            "выбор через каталог остаётся доступен.";
+            LevelText.Get("Main.Message.SkinnedSurfacesAreExcludedFromViewport");
         DiagnosticsText.Text = _scenePickingDiagnosticText;
         DiagnosticsText.Foreground = NoticeBrush;
         StatusText.Text = _gpuRendererAvailable && _scenePickingNeedsGpuRefresh
-            ? "Скелетный picking ожидает GPU readback · выбор через каталог доступен"
-            : "Скелетный picking недоступен · выбор через каталог доступен";
+            ? LevelText.Get("Main.Message.SkinnedPickingAwaitsGPUReadbackSelection")
+            : LevelText.Get("Main.Message.SkinnedPickingUnavailableSelectionInCatalog");
         _viewportActionStatusUntilUtc = DateTime.UtcNow.AddSeconds(3);
     }
 
@@ -698,7 +701,7 @@ public partial class MainWindow
                         replacement.MeshObjectIndex);
                 if (plan.Components.Count != replacement.ImportedScene.Meshes.Count)
                     throw new InvalidOperationException(
-                        "Pending full-model replacement has a stale component mapping.");
+                        LevelText.Get("Main.Message.PendingFullModelReplacementHasA"));
                 for (int index = 0; index < plan.Components.Count; index++)
                 {
                     SmoLevelModelGraphComponent component = plan.Components[index];
@@ -810,13 +813,13 @@ public partial class MainWindow
             if (replacementMeshes.Count > 0 || additionOrdinal > 0)
             {
                 StatusText.Text =
-                    "Геометрия сцены обновлена в памяти · SMO не перепаковывался";
+                    LevelText.Get("Main.Message.SceneGeometryUpdatedInMemorySMO");
             }
         }
         catch (Exception exception)
         {
             _renderedModelResourceSignature = null;
-            StatusText.Text = $"Не удалось обновить геометрию: {exception.Message}";
+            StatusText.Text = LevelText.Get("Main.Message.CouldNotUpdateSceneGeometry", exception.Message);
         }
     }
 
@@ -1043,13 +1046,12 @@ public partial class MainWindow
             _selectedEntities.Count == composite.Entities.Count)
         {
             ViewportSelectionText.Text =
-                $"SELECTED  ·  {composite.Name}  ·  {composite.Parts.Count:N0} parts";
+                LevelText.Get("Main.Message.SELECTEDParts", composite.Name, composite.Parts.Count);
             return;
         }
         ViewportSelectionText.Text = _selectedEntities.Count > 1
-            ? $"SELECTED  ·  {_selectedEntities.Count:N0} entities  ·  " +
-              $"active {activeName} #{placementIndex + 1}"
-            : $"SELECTED  ·  {activeName}  ·  placement {placementIndex + 1}";
+            ? LevelText.Get("Main.Message.SELECTEDEntitiesActive", _selectedEntities.Count, activeName, placementIndex + 1)
+            : LevelText.Get("Main.Message.SELECTEDPlacement", activeName, placementIndex + 1);
     }
 
     private PlacementSelectionKey? ResolveFirstSelectedPlacementKey()
@@ -1099,7 +1101,7 @@ public partial class MainWindow
     private bool TryGetGizmoPivot(out Point3D pivot)
     {
         pivot = default;
-        if (_editorTool is not ("Перемещение" or "Вращение" or "Масштаб") ||
+        if (_editorTool is not ("Move" or "Rotate" or "Scale") ||
             _document is null ||
             _workspace is null ||
             (_selectedEntities.Count == 0 && _selectedPendingPlacement is null))
@@ -1164,7 +1166,7 @@ public partial class MainWindow
 
     private bool BeginGizmoDrag(SmoGizmoAxis axis, Point point)
     {
-        bool hasLayout = _editorTool == "Вращение"
+        bool hasLayout = _editorTool == "Rotate"
             ? _rotationGizmoLayout is not null
             : _gizmoLayout is not null;
         if (_document is null || !hasLayout ||
@@ -1204,7 +1206,7 @@ public partial class MainWindow
                     if (blocked.Length > 0)
                     {
                         StatusText.Text =
-                            "Нельзя изменить SAVE BLOCKED объект: " +
+                            LevelText.Get("Main.Message.CannotTransformAnObjectThatCannot") +
                             string.Join(", ", blocked.Select(entity =>
                                 $"{entity.Name} [{entity.Id.SceneObjectIndex}]"));
                         return false;
@@ -1249,18 +1251,27 @@ public partial class MainWindow
                 : [];
         string operation = _editorTool switch
         {
-            "Вращение" => "Rotate",
-            "Масштаб" => "Scale",
+            "Rotate" => "Rotate",
+            "Scale" => "Scale",
             _ => "Move"
         };
+        string entitiesLabel = LevelText.Label(operation switch
+        {
+            "Rotate" => "Main.History.RotateEntities",
+            "Scale" => "Main.History.ScaleEntities",
+            _ => "Main.History.MoveEntities"
+        }, count, axis);
         bool committed;
         try
         {
             committed = _pendingGizmoTransformSession is not null
-                ? _pendingGizmoTransformSession.Commit(
-                    $"{operation} pending placement along {axis}")
-                : _gizmoTransformSession!.Commit(
-                    $"{operation} {count:N0} entities along {axis}");
+                ? _pendingGizmoTransformSession.Commit(LevelText.Label(operation switch
+                {
+                    "Rotate" => "Main.History.RotatePending",
+                    "Scale" => "Main.History.ScalePending",
+                    _ => "Main.History.MovePending"
+                }, axis))
+                : _gizmoTransformSession!.Commit(entitiesLabel);
         }
         catch (Exception exception) when (
             exception is InvalidOperationException or NotSupportedException)
@@ -1296,15 +1307,13 @@ public partial class MainWindow
                     out ProjectTransformTarget[] targets,
                     out string reason))
             {
-                _ = CommitProjectTransformsAsync(
-                    $"{operation} {count:N0} entities along {axis}",
-                    targets);
+                _ = CommitProjectTransformsAsync(entitiesLabel, targets);
             }
             else
             {
                 StatusText.Text = reason;
                 _ = RefreshProjectPreviewAsync(
-                    "Проектная трансформация отменена; preview восстановлен");
+                    LevelText.Get("Main.Message.ProjectTransformCanceledPreviewRestored"));
             }
             return;
         }
@@ -1312,14 +1321,14 @@ public partial class MainWindow
             ? operation switch
             {
                 "Rotate" =>
-                    $"Rotate {axis} · {count:N0} entities · {angle * 180 / MathF.PI:0.##}°",
+                    LevelText.Get("Main.Message.RotateEntities", axis, count, angle * 180 / MathF.PI),
                 "Scale" =>
-                    $"Scale {axis} · {count:N0} entities · " +
+                    LevelText.Get("Main.Message.ScaleEntities", axis, count) +
                     $"{scale.X:0.###}, {scale.Y:0.###}, {scale.Z:0.###}",
-                _ => $"Move {axis} · {count:N0} entities · " +
+                _ => LevelText.Get("Main.Message.MoveEntities", axis, count) +
                      $"Δ {delta.X:0.###}, {delta.Y:0.###}, {delta.Z:0.###}"
             }
-            : $"{operation} отменён · transform не изменился";
+            : LevelText.Get("Main.Message.CanceledTransformUnchanged", EditorToolCaption(operation));
     }
 
     private void CancelGizmoDrag()
@@ -1339,7 +1348,7 @@ public partial class MainWindow
         if (ViewportSurface is not null)
             ViewportSurface.Cursor = null;
         if (StatusText is not null)
-            StatusText.Text = "Трансформация отменена";
+            StatusText.Text = LevelText.Get("Main.Message.TransformCanceled");
     }
 
     private bool HasActiveGizmoTransform =>
@@ -1632,16 +1641,21 @@ public partial class MainWindow
         _sceneCamera.FarPlaneDistance = Math.Max(
             sceneDistance + _sceneDiagonal * 4,
             Math.Max(clipScale * 20, 100));
+        UpdateCameraCaption();
+    }
+
+    private void UpdateCameraCaption()
+    {
         if (CameraModeText is not null)
         {
             string mode = _cameraOrbitingFocus
-                ? _cameraFocusKey is null ? "ORBIT" : "FOCUS ORBIT"
-                : "FREE";
+                ? _cameraFocusKey is null ? LevelText.Get("Main.Viewport.CameraOrbit") : LevelText.Get("Main.Viewport.CameraFocusOrbit")
+                : LevelText.Get("Main.Viewport.CameraFree");
             string projection = _sceneCamera is OrthographicCamera
-                ? "ORTHO"
+                ? LevelText.Get("Main.Viewport.CameraOrtho")
                 : $"{PerspectiveFieldOfView:0}°";
             CameraModeText.Text =
-                $"Camera  {mode}  ·  {projection}  ·  MSAA 4×";
+                LevelText.Get("Main.Viewport.CameraMode", mode, projection);
         }
     }
 
@@ -1683,11 +1697,7 @@ public partial class MainWindow
                 ReleaseCameraFocus();
         }
 
-        double speed = Math.Max(_sceneDiagonal * 0.16, 1);
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-            speed *= 4;
-        else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-            speed *= 0.25;
+        double speed = GetCameraFlySpeed(Keyboard.Modifiers);
         Vector3D desiredVelocity = direction * speed;
         double velocityBlend = 1 - Math.Exp(
             -(direction.LengthSquared > 1e-12 ? 11 : 8) * seconds);
@@ -1705,6 +1715,16 @@ public partial class MainWindow
 
         if (cameraChanged)
             UpdateCamera();
+    }
+
+    private double GetCameraFlySpeed(ModifierKeys modifiers)
+    {
+        double speed = Math.Max(_sceneDiagonal * 0.16, 1) * _cameraFlySpeedMultiplier;
+        if (modifiers.HasFlag(ModifierKeys.Shift))
+            return speed * 4;
+        if (modifiers.HasFlag(ModifierKeys.Control))
+            return speed * 0.25;
+        return speed;
     }
 
     private Vector3D GetCameraMovementDirection()
@@ -1756,7 +1776,7 @@ public partial class MainWindow
         }
         catch (Exception exception)
         {
-            StatusText.Text = $"Не удалось добавить размещение: {exception.Message}";
+            StatusText.Text = LevelText.Get("Main.Message.CouldNotAddPlacement", exception.Message);
             e.Effects = DragDropEffects.None;
             e.Handled = true;
         }
@@ -1770,7 +1790,7 @@ public partial class MainWindow
             MessageBox.Show(
                 this,
                 error,
-                "SmoLVLcreator — размещение модели",
+                LevelText.Get("Main.Message.SmoLVLcreatorModelPlacement"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -1781,11 +1801,11 @@ public partial class MainWindow
         }
         catch (Exception exception)
         {
-            StatusText.Text = $"Не удалось добавить размещение: {exception.Message}";
+            StatusText.Text = LevelText.Get("Main.Message.CouldNotAddPlacement", exception.Message);
             MessageBox.Show(
                 this,
                 exception.Message,
-                "SmoLVLcreator — размещение модели",
+                LevelText.Get("Main.Message.SmoLVLcreatorModelPlacement"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -1810,7 +1830,7 @@ public partial class MainWindow
                 placementId, External: true, 0, model.Name);
             SelectPendingPlacement(selection);
             StatusText.Text =
-                $"Размещена внешняя модель {model.Name} · " +
+                LevelText.Get("Main.Message.ExternalModelPlaced", model.Name) +
                 $"{position.X:0.##}, {position.Y:0.##}, {position.Z:0.##}";
             return;
         }
@@ -1835,10 +1855,8 @@ public partial class MainWindow
         string placementPoint =
             $"{position.X:0.##}, {position.Y:0.##}, {position.Z:0.##}";
         StatusText.Text = model.Parts.Length == 1
-            ? $"Добавлено размещение {model.Name} · {placementPoint} · " +
-              "геометрия не дублируется"
-            : $"Добавлена составная модель {model.Name} · {placementPoint} · " +
-              $"{model.Parts.Length} ссылочных частей";
+            ? LevelText.Get("Main.Message.AddedPlacementGeometryShared", model.Name, placementPoint)
+            : LevelText.Get("Main.Message.AddedCompositeModelReferenceParts", model.Name, placementPoint, model.Parts.Length);
     }
 
     private Vector3 ResolveDropPosition(Point viewportPoint)
@@ -1865,9 +1883,9 @@ public partial class MainWindow
             Point gizmoPoint = ToGizmoPoint(e.GetPosition(ViewportSurface));
             SmoGizmoAxis hitAxis = _editorTool switch
             {
-                "Перемещение" or "Масштаб" =>
+                "Move" or "Scale" =>
                     _gizmoLayout?.HitTest(gizmoPoint) ?? SmoGizmoAxis.None,
-                "Вращение" =>
+                "Rotate" =>
                     _rotationGizmoLayout?.HitTest(gizmoPoint) ?? SmoGizmoAxis.None,
                 _ => SmoGizmoAxis.None
             };
@@ -1928,8 +1946,8 @@ public partial class MainWindow
             if (!toggle)
                 ClearViewportSelection();
             StatusText.Text = _scenePickIndex.Issues.Count == 0
-                ? "Под курсором нет объекта"
-                : "Поддержанный объект не найден · скелетный picking недоступен";
+                ? LevelText.Get("Main.Message.NoObjectUnderTheCursor")
+                : LevelText.Get("Main.Message.NoSupportedObjectSkinnedPickingUnavailable");
             return;
         }
 
@@ -1946,7 +1964,7 @@ public partial class MainWindow
         if (item?.Asset is not SmoLevelAsset asset)
         {
             StatusText.Text =
-                $"Объект [{hit.SceneMesh.SceneObjectIndex}] отсутствует в каталоге";
+                LevelText.Get("Main.Message.ObjectIsMissingFromTheCatalog", hit.SceneMesh.SceneObjectIndex);
             return;
         }
 
@@ -1972,7 +1990,7 @@ public partial class MainWindow
             if (_selectedEntities.Count == 0)
             {
                 ClearViewportSelection();
-                StatusText.Text = $"Выбор снят · {item.Name}";
+                StatusText.Text = LevelText.Get("Main.Message.Deselected", item.Name);
                 return;
             }
 
@@ -2012,10 +2030,8 @@ public partial class MainWindow
 
         UpdateSelectionCaption(item.Name, placementIndex);
         StatusText.Text = _selectedEntities.Count > 1
-            ? $"Выбрано {_selectedEntities.Count:N0} entities · " +
-              $"active {item.Name}"
-            : $"Выбрано · {item.Name} · placement {placementIndex + 1} · " +
-              $"triangle {hit.TriangleIndex:N0}";
+            ? LevelText.Get("Main.Message.SelectedEntitiesActive", _selectedEntities.Count, item.Name)
+            : LevelText.Get("Main.Message.SelectedPlacementTriangle", item.Name, placementIndex + 1, hit.TriangleIndex);
     }
 
     private CollisionHit? PickCollision(SmoPickRay ray)
@@ -2215,7 +2231,7 @@ public partial class MainWindow
         else if (_selectedEntities.Count == 0)
         {
             ClearViewportSelection();
-            StatusText.Text = $"Выбор снят · {entity.Name}";
+            StatusText.Text = LevelText.Get("Main.Message.Deselected", entity.Name);
             return;
         }
         else
@@ -2226,7 +2242,7 @@ public partial class MainWindow
 
         ApplyPlacementHighlights();
         StatusText.Text =
-            $"Выбрана коллизия · {entity.Name} · triangle {hit.TriangleIndex:N0}";
+            LevelText.Get("Main.Message.CollisionSelectedTriangle", entity.Name, hit.TriangleIndex);
     }
 
     private bool TryResolveActiveCollision(out SmoEditableCollision? collision)
@@ -2263,8 +2279,8 @@ public partial class MainWindow
     private void UpdateCollisionSelectionCaption(SmoLevelEntity entity)
     {
         ViewportSelectionText.Text = _selectedEntities.Count > 1
-            ? $"SELECTED · {_selectedEntities.Count:N0} entities · active COLLISION {entity.Name}"
-            : $"SELECTED · COLLISION · {entity.Name}";
+            ? LevelText.Get("Main.Message.SELECTEDEntitiesActiveCOLLISION", _selectedEntities.Count, entity.Name)
+            : LevelText.Get("Main.Message.SELECTEDCOLLISION", entity.Name);
     }
 
     private void CollisionVisibility_Changed(object sender, RoutedEventArgs e)
@@ -2273,8 +2289,8 @@ public partial class MainWindow
         if (StatusText is not null)
         {
             StatusText.Text = _showCollisions
-                ? $"Коллизии включены · {_document?.Collisions.Count ?? 0:N0} shapes"
-                : "Коллизии скрыты";
+                ? LevelText.Get("Main.Message.CollisionsShownShapes", _document?.Collisions.Count ?? 0)
+                : LevelText.Get("Main.Message.CollisionsHidden");
         }
         if (!_showCollisions && _activeCollisionEntityIndex is not null)
             ClearViewportSelection();
@@ -2285,8 +2301,8 @@ public partial class MainWindow
         if (StatusText is null)
             return;
         StatusText.Text = LinkedCollisionMovementToggle?.IsChecked == true
-            ? "Связанные предметы и коллизии перемещаются вместе"
-            : "Независимое перемещение: связь с коллизией временно отключена";
+            ? LevelText.Get("Main.Message.LinkedObjectsAndCollisionsMoveTogether")
+            : LevelText.Get("Main.Message.IndependentMovementCollisionLinkTemporarilyDisabled");
         ApplyPlacementHighlights();
     }
 
@@ -2321,7 +2337,7 @@ public partial class MainWindow
             if (asset.Placements[index].SceneObjectIndex == sceneObjectIndex && asset.Placements[index].OccurrenceKey == occurrenceKey)
                 return index;
         }
-        throw new InvalidDataException("The selected occurrence is absent from this asset.");
+        throw new InvalidDataException(LevelText.Get("Main.Message.TheSelectedOccurrenceIsAbsentFrom"));
     }
 
     private bool TryResolveActiveSelection(
@@ -2416,8 +2432,8 @@ public partial class MainWindow
             selectedTreeItem.IsSelected = false;
         _syncingSelection = false;
 
-        ViewportSelectionText.Text = "NO SELECTION";
-        SelectedNameText.Text = "Ничего не выбрано";
+        ViewportSelectionText.Text = LevelText.Get("Main.Viewport.SelectionEmpty");
+        SelectedNameText.Text = LevelText.Get("Main.Inspector.None");
         SelectedPathText.Text = "—";
         ObjectIdentityText.Text = "—";
         ObjectIdText.Text = "—";
@@ -2429,7 +2445,7 @@ public partial class MainWindow
         ChannelsText.Text = "—";
         TextureNameText.Text = "—";
         MaterialText.Text = "—";
-        DiagnosticsText.Text = "Объект не выбран.";
+        DiagnosticsText.Text = LevelText.Get("Main.Inspector.NoObject");
         DiagnosticsText.Foreground = HealthyBrush;
         ApplyPlacementHighlights();
         UpdateCommandAvailability();
@@ -2442,16 +2458,16 @@ public partial class MainWindow
         _activeCollisionEntityIndex = null;
         _selectedPendingPlacement = pending;
         ApplyPlacementHighlights();
-        ViewportSelectionText.Text = $"SELECTED · {pending.Name} · новое размещение";
+        ViewportSelectionText.Text = LevelText.Get("Main.Message.SELECTEDNewPlacement", pending.Name);
         SelectedNameText.Text = pending.Name;
         SelectedPathText.Text = pending.External
-            ? "Внешняя модель / новое размещение"
-            : "Ресурс SMO / новое ссылочное размещение";
-        ObjectIdentityText.Text = pending.External ? "external placement" : "shared placement";
+            ? LevelText.Get("Main.Message.ExternalModelNewPlacement")
+            : LevelText.Get("Main.Message.SMOResourceNewReferencePlacement");
+        ObjectIdentityText.Text = pending.External ? LevelText.Get("Main.Message.ExternalPlacement") : LevelText.Get("Main.Message.SharedPlacement");
         ObjectIdText.Text = pending.Id.ToString("N")[..8];
         UpdatePendingPlacementInspector(pending);
         StatusText.Text =
-            $"Выбрано новое размещение {pending.Name} · гизмо активно · Delete — удалить";
+            LevelText.Get("Main.Message.NewPlacementSelectedGizmoActiveDelete", pending.Name);
         UpdateCommandAvailability();
     }
 
@@ -2475,7 +2491,7 @@ public partial class MainWindow
         int partCount = _pendingPlacementByScene.Values.Count(candidate =>
             candidate.Id == pending.Id &&
             candidate.External == pending.External);
-        PlacementCountText.Text = $"{Math.Max(partCount, 1):N0} · новое размещение";
+        PlacementCountText.Text = LevelText.Get("Main.Message.NewPlacement", Math.Max(partCount, 1));
     }
 
     private void DeleteSelected_Click(object sender, RoutedEventArgs e)
@@ -2496,7 +2512,7 @@ public partial class MainWindow
                 BuildSceneTree();
                 UpdateStatistics();
                 UpdateCommandAvailability();
-                StatusText.Text = "Созданная коллизия удалена · Ctrl+Z — отменить";
+                StatusText.Text = LevelText.Get("Main.Message.GeneratedCollisionDeletedCtrlZTo");
                 return;
             }
         }
@@ -2509,7 +2525,7 @@ public partial class MainWindow
             {
                 _selectedPendingPlacement = null;
                 ClearViewportSelection();
-                StatusText.Text = $"Удалено размещение {pending.Name} · можно отменить через Ctrl+Z";
+                StatusText.Text = LevelText.Get("Main.Message.PlacementDeletedCtrlZToUndo", pending.Name);
             }
             return;
         }
@@ -2529,10 +2545,10 @@ public partial class MainWindow
             UpdateStatistics();
             UpdateCommandAvailability();
             StatusText.Text = collisionCount == count
-                ? $"Удалено коллизий: {count:N0} · Ctrl+Z — отменить"
+                ? LevelText.Get("Main.Message.CollisionsDeletedCtrlZToUndo", count)
                 : collisionCount == 0
-                    ? $"Удалено объектов: {count:N0} · общие ресурсы будут сохранены"
-                    : $"Удалено сущностей: {count:N0}, коллизий: {collisionCount:N0} · Ctrl+Z — отменить";
+                    ? LevelText.Get("Main.Message.ObjectsDeletedSharedResourcesPreserved", count)
+                    : LevelText.Get("Main.Message.EntitiesDeletedCollisionsCtrlZTo", count, collisionCount);
         }
     }
 
@@ -2550,8 +2566,8 @@ public partial class MainWindow
             _projectPlacementClipboard = projectClipboard;
             UpdateCommandAvailability();
             StatusText.Text = projectClipboard!.Parts.Length > 1
-                ? $"Скопировано размещение · {projectClipboard.Parts.Length:N0} частей"
-                : $"Скопировано размещение · {projectClipboard.Name}";
+                ? LevelText.Get("Main.Message.PlacementCopiedParts", projectClipboard.Parts.Length)
+                : LevelText.Get("Main.Message.PlacementCopied", projectClipboard.Name);
             return;
         }
         if (!TryCapturePlacementClipboard(out PlacementClipboard? clipboard))
@@ -2559,8 +2575,8 @@ public partial class MainWindow
         _placementClipboard = clipboard;
         UpdateCommandAvailability();
         StatusText.Text = clipboard!.Parts.Length > 1
-            ? $"Скопировано размещение · {clipboard.Parts.Length:N0} частей"
-            : $"Скопировано размещение · {clipboard.Name}";
+            ? LevelText.Get("Main.Message.PlacementCopiedParts", clipboard.Parts.Length)
+            : LevelText.Get("Main.Message.PlacementCopied", clipboard.Name);
     }
 
     private void PastePlacement_Click(object sender, RoutedEventArgs e)
@@ -2575,7 +2591,7 @@ public partial class MainWindow
             _ = PasteProjectPlacementClipboardAsync(
                 _projectPlacementClipboard,
                 projectTarget,
-                "Вставлено");
+                LevelText.Get("Main.Message.Pasted"));
             return;
         }
         if (_placementClipboard is not PlacementClipboard clipboard ||
@@ -2586,7 +2602,7 @@ public partial class MainWindow
         Vector3 target = ResolveDropPosition(new Point(
             Math.Max(ViewportSurface.ActualWidth, 1) * 0.5,
             Math.Max(ViewportSurface.ActualHeight, 1) * 0.5));
-        PastePlacementClipboard(clipboard, target, "Вставлено");
+        PastePlacementClipboard(clipboard, target, LevelText.Get("Main.Message.Pasted"));
     }
 
     private void DuplicatePlacement_Click(object sender, RoutedEventArgs e)
@@ -2604,7 +2620,7 @@ public partial class MainWindow
             _ = PasteProjectPlacementClipboardAsync(
                 projectClipboard!,
                 projectClipboard!.SourceAnchor + new Vector3(projectOffset, 0, 0),
-                "Дублировано");
+                LevelText.Get("Main.Message.Duplicated"));
             return;
         }
         if (!TryCapturePlacementClipboard(out PlacementClipboard? clipboard))
@@ -2613,7 +2629,7 @@ public partial class MainWindow
         PastePlacementClipboard(
             clipboard!,
             clipboard!.SourceAnchor + new Vector3(offset, 0, 0),
-            "Дублировано");
+            LevelText.Get("Main.Message.Duplicated"));
     }
 
     private bool TryCapturePlacementClipboard(out PlacementClipboard? clipboard)
@@ -2738,11 +2754,11 @@ public partial class MainWindow
             }
             _viewportActionStatusUntilUtc = DateTime.UtcNow.AddSeconds(3);
             StatusText.Text =
-                $"{action} · {clipboard.Name} · ресурсы геометрии не дублируются";
+                LevelText.Get("Main.Message.GeometryResourcesShared", action, clipboard.Name);
         }
         catch (Exception exception)
         {
-            StatusText.Text = $"Не удалось вставить размещение: {exception.Message}";
+            StatusText.Text = LevelText.Get("Main.Message.CouldNotPastePlacement", exception.Message);
         }
     }
 
@@ -2938,7 +2954,7 @@ public partial class MainWindow
                 .ToArray();
             if (worldPositions.Length == 0)
             {
-                StatusText.Text = "Для создания коллизии нужно выделить модель на сцене";
+                StatusText.Text = LevelText.Get("Main.Message.SelectAModelInTheScene");
                 return;
             }
 
@@ -2979,7 +2995,7 @@ public partial class MainWindow
                         generated.TriangleIndices))
                 {
                     throw new InvalidOperationException(
-                        "Selected generated collision no longer exists.");
+                        LevelText.Get("Main.Message.SelectedGeneratedCollisionNoLongerExists"));
                 }
             }
             else
@@ -2999,17 +3015,15 @@ public partial class MainWindow
             UpdateStatistics();
             UpdateCommandAvailability();
             StatusText.Text =
-                $"{(replacement is null ? "Создана" : "Пересоздана")} коллизия · " +
-                $"{generated.Positions.Count:N0} вершин · " +
-                $"{generated.TriangleCount:N0}/{dialog.TriangleBudget:N0} треугольников";
+                LevelText.Get("Main.Message.VerticesTriangles", replacement is null ? LevelText.Get("Main.Collision.Created") : LevelText.Get("Main.Collision.Regenerated"), generated.Positions.Count, generated.TriangleCount, dialog.TriangleBudget);
         }
         catch (Exception exception)
         {
-            StatusText.Text = $"Не удалось создать коллизию: {exception.Message}";
+            StatusText.Text = LevelText.Get("Main.Message.CouldNotCreateCollision", exception.Message);
             MessageBox.Show(
                 this,
                 exception.Message,
-                "SmoLVLcreator — создание коллизии",
+                LevelText.Get("Main.Message.SmoLVLcreatorCollisionCreation"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -3021,7 +3035,7 @@ public partial class MainWindow
         if (HasActiveGizmoTransform)
         {
             bool snap = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-            if (_editorTool == "Вращение" && _rotationGizmoDragLayout is not null)
+            if (_editorTool == "Rotate" && _rotationGizmoDragLayout is not null)
             {
                 float radians = _rotationGizmoDragLayout.CalculateRadians(
                     _gizmoDragStart,
@@ -3049,10 +3063,10 @@ public partial class MainWindow
                         pivot);
                 }
                 StatusText.Text =
-                    $"Rotate {_activeGizmoAxis} · {radians * 180 / MathF.PI:0.##}°" +
-                    (snap ? " · snap 15°" : string.Empty);
+                    LevelText.Get("Main.Message.Rotate", _activeGizmoAxis, radians * 180 / MathF.PI) +
+                    (snap ? LevelText.Get("Main.Message.Snap") : string.Empty);
             }
-            else if (_editorTool == "Масштаб" && _gizmoDragLayout is not null)
+            else if (_editorTool == "Scale" && _gizmoDragLayout is not null)
             {
                 float factor = _gizmoDragLayout.CalculateScaleFactor(
                     _activeGizmoAxis,
@@ -3084,8 +3098,8 @@ public partial class MainWindow
                         pivot);
                 }
                 StatusText.Text =
-                    $"Scale {_activeGizmoAxis} · {factor:0.###}" +
-                    (snap ? " · snap 0.1" : string.Empty);
+                    LevelText.Get("Main.Message.Scale", _activeGizmoAxis, factor) +
+                    (snap ? LevelText.Get("Main.Message.Snap2") : string.Empty);
             }
             else if (_gizmoDragLayout is not null)
             {
@@ -3104,7 +3118,7 @@ public partial class MainWindow
                 else
                     _gizmoTransformSession!.PreviewTranslation(gizmoDelta);
                 StatusText.Text =
-                    $"Move {_activeGizmoAxis} · " +
+                    LevelText.Get("Main.Message.Move", _activeGizmoAxis) +
                     $"Δ {gizmoDelta.X:0.###}, {gizmoDelta.Y:0.###}, " +
                     $"{gizmoDelta.Z:0.###}";
             }
@@ -3116,9 +3130,9 @@ public partial class MainWindow
         {
             _hoverGizmoAxis = _editorTool switch
             {
-                "Перемещение" or "Масштаб" =>
+                "Move" or "Scale" =>
                     _gizmoLayout?.HitTest(gizmoPoint) ?? SmoGizmoAxis.None,
-                "Вращение" =>
+                "Rotate" =>
                     _rotationGizmoLayout?.HitTest(gizmoPoint) ?? SmoGizmoAxis.None,
                 _ => SmoGizmoAxis.None
             };
@@ -3195,6 +3209,16 @@ public partial class MainWindow
 
     private void ViewportSurface_MouseWheel(object sender, MouseWheelEventArgs e)
     {
+        if (_document is not null && _viewportOrbiting && !_cameraOrbitingFocus &&
+            _sceneCamera is PerspectiveCamera)
+        {
+            _cameraFlySpeedMultiplier = Math.Clamp(
+                _cameraFlySpeedMultiplier * Math.Pow(1.25, e.Delta / 120.0), 0.125, 8);
+            StatusText.Text = LevelText.Get("Main.Viewport.FlySpeedStatus", _cameraFlySpeedMultiplier);
+            e.Handled = true;
+            return;
+        }
+
         if (_sceneCamera is OrthographicCamera orthographic)
         {
             double factor = Math.Exp(-e.Delta / 120.0 * 0.11);
@@ -3330,7 +3354,7 @@ public partial class MainWindow
                 return;
             }
             ClearViewportSelection();
-            StatusText.Text = "Выбор очищен";
+            StatusText.Text = LevelText.Get("Main.Message.SelectionCleared");
             e.Handled = true;
             return;
         }
@@ -3357,7 +3381,7 @@ public partial class MainWindow
                     .Select(ApplyPendingPlacementTransform)
                     .ToArray();
                 FrameMeshes(pendingMeshes);
-                StatusText.Text = $"Фокус · новое размещение {pending.Name}";
+                StatusText.Text = LevelText.Get("Main.Message.FocusNewPlacement", pending.Name);
             }
             else if (AssetList.SelectedItem is CatalogItem { AssetItem.Asset: { } })
                 FocusCatalogSelection();
@@ -3413,7 +3437,7 @@ public partial class MainWindow
             UpdateStatistics();
             UpdateCommandAvailability();
         }
-        StatusText.Text = changed ? $"Undo · {description}" : "Undo · история пуста";
+        StatusText.Text = changed ? LevelText.Get("Main.Message.Undo", LevelText.Display(description)) : LevelText.Get("Main.Message.UndoHistoryEmpty");
     }
 
     private void RedoLevelEdit()
@@ -3431,7 +3455,7 @@ public partial class MainWindow
             UpdateStatistics();
             UpdateCommandAvailability();
         }
-        StatusText.Text = changed ? $"Redo · {description}" : "Redo · история пуста";
+        StatusText.Text = changed ? LevelText.Get("Main.Message.Redo", LevelText.Display(description)) : LevelText.Get("Main.Message.RedoHistoryEmpty");
     }
 
     private void RefreshActiveInspector()
@@ -3488,9 +3512,9 @@ public partial class MainWindow
                     pending.External);
             pendingSession.PreviewTranslation(pendingDelta);
             pendingSession.Commit(
-                $"Set position of pending placement {pending.Name}");
+                LevelText.Label("Main.History.SetPositionOfPendingPlacement", pending.Name));
             StatusText.Text =
-                $"Position · {desiredPosition.X:0.###}, " +
+                LevelText.Get("Main.Message.Position", desiredPosition.X) +
                 $"{desiredPosition.Y:0.###}, {desiredPosition.Z:0.###}";
             return;
         }
@@ -3539,7 +3563,7 @@ public partial class MainWindow
             if (blocked.Length > 0)
             {
                 StatusText.Text =
-                    "Нельзя изменить SAVE BLOCKED объект: " +
+                    LevelText.Get("Main.Message.CannotTransformAnObjectThatCannot") +
                     string.Join(", ", blocked.Select(entity =>
                         $"{entity.Name} [{entity.Id.SceneObjectIndex}]"));
                 RefreshActiveInspector();
@@ -3551,16 +3575,16 @@ public partial class MainWindow
             using SmoTransformSession session = _document.BeginTransform(
                 transformSelection);
             session.PreviewTranslation(delta);
-            session.Commit($"Set position of {transformSelection.Count:N0} entities");
+            session.Commit(LevelText.Label("Main.History.SetPositionOfEntities", transformSelection.Count));
             if (HasProject)
             {
                 CommitCurrentProjectTransforms(
-                    $"Set position of {transformSelection.Count:N0} entities",
+                    LevelText.Label("Main.History.SetPositionOfEntities", transformSelection.Count),
                     transformSelection);
                 return;
             }
             StatusText.Text =
-                $"Position · {desiredPosition.X:0.###}, " +
+                LevelText.Get("Main.Message.Position", desiredPosition.X) +
                 $"{desiredPosition.Y:0.###}, {desiredPosition.Z:0.###}";
         }
         catch (Exception exception) when (
@@ -3599,9 +3623,9 @@ public partial class MainWindow
                     pending.Id,
                     pending.External);
             session.PreviewRotation(axis, radians, pendingPosition);
-            session.Commit($"Set rotation of pending placement {pending.Name}");
+            session.Commit(LevelText.Label("Main.History.SetRotationOfPendingPlacement", pending.Name));
             StatusText.Text =
-                $"Rotation · {desiredDegrees.X:0.###}°, " +
+                LevelText.Get("Main.Message.Rotation", desiredDegrees.X) +
                 $"{desiredDegrees.Y:0.###}°, {desiredDegrees.Z:0.###}°";
             return;
         }
@@ -3627,16 +3651,16 @@ public partial class MainWindow
         {
             using SmoTransformSession session = _document.BeginTransform(selection!);
             session.PreviewRotation(worldAxis, worldRadians, pivot);
-            session.Commit($"Set rotation of {selection!.Count:N0} entities");
+            session.Commit(LevelText.Label("Main.History.SetRotationOfEntities", selection!.Count));
             if (HasProject)
             {
                 CommitCurrentProjectTransforms(
-                    $"Set rotation of {selection!.Count:N0} entities",
+                    LevelText.Label("Main.History.SetRotationOfEntities", selection!.Count),
                     selection!);
                 return;
             }
             StatusText.Text =
-                $"Rotation · {desiredDegrees.X:0.###}°, " +
+                LevelText.Get("Main.Message.Rotation", desiredDegrees.X) +
                 $"{desiredDegrees.Y:0.###}°, {desiredDegrees.Z:0.###}°";
         }
         catch (Exception exception) when (
@@ -3664,7 +3688,7 @@ public partial class MainWindow
                     desiredScale,
                     out Vector3 factors))
             {
-                StatusText.Text = "Scale: исходный масштаб объекта вырожден";
+                StatusText.Text = LevelText.Get("Main.Message.ScaleTheOriginalObjectScaleIs");
                 RefreshActiveInspector();
                 return;
             }
@@ -3673,9 +3697,9 @@ public partial class MainWindow
                     pending.Id,
                     pending.External);
             session.PreviewScale(factors, pendingRotation, pendingPosition);
-            session.Commit($"Set scale of pending placement {pending.Name}");
+            session.Commit(LevelText.Label("Main.History.SetScaleOfPendingPlacement", pending.Name));
             StatusText.Text =
-                $"Scale · {desiredScale.X:0.###}, " +
+                LevelText.Get("Main.Message.Scale2", desiredScale.X) +
                 $"{desiredScale.Y:0.###}, {desiredScale.Z:0.###}";
             return;
         }
@@ -3700,16 +3724,16 @@ public partial class MainWindow
         {
             using SmoTransformSession session = _document.BeginTransform(selection!);
             session.PreviewScale(worldFactors, currentRotation, pivot);
-            session.Commit($"Set scale of {selection!.Count:N0} entities");
+            session.Commit(LevelText.Label("Main.History.SetScaleOfEntities", selection!.Count));
             if (HasProject)
             {
                 CommitCurrentProjectTransforms(
-                    $"Set scale of {selection!.Count:N0} entities",
+                    LevelText.Label("Main.History.SetScaleOfEntities", selection!.Count),
                     selection!);
                 return;
             }
             StatusText.Text =
-                $"Scale · {desiredScale.X:0.###}, " +
+                LevelText.Get("Main.Message.Scale2", desiredScale.X) +
                 $"{desiredScale.Y:0.###}, {desiredScale.Z:0.###}";
         }
         catch (Exception exception) when (
@@ -3769,7 +3793,7 @@ public partial class MainWindow
             .ToArray();
         if (blocked.Length > 0)
         {
-            StatusText.Text = "Нельзя изменить SAVE BLOCKED объект: " +
+            StatusText.Text = LevelText.Get("Main.Message.CannotTransformAnObjectThatCannot") +
                 string.Join(", ", blocked.Select(entity =>
                     $"{entity.Name} [{entity.Id.SceneObjectIndex}]"));
             return false;

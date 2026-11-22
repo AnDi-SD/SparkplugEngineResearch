@@ -9,7 +9,7 @@
 namespace winxcoop::adapter
 {
     constexpr std::uint32_t IpcMagic = 0x50494357; // WCIP
-    constexpr std::uint32_t IpcVersion = 3;
+    constexpr std::uint32_t IpcVersion = 4;
     enum class RuntimeMode : std::uint32_t { Observe, PassiveActor };
     enum class RuntimePhase : std::uint32_t { Empty, Attached, WaitingForLevel, Ready, Stopped, Failed };
     enum class RuntimeError : std::uint32_t { None, Identity, Image, Signature, Memory, Thread, NativeException, Ipc, Media, Command, Actor, Unload, Owner };
@@ -88,6 +88,10 @@ namespace winxcoop::adapter
         RuntimeMode mode{};
         std::uint32_t levelEpoch{};
         std::uint64_t session{};
+        // Guest-only original startup selection. Zero preserves ordinary boot.
+        // The helper applies no INI edit; the adapter supplies startLevel after
+        // the original settings reader returns, before native startup consumes it.
+        std::uint32_t startupLevel{}, startupEntry{};
         wchar_t mappingName[128]{};
         // PassiveActor only. Absolute ASCII drive path. Model-file read pins
         // are acquired at Create; file hashes are not game-version gates.
@@ -97,7 +101,9 @@ namespace winxcoop::adapter
     static_assert(sizeof(Transform) == 60, "IPC transform ABI");
     static_assert(sizeof(RuntimeCommand) == 104, "IPC command ABI");
     static_assert(sizeof(RuntimeAck) == 48, "IPC acknowledgement ABI");
-    static_assert(sizeof(RuntimeStart) == 560, "IPC start ABI");
+    static_assert(sizeof(RuntimeStart) == 568, "IPC start ABI");
+    static_assert(offsetof(RuntimeStart, startupLevel) == 40, "IPC startup layout");
+    static_assert(offsetof(RuntimeStart, mappingName) == 48, "IPC mapping-name layout");
     static_assert(sizeof(RuntimeSnapshot) == 264, "IPC snapshot ABI");
     static_assert(sizeof(RuntimeShared) == 464, "IPC shared ABI");
     static_assert(offsetof(RuntimeCommand, remote) == 40, "IPC command layout");

@@ -88,9 +88,15 @@ public static class SmoSceneBuilder
                     geometry.Add(source.ObjectIndex, converted = ConvertGeometry(source, includeMaterials));
                 var texture = includeTextures && occurrence.Texture is not null ? ExportTexture(occurrence.Texture) : null;
                 Vector4 color = includeMaterials ? occurrence.LoadedMaterial?.Colors[1] ?? Vector4.One : Vector4.One;
-                // Existing target-format color policy is retained here while
-                // full engine material/shader execution is migrated separately.
                 if (includeMaterials && texture is null && converted.UniformDiffuse is Vector4 diffuse) color = diffuse;
+                if (texture is not null && HasVertexColorTextureModulation(occurrence) &&
+                    (converted.UniformDiffuse.HasValue || converted.Colors.Length != 0))
+                {
+                    // ColorMode 2 supplies vertex RGB instead of material diffuse.
+                    // Keep the existing export alpha policy for test/blend passes.
+                    Vector4 tint = converted.UniformDiffuse ?? Vector4.One;
+                    color = new Vector4(tint.X, tint.Y, tint.Z, color.W);
+                }
                 bool alpha = includeMaterials && (occurrence.UsesAlphaBlend || color.W < 1f || converted.Colors.Any(value => value.W < 1f));
                 mesh = new SmoExportMesh(source.ObjectIndex, document.Objects[source.ObjectIndex].Id,
                     source.Name, source.Marker, source.PrimitiveType, source.VertexFormat, source.Stride, source.RuntimeStride,
@@ -121,6 +127,24 @@ public static class SmoSceneBuilder
     private sealed record ExportGeometry(Vector3[] Positions, Vector3[] Normals,
         Vector2[] Uv0, Vector2[] Uv1, Vector4[] Colors, Vector4[] Weights, Vector4[] Joints,
         uint[] Triangles, Vector4? UniformDiffuse);
+
+    private static bool HasVertexColorTextureModulation(SmoViewer.Scene.SmoSceneMesh occurrence)
+    {
+        const uint VertexColorMode = 2;
+        const uint StageDisabled = 1;
+        const uint Modulate = 4;
+        const uint CompleteStageState = 1023;
+        // The material path uses texture and current as the stage operands.
+        // At stage 0, current is the incoming diffuse value.
+        return occurrence.LoadedMaterial?.RenderStates[8] == VertexColorMode &&
+               occurrence.MaterialDraw?.Passes is [var pass] &&
+               pass.Stages is [var stage, var nextStage, ..] &&
+               stage.KnownMask == CompleteStageState && nextStage.KnownMask == CompleteStageState &&
+               stage.Texture is not null && stage.Texture.ObjectIndex == occurrence.Texture?.ObjectIndex &&
+               stage.ColorOperation == Modulate && stage.AlphaOperation == Modulate &&
+               stage.Coordinates == 0 && stage.TransformFlags == 0 &&
+               nextStage.ColorOperation == StageDisabled;
+    }
 
     private static ExportGeometry ConvertGeometry(SmoMesh mesh, bool includeMaterials)
     {

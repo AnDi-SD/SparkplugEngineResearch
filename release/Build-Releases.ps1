@@ -154,6 +154,8 @@ using System.Reflection;
         '/reference:System.Drawing.dll',
         '/reference:System.Windows.Forms.dll',
         '/reference:System.Web.Extensions.dll',
+        "/resource:$(Join-Path $PSScriptRoot 'bootstrapper\Strings.en.json'),Bootstrapper.Strings.en.json",
+        "/resource:$(Join-Path $PSScriptRoot 'bootstrapper\Strings.ru.json'),Bootstrapper.Strings.ru.json",
         $sourcePath,
         $assemblyInfoPath
     )

@@ -17,7 +17,6 @@ internal sealed class SmoLevelSaveState
     public bool IsModified { get; init; }
     public string? BatchWorkerExecutable { get; init; }
     public string? BatchWorkerAssembly { get; init; }
-    public string? NativeFbxBridgePath { get; init; }
     public IReadOnlyList<SmoLevelSaveTransform> Transforms { get; init; } = [];
     public IReadOnlyList<SmoLevelModelReplacement> ModelReplacements { get; init; } = [];
     public IReadOnlyList<SmoLevelTextureReplacement> TextureReplacements { get; init; } = [];

@@ -36,6 +36,13 @@ public sealed record SmoLevelModelGraphWriteOptions(
     bool RequireUnskinnedModel = false,
     bool PrepareRigidImport = false)
 {
+    public bool AuthorAlphaWeightedMips { get; init; }
+
+    public static SmoLevelModelGraphWriteOptions LevelEditor { get; } = new()
+    {
+        AuthorAlphaWeightedMips = true
+    };
+
     public static SmoLevelModelGraphWriteOptions StandaloneStatic { get; } = new(
         RequireReferenceOnlyPlacements: false,
         ExpandSingleComponentTemplate: true,
@@ -395,13 +402,8 @@ public static class SmoLevelModelGraphReplacer
             {
                 serializedImportedTextures.Add(
                     textureIndex,
-                    textureTemplate is null
-                        ? BuildCanonicalTextureObject(
-                            document, replacement.Textures[textureIndex], prepared.LegacyCommonTextureSource)
-                        : BuildTextureObject(
-                            document,
-                            textureTemplate,
-                            replacement.Textures[textureIndex]));
+                    BuildImportedTextureObject(document, replacement, textureIndex, textureTemplate,
+                        prepared.LegacyCommonTextureSource, options));
             }
         }
         byte[] output = document.Data.ToArray();
@@ -1176,13 +1178,8 @@ public static class SmoLevelModelGraphReplacer
                 : FindTextureTemplate(document, oldTextureIdsByMaterial);
             foreach (int textureIndex in importedTextureIndices)
             {
-                _ = textureTemplate is null
-                    ? BuildCanonicalTextureObject(
-                        document, replacement.Textures[textureIndex], prepared.LegacyCommonTextureSource)
-                    : BuildTextureObject(
-                        document,
-                        textureTemplate,
-                        replacement.Textures[textureIndex]);
+                _ = BuildImportedTextureObject(document, replacement, textureIndex, textureTemplate,
+                    prepared.LegacyCommonTextureSource, options);
             }
         }
 
@@ -1543,7 +1540,7 @@ public static class SmoLevelModelGraphReplacer
                      .OrderByDescending(entry => preferred.Contains(entry.Id)))
         {
             if (SmoTextureDataDecoder.TryDecode(
-                    document, entry, out SmoTextureDataInfo? data, out _) &&
+                    document, entry, out SmoTextureDataInfo? data, out _) && data.MipLevelCount == 1 &&
                 SmoTextureDataWriter.CanReplace(data, out _))
             {
                 return entry;
@@ -1566,8 +1563,22 @@ public static class SmoLevelModelGraphReplacer
                 "Legacy-common/PS2 container conversion is not implemented.");
     }
 
+    private static byte[] BuildImportedTextureObject(SmoDocument document, ImportedScene scene, int textureIndex,
+        SmoObjectEntry? template, SmoDocument? legacyTemplateSource, SmoLevelModelGraphWriteOptions options)
+    {
+        // Each worker can serialize just one mesh part but receives every
+        // donor material. Decide from the full material table so a shared
+        // texture keeps its original behavior for any opaque material.
+        bool alphaWeightedMips = options.AuthorAlphaWeightedMips && scene.Materials.All(material =>
+            material.BaseColorTextureIndex != textureIndex || material.UsesTextureAlpha);
+        ImportedTexture imported = scene.Textures[textureIndex];
+        return template is null
+            ? BuildCanonicalTextureObject(document, imported, legacyTemplateSource, alphaWeightedMips)
+            : BuildTextureObject(document, template, imported, alphaWeightedMips);
+    }
+
     private static byte[] BuildCanonicalTextureObject(
-        SmoDocument document, ImportedTexture imported, SmoDocument? legacyTemplateSource)
+        SmoDocument document, ImportedTexture imported, SmoDocument? legacyTemplateSource, bool alphaWeightedMips)
     {
         if (legacyTemplateSource is null)
             RequirePcTextureDestination(document);
@@ -1584,7 +1595,7 @@ public static class SmoLevelModelGraphReplacer
         byte[] pixels = EncodeBgra(image);
         if (legacyTemplateSource is not null)
             return BuildLegacyCommonTextureObject(legacyTemplateSource, image.Width, image.Height, pixels);
-        return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, pixels);
+        return SmoTextureDataWriter.CreateBgraObject(image.Width, image.Height, pixels, alphaWeightedMips);
     }
 
     private static byte[] BuildLegacyCommonTextureObject(
@@ -1639,7 +1650,8 @@ public static class SmoLevelModelGraphReplacer
     internal static byte[] BuildTextureObject(
         SmoDocument document,
         SmoObjectEntry templateEntry,
-        ImportedTexture imported)
+        ImportedTexture imported,
+        bool alphaWeightedMips = false)
     {
         RequirePcTextureDestination(document);
         if (!SmoTextureDataDecoder.TryDecode(
@@ -1660,7 +1672,7 @@ public static class SmoLevelModelGraphReplacer
         byte[] pixels = EncodeBgra(image);
 
         return SmoTextureDataWriter.BuildReplacementObjectBgra(
-            document, templateEntry.Index, image.Width, image.Height, pixels);
+            document, templateEntry.Index, image.Width, image.Height, pixels, alphaWeightedMips);
     }
 
 

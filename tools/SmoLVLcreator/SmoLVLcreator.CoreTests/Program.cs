@@ -2724,6 +2724,34 @@ internal static class Program
             padding: 1);
         True(padded.Positions.Max(point => point.X) > 4.9f,
             "explicit collision padding expands the generated hull");
+
+        Vector3[] triangle = [new(-1, 0, 0), new(1, 0, 0), new(0, 2, 0)];
+        Vector3 translation = new(1663.4482421875f, -785.299072265625f, -2642.9072265625f);
+        foreach (int budget in new[]
+                 { SmoCollisionHullGenerator.MinimumTriangleBudget, SmoCollisionHullGenerator.DefaultTriangleBudget })
+        {
+            SmoGeneratedCollisionMesh local = SmoCollisionHullGenerator.Generate(triangle, budget);
+            SmoGeneratedCollisionMesh moved = SmoCollisionHullGenerator.Generate(
+                triangle.Select(point => point + translation), budget);
+            True(moved.TriangleCount <= budget && moved.TriangleIndices.SequenceEqual(local.TriangleIndices),
+                $"a translated planar collision keeps its topology within budget {budget}");
+            True(moved.Positions.Count == local.Positions.Count && moved.Positions.Zip(local.Positions).All(pair =>
+                    Vector3.Distance(pair.First, pair.Second + translation) < 0.0005f),
+                $"a translated planar collision returns world-space vertices within float precision for budget {budget}");
+            var edgeUseCounts = new Dictionary<(int First, int Second), int>();
+            foreach (int[] face in moved.TriangleIndices.Chunk(3))
+            {
+                for (int index = 0; index < face.Length; index++)
+                {
+                    int start = face[index];
+                    int end = face[(index + 1) % face.Length];
+                    var edge = (Math.Min(start, end), Math.Max(start, end));
+                    edgeUseCounts[edge] = edgeUseCounts.GetValueOrDefault(edge) + 1;
+                }
+            }
+            True(edgeUseCounts.Values.All(count => count == 2),
+                $"a translated planar collision is closed for budget {budget}");
+        }
     }
 
     private static void ValidateGeneratedCollisionSave(string path)

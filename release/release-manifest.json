@@ -76,8 +76,18 @@
           "source": "tools/SmoLVLcreator/PACKAGE_README.md",
           "name": "README.md"
         },
+        {
+          "source": "tools/SmoLVLcreator/PACKAGE_README.en.md",
+          "name": "README.en.md"
+        },
         "tools/SmoLVLcreator/CHANGELOG.md",
-        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.1.md"
+        "tools/SmoLVLcreator/CHANGELOG.en.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.0.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.0.en.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.1.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.1.1.en.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.2.0.md",
+        "tools/SmoLVLcreator/RELEASE_NOTES_0.2.0.en.md"
       ]
     },
     {

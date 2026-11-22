@@ -46,7 +46,7 @@ public partial class MainWindow
         {
             AssetFilterBox.Clear();
             ApplyCatalogFilter();
-            StatusText.Text = $"Каталог: {CatalogSectionTitle(section)}";
+            StatusText.Text = LevelText.Get("Catalog.SectionStatus", CatalogSectionTitle(section));
         }
     }
 
@@ -126,11 +126,37 @@ public partial class MainWindow
         Dispatcher.BeginInvoke(
             QueueVisibleCatalogPreviews,
             DispatcherPriority.Background);
-        AssetCountText.Text = $"{visible.Length:N0} {CatalogSectionCountNoun(_catalogSection)}";
+        UpdateCatalogLanguageCaptions(visible.Length);
+    }
+
+    private void UpdateCatalogLanguageCaptions(int visibleCount)
+    {
+        AssetCountText.Text = LevelText.Get(_catalogSection switch
+        {
+            CatalogSection.Models => "Catalog.ModelCount",
+            CatalogSection.Placements => "Catalog.PlacementCount",
+            CatalogSection.Textures => "Catalog.TextureCount",
+            _ => "Catalog.DiagnosticCount"
+        }, visibleCount);
         if (AssetFilterBox is not null)
         {
             AssetFilterBox.ToolTip =
-                $"Поиск: {CatalogSectionTitle(_catalogSection).ToLowerInvariant()}";
+                LevelText.Get("Catalog.SearchSection", CatalogSectionTitle(_catalogSection).ToLowerInvariant());
+        }
+    }
+
+    private void RefreshCatalogLanguage()
+    {
+        UpdateCatalogLanguageCaptions(AssetList.Items.Count);
+        foreach (CatalogItem item in _catalogItems)
+            item.RefreshLanguage();
+
+        if (AssetList.SelectedItem is CatalogItem selected)
+        {
+            if (selected.Texture is not null)
+                UpdateTextureInspector(selected);
+            else if (_catalogSection == CatalogSection.Unknown)
+                UpdateUnknownInspector(selected);
         }
     }
 
@@ -311,9 +337,9 @@ public partial class MainWindow
         foreach (SmoDiagnostic diagnostic in _workspace.Document.Diagnostics)
             _catalogItems.Add(CatalogItem.FromDiagnostic(diagnostic));
         foreach (string issue in _workspace.DecodeIssues)
-            _catalogItems.Add(CatalogItem.FromIssue("DECODE", issue));
+            _catalogItems.Add(CatalogItem.FromIssue(LevelText.Label("Catalog.DecodeIssue"), issue));
         foreach (string issue in _workspace.PreparedScene.TextureIssues)
-            _catalogItems.Add(CatalogItem.FromIssue("TEXTURE", issue));
+            _catalogItems.Add(CatalogItem.FromIssue(LevelText.Label("Catalog.TextureIssue"), issue));
     }
 
     private void HandleCatalogSelectionChanged()
@@ -335,8 +361,8 @@ public partial class MainWindow
         if (_catalogSection is CatalogSection.Models or CatalogSection.Placements)
         {
             StatusText.Text = selection.Length == 1
-                ? $"Выбрано в каталоге: {selection[0].Name} · двойной клик — показать в сцене"
-                : $"Выбрано в каталоге: {selection.Length:N0}";
+                ? LevelText.Get("Catalog.OneItemSelected", selection[0].Name)
+                : LevelText.Get("Catalog.ItemsSelected", selection.Length);
             return;
         }
 
@@ -499,7 +525,7 @@ public partial class MainWindow
         }
         catch (Exception exception)
         {
-            item.PreviewError = exception.Message;
+            item.PreviewError = LevelText.Error(exception.Message);
         }
         finally
         {
@@ -594,8 +620,8 @@ public partial class MainWindow
         }
         RevealCatalogSelectionInTree(selectNode: true);
         StatusText.Text = _selectedEntities.Count == 1
-            ? $"Выбрано размещение · {active.Name} #{activeIndex + 1}"
-            : $"Выбрано объектов: {_selectedEntities.Count:N0} · Ctrl+клик меняет набор";
+            ? LevelText.Get("Catalog.PlacementSelected", active.Name, activeIndex + 1)
+            : LevelText.Get("Catalog.ObjectsSelected", _selectedEntities.Count);
     }
 
     private void ClearSceneSelectionForResource()
@@ -613,27 +639,27 @@ public partial class MainWindow
         SmoObjectEntry? entry = _workspace?.Document.Objects.ElementAtOrDefault(
             texture.ObjectIndex);
         SelectedNameText.Text = texture.Name.TrimEnd('\0');
-        SelectedPathText.Text = $"Texture catalog / [{texture.ObjectIndex}]";
+        SelectedPathText.Text = LevelText.Get("Catalog.TextureCatalogPath", texture.ObjectIndex);
         ObjectIdentityText.Text = $"spTextureData · [{texture.ObjectIndex}]";
         ObjectIdText.Text = entry is null ? "—" : $"0x{entry.Id:X8}";
         SetPositionEditor(null);
         SetRotationScaleEditor(null, null);
-        PlacementCountText.Text = $"{item.RelatedAssets.Length:N0} моделей используют текстуру";
+        PlacementCountText.Text = LevelText.Get("Catalog.TextureModelCount", item.RelatedAssets.Length);
         GeometryCountText.Text = $"{texture.Width:N0} × {texture.Height:N0}";
-        VertexLayoutText.Text = $"format 0x{texture.FormatCode:X4}";
+        VertexLayoutText.Text = LevelText.Get("Catalog.TextureFormat", texture.FormatCode);
         ChannelsText.Text = texture.SourceLayout;
         TextureNameText.Text = texture.Name.TrimEnd('\0');
         MaterialText.Text = item.RelatedAssets.Length == 0
-            ? "Нет подтверждённой привязки к модели"
+            ? LevelText.Get("Catalog.NoVerifiedBinding")
             : string.Join(" · ", item.RelatedAssets.Take(3).Select(asset => asset.Name));
         BindingsText.Text = item.RelatedAssets.Length == 0
-            ? "spTextureData · отдельный ресурс уровня"
-            : $"spTextureData → {item.RelatedAssets.Length:N0} model binding(s)";
-        DiagnosticsText.Text = "Текстура декодирована общим SmoViewer.Core.";
+            ? LevelText.Get("Catalog.StandaloneTexture")
+            : LevelText.Get("Catalog.TextureBindings", item.RelatedAssets.Length);
+        DiagnosticsText.Text = LevelText.Get("Catalog.SharedTextureDecoded");
         DiagnosticsText.Foreground = HealthyBrush;
-        ViewportSelectionText.Text = $"RESOURCE · TEXTURE · {texture.Name.TrimEnd('\0')}";
-        StatusText.Text = $"Текстура · {texture.Width} × {texture.Height} · 0x{texture.FormatCode:X4}";
-        UpdateRawData(("texture resource", texture.ObjectIndex));
+        ViewportSelectionText.Text = LevelText.Get("Catalog.TextureViewportResource", texture.Name.TrimEnd('\0'));
+        StatusText.Text = LevelText.Get("Catalog.TextureStatus", texture.Width, texture.Height, texture.FormatCode);
+        UpdateRawData((LevelText.Get("Catalog.TextureResource"), texture.ObjectIndex));
     }
 
     private void UpdateUnknownInspector(CatalogItem item)
@@ -653,9 +679,9 @@ public partial class MainWindow
         BindingsText.Text = item.Path;
         DiagnosticsText.Text = item.Message;
         DiagnosticsText.Foreground = item.StatusColor;
-        ViewportSelectionText.Text = $"RESOURCE · {item.Kind} · {item.Name}";
+        ViewportSelectionText.Text = LevelText.Get("Catalog.ViewportResource", item.Kind, item.Name);
         StatusText.Text = $"{item.Kind} · {item.Name}";
-        UpdateRawData(("catalog object", item.RawObjectIndex));
+        UpdateRawData((LevelText.Get("Catalog.CatalogObject"), item.RawObjectIndex));
     }
 
     private void FocusCatalogSelection()
@@ -663,7 +689,7 @@ public partial class MainWindow
         if (AssetList.SelectedItem is not CatalogItem item ||
             item.AssetItem?.Asset is not SmoLevelAsset asset)
         {
-            StatusText.Text = "Этот ресурс не имеет размещения в сцене";
+            StatusText.Text = LevelText.Get("Catalog.ResourceHasNoPlacement");
             return;
         }
         if (item.VisualParts.Length > 1)
@@ -672,12 +698,12 @@ public partial class MainWindow
                 .Select(part => part.PreviewMesh)
                 .Where(mesh => mesh is not null)
                 .Select(mesh => mesh!));
-            StatusText.Text = $"Фокус · {item.Name} · {item.VisualParts.Length} частей";
+            StatusText.Text = LevelText.Get("Catalog.FocusParts", item.Name, item.VisualParts.Length);
             return;
         }
         int index = Math.Clamp(item.PlacementIndex, 0, asset.Placements.Count - 1);
         FocusPlacement(asset, index);
-        StatusText.Text = $"Фокус · {item.AssetItem.Name} #{index + 1}";
+        StatusText.Text = LevelText.Get("Catalog.FocusPlacement", item.AssetItem.Name, index + 1);
     }
 
     private void RevealCatalogSelectionInTree(bool selectNode)
@@ -754,9 +780,8 @@ public partial class MainWindow
             return;
         var dialog = new OpenFileDialog
         {
-            Title = "Добавить внешнюю модель в каталог уровня",
-            Filter = "3D-модели (*.glb;*.fbx;*.obj)|*.glb;*.fbx;*.obj|" +
-                     "glTF Binary (*.glb)|*.glb|FBX (*.fbx)|*.fbx|OBJ (*.obj)|*.obj",
+            Title = LevelText.Get("Catalog.ImportTitle"),
+            Filter = LevelText.Get("Catalog.ModelFilter"),
             CheckFileExists = true,
             Multiselect = false
         };
@@ -764,11 +789,9 @@ public partial class MainWindow
             return;
         try
         {
-            SetBusy(true, $"Чтение {Path.GetFileName(dialog.FileName)}…");
-            ImportedScene imported = await Task.Run(() =>
-                SmoLevelEmbeddedTextureBudget.Prepare(
-                    ImportedModelReader.Read(dialog.FileName)));
-            SetBusy(false, "Проверка модели завершена");
+            ImportedScene? imported = await ReadCatalogDonorAsync(dialog.FileName);
+            if (imported is null)
+                return;
             if (!ConfirmImportValidation(SmoLevelImportValidator.Validate(
                     imported,
                     SmoLevelImportPurpose.AddExternalModel)))
@@ -783,7 +806,7 @@ public partial class MainWindow
                     Path.GetFileNameWithoutExtension(dialog.FileName));
                 return;
             }
-            SetBusy(true, "Добавление модели в каталог…");
+            SetBusy(true, LevelText.Get("Catalog.AddingModel"));
             Guid modelId = _document.AddExternalModel(
                 imported,
                 dialog.FileName,
@@ -798,15 +821,31 @@ public partial class MainWindow
                 AssetList.ScrollIntoView(added);
             }
             SetBusy(false,
-                $"{Path.GetFileName(dialog.FileName)} добавлен в каталог · перетащите его на сцену");
+                LevelText.Get("Catalog.ModelAdded", Path.GetFileName(dialog.FileName)));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось добавить внешнюю модель");
-            MessageBox.Show(this, exception.Message,
-                "SmoLVLcreator — добавление модели",
+            SetBusy(false, LevelText.Get("Catalog.ModelAddFailed"));
+            MessageBox.Show(this, LevelText.Error(exception.Message),
+                LevelText.Get("Catalog.ModelAddError"),
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private async Task<ImportedScene?> ReadCatalogDonorAsync(string path)
+    {
+        SetBusy(true, LevelText.Get("Catalog.ReadingModel", Path.GetFileName(path)));
+        ImportedScene source = await Task.Run(() => ImportedModelReader.Read(path));
+        SetBusy(false, LevelText.Get("Language.Ready"));
+        var options = new ModelImportWindow(path, source) { Owner = this };
+        if (options.ShowDialog() != true)
+            return null;
+
+        ImportedScene effective = options.EffectiveScene;
+        SetBusy(true, LevelText.Get("Dialog.Import.Preparing"));
+        ImportedScene prepared = await Task.Run(() => SmoLevelEmbeddedTextureBudget.Prepare(effective));
+        SetBusy(false, LevelText.Get("Catalog.ModelChecked"));
+        return prepared;
     }
 
     private async void CatalogPlace_Click(object sender, RoutedEventArgs e)
@@ -814,7 +853,7 @@ public partial class MainWindow
         CatalogItem? item = AssetList.SelectedItem as CatalogItem ?? _catalogDragItem;
         if (item is null)
         {
-            StatusText.Text = "Сначала выберите модель в нижнем каталоге";
+            StatusText.Text = LevelText.Get("Catalog.SelectModelFirst");
             return;
         }
         if (HasProject)
@@ -831,7 +870,7 @@ public partial class MainWindow
                     Math.Max(ViewportSurface.ActualHeight, 1) * 0.5)));
             return;
         }
-        StatusText.Text = $"Размещаю {item.Name}…";
+        StatusText.Text = LevelText.Get("Catalog.PlacingItem", item.Name);
         PlaceCatalogItem(item, ResolveDropPosition(new Point(
             Math.Max(ViewportSurface.ActualWidth, 1) * 0.5,
             Math.Max(ViewportSurface.ActualHeight, 1) * 0.5)));
@@ -876,7 +915,7 @@ public partial class MainWindow
             .ToArray();
         if (parts.Length == 0)
         {
-            error = $"{item.Name}: нет размещаемой геометрии";
+            error = LevelText.Get("Catalog.NoPlaceableGeometry", item.Name);
             return false;
         }
         foreach (CatalogPlacementPart part in parts)
@@ -885,7 +924,7 @@ public partial class MainWindow
                     _workspace!.Document,
                     part.MeshObjectIndex))
             {
-                error = $"{part.Name}: в SMO нет ссылочного шаблона размещения";
+                error = LevelText.Get("Catalog.NoReferenceTemplate", part.Name);
                 return false;
             }
         }
@@ -975,7 +1014,7 @@ public partial class MainWindow
     {
         if (_nextExternalPreviewObjectIndex == int.MinValue)
             throw new InvalidOperationException(
-                "Transient external-preview object ID space is exhausted.");
+                LevelText.Get("Catalog.PreviewIdsExhausted"));
         return _nextExternalPreviewObjectIndex--;
     }
 
@@ -997,10 +1036,8 @@ public partial class MainWindow
         {
             MessageBox.Show(
                 this,
-                "Для модели будет открываться отдельное окно подгонки. " +
-                "Сейчас подключён первый общий ресурсный путь — замена текстур; " +
-                "редактор геометрии идёт следующим этапом.",
-                "SmoLVLcreator — замена модели",
+                LevelText.Get("Catalog.SelectReplaceableItem"),
+                LevelText.Get("Catalog.ReplaceModelDialog"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             return;
@@ -1008,11 +1045,8 @@ public partial class MainWindow
 
         var dialog = new OpenFileDialog
         {
-            Title = $"Заменить текстуру {texture.Name.TrimEnd('\0')}",
-            Filter = "Изображения (*.png;*.jpg;*.jpeg;*.bmp;*.tga)|" +
-                     "*.png;*.jpg;*.jpeg;*.bmp;*.tga|" +
-                     "PNG (*.png)|*.png|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
-                     "BMP (*.bmp)|*.bmp|TGA (*.tga)|*.tga",
+            Title = LevelText.Get("Catalog.ReplaceTextureTitle", texture.Name.TrimEnd('\0')),
+            Filter = LevelText.Get("Catalog.ImageFilter"),
             CheckFileExists = true,
             Multiselect = false
         };
@@ -1024,11 +1058,8 @@ public partial class MainWindow
             byte[] encoded = File.ReadAllBytes(dialog.FileName);
             MessageBoxResult alphaChoice = MessageBox.Show(
                 this,
-                "Как поступить с альфа-каналом?\n\n" +
-                "Да — перенести RGB и alpha из нового изображения.\n" +
-                "Нет — заменить RGB, но сохранить исходную alpha из SMO.\n" +
-                "Отмена — ничего не менять.",
-                "Замена текстуры — альфа-канал",
+                LevelText.Get("Catalog.ChooseAlphaMode"),
+                LevelText.Get("Catalog.AlphaModeTitle"),
                 MessageBoxButton.YesNoCancel,
                 MessageBoxImage.Question);
             if (alphaChoice == MessageBoxResult.Cancel)
@@ -1038,10 +1069,10 @@ public partial class MainWindow
             if (HasProject)
             {
                 uint textureObjectId = _workspace.Document.Objects[texture.ObjectIndex].Id;
-                SetBusy(true, $"Замена текстуры {texture.Name.TrimEnd('\0')} в проекте…");
+                SetBusy(true, LevelText.Get("Catalog.ReplacingProjectTexture", texture.Name.TrimEnd('\0')));
                 bool changed = await Task.Run(() =>
                     _projectSession!.Execute(
-                        $"Заменить текстуру {texture.Name.TrimEnd('\0')}",
+                        LevelText.Label("Catalog.ReplaceTextureAction", texture.Name.TrimEnd('\0')),
                         project => SmoProjectTextureReplacement.Replace(
                             project,
                             textureObjectId,
@@ -1049,14 +1080,14 @@ public partial class MainWindow
                             replaceAlpha)));
                 if (!changed)
                 {
-                    SetBusy(false, "Текстура не изменилась");
+                    SetBusy(false, LevelText.Get("Catalog.TextureUnchanged"));
                     return;
                 }
                 _textureReplacementPreviews[texture.ObjectIndex] = preview;
                 _catalogPreviewCache.Remove($"T:{texture.ObjectIndex}");
                 await RefreshProjectPreviewAsync(
-                    $"Текстура {texture.Name.TrimEnd('\0')} заменена · " +
-                    (replaceAlpha ? "RGB + alpha" : "RGB · исходная alpha сохранена"));
+                    LevelText.Get("Catalog.TextureReplaced", texture.Name.TrimEnd('\0')) +
+                    (replaceAlpha ? LevelText.Get("Catalog.RgbAndAlpha") : LevelText.Get("Catalog.RgbOriginalAlpha")));
                 return;
             }
             if (!_document.ReplaceTexture(
@@ -1071,20 +1102,19 @@ public partial class MainWindow
             _catalogPreviewCache.Remove($"T:{texture.ObjectIndex}");
             item.Preview = preview;
             item.Status = replaceAlpha
-                ? "ЗАМЕНЕНА · RGB + ALPHA"
-                : "ЗАМЕНЕНА · RGB · исходная alpha сохранена";
+                ? LevelText.Label("Catalog.ReplacedRgbAndAlpha")
+                : LevelText.Label("Catalog.ReplacedRgbOriginalAlpha");
             StatusText.Text =
-                $"Текстура {texture.Name.TrimEnd('\0')} заменена · " +
-                "размер будет приведён к слоту SMO при сохранении";
+                LevelText.Get("Catalog.TextureReplacedResize", texture.Name.TrimEnd('\0'));
         }
         catch (Exception exception)
         {
             if (_isBusy)
-                SetBusy(false, "Не удалось заменить текстуру");
+                SetBusy(false, LevelText.Get("Catalog.TextureReplaceFailed"));
             MessageBox.Show(
                 this,
-                exception.Message,
-                "SmoLVLcreator — ошибка замены текстуры",
+                LevelText.Error(exception.Message),
+                LevelText.Get("Catalog.TextureReplaceError"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -1103,8 +1133,8 @@ public partial class MainWindow
         {
             MessageBox.Show(
                 this,
-                "У выбранной карточки нет доступной геометрии для замены.",
-                "SmoLVLcreator — замена модели",
+                LevelText.Get("Catalog.ItemHasNoGeometry"),
+                LevelText.Get("Catalog.ReplaceModelDialog"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -1112,9 +1142,8 @@ public partial class MainWindow
 
         var dialog = new OpenFileDialog
         {
-            Title = $"Заменить модель {item.Name}",
-            Filter = "3D-модели (*.glb;*.fbx;*.obj)|*.glb;*.fbx;*.obj|" +
-                     "glTF Binary (*.glb)|*.glb|FBX (*.fbx)|*.fbx|OBJ (*.obj)|*.obj",
+            Title = LevelText.Get("Catalog.ReplaceModelTitle", item.Name),
+            Filter = LevelText.Get("Catalog.ModelFilter"),
             CheckFileExists = true,
             Multiselect = false
         };
@@ -1123,10 +1152,9 @@ public partial class MainWindow
 
         try
         {
-            SetBusy(true, $"Чтение {Path.GetFileName(dialog.FileName)}…");
-            ImportedScene imported = await Task.Run(() =>
-                SmoLevelEmbeddedTextureBudget.Prepare(
-                    ImportedModelReader.Read(dialog.FileName)));
+            ImportedScene? imported = await ReadCatalogDonorAsync(dialog.FileName);
+            if (imported is null)
+                return;
 
             if (item.CompositeModels.Length > 0)
             {
@@ -1156,7 +1184,7 @@ public partial class MainWindow
                     .DistinctBy(mesh => (mesh.Mesh.ObjectIndex, mesh.SceneObjectIndex))
                     .ToArray();
                 Matrix4x4 projectReferenceWorld = sourceMeshes[0].WorldTransform;
-                SetBusy(false, "Открыто окно подгонки полной замены модели");
+                SetBusy(false, LevelText.Get("Catalog.FullReplacementFitOpened"));
                 var projectFitWindow = new ModelFitWindow(
                     _workspace.Document,
                     sourceMeshes,
@@ -1204,10 +1232,7 @@ public partial class MainWindow
             if (targetPart is null || modelPlan is null)
             {
                 throw new InvalidOperationException(
-                    $"Карточка «{item.Name}» содержит SMO-ресурсы на " +
-                    $"{string.Join("/", componentCounts.Order())} мешей, " +
-                    $"а внешняя — из {imported.Meshes.Count}. " +
-                    "Для полной замены число мешей одной ресурсной модели должно совпадать.");
+                    LevelText.Get("Catalog.MeshCountMismatch", item.Name, string.Join("/", componentCounts.Order()), imported.Meshes.Count));
             }
 
             if (!ConfirmImportValidation(SmoLevelImportValidator.Validate(
@@ -1227,7 +1252,7 @@ public partial class MainWindow
                     out SmoEditablePlacement? placement)
                 ? placement!.WorldTransform
                 : sourceMesh.WorldTransform;
-            SetBusy(false, "Открыто окно подгонки модели");
+            SetBusy(false, LevelText.Get("Catalog.ModelFitOpened"));
             var fitWindow = new ModelFitWindow(
                 _workspace.Document,
                 sourceMesh,
@@ -1247,27 +1272,26 @@ public partial class MainWindow
                     referenceWorld,
                     dialog.FileName))
             {
-                item.Status = "ЗАМЕНЕНА · ресурс SMO · ожидает сохранения";
+                item.Status = LevelText.Label("Catalog.SharedResourceReplacementPending");
                 _catalogPreviewCache.Remove(item.PreviewCacheKey);
                 StatusText.Text =
-                    $"Геометрия {asset.DisplayName} заменена · " +
-                    $"все {asset.Placements.Count:N0} размещений используют новый ресурс";
+                    LevelText.Get("Catalog.GeometryReplaced", asset.DisplayName, asset.Placements.Count);
             }
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось импортировать модель");
+            SetBusy(false, LevelText.Get("Catalog.ModelImportFailed"));
             MessageBox.Show(
                 this,
-                exception.Message,
-                "SmoLVLcreator — импорт модели",
+                LevelText.Error(exception.Message),
+                LevelText.Get("Catalog.ModelImportError"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
         finally
         {
             if (_isBusy)
-                SetBusy(false, "Импорт модели завершён");
+                SetBusy(false, LevelText.Get("Catalog.ImportCompleted"));
         }
     }
 
@@ -1283,15 +1307,15 @@ public partial class MainWindow
             return true;
         string warnings = string.Join(
             "\n• ",
-            report.Warnings.Take(10));
+            report.Warnings.Take(10).Select(LevelText.Error));
         if (report.Warnings.Count > 10)
-            warnings += $"\n• …ещё {report.Warnings.Count - 10:N0}";
+            warnings += LevelText.Get("Catalog.MoreImportWarnings", report.Warnings.Count - 10);
         return MessageBox.Show(
                    this,
-                   "Модель совместима, но есть предупреждения:\n\n• " +
+                   LevelText.Get("Catalog.ImportWarningsLead") +
                    warnings +
-                   "\n\nПродолжить импорт?",
-                   "SmoLVLcreator — проверка импорта",
+                   LevelText.Get("Catalog.ContinueImportPrompt"),
+                   LevelText.Get("Catalog.ImportValidationTitle"),
                    MessageBoxButton.OKCancel,
                    MessageBoxImage.Warning) == MessageBoxResult.OK;
     }
@@ -1315,10 +1339,10 @@ public partial class MainWindow
             .ToArray();
         if (sourceMeshes.Length == 0)
             throw new InvalidOperationException(
-                "У составной модели нет доступной геометрии для окна подгонки.");
+                LevelText.Get("Catalog.NoCompositeFitGeometry"));
 
         Matrix4x4 referenceWorld = reference.Entities[0].WorldTransform;
-        SetBusy(false, "Открыто окно подгонки составной модели");
+        SetBusy(false, LevelText.Get("Catalog.CompositeFitOpened"));
         var fitWindow = new ModelFitWindow(
             _workspace.Document,
             sourceMeshes,
@@ -1358,14 +1382,12 @@ public partial class MainWindow
         if (replacementItem is not null)
         {
             replacementItem.Status =
-                $"ЗАМЕНЕНА ЦЕЛИКОМ · {item.CompositeModels.Length:N0} размещений · " +
-                "ожидает сохранения";
+                LevelText.Label("Catalog.CompositeReplacementPending", item.CompositeModels.Length);
             AssetList.SelectedItem = replacementItem;
             AssetList.ScrollIntoView(replacementItem);
         }
         StatusText.Text =
-            $"Составная модель {item.Name} заменена целиком · " +
-            $"{item.CompositeModels.Length:N0} размещений используют новый ресурс {modelId}";
+            LevelText.Get("Catalog.CompositeReplaced", item.Name, item.CompositeModels.Length, modelId);
         return Task.CompletedTask;
     }
 
@@ -1437,7 +1459,7 @@ public partial class MainWindow
                 ? preview
                 : null;
             item.Status = replaced
-                ? "ЗАМЕНЕНА · RGB · исходная альфа сохранена"
+                ? LevelText.Label("Catalog.ReplacedRgbOriginalAlpha")
                 : texture.SourceLayout;
         }
 
@@ -1484,30 +1506,22 @@ public partial class MainWindow
                 .Count();
             int alphaMaterialCount = replacement.ImportedScene.Materials.Count(
                 material => material.UsesTextureAlpha);
-            item.Status =
-                $"ЗАМЕНЕНА · {Path.GetFileNameWithoutExtension(replacement.SourcePath)} · " +
-                $"{replacement.ImportedScene.Meshes.Count:N0} мешей · " +
-                $"{textureCount:N0} текстур" +
-                (alphaMaterialCount > 0
-                    ? $" · alpha {alphaMaterialCount:N0}"
-                    : string.Empty);
+            string replacementName = Path.GetFileNameWithoutExtension(replacement.SourcePath);
+            int meshCount = replacement.ImportedScene.Meshes.Count;
+            item.Status = alphaMaterialCount > 0
+                ? LevelText.Label("Catalog.ModelReplacementWithAlphaStatus", replacementName,
+                    meshCount, textureCount, alphaMaterialCount)
+                : LevelText.Label("Catalog.ModelReplacementStatus", replacementName,
+                    meshCount, textureCount);
         }
     }
 
     private static string CatalogSectionTitle(CatalogSection section) => section switch
     {
-        CatalogSection.Models => "Модели",
-        CatalogSection.Placements => "Размещения",
-        CatalogSection.Textures => "Текстуры",
-        _ => "Неопознанное и диагностика"
-    };
-
-    private static string CatalogSectionCountNoun(CatalogSection section) => section switch
-    {
-        CatalogSection.Models => "моделей",
-        CatalogSection.Placements => "размещений",
-        CatalogSection.Textures => "текстур",
-        _ => "записей"
+        CatalogSection.Models => LevelText.Get("Catalog.ModelsSection"),
+        CatalogSection.Placements => LevelText.Get("Catalog.PlacementsSection"),
+        CatalogSection.Textures => LevelText.Get("Catalog.TexturesSection"),
+        _ => LevelText.Get("Catalog.UnknownSection")
     };
 
     private enum CatalogSection
@@ -1542,21 +1556,42 @@ public partial class MainWindow
     {
         private ImageSource? _preview;
         private bool _previewLoading;
-        private string _status = string.Empty;
+        private string? _status;
         private bool _isHidden;
+        private readonly string _name = string.Empty;
+        private readonly string _badge = string.Empty;
+        private readonly string _kind = string.Empty;
+        private readonly string _details = string.Empty;
+        private readonly string _path = string.Empty;
+        private readonly string _identity = string.Empty;
+        private readonly string _message = string.Empty;
 
         private CatalogItem()
         {
         }
 
-        public string Name { get; private init; } = string.Empty;
-        public string Badge { get; private init; } = string.Empty;
-        public string Kind { get; private init; } = string.Empty;
+        public string Name { get => LevelText.Display(_name); private init => _name = value; }
+        public string Badge { get => LevelText.Display(_badge); private init => _badge = value; }
+        public string Kind
+        {
+            get => _kind.Length == 0 && UsesAssetDescriptions && AssetItem is { } asset
+                ? asset.Kind
+                : LevelText.Display(_kind);
+            private init => _kind = value;
+        }
         public string Icon { get; private init; } = "◇";
-        public string Details { get; private init; } = string.Empty;
+        public string Details
+        {
+            get => UsesAssetDescriptions && AssetItem is { } asset
+                ? asset.Details
+                : LevelText.Display(_details);
+            private init => _details = value;
+        }
         public string Status
         {
-            get => _status;
+            get => _status is null && UsesAssetDescriptions && AssetItem is { } asset
+                ? asset.Status
+                : LevelText.Error(LevelText.Display(_status));
             set
             {
                 if (_status == value)
@@ -1578,12 +1613,19 @@ public partial class MainWindow
             }
         }
         public string SearchText { get; private init; } = string.Empty;
-        public string Path { get; private init; } = string.Empty;
-        public string Identity { get; private init; } = string.Empty;
+        public string Path { get => LevelText.Display(_path); private init => _path = value; }
+        public string Identity { get => LevelText.Display(_identity); private init => _identity = value; }
         public string ObjectIdText { get; private init; } = "—";
-        public string Message { get; private init; } = string.Empty;
+        public string Message
+        {
+            get => _message.Length == 0 && UsesAssetDescriptions && AssetItem is { } asset
+                ? asset.Status
+                : LevelText.Error(LevelText.Display(_message));
+            private init => _message = value;
+        }
         public int? RawObjectIndex { get; private init; }
         public EditorAssetItem? AssetItem { get; private init; }
+        private bool UsesAssetDescriptions { get; init; }
         public int PlacementIndex { get; private init; }
         public SmoLevelTexture? Texture { get; private init; }
         public Guid? ExternalModelId { get; private init; }
@@ -1601,7 +1643,7 @@ public partial class MainWindow
                 ? "M:" + string.Join(',', PreviewMeshes
                     .Select(mesh => mesh.Mesh.ObjectIndex)
                     .Order())
-                : $"N:{Kind}:{Name}";
+                : $"N:{_kind}:{_name}";
         public ImageSource? Preview
         {
             get => _preview;
@@ -1615,6 +1657,8 @@ public partial class MainWindow
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        public void RefreshLanguage() => OnPropertyChanged(string.Empty);
 
         public bool TryBeginPreviewLoad()
         {
@@ -1646,13 +1690,11 @@ public partial class MainWindow
         {
             Name = item.Name,
             Badge = item.PlacementBadge,
-            Kind = item.Kind,
             Icon = "◇",
-            Details = item.Details,
-            Status = item.Status,
             StatusColor = item.StatusColor,
             SearchText = $"{item.Name} {item.Status} {item.Asset?.FullPath}",
             AssetItem = item,
+            UsesAssetDescriptions = true,
             PlacementIndex = 0,
             PreviewMesh = previewMesh,
             PreviewMeshes = previewMesh is null ? [] : [previewMesh],
@@ -1665,13 +1707,13 @@ public partial class MainWindow
             int placementCount) => new()
         {
             Name = model.Name,
-            Badge = placementCount > 0 ? $"×{placementCount}" : "NEW",
-            Kind = "EXTERNAL",
+            Badge = placementCount > 0 ? $"×{placementCount}" : LevelText.Label("Catalog.NewBadge"),
+            Kind = LevelText.Label("Catalog.ExternalModelKind"),
             Icon = "◇",
-            Details = $"{model.ImportedScene.Meshes.Sum(mesh => mesh.Positions.Length):N0} verts · " +
-                      $"{model.ImportedScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3):N0} tris",
-            Status = $"Внешняя модель · {model.ImportedScene.Meshes.Count:N0} мешей · " +
-                     "будет упакована при сохранении",
+            Details = LevelText.Label("Catalog.MeshDetails",
+                model.ImportedScene.Meshes.Sum(mesh => mesh.Positions.Length),
+                model.ImportedScene.Meshes.Sum(mesh => mesh.TriangleIndices.Length / 3)),
+            Status = LevelText.Label("Catalog.ExternalModelStatus", model.ImportedScene.Meshes.Count),
             StatusColor = NoticeBrush,
             SearchText = $"{model.Name} {model.SourcePath} external imported",
             ExternalModelId = model.Id,
@@ -1706,10 +1748,10 @@ public partial class MainWindow
             {
                 Name = model.Name,
                 Badge = $"×{instances.Length}",
-                Kind = "COMPOSITE",
+                Kind = LevelText.Label("Catalog.CompositeModelKind"),
                 Icon = "◇",
-                Details = $"{vertices:N0} verts · {triangles:N0} tris",
-                Status = $"Составная модель · {parts.Length:N0} мешей",
+                Details = LevelText.Label("Catalog.MeshDetails", vertices, triangles),
+                Status = LevelText.Label("Catalog.CompositeModelStatus", parts.Length),
                 StatusColor = hasIssue ? ErrorBrush : HealthyBrush,
                 SearchText = $"{model.Name} composite {instances.Length} placements " +
                     string.Join(' ', assets.Select(asset =>
@@ -1748,7 +1790,9 @@ public partial class MainWindow
             {
                 Name = placementName,
                 Badge = $"#{index + 1}",
-                Kind = placement.IsSharedInstance ? "SHARED" : "EMBEDDED",
+                Kind = LevelText.Label(placement.IsSharedInstance
+                    ? "Catalog.SharedPlacementKind"
+                    : "Catalog.EmbeddedPlacementKind"),
                 Icon = "⌖",
                 Details = coordinates,
                 Status = item.Name,
@@ -1768,7 +1812,7 @@ public partial class MainWindow
         {
             Name = texture.Name.TrimEnd('\0'),
             Badge = $"×{users.Length}",
-            Kind = "TEXTURE",
+            Kind = LevelText.Label("Catalog.TextureKind"),
             Icon = "▧",
             Details = $"{texture.Width:N0} × {texture.Height:N0} · 0x{texture.FormatCode:X4}",
             Status = texture.SourceLayout,
@@ -1788,31 +1832,35 @@ public partial class MainWindow
             {
                 Name = name,
                 Badge = $"[{entry.Index}]",
-                Kind = "UNKNOWN CLASS",
+                Kind = LevelText.Label("Catalog.UnknownClassKind"),
                 Icon = "?",
-                Details = $"0x{entry.TypeHash:X8} · {entry.SerializedSize:N0} bytes",
-                Status = "Класс пока не зарегистрирован",
+                Details = LevelText.Label("Catalog.UnknownObjectDetails", entry.TypeHash, entry.SerializedSize),
+                Status = LevelText.Label("Catalog.UnregisteredClass"),
                 StatusColor = NoticeBrush,
                 SearchText = $"{name} {entry.Index} 0x{entry.TypeHash:X8}",
-                Path = $"Object directory / [{entry.Index}]",
-                Identity = $"unknown 0x{entry.TypeHash:X8} · [{entry.Index}]",
+                Path = LevelText.Label("Catalog.ObjectDirectoryPath", entry.Index),
+                Identity = LevelText.Label("Catalog.UnknownObjectIdentity", entry.TypeHash, entry.Index),
                 ObjectIdText = $"0x{entry.Id:X8}",
                 RawObjectIndex = entry.Index,
-                Message = "Объект сохранён в исходном SMO, но его класс пока не описан в SmoClassRegistry."
+                Message = LevelText.Label("Catalog.UnknownClassDiagnostic")
             };
         }
 
         public static CatalogItem FromDiagnostic(SmoDiagnostic diagnostic) => new()
         {
             Name = diagnostic.Code,
-            Badge = diagnostic.ObjectIndex is int index ? $"[{index}]" : diagnostic.Severity.ToString().ToUpperInvariant(),
-            Kind = diagnostic.Severity.ToString().ToUpperInvariant(),
+            Badge = diagnostic.ObjectIndex is int index ? $"[{index}]" : DiagnosticSeverity(diagnostic.Severity),
+            Kind = DiagnosticSeverity(diagnostic.Severity),
             Icon = diagnostic.Severity == SmoDiagnosticSeverity.Error ? "!" : "?",
-            Details = diagnostic.Offset is long offset ? $"offset 0x{offset:X}" : "parser diagnostic",
+            Details = diagnostic.Offset is long offset
+                ? LevelText.Label("Catalog.DiagnosticOffset", offset)
+                : LevelText.Label("Catalog.ParserDiagnostic"),
             Status = diagnostic.Message,
             StatusColor = diagnostic.Severity == SmoDiagnosticSeverity.Error ? ErrorBrush : NoticeBrush,
             SearchText = $"{diagnostic.Code} {diagnostic.Message} {diagnostic.ObjectIndex}",
-            Path = diagnostic.ObjectIndex is int objectIndex ? $"Object directory / [{objectIndex}]" : "SMO parser",
+            Path = diagnostic.ObjectIndex is int objectIndex
+                ? LevelText.Label("Catalog.ObjectDirectoryPath", objectIndex)
+                : LevelText.Label("Catalog.SmoParserPath"),
             Identity = diagnostic.Code,
             RawObjectIndex = diagnostic.ObjectIndex,
             Message = diagnostic.Message
@@ -1821,14 +1869,14 @@ public partial class MainWindow
         public static CatalogItem FromIssue(string category, string issue) => new()
         {
             Name = category,
-            Badge = "ISSUE",
+            Badge = LevelText.Label("Catalog.IssueBadge"),
             Kind = category,
             Icon = "!",
-            Details = "Диагностика декодирования",
+            Details = LevelText.Label("Catalog.DecodeDiagnostic"),
             Status = issue,
             StatusColor = NoticeBrush,
-            SearchText = $"{category} {issue}",
-            Path = "Scene decoding",
+            SearchText = $"{LevelText.Display(category)} {issue}",
+            Path = LevelText.Label("Catalog.DecodePath"),
             Identity = category,
             Message = issue
         };
@@ -1836,18 +1884,23 @@ public partial class MainWindow
         public static CatalogItem FromModelIssue(EditorAssetItem item) => new()
         {
             Name = item.Name,
-            Badge = "ISSUE",
-            Kind = "MODEL",
+            Badge = LevelText.Label("Catalog.IssueBadge"),
+            Kind = LevelText.Label("Catalog.ModelKind"),
             Icon = "!",
-            Details = item.Details,
-            Status = item.Status,
             StatusColor = item.StatusColor,
             SearchText = $"{item.Name} {item.Status}",
-            Path = item.Asset?.FullPath ?? "Mockup",
+            Path = item.Asset?.FullPath ?? LevelText.Label("Catalog.MockupPath"),
             Identity = "spMeshData",
             RawObjectIndex = item.Asset?.ObjectIndex,
-            Message = item.Status,
-            AssetItem = item
+            AssetItem = item,
+            UsesAssetDescriptions = true
         };
+
+        private static string DiagnosticSeverity(SmoDiagnosticSeverity severity) => LevelText.Label(severity switch
+        {
+            SmoDiagnosticSeverity.Error => "Catalog.DiagnosticError",
+            SmoDiagnosticSeverity.Warning => "Catalog.DiagnosticWarning",
+            _ => "Catalog.DiagnosticInfo"
+        });
     }
 }

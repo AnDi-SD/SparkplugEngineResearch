@@ -82,6 +82,7 @@ namespace winxcoop::adapter
         U capturedFlow{}, capturedSceneManager{}, playingState{}, playingLevel{};
         U source{}, hair{}, wrapper{}, actor{}, clips[3]{}, activeAnimation{}, playback{};
         bool sourceOwned{}, hairOwned{}, wrapperOwned{}, sourceQualified{}, hairQualified{}, wrapperQualified{}, attached{}, created{}, busy{}, readFailed{};
+        bool postAttachPassivityPending{};
         Transform initial{};
         char bodyPath[MAX_PATH]{}, hairPath[MAX_PATH]{};
         BYTE request[0x38]{};
@@ -552,7 +553,10 @@ namespace winxcoop::adapter
                     localSkins[localSkinCount++] = {at, Word(skin, 0x58), Word(skin, 0x20)};
                 }
             }
-            bool ambientSeeded = false;
+            if (sourceGraph.skinCount != 6 || hairGraph.skinCount != 1 || combined.skinCount != 7)
+                return Fail(PassiveActorError::Appearance, "owned appearance recipe is not six body Skins and one transferred hair Skin");
+            bool ambientSeeded = false, hairMissing = false;
+            U matchedBody{}, matchedHair{}, ownedHair{};
             for (U n = 0; n < combined.count; ++n) if (combined.nodes[n].table == RenderTable)
             {
                 U ambient{}, sceneAt{};
@@ -562,29 +566,69 @@ namespace winxcoop::adapter
             for (U s = 0; s < combined.skinCount; ++s)
             {
                 const auto& own = combined.skins[s]; U matches{}, counterpart{};
+                const auto& qualifiedHair = hairGraph.skins[0];
+                const bool isHair = own.address == qualifiedHair.address;
+                if (isHair)
+                {
+                    BYTE liveHair[0x60]{};
+                    if (own.mesh != qualifiedHair.mesh || own.material != qualifiedHair.material)
+                        return Fail(PassiveActorError::Appearance, "transferred hair Skin identity changed before appearance");
+                    if (!Read(own.address, liveHair, sizeof(liveHair))) return false;
+                    if (Word(liveHair, 0) != SkinTable || Word(liveHair, 0x58) != qualifiedHair.mesh ||
+                        Word(liveHair, 0x20) != qualifiedHair.material)
+                        return Fail(PassiveActorError::Appearance, "transferred hair Skin identity changed before appearance");
+                    ++ownedHair;
+                }
+                else
+                {
+                    U bodyMatches{};
+                    for (U b = 0; b < sourceGraph.skinCount; ++b)
+                        if (own.address == sourceGraph.skins[b].address && own.mesh == sourceGraph.skins[b].mesh &&
+                            own.material == sourceGraph.skins[b].material) ++bodyMatches;
+                    if (bodyMatches != 1) return Fail(PassiveActorError::Appearance, "owned nonhair Skin left the qualified body recipe");
+                }
                 for (U l = 0; l < localSkinCount; ++l)
                 {
                     if (own.address == localSkins[l].address || own.material == localSkins[l].material)
                         return Fail(PassiveActorError::Appearance, "owned Skin/material aliases local appearance");
                     if (own.mesh == localSkins[l].mesh) { ++matches; counterpart = localSkins[l].material; }
                 }
+                BYTE ownBytes[0xBC]{};
+                if (!Material(own.material, ownBytes)) return false;
+                bool seen = false; for (U i = 0; i < ownMaterialCount; ++i) if (ownMaterials[i] == own.material) seen = true;
+                if (!seen) ownMaterials[ownMaterialCount++] = own.material;
+                if (isHair && matches == 0)
+                {
+                    // The stock hair-off patch deliberately omits only the local
+                    // external hair graph. Our separately qualified hair still
+                    // uses the exact ambient established by all six body Skins.
+                    hairMissing = true;
+                    continue;
+                }
                 if (matches != 1) return Fail(PassiveActorError::Appearance, "owned Skin has no unique local shared-mesh counterpart");
-                BYTE ownBytes[0xBC]{}, localBytes[0xBC]{};
-                if (!Material(own.material, ownBytes) || !Material(counterpart, localBytes)) return false;
+                if (isHair) ++matchedHair; else ++matchedBody;
+                BYTE localBytes[0xBC]{};
+                if (!Material(counterpart, localBytes)) return false;
                 float ambient[4]{}; CopyMemory(ambient, localBytes + 0x88, 16);
                 if (!FiniteWords(ambient, 4) || Word(localBytes, 0x94) != 0x3F800000)
                     return Fail(PassiveActorError::Appearance, "local ambient is not qualified finite alpha-one color");
                 if (!ambientSeeded) { CopyMemory(expectedAmbient, localBytes + 0x88, 16); ambientSeeded = true; }
                 else if (!Equal(expectedAmbient, localBytes + 0x88, 16)) return Fail(PassiveActorError::Appearance, "local matched ambients differ");
-                bool seen = false; for (U i = 0; i < localMaterialCount; ++i) if (localMaterials[i].address == counterpart) seen = true;
+                seen = false; for (U i = 0; i < localMaterialCount; ++i) if (localMaterials[i].address == counterpart) seen = true;
                 if (!seen) { auto& m = localMaterials[localMaterialCount++]; m.address = counterpart; CopyMemory(m.bytes, localBytes, 0xBC); }
-                seen = false; for (U i = 0; i < ownMaterialCount; ++i) if (ownMaterials[i] == own.material) seen = true;
-                if (!seen) ownMaterials[ownMaterialCount++] = own.material;
             }
-            if (!ambientSeeded || ownMaterialCount != 3 || localMaterialCount != 3)
-                return Fail(PassiveActorError::Appearance, "qualified Alfea material set differs from three own/three matched local materials");
+            if (!ambientSeeded || ownedHair != 1 || matchedBody != 6 || matchedHair != (hairMissing ? 0u : 1u) ||
+                ownMaterialCount != 3 || localMaterialCount != (hairMissing ? 2u : 3u) ||
+                (hairMissing && localSkinCount != 6))
+                return Fail(PassiveActorError::Appearance, "qualified body/hair material or local counterpart counts differ");
+            if (hairMissing) OutputDebugStringA("WinxCoop appearance: local external hair absent; six body Skin counterparts qualified\n");
+            // Own bounded row selection retained from NativeAppearanceColor:
+            // the original 4E2DE0 getter remains protected/unrecovered. Let the
+            // original color producer perform conversion, then require its
+            // output to equal every qualified local counterpart's exact ambient.
+            const U rgbOffset = playingLevel >= 1 && playingLevel <= 49 ? 0x6F0 + playingLevel * 12 : 0x6FC;
             U alpha{};
-            if (!Read(profile + 0x840, appearanceRgb, 12) || !FiniteWords(appearanceRgb, 3) || !Get(0x75528C, alpha) || !Pointer(alpha) || !Function(0x594820)) return false;
+            if (!Read(profile + rgbOffset, appearanceRgb, 12) || !FiniteWords(appearanceRgb, 3) || !Get(0x75528C, alpha) || !Pointer(alpha) || !Function(0x594820)) return false;
             ++owner->statistics_.nativeCalls;
             __try { reinterpret_cast<void(__thiscall*)(void*, void*, const float*)>(0x594820)(reinterpret_cast<void*>(alpha), reinterpret_cast<void*>(wrapper), appearanceRgb); }
             __except (EXCEPTION_EXECUTE_HANDLER) { return NativeException(); }
@@ -623,6 +667,40 @@ namespace winxcoop::adapter
                 modelOrientation[i] = (i < 3 || i >= 6) ? -transform.orientation[i] : transform.orientation[i];
             return Put(wrapper + 0x20, transform.position, 12) && Put(wrapper + 0x30, initial.scale, 12) &&
                 Put(wrapper + 0x40, modelOrientation, 36) && Put(wrapper + 0xB0, &flags, 4);
+        }
+        bool VerifyAttachedPassivity(const bool nextWorld) noexcept
+        {
+            if (!attached || !wrapperOwned || combined.count != 110 || combined.skinCount != 7)
+                return Fail(PassiveActorError::Graph, "attached passive graph witness escaped its110-node/7-Skin bound", true);
+            // Reuse the already qualified node addresses, without another Tree
+            // traversal or native call. This pass runs only after Attach and
+            // once on the following world lifetime check, never every frame.
+            for (U i = 0; i < combined.count; ++i)
+            {
+                const auto& node = combined.nodes[i];
+                if (!Pointer(node.address) || (node.table != NodeTable && node.table != RenderTable))
+                    return Fail(PassiveActorError::Graph, "attached passive graph contains an unqualified cached node", true);
+                BYTE bytes[0x74]{};
+                if (!Read(node.address, bytes, sizeof(bytes))) return false;
+                if (Word(bytes, 0) != node.table)
+                    return Fail(PassiveActorError::Graph, nextWorld ?
+                        "passive node physical type changed by the following world update" :
+                        "passive node physical type changed during scene attachment", true);
+                const U begin = Word(bytes, 0x68), end = Word(bytes, 0x6C), capacity = Word(bytes, 0x70);
+                const bool storageValid = !begin ? !end && !capacity :
+                    Pointer(begin) && Pointer(end) && Pointer(capacity) && end >= begin && capacity >= end &&
+                    (end - begin) % 4 == 0 && (capacity - begin) % 4 == 0 && capacity - begin <= 65536;
+                if (!storageValid || begin != end)
+                    return Fail(PassiveActorError::Graph, nextWorld ?
+                        "passive node collision storage became invalid or nonempty on the following world update" :
+                        "scene attachment made passive node collision storage invalid or nonempty", true);
+            }
+            // Actor binding legitimately sets flag2000 on animated nodes; it is
+            // not a gameplay/collision registration flag and is not rejected.
+            OutputDebugStringA(nextWorld ?
+                "WinxCoop passive graph next-world witness:110 Node/RenderNode,zero collision entries\n" :
+                "WinxCoop passive graph post-attach witness:110 Node/RenderNode,zero collision entries\n");
+            return true;
         }
         bool Build(const char* media) noexcept
         {
@@ -693,6 +771,8 @@ namespace winxcoop::adapter
             attached = true;
             if (Value(wrapper + 0x2C) != parent || Value(wrapper + 0x3C) != scene || !References(wrapper, count) || count != 2)
                 return Fail(PassiveActorError::Ownership, "scene attachment did not establish exactly parent+adapter ownership", true);
+            if (!VerifyAttachedPassivity(false)) return false;
+            postAttachPassivityPending = true;
             created = true;
             ++owner->statistics_.created; owner->statistics_.nodes = combined.count; owner->statistics_.skins = combined.skinCount;
             return true;
@@ -724,7 +804,7 @@ namespace winxcoop::adapter
             }
             if (!DeleteRoot(hair, hairOwned) || !DeleteRoot(source, sourceOwned)) return false;
             if (created) ++owner->statistics_.destroyed;
-            created = false; attached = false;
+            created = false; attached = false; postAttachPassivityPending = false;
             return true;
         }
     };
@@ -790,6 +870,11 @@ namespace winxcoop::adapter
             !state_->References(state_->wrapper, references) || references != 2)
             return Fail(PassiveActorError::Ownership, "live scene/actor/parent ownership changed", true);
         for (const U clip : state_->clips) if (!state_->Clip(clip)) return false;
+        if (state_->postAttachPassivityPending)
+        {
+            if (!state_->VerifyAttachedPassivity(true)) return false;
+            state_->postAttachPassivityPending = false;
+        }
         return true;
     }
     bool PassiveActor::DestroyBeforeUnload() noexcept

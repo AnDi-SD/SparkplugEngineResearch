@@ -78,15 +78,17 @@ public static class SmoLevelEmbeddedTextureBudget
                 $"{finalBytes / (1024d * 1024d):N1} MiB after safe resizing.");
         }
 
+        double beforeMiB = decodedBytes / (1024d * 1024d);
+        double afterMiB = finalBytes / (1024d * 1024d);
+        string changedTextures = string.Join("; ", changes);
+        string warning = $"Level texture budget: decoded BGRA reduced from {beforeMiB:N1} MiB to " +
+            $"{afterMiB:N1} MiB ({changedTextures}).";
         return scene with
         {
             EmbeddedTextures = textures,
-            ImportWarnings = scene.ImportWarnings.Concat(
-            [
-                $"Level texture budget: decoded BGRA reduced from " +
-                $"{decodedBytes / (1024d * 1024d):N1} MiB to " +
-                $"{finalBytes / (1024d * 1024d):N1} MiB ({string.Join("; ", changes)})."
-            ]).ToArray()
+            ImportWarnings = scene.ImportWarnings.Append(warning).ToArray(),
+            ImportDiagnostics = scene.ImportDiagnostics.Append(
+                new ImportedDiagnostic("TextureBudget", warning, beforeMiB, afterMiB, changedTextures)).ToArray()
         };
     }
 

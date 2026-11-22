@@ -73,7 +73,7 @@ internal static class SmoProjectIsolatedBuildClient
         try
         {
             progress?.Report(new SmoProjectBuildProgress(
-                0, 5, "Подготовка снимка проекта…", project.DataSection.Length));
+                0, 5, LevelText.Get("Project.SnapshotPreparing"), project.DataSection.Length));
             await Task.Run(
                 () => SmoProjectArchive.Save(project, snapshotPath),
                 CancellationToken.None);
@@ -94,7 +94,7 @@ internal static class SmoProjectIsolatedBuildClient
                 gatePath);
             using Process worker = Process.Start(startInfo) ??
                 throw new InvalidOperationException(
-                    "Could not start the isolated project-build worker.");
+                    LevelText.Get("Project.StartBuildWorkerFailed"));
             using var memoryLimit = WindowsProcessMemoryLimit.Assign(
                 worker,
                 checked((long)ProcessLimitMiB * MiB));
@@ -127,7 +127,7 @@ internal static class SmoProjectIsolatedBuildClient
                 {
                     TryKill(worker);
                     throw new TimeoutException(
-                        $"Isolated project build exceeded {BuildTimeout.TotalMinutes:N0} minutes.");
+                        LevelText.Get("Project.BuildWorkerTimedOut", BuildTimeout.TotalMinutes));
                 }
                 await Task.Delay(150, CancellationToken.None);
                 worker.Refresh();
@@ -146,18 +146,18 @@ internal static class SmoProjectIsolatedBuildClient
                 workerResult.BuildResult is null)
             {
                 string stage = lastProgress is null
-                    ? "before progress was reported"
-                    : $"during {lastProgress.Message}";
-                string error = workerResult?.Error ??
-                    $"Worker exited with code {worker.ExitCode}.";
+                    ? LevelText.Get("Project.BuildFailureNoProgress")
+                    : LevelText.Get("Project.BuildFailureStage", LevelText.Error(lastProgress.Message));
+                string error = workerResult?.Error is string message
+                    ? LevelText.Error(message)
+                    : LevelText.Get("Project.WorkerExit", worker.ExitCode);
                 SmoLevelSaveService.TryAppendDiagnostic(
                     logPath,
                     "ERROR",
                     "PROJECT_BUILD_WORKER_ERROR",
                     $"Failure {stage}: {error}\n{workerResult?.Details}");
                 throw new InvalidOperationException(
-                    $"Isolated project build failed {stage}. {error}\n\n" +
-                    "The worker was memory-limited; the editor and Windows were kept alive.");
+                    LevelText.Get("Project.BuildWorkerFailed", stage, error));
             }
             return workerResult.BuildResult;
         }
@@ -203,6 +203,7 @@ internal static class SmoProjectIsolatedBuildClient
         startInfo.Environment["DOTNET_GCHeapHardLimit"] =
             gcLimitBytes.ToString("X", CultureInfo.InvariantCulture);
         startInfo.Environment["DOTNET_GCConserveMemory"] = "9";
+        startInfo.Environment[LevelText.WorkerLanguageVariable] = LevelText.Language;
         return startInfo;
     }
 
@@ -248,7 +249,7 @@ internal static class SmoProjectIsolatedBuildClient
             return new SmoProjectBuildWorkerResult(
                 false,
                 null,
-                "The worker produced an unreadable result.",
+                LevelText.Get("Project.WorkerUnreadableResult"),
                 exception.ToString());
         }
     }
@@ -321,25 +322,25 @@ internal static class SmoProjectBuildWorkerHost
         try
         {
             WaitForParentGate(gatePath);
-            Report(progressPath, 1, "Загрузка снимка проекта…", 0);
+            Report(progressPath, 1, LevelText.Get("Project.SnapshotLoading"), 0);
             SmoProject project = SmoProjectArchive.Load(snapshotPath);
             Report(
                 progressPath,
                 2,
-                "Проверка журнала изменений…",
+                LevelText.Get("Project.HistoryValidating"),
                 project.DataSection.Length);
             project.Validate();
             Report(
                 progressPath,
                 3,
-                "Потоковая сборка и проверка SMO…",
+                LevelText.Get("Project.BuildingVerifiedSmo"),
                 project.DataSection.Length);
             SmoProjectBuildResult result =
                 SmoProjectSerializer.Build(project, outputPath);
             Report(
                 progressPath,
                 5,
-                "SMO собран и повторно проверен",
+                LevelText.Get("Project.BuildVerified"),
                 result.FileSize);
             SmoLevelSaveService.TryAppendDiagnostic(
                 logPath,
@@ -373,7 +374,7 @@ internal static class SmoProjectBuildWorkerHost
         {
             if (timer.Elapsed > TimeSpan.FromSeconds(30))
                 throw new TimeoutException(
-                    "The project-build worker was not admitted to its memory sandbox.");
+                    LevelText.Get("Project.BuildWorkerAdmissionTimeout"));
             Thread.Sleep(25);
         }
     }

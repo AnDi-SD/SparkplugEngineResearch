@@ -14,7 +14,7 @@ internal static class ImportedTextureRecovery
     {
         try
         {
-            texture = ImportedTextureFileReader.Read(path);
+            texture = ImportedTextureFileReader.ReadReferencedFile(path);
             issue = null;
             return true;
         }
@@ -37,6 +37,7 @@ internal static class ImportedTextureRecovery
         ImportedModelResourceLimits.ValidateCount(
             scene.Textures.Count, ImportedModelResourceLimits.MaximumTextures, $"{format} texture");
         var warnings = new List<string>(scene.ImportWarnings);
+        var diagnostics = new List<ImportedDiagnostic>(scene.ImportDiagnostics);
         var validTextures = new List<ImportedTexture>();
         var remap = Enumerable.Repeat(-1, scene.Textures.Count).ToArray();
         var imageFailures = new Dictionary<int, string>();
@@ -122,10 +123,17 @@ internal static class ImportedTextureRecovery
                     .Select(mesh => $"«{mesh.Name}»").ToArray();
                 if (meshes.Length > 0)
                 {
-                    warnings.Add($"[{code}] {format}: материал «{material.Name}», меш {string.Join(", ", meshes)}: " +
+                    string meshNames = string.Join(", ", meshes);
+                    string message = $"[{code}] {format}: материал «{material.Name}», меш {meshNames}: " +
                         (failure ?? "текстура не назначена") +
                         (string.IsNullOrWhiteSpace(material.BaseColorTextureName) ? "" : $" («{material.BaseColorTextureName}»)") +
-                        "; продолжено без текстуры на этих мешах.");
+                        "; продолжено без текстуры на этих мешах.";
+                    warnings.Add(message);
+                    diagnostics.Add(new ImportedDiagnostic(code, message,
+                        format, material.Name, meshNames, material.BaseColorTextureName ?? string.Empty, sourceIndex)
+                    {
+                        UntexturedMaterialIndex = index
+                    });
                 }
             }
             materials[index] = material with
@@ -142,7 +150,11 @@ internal static class ImportedTextureRecovery
         foreach (ImportedMesh mesh in scene.Meshes)
         {
             if (mesh.MaterialIndex == -1)
-                warnings.Add($"[TEXTURE_UNBOUND] {format}: меш «{mesh.Name}»: материал и текстура не назначены; продолжено без текстуры.");
+            {
+                string message = $"[TEXTURE_UNBOUND] {format}: меш «{mesh.Name}»: материал и текстура не назначены; продолжено без текстуры.";
+                warnings.Add(message);
+                diagnostics.Add(new ImportedDiagnostic("MeshWithoutMaterial", message, format, mesh.Name));
+            }
             else if (mesh.MaterialIndex < -1 || mesh.MaterialIndex >= materials.Length)
                 throw new InvalidDataException($"{format}: меш «{mesh.Name}» ссылается на отсутствующий материал {mesh.MaterialIndex}; исправьте модель.");
         }
@@ -150,7 +162,8 @@ internal static class ImportedTextureRecovery
         {
             EmbeddedTextures = validTextures.AsReadOnly(),
             SourceMaterials = Array.AsReadOnly(materials),
-            ImportWarnings = warnings.AsReadOnly()
+            ImportWarnings = warnings.AsReadOnly(),
+            ImportDiagnostics = diagnostics.AsReadOnly()
         };
     }
 

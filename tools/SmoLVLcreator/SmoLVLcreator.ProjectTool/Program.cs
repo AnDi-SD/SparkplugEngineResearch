@@ -14,6 +14,7 @@ internal static class Program
     {
         try
         {
+            LevelText.Initialize();
             if (args.Length == 3 && Is(args[0], "import"))
             {
                 Import(args[1], args[2]);
@@ -188,7 +189,7 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            Console.Error.WriteLine($"ОШИБКА: {exception.Message}");
+            Console.Error.WriteLine(LevelText.Get("Cli.Error", LevelText.Error(exception.Message)));
             Console.Error.WriteLine(exception);
             return 1;
         }
@@ -267,8 +268,8 @@ internal static class Program
                 $"triangles={mesh.TriangleIndices.Length / 3:N0}; " +
                 $"material={mesh.MaterialIndex}; skin={mesh.Skinning?.Skeleton.Name ?? "-"}");
         }
-        foreach (string warning in scene.ImportWarnings)
-            Console.WriteLine($"WARNING: {warning}");
+        foreach (string warning in SmoLevelImportValidator.DescribeWarnings(scene))
+            Console.WriteLine(LevelText.Get("Cli.Warning", warning));
     }
 
     private static void ShowSceneMeshInfo(string smoArgument, string nameFilter)
@@ -342,7 +343,7 @@ internal static class Program
         if (string.Equals(sourcePath, outputPath, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
-                "Project round-trip refuses to overwrite its source SMO.");
+                LevelText.Get("Cli.SourceOverwrite"));
         }
 
         SmoDocument source = SmoDocument.Load(sourcePath);
@@ -360,8 +361,7 @@ internal static class Program
         if (!result.IsByteIdenticalToImportedSource)
         {
             throw new InvalidDataException(
-                "The zero-edit project round-trip is structurally valid but not " +
-                "byte-identical to its imported source.");
+                LevelText.Get("Cli.RoundTripBytesMismatch"));
         }
     }
 
@@ -389,7 +389,7 @@ internal static class Program
         SmoProject project = SmoProjectArchive.Load(projectPath);
         SmoProjectObject placement = project.Objects[objectIndex];
         if (placement.TypeHash != SmoClassIds.StaticRenderObject)
-            throw new ArgumentException($"Project object {objectIndex} is not a static placement.");
+            throw new ArgumentException(LevelText.Get("Cli.NotStaticPlacement", objectIndex));
         Matrix4x4 world = DecodeMatrix(project.GetPropertyBytes(
             objectIndex,
             SmoPropertyKeys.WorldMatrix,
@@ -401,7 +401,7 @@ internal static class Program
                 out Vector3 position))
         {
             throw new InvalidDataException(
-                $"Placement {objectIndex} has a non-decomposable world matrix.");
+                LevelText.Get("Cli.InvalidWorldMatrix", objectIndex));
         }
         Vector3 rotationDegrees = SmoEulerAngles.ToDegrees(rotation);
         Console.WriteLine(
@@ -624,8 +624,7 @@ internal static class Program
         if (matches.Length != 1)
         {
             throw new ArgumentException(
-                $"Entity name '{entityName}' resolved to {matches.Length} objects; " +
-                "an exact unique name is required.");
+                LevelText.Get("Cli.EntityNameAmbiguous", entityName, matches.Length));
         }
         SmoLevelEntity entity = matches[0];
         Matrix4x4 world =
@@ -634,7 +633,7 @@ internal static class Program
                 SmoEulerAngles.FromDegrees(rotationDegrees)) *
             Matrix4x4.CreateTranslation(position);
         if (!level.SetEntityTransform(entity.Id, world, "ProjectTool entity TRS"))
-            throw new InvalidOperationException("The requested entity transform is unchanged.");
+            throw new InvalidOperationException(LevelText.Get("Cli.TransformUnchanged"));
         SmoLevelSaveResult result = SmoLevelSaveService.Save(level, outputPath);
         var reopened = new SmoLevelDocument(SmoLevelWorkspace.Load(outputPath));
         SmoLevelEntity verified = reopened.Entities.Single(item =>
@@ -767,7 +766,7 @@ internal static class Program
     {
         string path = Path.GetFullPath(argument);
         if (!File.Exists(path))
-            throw new FileNotFoundException("Input file does not exist.", path);
+            throw new FileNotFoundException(LevelText.Get("Cli.InputFileMissing"), path);
         return path;
     }
 
@@ -779,11 +778,11 @@ internal static class Program
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException(
-                $"Output file must use the {expectedExtension} extension.");
+                LevelText.Get("Cli.OutputExtension", expectedExtension));
         }
         string? directory = Path.GetDirectoryName(path);
         if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
-            throw new DirectoryNotFoundException(directory);
+            throw new DirectoryNotFoundException(LevelText.Get("Cli.OutputDirectoryMissing", directory));
         return path;
     }
 
@@ -799,7 +798,7 @@ internal static class Program
                 out int result) ||
             result < 0)
         {
-            throw new ArgumentException($"Invalid non-negative object index: {value}");
+            throw new ArgumentException(LevelText.Get("Cli.InvalidObjectIndex", value));
         }
         return result;
     }
@@ -813,7 +812,7 @@ internal static class Program
             ? NumberStyles.AllowHexSpecifier
             : NumberStyles.None;
         if (!uint.TryParse(digits, style, CultureInfo.InvariantCulture, out uint result))
-            throw new ArgumentException($"Invalid object ID: {value}");
+            throw new ArgumentException(LevelText.Get("Cli.InvalidObjectId", value));
         return result;
     }
 
@@ -826,7 +825,7 @@ internal static class Program
                 out float result) ||
             !float.IsFinite(result))
         {
-            throw new ArgumentException($"Invalid finite number: {value}");
+            throw new ArgumentException(LevelText.Get("Cli.InvalidNumber", value));
         }
         return result;
     }
@@ -845,7 +844,7 @@ internal static class Program
     private static Matrix4x4 DecodeMatrix(ReadOnlySpan<byte> data)
     {
         if (data.Length != 64)
-            throw new InvalidDataException("A placement matrix must contain 64 bytes.");
+            throw new InvalidDataException(LevelText.Get("Cli.InvalidMatrixSize"));
         Span<float> cells = stackalloc float[16];
         for (int index = 0; index < cells.Length; index++)
         {
@@ -861,36 +860,6 @@ internal static class Program
 
     private static void PrintUsage()
     {
-        Console.WriteLine(
-            "SmoLVLcreator.ProjectTool\n\n" +
-            "  model-info <model.obj|model.glb|model.fbx>\n" +
-            "  scene-mesh-info <file.smo> <name-substring|*>\n" +
-            "  import    <source.smo> <project.smolvlproj>\n" +
-            "  build     <project.smolvlproj> <output.smo>\n" +
-            "  roundtrip <source.smo> <project.smolvlproj> <output.smo>\n" +
-            "  placements <project.smolvlproj>\n" +
-            "  placement-transform <project.smolvlproj> <object-index>\n" +
-            "  missing-transforms <project.smolvlproj>\n" +
-            "  transform-objects <project.smolvlproj>\n" +
-            "  reference-templates <project.smolvlproj>\n" +
-            "  node-entities <source.smo>\n" +
-            "  clone-reference <project.smolvlproj> <template-index> <dx> <dy> <dz> " +
-            "<name> <output.smolvlproj>\n" +
-            "  remove-branch <project.smolvlproj> <object-index> <output.smolvlproj>\n" +
-            "  remove-branch-preserve <project.smolvlproj> <object-index> " +
-            "<output.smolvlproj>\n" +
-            "  remove-placement <project.smolvlproj> <object-id> " +
-            "<output.smolvlproj>\n" +
-            "  translate <project.smolvlproj> <object-index> <dx> <dy> <dz> " +
-            "<output.smolvlproj>\n" +
-            "  set-placement-trs <project> <object-index> <px> <py> <pz> " +
-            "<rx-deg> <ry-deg> <rz-deg> <sx> <sy> <sz> <output.smolvlproj>\n" +
-            "  set-entity-trs <source.smo> <entity-name-or-index> <px> <py> <pz> " +
-            "<rx-deg> <ry-deg> <rz-deg> <sx> <sy> <sz> <output.smo>\n" +
-            "  set-vector <project> <object-index> <property> <x> <y> <z> " +
-            "<output.smolvlproj>\n" +
-            "  set-quaternion <project> <object-index> <property> <x> <y> <z> <w> " +
-            "<output.smolvlproj>\n\n" +
-            "Рабочий saver SmoLVLcreator этими командами не изменяется.");
+        Console.WriteLine(LevelText.Get("Cli.Usage"));
     }
 }

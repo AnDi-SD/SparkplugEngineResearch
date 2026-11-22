@@ -72,6 +72,7 @@ public static class GlbModelReader
             : ReadSkins(root, binary, nodeParents);
         var result = new List<ImportedMesh>();
         var importWarnings = new List<string>();
+        var importDiagnostics = new List<ImportedDiagnostic>();
 
         for (int meshIndex = 0; meshIndex < meshes.GetArrayLength(); meshIndex++)
         {
@@ -153,7 +154,7 @@ public static class GlbModelReader
                         string resultName = primitiveIndex == 0
                             ? baseName
                             : $"{baseName}_{primitiveIndex}";
-                        importWarnings.Add(
+                        string message =
                             $"Нормали donor mesh [{result.Count}] '{resultName}': " +
                             $"автоматически исправлено {repairedNormals} нулевых или " +
                             $"нечисловых значений; {reconstructedNormals} пересчитано " +
@@ -161,7 +162,10 @@ public static class GlbModelReader
                             (fallbackNormals == 0
                                 ? "."
                                 : $", {fallbackNormals} неиспользуемых/вырожденных " +
-                                  "вершин получили безопасную резервную нормаль."));
+                                  "вершин получили безопасную резервную нормаль.");
+                        importWarnings.Add(message);
+                        importDiagnostics.Add(new ImportedDiagnostic("NormalsRepaired", message,
+                            result.Count, resultName, repairedNormals, reconstructedNormals, fallbackNormals));
                     }
                 }
                 if (positions.Any(position => !IsFinite(position)))
@@ -188,7 +192,8 @@ public static class GlbModelReader
             textureCatalog.Textures,
             materials)
         {
-            ImportWarnings = importWarnings.AsReadOnly()
+            ImportWarnings = importWarnings.AsReadOnly(),
+            ImportDiagnostics = importDiagnostics.AsReadOnly()
         }, "GLB", cancellationToken, unavailableReasons);
     }
 

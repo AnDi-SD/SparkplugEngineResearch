@@ -51,10 +51,12 @@ namespace winxcoop::adapter
     struct OwnedGameConfiguration final
     {
         std::wstring game, adapter, report, media, mode = L"observe";
-        std::uint32_t seconds{};
+        std::uint32_t seconds{}, startupLevel{}, startupEntry{};
         OwnedGamePolicy policy = OwnedGamePolicy::DiagnosticProbe;
         // GameHost CLI defaults to menu-first with seconds0: no game lifetime
         // timer. DiagnosticProbe remains explicitly bounded and non-menu-first.
+        // A nonzero startupLevel selects the guest's original direct-level boot;
+        // it does not change this process ownership/lifetime policy.
         bool menuFirst{};
         ExternalRuntimeBinding external;
     };

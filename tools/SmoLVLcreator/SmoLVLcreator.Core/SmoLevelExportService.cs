@@ -38,8 +38,7 @@ public static class SmoLevelExportService
         if (entities.Length == 0)
         {
             throw new InvalidOperationException(
-                "Выберите хотя бы один визуальный объект. " +
-                "Коллизии экспортируются отдельно от моделей.");
+                LevelText.Get("Export.NoVisualSelection"));
         }
 
         SmoExportScene source = ExportSceneBuilder.Build(

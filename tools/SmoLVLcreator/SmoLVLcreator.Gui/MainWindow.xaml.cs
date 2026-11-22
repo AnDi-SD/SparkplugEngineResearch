@@ -34,7 +34,7 @@ public partial class MainWindow : Window
     private bool _isBusy;
     private CancellationTokenSource? _saveCancellation;
     private SmoLVLcreatorSettings _settings = SmoLVLcreatorSettingsStore.Load();
-    private string _editorTool = "Выбор";
+    private string _editorTool = "Select";
 
     public MainWindow()
     {
@@ -51,21 +51,72 @@ public partial class MainWindow : Window
         _document = null;
         _savePath = null;
         _allAssets.Clear();
-        DocumentNameText.Text = "Уровень не открыт";
+        DocumentNameText.Text = LevelText.Get("Main.Workspace.Closed");
         ViewportEmptyTitleText.Text = _gpuViewportFailureReason is null
-            ? "Уровень не открыт"
-            : "Viewport недоступен";
+            ? LevelText.Get("Main.Workspace.Closed")
+            : LevelText.Get("Main.Viewport.Unavailable");
         ViewportStateText.Text = _gpuViewportFailureReason is null
-            ? "Откройте SMO-файл, чтобы начать работу с уровнем."
-            : $"GPU viewport недоступен.\n{_gpuViewportFailureReason}";
-        ViewportSelectionText.Text = "NO SELECTION";
+            ? LevelText.Get("Main.Viewport.OpenHint")
+            : LevelText.Get("Main.Viewport.GpuUnavailable", _gpuViewportFailureReason);
+        ViewportSelectionText.Text = LevelText.Get("Main.Viewport.SelectionEmpty");
         ClearInspector();
         SetWorkspaceUiState(hasDocument: false);
         UpdateCommandAvailability();
         ApplyAssetFilter();
         BuildSceneTree();
         UpdateStatistics();
-        StatusText.Text = "Откройте SMO-файл для начала работы";
+        StatusText.Text = LevelText.Get("Main.Workspace.OpenHint");
+    }
+
+    private readonly List<(TreeViewItem Node, string Key, object?[] Arguments)> _outlinerText = [];
+
+    private void SetOutlinerText(TreeViewItem node, string key, params object?[] arguments)
+    {
+        node.Header = LevelText.Get(key, arguments);
+        _outlinerText.Add((node, key, arguments));
+    }
+
+    private void RefreshMainLanguage()
+    {
+        WorkspaceTitleText.Text = App.WorkspaceTitle;
+        UpdateViewportModeButtons();
+        UpdateCameraCaption();
+        UpdateCommandAvailability();
+        UpdateStatistics();
+        foreach ((TreeViewItem node, string key, object?[] arguments) in _outlinerText)
+            node.Header = LevelText.Get(key, arguments);
+
+        if (_workspace is null)
+            DocumentNameText.Text = LevelText.Get("Main.Workspace.Closed");
+        else
+            UpdateDocumentCaption();
+
+        if (_gpuViewportFailureReason is string reason)
+        {
+            ViewportEmptyTitleText.Text = LevelText.Get("Main.Viewport.Unavailable");
+            ViewportStateText.Text = LevelText.Get("Main.Viewport.GpuUnavailable", reason);
+        }
+        else if (_workspace is null)
+        {
+            ViewportEmptyTitleText.Text = LevelText.Get("Main.Workspace.Closed");
+            ViewportStateText.Text = LevelText.Get("Main.Viewport.OpenHint");
+        }
+        else if (_workspace.PreparedScene.Meshes.Count == 0)
+        {
+            ViewportEmptyTitleText.Text = LevelText.Get("Main.Viewport.NoGeometry");
+            ViewportStateText.Text = LevelText.Get("Main.Viewport.NoGeometryDetails");
+        }
+
+        if (_selectedPendingPlacement is not null ||
+            TryResolveActiveCollision(out _) || TryResolveActiveSelection(out _, out _, out _))
+        {
+            RefreshActiveInspector();
+        }
+        else
+        {
+            ClearInspector(_workspace?.DisplayName);
+            ViewportSelectionText.Text = LevelText.Get("Main.Viewport.SelectionEmpty");
+        }
     }
 
     private void SetWorkspaceUiState(bool hasDocument)
@@ -95,7 +146,7 @@ public partial class MainWindow : Window
 
     private void ClearInspector(string? context = null)
     {
-        SelectedNameText.Text = "Ничего не выбрано";
+        SelectedNameText.Text = LevelText.Get("Main.Inspector.None");
         SelectedPathText.Text = context ?? "—";
         ObjectIdentityText.Text = "—";
         ObjectIdText.Text = "—";
@@ -109,12 +160,12 @@ public partial class MainWindow : Window
         MaterialText.Text = "—";
         BindingsText.Text = "—";
         DiagnosticsText.Text = _workspace is null
-            ? "Откройте SMO-файл для начала работы."
-            : "Выберите объект в сцене, структуре уровня или каталоге.";
+            ? LevelText.Get("Main.Inspector.OpenHint")
+            : LevelText.Get("Main.Inspector.SelectHint");
         DiagnosticsText.Foreground = _workspace is null ? NoticeBrush : HealthyBrush;
         RawDataText.Text = _workspace is null
-            ? "Нет данных: откройте SMO и выберите объект."
-            : "Выберите объект, чтобы увидеть его прямые SBOO-поля.";
+            ? LevelText.Get("Main.Inspector.RawEmpty")
+            : LevelText.Get("Main.Inspector.DirectFields");
     }
 
     private async void OpenLevel_Click(object sender, RoutedEventArgs e)
@@ -123,11 +174,11 @@ public partial class MainWindow : Window
             return;
         var dialog = new OpenFileDialog
         {
-            Title = "Открыть уровень или проект SmoLVLcreator",
-            Filter = "Уровень или проект (*.smo;*.smolvlproj)|*.smo;*.smolvlproj|" +
-                     "Sparkplug model or level (*.smo)|*.smo|" +
-                     "SmoLVLcreator project (*.smolvlproj)|*.smolvlproj|" +
-                     "Все файлы (*.*)|*.*",
+            Title = LevelText.Get("Main.Message.OpenASmoLVLcreatorLevelOrProject"),
+            Filter = LevelText.Get("Main.Message.LevelOrProjectSmoSmolvlprojSmo") +
+                     LevelText.Get("Main.Message.SparkplugModelOrLevelSmoSmo") +
+                     LevelText.Get("Main.Message.SmoLVLcreatorProjectSmolvlprojSmolvlproj") +
+                     LevelText.Get("Main.Message.AllFiles"),
             CheckFileExists = true,
             Multiselect = false
         };
@@ -167,7 +218,7 @@ public partial class MainWindow : Window
         try
         {
             string fullPath = Path.GetFullPath(path);
-            SetBusy(true, $"Создание проекта из {Path.GetFileName(fullPath)}…");
+            SetBusy(true, LevelText.Get("Main.Message.CreatingAProjectFrom", Path.GetFileName(fullPath)));
             (SmoProject Project, SmoLevelWorkspace Workspace) loaded =
                 await Task.Run(() =>
                 {
@@ -183,16 +234,15 @@ public partial class MainWindow : Window
             AttachWorkspace(loaded.Workspace, savePath: null);
             ApplyProjectUiState();
             SetBusy(false,
-                $"{Path.GetFileName(fullPath)} открыт как проект · " +
-                $"{loaded.Project.Objects.Count:N0} объектов · исходный SMO не изменяется");
+                LevelText.Get("Main.Message.OpenedAsAProjectObjectsSource", Path.GetFileName(fullPath), loaded.Project.Objects.Count));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось открыть уровень");
+            SetBusy(false, LevelText.Get("Main.Message.CouldNotOpenTheLevel"));
             MessageBox.Show(
                 this,
                 exception.Message,
-                "SmoLVLcreator — ошибка открытия",
+                LevelText.Get("Main.Message.SmoLVLcreatorOpenError"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -230,10 +280,10 @@ public partial class MainWindow : Window
         SetWorkspaceUiState(hasDocument: true);
         ClearInspector(workspace.DisplayName);
         ViewportEmptyTitleText.Text = _gpuViewportFailureReason is not null
-            ? "Viewport недоступен"
+            ? LevelText.Get("Main.Viewport.Unavailable")
             : workspace.PreparedScene.Meshes.Count > 0
-                ? "Уровень загружается"
-                : "Нет отображаемой геометрии";
+                ? LevelText.Get("Main.Viewport.LoadingLevel")
+                : LevelText.Get("Main.Viewport.NoGeometry");
         LoadRenderScene(
             workspace.PreparedScene,
             preserveEditorSelection: preserveEditorState);
@@ -242,9 +292,7 @@ public partial class MainWindow : Window
         if (_gpuRendererAvailable && workspace.PreparedScene.Meshes.Count > 0)
         {
             ViewportStateText.Text =
-                $"Каталог уровня загружен: {workspace.Assets.Count:N0} моделей, " +
-                $"{workspace.PlacementCount:N0} размещений, " +
-                $"{workspace.Collisions.Count:N0} collision shapes.";
+                LevelText.Get("Main.Viewport.LoadedCatalog", workspace.Assets.Count, workspace.PlacementCount, workspace.Collisions.Count);
         }
         AssetFilterBox.Clear();
         OutlinerFilterBox.Clear();
@@ -253,7 +301,7 @@ public partial class MainWindow : Window
         if (!preserveEditorState && AssetList.Items.Count > 0)
             AssetList.SelectedIndex = 0;
         else
-            ViewportSelectionText.Text = "NO SELECTION";
+            ViewportSelectionText.Text = LevelText.Get("Main.Viewport.SelectionEmpty");
         UpdateStatistics();
     }
 
@@ -351,8 +399,8 @@ public partial class MainWindow : Window
                 (_selectedPendingPlacement is not null || hasVisualSelection ||
                  hasGeneratedCollisionSelection);
             CreateCollisionButton.Content = hasGeneratedCollisionSelection
-                ? "Регенерировать коллизию"
-                : "Создать коллизию";
+                ? LevelText.Get("Main.Tool.RegenerateCollision")
+                : LevelText.Get("Main.Tool.CreateCollision");
         }
         if (DeleteSelectedButton is not null)
         {
@@ -420,8 +468,8 @@ public partial class MainWindow : Window
                 entity!.Parts.Count > 0)
             : 0;
         ExportMenuItem.Header = selectedCount > 0
-            ? $"Экспорт · {selectedCount:N0} объект(а)"
-            : "Экспорт";
+            ? LevelText.Get("Main.Message.ExportSelected", selectedCount)
+            : LevelText.Get("Main.Menu.Export");
         UpdateProjectCommandAvailability();
     }
 
@@ -454,8 +502,8 @@ public partial class MainWindow : Window
         string stem = System.IO.Path.GetFileNameWithoutExtension(sourcePath);
         var dialog = new SaveFileDialog
         {
-            Title = "Сохранить изменённый SMO-уровень",
-            Filter = "Sparkplug model or level (*.smo)|*.smo|Все файлы (*.*)|*.*",
+            Title = LevelText.Get("Main.Message.SaveTheEditedSMOLevel"),
+            Filter = LevelText.Get("Main.Message.SparkplugModelOrLevelSmoSmo2"),
             InitialDirectory = directory,
             FileName = stem + "_edited.smo",
             AddExtension = true,
@@ -501,7 +549,7 @@ public partial class MainWindow : Window
             _settings.ExportFormat);
         var dialog = new SaveFileDialog
         {
-            Title = $"Экспортировать {selection.Length:N0} выбранных объект(а)",
+            Title = LevelText.Get("Main.Message.ExportSelectedObjects", selection.Length),
             Filter = "glTF Binary (*.glb)|*.glb|Autodesk FBX (*.fbx)|*.fbx|Wavefront OBJ (*.obj)|*.obj",
             FilterIndex = _settings.ExportFormat switch
             {
@@ -541,7 +589,7 @@ public partial class MainWindow : Window
         {
             SetBusy(
                 true,
-                $"Экспорт {selection.Length:N0} объект(а) в {format.ToString().ToUpperInvariant()}…");
+                LevelText.Get("Main.Message.ExportingObjectsTo", selection.Length, format.ToString().ToUpperInvariant()));
             SmoLevelExportResult result = await Task.Run(() =>
                 SmoLevelExportService.Export(
                     document,
@@ -550,19 +598,18 @@ public partial class MainWindow : Window
                     format));
             SetBusy(
                 false,
-                $"Экспортировано · {result.EntityCount:N0} объект(а) · " +
-                $"{result.PlacementCount:N0} частей · {Path.GetFileName(result.OutputPath)}" +
+                LevelText.Get("Main.Message.ExportedObjectsParts", result.EntityCount, result.PlacementCount, Path.GetFileName(result.OutputPath)) +
                 (result.Warnings.Count > 0
-                    ? $" · предупреждений: {result.Warnings.Count:N0}"
+                    ? LevelText.Get("Main.Message.Warnings", result.Warnings.Count)
                     : string.Empty));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось экспортировать выбранные объекты");
+            SetBusy(false, LevelText.Get("Main.Message.CouldNotExportTheSelectedObjects"));
             MessageBox.Show(
                 this,
                 exception.Message,
-                "SmoLVLcreator — ошибка экспорта",
+                LevelText.Get("Main.Message.SmoLVLcreatorExportError"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -583,7 +630,7 @@ public partial class MainWindow : Window
                 .ToArray();
         if (selection.Length > 0)
             return true;
-        StatusText.Text = "Для экспорта выберите один или несколько визуальных объектов";
+        StatusText.Text = LevelText.Get("Main.Message.SelectOneOrMoreVisualObjects");
         return false;
     }
 
@@ -611,7 +658,7 @@ public partial class MainWindow : Window
             SmoLVLcreatorSettingsStore.Save(dialog.Result);
             _settings = dialog.Result;
             StatusText.Text =
-                $"Настройки сохранены · быстрый экспорт: " +
+                LevelText.Get("Main.Message.SettingsSavedQuickExport") +
                 $"{_settings.ExportFormat.ToString().ToUpperInvariant()} · " +
                 _settings.ExportDirectory;
         }
@@ -620,7 +667,7 @@ public partial class MainWindow : Window
             MessageBox.Show(
                 this,
                 exception.Message,
-                "SmoLVLcreator — ошибка сохранения настроек",
+                LevelText.Get("Main.Message.SmoLVLcreatorCouldNotSaveSettings"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -658,10 +705,10 @@ public partial class MainWindow : Window
                 SmoLevelSaveService.NeedsCollisionMeshCompatibilityRepair(_document));
             if (!needsCollisionRepair)
             {
-                StatusText.Text = "Нет изменений для сохранения";
+                StatusText.Text = LevelText.Get("Main.Message.NoChangesToSave");
                 return;
             }
-            StatusText.Text = "Восстановление реестра коллизий…";
+            StatusText.Text = LevelText.Get("Main.Message.RestoringCollisionRegistry");
         }
 
         SmoLevelDocument document = _document;
@@ -672,29 +719,15 @@ public partial class MainWindow : Window
         {
             MessageBoxResult choice = MessageBox.Show(
                 this,
-                $"По предварительной оценке сохранению может понадобиться около " +
-                $"{memory.EstimatedPeakMiB:N0} МиБ памяти.\n\n" +
-                $"Сейчас свободно: {memory.AvailablePhysicalMiB:N0} МиБ.\n" +
-                $"Рекомендуемый объём с запасом для Windows: " +
-                $"{memory.RecommendedAvailableMiB:N0} МиБ.\n\n" +
-                "Расчёт приблизительный и не является запретом. Если продолжить, " +
-                "Windows всё равно может сильно замедлиться или зависнуть, а " +
-                "сохранение — завершиться ошибкой. Закройте тяжёлые программы, " +
-                "если это возможно.\n\n" +
-                "После подтверждения " +
-                $"сохранение запустится в изолированной группе процессов с верхним пределом " +
-                $"{memory.WorkerLimitMiB:N0} МиБ. Это верхняя граница, а не " +
-                "объём, который обязательно будет занят. При достижении предела завершится " +
-                "только операция сохранения, а исходный файл останется неизменным.\n\n" +
-                "Продолжить сохранение?",
-                "SmoLVLcreator — возможно недостаточно памяти",
+                LevelText.Get("Main.Message.SavingMayRequireAroundMiBOf", memory.EstimatedPeakMiB, memory.AvailablePhysicalMiB, memory.RecommendedAvailableMiB, memory.WorkerLimitMiB),
+                LevelText.Get("Main.Message.SmoLVLcreatorLowAvailableMemory"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
                 MessageBoxResult.No);
             if (choice != MessageBoxResult.Yes)
             {
                 StatusText.Text =
-                    "Сохранение отменено после предупреждения о памяти";
+                    LevelText.Get("Main.Message.SaveCanceledAfterMemoryWarning");
                 return;
             }
         }
@@ -703,7 +736,7 @@ public partial class MainWindow : Window
         _saveCancellation = saveCancellation;
         try
         {
-            SetBusy(true, $"Сохранение {System.IO.Path.GetFileName(path)}…");
+            SetBusy(true, LevelText.Get("Main.Message.Saving", System.IO.Path.GetFileName(path)));
             SaveProgressBar.Minimum = 0;
             SaveProgressBar.Maximum = 1;
             SaveProgressBar.Value = 0;
@@ -718,10 +751,9 @@ public partial class MainWindow : Window
                     0,
                     update.TotalSteps);
                 SaveProgressBar.ToolTip =
-                    $"{update.CompletedSteps:N0} / {update.TotalSteps:N0} · " +
-                    $"{update.CurrentContainerBytes / (1024d * 1024d):N1} МиБ";
+                    LevelText.Get("Main.Message.MiB", update.CompletedSteps, update.TotalSteps, update.CurrentContainerBytes / (1024d * 1024d));
                 StatusText.Text =
-                    $"{update.Message} · {update.CompletedSteps:N0}/{update.TotalSteps:N0}";
+                    LevelText.Get("Main.Message.SaveLevelAsync", update.Message, update.CompletedSteps, update.TotalSteps);
             });
             SmoLevelSaveResult result = await SmoLevelIsolatedSaveClient.SaveAsync(
                 document,
@@ -743,22 +775,18 @@ public partial class MainWindow : Window
 
             string backup = result.BackupPath is null
                 ? string.Empty
-                : $" · backup: {System.IO.Path.GetFileName(result.BackupPath)}";
+                : LevelText.Get("Main.Message.Backup", System.IO.Path.GetFileName(result.BackupPath));
             SetBusy(
                 false,
-                $"Сохранено · {result.EditedEntityCount:N0} объектов · " +
-                $"{result.PatchedTransformCount:N0} transforms · " +
-                $"{result.AddedPlacementCount:N0} placements added · " +
-                $"{result.ResourceEditCount:N0} resources{backup} · " +
-                $"log: {System.IO.Path.GetFileName(result.LogPath)}");
+                LevelText.Get("Main.Message.SavedObjectsTransformsAddedPlacementsResources", result.EditedEntityCount, result.PatchedTransformCount, result.AddedPlacementCount, result.ResourceEditCount, backup, System.IO.Path.GetFileName(result.LogPath)));
         }
         catch (OperationCanceledException)
         {
-            SetBusy(false, "Сохранение отменено · исходный и целевой файлы не изменены");
+            SetBusy(false, LevelText.Get("Main.Message.SaveCanceledSourceAndTargetFiles"));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось сохранить уровень");
+            SetBusy(false, LevelText.Get("Main.Message.CouldNotSaveTheLevel"));
             string logPath = exception is SmoLevelSaveException saveException
                 ? saveException.LogPath
                 : diagnosticLogPath;
@@ -770,10 +798,8 @@ public partial class MainWindow : Window
             MessageBox.Show(
                 this,
                 exception.Message +
-                $"\n\nПодробный журнал:\n{logPath}\n\n" +
-                "Его можно просто прислать целиком — там уже записаны этап " +
-                "сохранения, объекты, матрицы и полный stack trace.",
-                "SmoLVLcreator — ошибка сохранения",
+                LevelText.Get("Main.Message.DetailedLogYouCanSendThe", logPath),
+                LevelText.Get("Main.Message.SmoLVLcreatorSaveError"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -793,7 +819,7 @@ public partial class MainWindow : Window
             return;
         _saveCancellation.Cancel();
         SaveCancelButton.IsEnabled = false;
-        StatusText.Text = "Отмена после завершения текущего этапа…";
+        StatusText.Text = LevelText.Get("Main.Message.CancelingAfterTheCurrentStage");
     }
 
     private void UpdateDocumentCaption()
@@ -805,7 +831,7 @@ public partial class MainWindow : Window
             string projectName = System.IO.Path.GetFileName(
                 _projectPath ??
                 _project!.Manifest.SourceFileName ??
-                "Новый проект.smolvlproj");
+                LevelText.Get("Main.Workspace.NewProjectName"));
             DocumentNameText.Text = _projectSession!.IsModified
                 ? $"{projectName} *"
                 : projectName;
@@ -829,8 +855,8 @@ public partial class MainWindow : Window
         _hiddenEntities.Clear();
         RefreshVisibilityState();
         StatusText.Text = restored > 0
-            ? $"Показано объектов: {restored:N0}"
-            : "Все объекты уже видимы";
+            ? LevelText.Get("Main.Message.ObjectsShown", restored)
+            : LevelText.Get("Main.Message.AllObjectsAreAlreadyVisible");
     }
 
     private void IsolateEntities_Click(object sender, RoutedEventArgs e)
@@ -853,7 +879,7 @@ public partial class MainWindow : Window
             .Select(entity => entity.Id));
         RefreshVisibilityState();
         StatusText.Text =
-            $"Изолировано объектов: {Math.Max(visibleSet.Count, 1):N0}";
+            LevelText.Get("Main.Message.ObjectsIsolated", Math.Max(visibleSet.Count, 1));
     }
 
     private void HideEntities_Click(object sender, RoutedEventArgs e)
@@ -870,8 +896,8 @@ public partial class MainWindow : Window
         AssetList.SelectedItems.Clear();
         _syncingSelection = false;
         RefreshVisibilityState();
-        ViewportSelectionText.Text = "NO SELECTION";
-        StatusText.Text = $"Скрыто объектов: {hidden.Length:N0}";
+        ViewportSelectionText.Text = LevelText.Get("Main.Viewport.SelectionEmpty");
+        StatusText.Text = LevelText.Get("Main.Message.ObjectsHidden", hidden.Length);
     }
 
     private void RefreshVisibilityState()
@@ -909,12 +935,12 @@ public partial class MainWindow : Window
                 ApplyPlacementHighlights();
                 UpdateBindingsText(visual);
                 StatusText.Text =
-                    $"Связаны {visual.Name} и {collision.Name} · Ctrl+Z — отменить";
+                    LevelText.Get("Main.Message.LinkedAndCtrlZToUndo", visual.Name, collision.Name);
             }
         }
         catch (Exception exception)
         {
-            StatusText.Text = $"Не удалось создать связь: {exception.Message}";
+            StatusText.Text = LevelText.Get("Main.Message.CouldNotCreateLink", exception.Message);
         }
     }
 
@@ -938,13 +964,13 @@ public partial class MainWindow : Window
             {
                 _document.SetCollisionLink(visual.Id, collision.Id);
                 StatusText.Text =
-                    $"РќРµ СѓРґР°Р»РѕСЃСЊ СѓРґР°Р»РёС‚СЊ СЃРІСЏР·СЊ: {exception.Message}";
+                    LevelText.Get("Main.Message.CouldNotRemoveLink", exception.Message);
                 return;
             }
             ApplyPlacementHighlights();
             UpdateBindingsText(visual);
             StatusText.Text =
-                $"Связь {visual.Name} ↔ {collision.Name} удалена · Ctrl+Z — отменить";
+                LevelText.Get("Main.Message.LinkRemovedCtrlZToUndo", visual.Name, collision.Name);
         }
     }
 
@@ -978,6 +1004,7 @@ public partial class MainWindow : Window
             return;
 
         SceneTree.Items.Clear();
+        _outlinerText.Clear();
         if (_workspace is null || _document is null)
         {
             OutlinerCountText.Text = "0";
@@ -1012,9 +1039,9 @@ public partial class MainWindow : Window
         };
         var models = new TreeViewItem
         {
-            Header = $"Размещённые модели  ({visibleModels.Sum(entry => entry.PlacementIndices.Length):N0})",
             IsExpanded = filter.Length > 0
         };
+        SetOutlinerText(models, "Main.Outliner.ModelCount", visibleModels.Sum(entry => entry.PlacementIndices.Length));
         root.Items.Add(models);
 
         foreach (var visibleModel in visibleModels)
@@ -1027,15 +1054,14 @@ public partial class MainWindow : Window
                 : 0;
             var assetNode = new TreeViewItem
             {
-                Header = $"◇  {item.Name}   ×{visibleModel.PlacementIndices.Length}" +
-                    (hiddenPlacementCount > 0
-                        ? $"  · скрыто {hiddenPlacementCount:N0}"
-                        : string.Empty),
+                Header = $"◇  {item.Name}   ×{visibleModel.PlacementIndices.Length}",
                 Tag = new SceneTreeSelection(item, firstPlacementIndex),
                 Opacity = hiddenPlacementCount == visibleModel.PlacementIndices.Length
                     ? 0.48
                     : 1
             };
+            if (hiddenPlacementCount > 0)
+                SetOutlinerText(assetNode, "Main.Outliner.HiddenCount", assetNode.Header, hiddenPlacementCount);
 
             if (item.Asset is { } asset && visibleModel.PlacementIndices.Length > 1)
             {
@@ -1066,19 +1092,20 @@ public partial class MainWindow : Window
             .ToArray() ?? [];
         var collisions = new TreeViewItem
         {
-            Header = $"Коллизии  ({visibleCollisions.Length:N0})",
             IsExpanded = filter.Length > 0
         };
+        SetOutlinerText(collisions, "Main.Outliner.CollisionCount", visibleCollisions.Length);
         foreach (SmoLevelEntity collision in visibleCollisions)
         {
             bool hidden = _hiddenEntities.Contains(collision.Id);
-            collisions.Items.Add(new TreeViewItem
+            var collisionNode = new TreeViewItem
             {
-                Header = (hidden ? "○  " : string.Empty) +
-                    $"△  {collision.Name}  · {collision.Collisions.Count:N0} shape",
                 Tag = new CollisionTreeSelection(collision.Id.SceneObjectIndex),
                 Opacity = hidden ? 0.48 : 1
-            });
+            };
+            SetOutlinerText(collisionNode, "Main.Outliner.CollisionShapeCount",
+                hidden ? "○  " : string.Empty, collision.Name, collision.Collisions.Count);
+            collisions.Items.Add(collisionNode);
         }
         root.Items.Add(collisions);
 
@@ -1152,7 +1179,7 @@ public partial class MainWindow : Window
         UpdateCollisionInspector(collision);
         UpdateCollisionSelectionCaption(collision.Entity);
         UpdateCommandAvailability();
-        StatusText.Text = $"Выбрана коллизия · {collision.Entity.Name}";
+        StatusText.Text = LevelText.Get("Main.Message.CollisionSelected", collision.Entity.Name);
     }
 
     private void UpdateCollisionInspector(SmoEditableCollision collision)
@@ -1179,34 +1206,34 @@ public partial class MainWindow : Window
 
         SelectedNameText.Text = entity.Name;
         SelectedPathText.Text = generated
-            ? "Generated collision · будет добавлена как spCollisionInfo / spMeshBV при сохранении"
-            : $"Node [{collision.Source.NodeObjectIndex}] / spCollisionInfo " +
+            ? LevelText.Get("Main.Inspector.GeneratedCollisionAddedAsSpCollisionInfoSpMeshBV")
+            : LevelText.Get("Main.Inspector.NodeSpCollisionInfo", collision.Source.NodeObjectIndex) +
               $"[{collision.Source.CollisionInfoObjectIndex}] / spMeshBV " +
               $"[{collision.Source.MeshBoundingVolumeObjectIndex}]";
         ObjectIdentityText.Text = generated
-            ? "spCollisionInfo · новый"
+            ? LevelText.Get("Main.Inspector.SpCollisionInfoNew")
             : $"spCollisionInfo · [{collision.Source.CollisionInfoObjectIndex}]";
         ObjectIdText.Text = objectId is uint id
             ? $"0x{id:X8}"
-            : "до сохранения не назначен";
+            : LevelText.Get("Main.Inspector.AssignedOnSave");
         SetPositionEditor(translation, enabled: writable);
         SetRotationScaleEditor(rotation, scale, enabled: writable);
-        PlacementCountText.Text = $"{entity.Collisions.Count:N0} · collision shape";
+        PlacementCountText.Text = LevelText.Get("Main.Inspector.CollisionShapes", entity.Collisions.Count);
         GeometryCountText.Text = $"{vertexCount:N0} / {triangleCount:N0}";
-        VertexLayoutText.Text = "spMeshBV v2 · indexed UInt16";
-        ChannelsText.Text = "Collision triangles";
+        VertexLayoutText.Text = LevelText.Get("Main.Inspector.SpMeshBVVIndexedUInt");
+        ChannelsText.Text = LevelText.Get("Main.Inspector.CollisionTriangles");
         TextureNameText.Text = "—";
-        MaterialText.Text = "Collision wireframe overlay";
+        MaterialText.Text = LevelText.Get("Main.Inspector.CollisionWireframeOverlay");
         UpdateBindingsText(entity);
         DiagnosticsText.Text =
             (generated
-                ? "Выпуклая collision-сетка создана генератором SmoLVLcreator.Core.\n"
-                : "Геометрия декодирована общим SmoViewer.Core.\n") +
+                ? LevelText.Get("Main.Inspector.ConvexCollisionMeshGeneratedBySmoLVLcreator")
+                : LevelText.Get("Main.Inspector.GeometryDecodedBySharedSmoViewerCore")) +
             (writable
                 ? generated
-                    ? "SAVE READY · новая ветка будет записана в ближайший сектор уровня."
-                    : "SAVE READY · перенос будет записан в вершины spMeshBV."
-                : "SAVE BLOCKED · структура spMeshBV этого объекта не подтверждена.");
+                    ? LevelText.Get("Main.Inspector.CANSAVENewBranchWillBe")
+                    : LevelText.Get("Main.Inspector.CANSAVETranslationWillBeWritten")
+                : LevelText.Get("Main.Inspector.SAVEBLOCKEDTheSpMeshBVLayoutFor"));
         DiagnosticsText.Foreground = writable ? HealthyBrush : NoticeBrush;
         if (generated)
         {
@@ -1215,9 +1242,9 @@ public partial class MainWindow : Window
         else
         {
             UpdateRawData(
-                ("collision node", collision.Source.NodeObjectIndex),
-                ("collision info", collision.Source.CollisionInfoObjectIndex),
-                ("collision mesh", collision.Source.MeshBoundingVolumeObjectIndex));
+                (LevelText.Get("Main.Inspector.CollisionNode"), collision.Source.NodeObjectIndex),
+                (LevelText.Get("Main.Inspector.CollisionInfo"), collision.Source.CollisionInfoObjectIndex),
+                (LevelText.Get("Main.Inspector.CollisionMesh"), collision.Source.MeshBoundingVolumeObjectIndex));
         }
     }
 
@@ -1271,13 +1298,13 @@ public partial class MainWindow : Window
     {
         SelectedNameText.Text = item.Name;
         ViewportSelectionText.Text =
-            $"SELECTED  ·  {item.Name}  ·  placement " +
+            LevelText.Get("Main.Inspector.SELECTEDPlacement", item.Name) +
             $"{Math.Min(placementIndex + 1, item.PlacementCount)} / {item.PlacementCount}";
 
         if (item.Asset is not SmoLevelAsset asset)
         {
             ClearInspector(_workspace?.DisplayName);
-            ViewportSelectionText.Text = "NO SELECTION";
+            ViewportSelectionText.Text = LevelText.Get("Main.Viewport.SelectionEmpty");
             return;
         }
 
@@ -1311,35 +1338,35 @@ public partial class MainWindow : Window
         SetRotationScaleEditor(rotation, scale, enabled: placementWritable);
         PlacementCountText.Text =
             $"{asset.Placements.Count:N0} · " +
-            (placement.IsSharedInstance ? "shared instance" : "embedded mesh");
+            (placement.IsSharedInstance ? LevelText.Get("Main.Inspector.SharedInstance") : LevelText.Get("Main.Inspector.EmbeddedMesh"));
         GeometryCountText.Text = $"{asset.VertexCount:N0} / {asset.TriangleCount:N0}";
         VertexLayoutText.Text =
-            $"0x{asset.VertexFormat:X8} · stride {asset.VertexStride}";
+            LevelText.Get("Main.Inspector.XStride", asset.VertexFormat, asset.VertexStride);
         ChannelsText.Text = string.Join(" · ", new[]
         {
-            asset.HasNormals ? "Normals" : null,
+            asset.HasNormals ? LevelText.Get("Main.Inspector.Normals") : null,
             asset.HasUv0 ? "UV0" : null,
             asset.HasUv1 ? "UV1" : null,
-            asset.HasVertexDiffuse ? "Vertex diffuse" : null,
-            asset.HasSkinning ? "Skinning" : null
+            asset.HasVertexDiffuse ? LevelText.Get("Main.Inspector.VertexDiffuse") : null,
+            asset.HasSkinning ? LevelText.Get("Main.Inspector.Skinning") : null
         }.Where(value => value is not null));
         TextureNameText.Text = asset.Texture is SmoLevelTexture texture
             ? $"{texture.Name.TrimEnd('\0')} · {texture.Width} × {texture.Height} · " +
               $"0x{texture.FormatCode:X4} {texture.SourceLayout}"
-            : "Нет подтверждённой texture binding";
+            : LevelText.Get("Main.Inspector.NoConfirmedTextureBinding");
         MaterialText.Text = asset.MaterialSummary ??
-            (asset.UsesAlphaBlend ? "Alpha blend" : "Render state не определён");
+            (asset.UsesAlphaBlend ? LevelText.Get("Main.Inspector.AlphaBlend") : LevelText.Get("Main.Inspector.RenderStateUndefined"));
         if (editable is not null)
             UpdateBindingsText(editable.Entity);
         else
             BindingsText.Text =
                 "spStaticRenderObject → spModel → spMeshData → spMaterialData → spTextureData";
         string diagnostic = asset.Issue ??
-            "Декодировано общим SmoViewer.Core; связь не дублируется редактором.";
+            LevelText.Get("Main.Inspector.DecodedBySharedSmoViewerCoreThe");
         DiagnosticsText.Text = diagnostic + "\n" +
             (placementWritable
-                ? "SAVE READY · подтверждённый путь записи transform."
-                : "SAVE BLOCKED · placement-матрица этого объекта пока не подтверждена.");
+                ? LevelText.Get("Main.Inspector.CANSAVEConfirmedTransformWriter")
+                : LevelText.Get("Main.Inspector.SAVEBLOCKEDThePlacementMatrixFor"));
         DiagnosticsText.Foreground = asset.HasIssue
             ? ErrorBrush
             : placementWritable ? HealthyBrush : NoticeBrush;
@@ -1351,9 +1378,9 @@ public partial class MainWindow : Window
         if (editable is not null && _selectedEntities.Contains(editable.Entity.Id))
             UpdateSelectionCaption(item.Name, placementIndex);
         UpdateRawData(
-            ("placement", placement.SceneObjectIndex),
-            ("model", placement.ModelObjectIndex),
-            ("mesh resource", asset.ObjectIndex));
+            (LevelText.Get("Main.Inspector.Placement2"), placement.SceneObjectIndex),
+            (LevelText.Get("Main.Inspector.Model"), placement.ModelObjectIndex),
+            (LevelText.Get("Main.Inspector.MeshResource"), asset.ObjectIndex));
     }
 
     private void UpdateBindingsText(SmoLevelEntity entity)
@@ -1363,17 +1390,15 @@ public partial class MainWindow : Window
         string compositeText = _document.TryGetCompositeModel(
                 entity.Id,
                 out SmoCompositeModel? composite)
-            ? $"Составная модель: {composite!.Name} · " +
-              $"{composite.Parts.Count:N0} мешей / {composite.Entities.Count:N0} объектов\n" +
-              "ЛКМ — целиком; Alt+ЛКМ — отдельный меш.\n"
+            ? LevelText.Get("Main.Inspector.CompositeModelMeshesObjectsLMBSelects", composite!.Name, composite.Parts.Count, composite.Entities.Count)
             : string.Empty;
         IReadOnlyList<SmoLevelCollisionLink> links =
             _document.GetCollisionLinks(entity.Id);
         if (links.Count == 0)
         {
             BindingsText.Text = compositeText + (entity.Kind == SmoLevelEntityKind.Collision
-                ? "spPartitionNode → spCollisionInfo → spMeshBV\nСвязанный визуальный объект не подтверждён."
-                : "spStaticRenderObject → spModel → spMeshData\nСвязанная коллизия не подтверждена.");
+                ? LevelText.Get("Main.Inspector.SpPartitionNodeSpCollisionInfoSpMeshBVLinkedVisualObject")
+                : LevelText.Get("Main.Inspector.SpStaticRenderObjectSpModelSpMeshDataLinkedCollisionIs"));
             return;
         }
 
@@ -1384,8 +1409,8 @@ public partial class MainWindow : Window
             .DistinctBy(peer => peer.Id)
             .ToArray();
         string peerKind = entity.Kind == SmoLevelEntityKind.Collision
-            ? "Визуальный объект"
-            : "Коллизия";
+            ? LevelText.Get("Main.Inspector.VisualObject")
+            : LevelText.Get("Main.Inspector.Collision");
         string peerList = string.Join(
             "\n",
             peers.Select(peer =>
@@ -1394,10 +1419,10 @@ public partial class MainWindow : Window
                     candidate.VisualEntityId == peer.Id ||
                     candidate.CollisionEntityId == peer.Id);
                 return $"{peerKind}: {peer.Name} [{peer.Id.SceneObjectIndex}] · " +
-                       $"совпадение {link.Confidence:P0}";
+                       LevelText.Get("Main.Inspector.Match", link.Confidence);
             }));
         BindingsText.Text = compositeText + peerList +
-            "\nMOVE LINKED — вместе; выключить для отдельного перемещения.";
+            LevelText.Get("Main.Inspector.MOVELINKEDMovesBothTurnIt");
     }
 
     private void SetPositionEditor(Vector3? value, bool enabled = false)
@@ -1441,8 +1466,8 @@ public partial class MainWindow : Window
         ScaleZBox.Text = FormatEditorNumber(scale?.Z);
         if (rotation is Quaternion stored)
         {
-            string quaternionText = FormattableString.Invariant(
-                $"SMO quaternion: X {stored.X:0.######}, Y {stored.Y:0.######}, Z {stored.Z:0.######}, W {stored.W:0.######}");
+            string quaternionText = string.Format(CultureInfo.InvariantCulture,
+                LevelText.Get("Main.Message.SMOQuaternionXYZW"), stored.X, stored.Y, stored.Z, stored.W);
             RotationXBox.ToolTip = quaternionText;
             RotationYBox.ToolTip = quaternionText;
             RotationZBox.ToolTip = quaternionText;
@@ -1529,7 +1554,7 @@ public partial class MainWindow : Window
             !TryParsePosition(PositionYBox.Text, out float y) ||
             !TryParsePosition(PositionZBox.Text, out float z))
         {
-            StatusText.Text = "Position: требуется корректное число X/Y/Z";
+            StatusText.Text = LevelText.Get("Main.Message.PositionEnterValidXYAnd");
             return;
         }
         ApplyPositionFromInspector(new Vector3(x, y, z));
@@ -1543,7 +1568,7 @@ public partial class MainWindow : Window
             !TryParsePosition(RotationYBox.Text, out float y) ||
             !TryParsePosition(RotationZBox.Text, out float z))
         {
-            StatusText.Text = "Rotation: требуется корректное число X/Y/Z";
+            StatusText.Text = LevelText.Get("Main.Message.RotationEnterValidXYAnd");
             return;
         }
         ApplyRotationFromInspector(new Vector3(x, y, z));
@@ -1558,7 +1583,7 @@ public partial class MainWindow : Window
             !TryParsePosition(ScaleZBox.Text, out float z) ||
             x <= 0 || y <= 0 || z <= 0)
         {
-            StatusText.Text = "Scale: X/Y/Z должны быть положительными числами";
+            StatusText.Text = LevelText.Get("Main.Message.ScaleXYAndZMust");
             return;
         }
         ApplyScaleFromInspector(new Vector3(x, y, z));
@@ -1595,8 +1620,20 @@ public partial class MainWindow : Window
             CancelGizmoDrag();
         _editorTool = tool;
         if (StatusText is not null)
-            StatusText.Text = $"Инструмент: {tool}";
+            StatusText.Text = LevelText.Get("Main.Tool.Active", EditorToolCaption(tool));
     }
+
+    private static string EditorToolCaption(string tool) => LevelText.Get(tool switch
+    {
+        "Rotate" => "Main.Tool.Rotate",
+        "Scale" => "Main.Tool.Scale",
+        "Move" => "Main.Tool.Move",
+        _ => "Main.Tool.Select"
+    });
+
+    private static string TransformSpaceCaption(string space) => LevelText.Get(space == "LOCAL"
+        ? "Main.Tool.Local"
+        : "Main.Tool.World");
 
     private void TransformSpace_Checked(object sender, RoutedEventArgs e)
     {
@@ -1604,7 +1641,7 @@ public partial class MainWindow : Window
             return;
         CancelGizmoDrag();
         if (StatusText is not null)
-            StatusText.Text = $"Система координат: {space}";
+            StatusText.Text = LevelText.Get("Main.Tool.CoordinateSystem", TransformSpaceCaption(space));
     }
 
     private void ToggleInspector_Click(object sender, RoutedEventArgs e)
@@ -1660,20 +1697,15 @@ public partial class MainWindow : Window
     {
         if (_workspace is null)
         {
-            StatsText.Text = "Уровень не открыт";
+            StatsText.Text = LevelText.Get("Main.Workspace.Closed");
             return;
         }
 
         StatsText.Text =
-            $"{_workspace.ObjectCount +
-                (_document?.GeneratedCollisions.Count ?? 0) * 2:N0} объектов · " +
-            $"{_workspace.Assets.Count:N0} моделей · " +
-            $"{_workspace.PlacementCount:N0} размещений · " +
-            $"{(_document?.Collisions.Count(collision =>
+            LevelText.Get("Main.Workspace.Stats", _workspace.ObjectCount +
+                (_document?.GeneratedCollisions.Count ?? 0) * 2, _workspace.Assets.Count, _workspace.PlacementCount, (_document?.Collisions.Count(collision =>
                 !_document.RemovedEntityIds.Contains(collision.Entity.Id)) ??
-                _workspace.Collisions.Count):N0} collision shapes · " +
-            $"{_workspace.TextureCount:N0} текстур · " +
-            $"{_workspace.DiagnosticCount:N0} проблем";
+                _workspace.Collisions.Count), _workspace.TextureCount, _workspace.DiagnosticCount);
     }
 
     private sealed record SceneTreeSelection(
@@ -1698,7 +1730,7 @@ public partial class MainWindow : Window
             PlacementCount = placementCount;
             VertexCount = vertexCount;
             TriangleCount = triangleCount;
-            Status = status;
+            _status = status;
             HasIssue = hasIssue;
         }
 
@@ -1707,11 +1739,12 @@ public partial class MainWindow : Window
         public int PlacementCount { get; }
         public int VertexCount { get; }
         public int TriangleCount { get; }
-        public string Status { get; }
+        private readonly string _status;
+        public string Status => LevelText.Display(_status);
         public bool HasIssue { get; }
         public string PlacementBadge => $"×{PlacementCount}";
-        public string Kind => Asset?.HasSkinning == true ? "SKIN" : "RIGID";
-        public string Details => $"{VertexCount:N0} verts · {TriangleCount:N0} tris";
+        public string Kind => Asset?.HasSkinning == true ? LevelText.Get("Main.Inspector.Skinned") : LevelText.Get("Main.Inspector.Rigid");
+        public string Details => LevelText.Get("Main.Inspector.MeshDetails", VertexCount, TriangleCount);
         public Brush StatusColor => HasIssue ? ErrorBrush :
             Asset?.Texture is null ? NoticeBrush : HealthyBrush;
 
@@ -1720,7 +1753,7 @@ public partial class MainWindow : Window
             string status = asset.Issue ??
                 (asset.Texture is SmoLevelTexture texture
                     ? texture.Name.TrimEnd('\0')
-                    : "без подтверждённой текстуры");
+                    : LevelText.Label("Main.Inspector.NoTexture"));
             return new EditorAssetItem(
                 asset,
                 asset.DisplayName,

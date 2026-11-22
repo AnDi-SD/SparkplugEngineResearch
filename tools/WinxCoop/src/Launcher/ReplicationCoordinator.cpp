@@ -128,7 +128,7 @@ namespace winxcoop::launcher
         {
             ClearNetwork();transport=nullptr;
             if(!profile.paths.menuFirst && gameRole==SessionRole::Guest && Active())stopGameAfterRemoval=true;
-            try{status=Active() && profile.paths.menuFirst?L"Соединение закрыто. Оригинальная игра продолжает работать.":Active() && gameRole==SessionRole::Host?L"Гость отключён. Игра сервера продолжает работать; удаляем его модель.":L"Сеанс отключён. Ожидаем завершения очистки игры.";}catch(...){}
+            try{status=Active() && profile.paths.menuFirst?L"Соединение закрыто. Оригинальная игра продолжает работать; удаляем удалённую модель.":Active() && gameRole==SessionRole::Host?L"Гость отключён. Игра сервера продолжает работать; удаляем его модель.":L"Сеанс отключён. Ожидаем завершения очистки игры.";}catch(...){}
         }
         void StartGame(const SessionRole owner,const std::uint64_t now)
         {
@@ -145,6 +145,14 @@ namespace winxcoop::launcher
             // protocol session or epoch. Host native game can span reconnects.
             Require(profile.paths.menuFirst || (profile.paths.seconds>=5 && profile.paths.seconds<=3600),"Legacy diagnostic duration must be5..3600 seconds");
             config.menuFirst=profile.paths.menuFirst;
+            if(config.menuFirst && owner==SessionRole::Guest)
+            {
+                Require(protocol && protocol->LevelEpoch() && protocol->AssignedLevel().levelId>=1 &&
+                    protocol->AssignedLevel().levelId<=50 && protocol->AssignedLevel().entryId==0,
+                    "Guest launch requires the server's actual ready scene and default entry");
+                config.startupLevel=protocol->AssignedLevel().levelId;
+                config.startupEntry=protocol->AssignedLevel().entryId;
+            }
             config.session=id;config.levelEpoch=1;config.seconds=config.menuFirst?0:std::max(MinimumHelperLimitSeconds,profile.paths.seconds);
             metrics.lastGameHelperLimitSeconds=config.seconds;
             metrics.lastGameSoftLimitSeconds=config.menuFirst?0:std::min(profile.paths.seconds,config.seconds-GameLimitGraceSeconds);
@@ -158,51 +166,68 @@ namespace winxcoop::launcher
             lastCooperativePump=0;
             ++metrics.gameStarts;
             Require(game->Start(),game->Failure().empty()?"Owned game start failed":game->Failure().c_str());
-            status=L"Открываем штатное меню установленной игры. Уровень выбирается в самой игре.";
+            status=profile.paths.menuFirst && owner==SessionRole::Guest?
+                L"Запускаем клиент сразу в назначенную сервером локацию "+std::to_wstring(protocol->AssignedLevel().levelId)+L".":
+                L"Открываем штатное меню установленной игры. Уровень выбирается в самой игре.";
         }
         bool CanAttach(const SessionRole candidate) const noexcept
-        {return !shutdown && !transport && allCompletedCleanup && (!Active() || ((profile.paths.menuFirst || (candidate==SessionRole::Host && gameRole==candidate)) && !stopRequested && !stopGameAfterRemoval));}
+        {return !shutdown && !transport && allCompletedCleanup && (!Active() || (candidate==SessionRole::Host && gameRole==candidate && !stopRequested && !stopGameAfterRemoval));}
         bool Attach(WindowsTcpTransport& value,const SessionRole candidate)
         {
             if(!CanAttach(candidate))return false;ClearNetwork();transport=&value;role=candidate;failure.clear();
-            status=role==SessionRole::Host?L"Лобби открыто. Сервер может начать игру до подключения гостя.":L"Подключаемся. Клиент ждёт назначения готового уровня сервером.";return true;
+            status=role==SessionRole::Host?L"Лобби открыто. Сервер может начать игру до подключения гостя.":
+                L"Подключаемся. Клиент ждёт назначения готового уровня сервером.";return true;
         }
         bool StartHost(const std::uint64_t now)
         {
-            if(shutdown || Active() || !allCompletedCleanup || (!profile.paths.menuFirst && (!transport || role!=SessionRole::Host)))return false;
+            if(shutdown || Active() || !allCompletedCleanup || (transport && role==SessionRole::Guest) || (!profile.paths.menuFirst && (!transport || role!=SessionRole::Host)))return false;
             StartGame(transport?role:SessionRole::Host,now);return true;
         }
-        void CompleteGame()
+        void CompleteGame(const bool finalEvidenceQualified=true,const char* finalValidationError=nullptr)
         {
             gameSoftStopAt=0;
             gameSoftLimitReached=false;
             lastResult=game->Result();hasResult=true;++metrics.gameCompletions;
-            if(lastResult.successful)++metrics.gameSuccessfulCompletions;
-            const bool nativeClean=!nativePending && (!activeRemote || (lastNativeCreated>0 && lastNativeCreated==lastNativeRemoved));
+            const bool facadeQualified=lastResult.successful && game->Failure().empty();
+            const bool qualified=finalEvidenceQualified && facadeQualified;
+            const bool nativeClean=qualified && !nativePending && (!activeRemote || (lastNativeCreated>0 && lastNativeCreated==lastNativeRemoved));
             if(nativeClean)++metrics.gameNativeCleanupCompletions;
             if(!lastResult.outerStarted && !lastResult.helperStarted)++metrics.gameNoOuterLaunchCompletions;
             // The existing owned helper may terminate its own child after a
             // requested stop. Preserve that fact in Result; process cleanup
             // additionally requires actual native Remove ACK/unload evidence.
+            // A final, independently qualified retirement cancellation is kept
+            // separate from Applied acknowledgements in both facade and metrics.
             const bool cleaned=Cleanup(lastResult) && nativeClean;
             allCompletedCleanup=allCompletedCleanup && cleaned;
-            if(!game->Failure().empty())failure=game->Failure();
+            // The raw helper observations remain in lastResult. Coordinator
+            // validation may only narrow its derived success, never erase a
+            // first error or permit a new Start to discard unqualified cleanup.
+            lastResult.successful=lastResult.successful && cleaned;
+            if(lastResult.successful)++metrics.gameSuccessfulCompletions;
+            if(!cleaned)
+            {
+                if(failure.empty())
+                {
+                    if(!game->Failure().empty())failure=game->Failure();
+                    else if(finalValidationError && *finalValidationError)failure=finalValidationError;
+                    else if(!lastResult.error.empty())failure=lastResult.error;
+                    else failure="Final native lifecycle cleanup was not qualified";
+                }
+                if(lastResult.error.empty())lastResult.error=failure;
+            }
             ClearNetwork();if(transport)transport->ClosePeer();
             activeRemote.reset();nativePending.reset();desiredRemote.reset();haveScale=haveSample=false;
-            status=lastResult.directHost?L"Оригинальная игра завершена; результат и освобождение процессов записаны в локальный журнал.":
+            status=!cleaned?L"Игра завершена с неподтверждённой очисткой: "+Wide(failure)+L". Сохраните локальные отчёты.":
+                lastResult.directHost?L"Оригинальная игра завершена; результат и освобождение процессов записаны в локальный журнал.":
                 !lastResult.outerStarted && cleaned?L"Игра не была запущена; транзакция MediaPath не начиналась. Можно повторить запуск.":
                 cleaned?L"Игра завершена. Очистка модели, выход процесса и восстановление MediaPath подтверждены.":L"Игра завершена. Полная очистка не подтверждена; сохраните отчёты из Cases.";
             // Retain the complete result rather than treating an empty facade as
             // successful cleanup. Only a subsequent explicit start releases it.
             stopRequested=true;
         }
-        void ReadGame(const std::uint64_t now)
+        bool ReadNativeState(const std::uint64_t now)
         {
-            if(!game)return;const bool wasFinished=game->Finished();game->Pump();
-            if(game->Finished())
-            {if(!wasFinished || metrics.gameCompletions<metrics.gameStarts)CompleteGame();return;}
-            if(!game->Failure().empty())
-            {failure=game->Failure();desiredRemote.reset();if(protocol){ClearNetwork();if(transport)transport->ClosePeer();}status=L"Ошибка адаптера; ожидаем завершения его процессов: "+Wide(failure);}
             if(game->HasRuntimeSnapshot())
             {
                 const auto& snapshot=game->Snapshot();
@@ -216,6 +241,52 @@ namespace winxcoop::launcher
                 metrics.remoteDisplayMaxGapMs=std::max(metrics.remoteDisplayMaxGapMs,static_cast<std::uint64_t>(snapshot.remoteDisplayMaxGapMs));
                 metrics.remoteDisplayMaxStep=std::max(metrics.remoteDisplayMaxStep,snapshot.remoteDisplayMaxStep);
             }
+            // The helper can exit between GUI pumps. Consume a real final ACK
+            // and lifecycle snapshot before deciding CompleteGame's cleanup.
+            ReadNativeAck(now);
+            const bool retired=profile.paths.menuFirst && game->HasRuntimeSnapshot() && game->Snapshot().epochRetired;
+            if(retired)
+            {
+                const auto& snapshot=game->Snapshot();
+                Require(snapshot.phase==adapter::RuntimePhase::Stopped && snapshot.error==adapter::RuntimeError::None && !snapshot.actorError &&
+                    !snapshot.remoteEntity && snapshot.remoteCreated==snapshot.remoteRemoved,"Retired visual epoch lacks terminal passive cleanup");
+                if(game->Finished() && game->Result().commandCancelledOnRetirement)
+                {
+                    // This final facade result pins the outstanding immutable
+                    // command to a retired, cleaned native generation. It was
+                    // not Applied: preserve the raw unconfirmed flag and do not
+                    // increase nativeAcknowledgements or any operation ACK count.
+                    const auto& result=game->Result();const auto& ack=game->Acknowledgement();
+                    Require(nativePending && result.commandUnconfirmed && result.commandsPublished==nativePending->sequence &&
+                        result.commandsAcknowledged<nativePending->sequence && nativePending->sequence-result.commandsAcknowledged==1 &&
+                        ack.sequence==result.commandsAcknowledged && snapshot.lastCommandSequence==result.commandsAcknowledged,
+                        "Retirement cancellation differs from the outstanding native command");
+                    ++metrics.nativeCommandsCancelledOnRetirement;nativePending.reset();
+                }
+                ClearNetwork();if(transport && transport->ActiveConnectionId())transport->ClosePeer();
+                activeRemote.reset();desiredRemote.reset();haveScale=false;appliedRevision=0;
+                status=L"Эпоха отображения завершена. Оригинальная игра продолжает работать; подключение ждёт нового сеанса.";
+            }
+            return retired;
+        }
+        void ReadGame(const std::uint64_t now)
+        {
+            if(!game)return;const bool wasFinished=game->Finished();game->Pump();
+            if(wasFinished && metrics.gameCompletions>=metrics.gameStarts)return;
+            if(game->Finished())
+            {
+                // FinishedFailed is terminal too. A bad final ACK/retirement
+                // must produce one retained failed completion, not throw on
+                // every pump before lastResult/cleanup accounting is written.
+                try{ReadNativeState(now);}
+                catch(const std::exception& error){CompleteGame(false,error.what());return;}
+                catch(...){CompleteGame(false,"Unknown final native lifecycle validation error");return;}
+                CompleteGame();return;
+            }
+            const bool retired=ReadNativeState(now);
+            if(!game->Failure().empty())
+            {if(failure.empty())failure=game->Failure();desiredRemote.reset();if(protocol){ClearNetwork();if(transport)transport->ClosePeer();}status=L"Ошибка адаптера; ожидаем завершения его процессов: "+Wide(failure);}
+            if(retired)return;
             if(game->Ready() && !readyCounted)
             {
                 Require(game->Snapshot().levelId>=1 && game->Snapshot().levelId<=50 && !game->Snapshot().epochRetired,"Original Playing observation is not ready");
@@ -224,14 +295,6 @@ namespace winxcoop::launcher
                 for(const auto scale:sceneTransform.scale)Require(std::isfinite(scale) && scale>0,"Qualified local scale is invalid");
                 haveScale=true;status=L"Игра загрузила локацию "+std::to_wstring(profile.level.levelId)+L". Ожидаем совпадения локаций у участников.";
             }
-            if(profile.paths.menuFirst && game->HasRuntimeSnapshot() && game->Snapshot().epochRetired)
-            {
-                ClearNetwork(); if(transport && transport->ActiveConnectionId())transport->ClosePeer();
-                activeRemote.reset();desiredRemote.reset();haveScale=false;
-                status=L"Эпоха отображения завершена. Оригинальная игра продолжает работать; подключение ждёт нового сеанса.";
-                return;
-            }
-            ReadNativeAck(now);
         }
         void ReadNativeAck(const std::uint64_t now)
         {
@@ -264,9 +327,9 @@ namespace winxcoop::launcher
         void DriveVisual(const std::uint64_t now)
         {
             if(!Active())return;
-            // Step2 qualifies menu-first startup. Passive display is enabled by
-            // the subsequent step, after the native scene/pose path is accepted.
-            if(!profile.paths.menuFirst && game->Ready() && haveScale && !nativePending && !game->CommandPending())
+            // Both menu-first and legacy paths use the actually ready native
+            // scene. A retired/paused scene cannot receive a visual command.
+            if(game->Ready() && haveScale && game->Snapshot().levelId==profile.level.levelId && !nativePending && !game->CommandPending())
             {
                 if(activeRemote && (!desiredRemote || !(desiredRemote->key==*activeRemote)))Issue(adapter::RuntimeOperation::Remove,*activeRemote,nullptr,now);
                 else if(desiredRemote && !activeRemote)Issue(adapter::RuntimeOperation::Create,desiredRemote->key,&*desiredRemote,now);
@@ -283,7 +346,7 @@ namespace winxcoop::launcher
                 if((!activeRemote && !nativePending) || retired || !game->Failure().empty() || removalTimedOut)
                 {
                     if(gameSoftLimitReached && removalTimedOut && (activeRemote || nativePending))++metrics.gameSoftLimitFallbackStops;
-                    game->RequestStop();stopRequested=true;status=L"Завершаем игру и ждём подтверждённого восстановления MediaPath…";
+                    game->RequestStop();stopRequested=true;status=profile.paths.menuFirst?L"Завершаем игру и ждём освобождения её процессов…":L"Завершаем игру и ждём подтверждённого восстановления MediaPath…";
                 }
             }
         }
@@ -348,11 +411,11 @@ namespace winxcoop::launcher
                     if(!profile.paths.menuFirst)Require(event->level==profile.level,"Server assigned an unqualified scene");
                     if(role==SessionRole::Guest)
                     {
-                        if(!profile.paths.menuFirst)Require(!Active(),"Guest cannot reuse a native generation for a new assignment");
-                        if(!Active())StartGame(SessionRole::Guest,now);
+                        Require(!Active(),"Guest assignment requires a fresh original-game generation");
+                        StartGame(SessionRole::Guest,now);
                     }
                     break;
-                case gameplay::EventKind::Started:++metrics.cooperativeStarts;status=L"Локации участников совпали. Подключение готово; отображение второго персонажа относится к следующему шагу.";break;
+                case gameplay::EventKind::Started:++metrics.cooperativeStarts;status=L"Локации участников совпали. Подключаем вторую Блум; управление и камера остаются локальными.";break;
                 case gameplay::EventKind::ObservedState:
                     Require(role==SessionRole::Host && decisions.size()<gameplay::GameplayProtocol::MaximumPendingObservations,"Guest observation decision FIFO overflow");
                     decisions.push_back({event->observationToken,NumericEnvelope(event->observed)});++metrics.observationsReceived;break;
@@ -402,13 +465,13 @@ namespace winxcoop::launcher
             if(protocol && (!running || protocol->ConnectionId()!=connection))
             {
                 ClearNetwork();if(!profile.paths.menuFirst && gameRole==SessionRole::Guest && Active())stopGameAfterRemoval=true;
-                status=role==SessionRole::Host?L"Гость отключён. Игра сервера остаётся открыта; ждём нового подключения.":L"Сервер отключился. Закрываем клиентскую игру и удаляем модель.";
+                status=profile.paths.menuFirst?L"Соединение закрыто. Оригинальная игра продолжает работать; удаляем удалённую модель.":
+                    role==SessionRole::Host?L"Гость отключён. Игра сервера остаётся открыта; ждём нового подключения.":L"Сервер отключился. Закрываем клиентскую игру и удаляем модель.";
             }
             if(running && !protocol)
             {
                 if(profile.paths.menuFirst && game && game->HasRuntimeSnapshot() && game->Snapshot().epochRetired)return;
                 if(role==SessionRole::Guest && (stopRequested || stopGameAfterRemoval) && Active())return;
-                if(profile.paths.menuFirst && role==SessionRole::Guest && !Active())StartGame(SessionRole::Guest,now);
                 StartProtocol();
             }
             if(!protocol)return;
@@ -515,7 +578,7 @@ namespace winxcoop::launcher
     {try{implementation_->Pump(now);}catch(const std::exception& error){implementation_->Fail(error.what());}catch(...){implementation_->Fail("Unknown replication error");}}
     void ReplicationCoordinator::RequestShutdown() noexcept{implementation_->Shutdown();}
     bool ReplicationCoordinator::Finished() const noexcept{return implementation_->shutdown && !implementation_->Active();}
-    bool ReplicationCoordinator::CanStartHostGame() const noexcept{return !implementation_->shutdown && implementation_->allCompletedCleanup && !implementation_->Active() && (implementation_->profile.paths.menuFirst || (implementation_->transport && implementation_->role==SessionRole::Host));}
+    bool ReplicationCoordinator::CanStartHostGame() const noexcept{return !implementation_->shutdown && implementation_->allCompletedCleanup && !implementation_->Active() && !(implementation_->transport && implementation_->role==SessionRole::Guest) && (implementation_->profile.paths.menuFirst || (implementation_->transport && implementation_->role==SessionRole::Host));}
     bool ReplicationCoordinator::GameActive() const noexcept{return implementation_->Active();}
     bool ReplicationCoordinator::CanAttach(const SessionRole role) const noexcept{return implementation_->CanAttach(role);}
     const std::wstring& ReplicationCoordinator::Status() const noexcept{return implementation_->status;}

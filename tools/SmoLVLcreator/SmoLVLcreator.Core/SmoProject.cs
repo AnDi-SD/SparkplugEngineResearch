@@ -1238,6 +1238,61 @@ public sealed class SmoProject
     }
 
     /// <summary>
+    /// Replaces visual branches within a project session transaction. Each
+    /// source instance maps to its replacement's static roots in input order.
+    /// </summary>
+    public void ReplaceVisualBranches(
+        IReadOnlyList<IReadOnlyList<uint>> sourcePlacementRoots,
+        IReadOnlyList<IReadOnlyList<uint>> replacementPlacementRoots,
+        IReadOnlyCollection<SmoProjectCollisionLinkOverride> effectiveLinks)
+    {
+        if (sourcePlacementRoots.Count != replacementPlacementRoots.Count ||
+            sourcePlacementRoots.Any(roots => roots.Count == 0) ||
+            replacementPlacementRoots.Any(roots => roots.Count == 0))
+        {
+            throw new InvalidDataException("The model replacement has no matching placement for an instance.");
+        }
+
+        uint[] sourceRoots = sourcePlacementRoots.SelectMany(roots => roots).ToArray();
+        uint[] replacementRoots = replacementPlacementRoots.SelectMany(roots => roots).ToArray();
+        var linksByVisual = Manifest.CollisionLinkOverrides.Concat(effectiveLinks)
+            .ToLookup(link => link.VisualObjectId);
+        if (replacementRoots.Distinct().Count() != replacementRoots.Length ||
+            sourceRoots.Intersect(replacementRoots).Any() ||
+            sourceRoots.GroupBy(root => root).Any(group => group.Count() > 1 && linksByVisual.Contains(group.Key)))
+        {
+            throw new InvalidDataException("The model replacement contains ambiguous placement roots.");
+        }
+
+        var transferred = new List<SmoProjectCollisionLinkOverride>();
+        for (int placement = 0; placement < sourcePlacementRoots.Count; placement++)
+        {
+            var linksByCollision = sourcePlacementRoots[placement]
+                .SelectMany(root => linksByVisual[root])
+                .GroupBy(link => link.CollisionObjectId);
+            foreach (var links in linksByCollision)
+            {
+                // Full replacement can change the part count, so an association
+                // to any source part becomes an association to the new instance.
+                bool present = links.Any(link => link.Present);
+                foreach (uint replacementRoot in replacementPlacementRoots[placement])
+                {
+                    transferred.Add(new SmoProjectCollisionLinkOverride
+                    {
+                        VisualObjectId = replacementRoot,
+                        CollisionObjectId = links.Key,
+                        Present = present
+                    });
+                }
+            }
+        }
+
+        RemoveSceneBranches(sourceRoots.Distinct().ToArray());
+        Manifest.CollisionLinkOverrides.AddRange(transferred);
+        Validate();
+    }
+
+    /// <summary>
     /// Reports whether an object of the requested engine type is part of the
     /// current project graph. Unlike the immutable imported directory, this
     /// view excludes imported branches and added forests pending removal.

@@ -131,6 +131,12 @@ if(WIN32)
             src/Adapter/NativeAdapter.cpp
             src/Adapter/PassiveActor.cpp
             src/Adapter/PassiveActor.h
+            src/Adapter/GuestIsolation.cpp
+            src/Adapter/GuestIsolation.h
+            src/Adapter/GuestIsolationCatalog.h
+            src/Adapter/GuestInputCatalog.h
+            src/Adapter/GuestFlowGate.cpp
+            src/Adapter/GuestFlowGate.h
             src/Adapter/PinnedImage.cpp
             src/Adapter/PinnedImage.h
             src/Adapter/PassiveImageCompatibility.h

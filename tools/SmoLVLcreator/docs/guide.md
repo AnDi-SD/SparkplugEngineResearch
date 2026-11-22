@@ -1,277 +1,353 @@
-# SmoLVLcreator: подробное руководство
+# Руководство по SmoLVLcreator
 
-## Run
+[English](guide.en.md) · [README](../README.md) · [Инструкция для архива](../PACKAGE_README.md)
+
+<a id="run"></a>
+
+## Открытие уровня или проекта
+
+В распакованном архиве запустите `SmoLVLcreator.exe`. Для запуска из исходников
+выполните команду из корня репозитория.
 
 ```powershell
 dotnet run --project tools/SmoLVLcreator/SmoLVLcreator.Gui/SmoLVLcreator.Gui.csproj
 ```
 
-The startup screen is an empty workspace: it contains no fabricated scene,
-catalog or inspector data and keeps editing commands disabled until a file is
-opened. `Open SMO` fills it with the real catalog and renders the prepared scene
-through the same OpenGL backend as SmoViewer. Left click selects the level entity
-under the cursor and synchronizes
-the catalog, outliner, inspector, and every mesh-part highlight belonging to it.
-`Ctrl+left click` toggles entities in a multi-selection and `Esc` clears it.
-Right mouse orbits,
-Shift+right mouse pans, and `F` frames the active placement. With no focused placement,
-right mouse becomes free-look around the camera position, the wheel moves
-forward/back, and `WASD` plus `Q/E` provide free-flight movement. Selecting a
-placement switches to orbit around its center; any flight key returns to free
-mode. A `.smo` path may also be supplied as the first command-line argument.
-The viewport toolbar switches Perspective/Orthographic projection,
-Lit/Unlit/Wireframe rendering, the floor Grid and selection Bounds without
-rebuilding the level or resetting the camera.
+Выберите **Файл → Открыть уровень или проект…** и укажите уровень SMO или
+архив `.smolvlproj`. В пустой рабочей области команды редактирования становятся
+доступны после открытия файла. Редактор заполняет каталог, структуру уровня
+и инспектор данными сцены. За отрисовку отвечает общий OpenGL-рендерер
+SmoViewer. Путь к файлу SMO можно передать первым аргументом командной строки.
 
-The bottom catalog has four live projections of the loaded workspace. `Models`
-shows unique decoded meshes, `Placements` shows every individual scene instance
-with its current coordinates, `Textures` shows every decodable `spTextureData`
-resource and its confirmed model users, and `Unknown` combines unregistered
-object classes with parser, mesh, and texture diagnostics. Search applies to the
-active projection. Model and placement cards support standard extended selection
-(`Ctrl`/`Shift`), update the viewport selection used by gizmos and export, and
-double-click focuses the active placement. The context menu can focus or reveal
-the active card in the outliner and invoke the shared selection export commands.
-Models already in the SMO and newly imported rigid models use the same placement
-path: drag a card onto the viewport or select it and press `Разместить`.
-Visible model and placement cards lazily render cached thumbnails from the shared
-`SmoSceneMesh`; texture cards display downsampled decoded BGRA pixels. Thumbnail
-presentation lives in `SmoViewer.Rendering.Wpf`, so Viewer and future WPF tools
-can reuse it without moving binary or scene knowledge into this GUI.
-Untextured meshes retain their authored vertex-color palette in thumbnails. The
-preview queue is replaced whenever the horizontal viewport changes, so the newly
-visible cards preempt stale off-screen work; cache hits are applied immediately.
+В правом верхнем углу окна находится список **Язык интерфейса** с вариантами
+**Язык системы**, **Русский** и **English**. В режиме **Язык системы** редактор
+использует русский при русском языке интерфейса Windows и английский
+в остальных случаях. Когда редактор свободен, выбор языка применяется сразу
+с сохранением открытого проекта, выделения и истории правок. Выбор языка
+и настройки быстрого экспорта хранятся в
+`%LOCALAPPDATA%\SparkplugEngineResearch\SmoLVLcreator\settings.json`.
+Диалоги Windows и технические сообщения общих библиотек могут использовать свой язык.
 
-File operations live in the `File` menu rather than the viewport toolbar. It
-contains Open, Save, Save As, quick Export, Export As, and Exit. `Edit` exposes
-Undo/Redo, `View` controls the three editor panels, and `Tools > Settings…` opens
-the persistent editor settings window.
+## Навигация по сцене и выделение
 
-Choose `Move` and drag the WORLD/LOCAL X/Y/Z gizmo to translate every selected
-entity. Hold `Ctrl` while dragging to snap the delta to a one-unit grid. The X/Y/Z
-fields in the inspector apply an exact position to the active entity and preserve
-the relative offsets of the rest of the selection. A drag or numeric edit is one
-atomic history entry; `Esc` cancels a live drag, while `Ctrl+Z`, `Ctrl+Y`, and
-`Ctrl+Shift+Z` navigate the committed history.
+| Действие | Результат |
+| --- | --- |
+| ЛКМ | Выделяет объект или составную модель целиком. Каталог, структура уровня, инспектор и подсветка мешей следуют за выделением. |
+| `Alt` + ЛКМ | Выделяет отдельный меш составной модели. |
+| `Ctrl` + ЛКМ | Добавляет объект к выделению или исключает его. |
+| `Esc` | Снимает выделение или отменяет текущее перетаскивание гизмо. |
+| `F` | Кадрирует активный экземпляр. |
+| ПКМ | Поворачивает камеру. При фокусе на экземпляре камера вращается вокруг его центра, в свободном обзоре меняет направление взгляда на месте. |
+| `Shift` + ПКМ | Панорамирует вид. |
+| Колесо | Приближает или отдаляет при орбитальном обзоре и в ортогональной проекции. При свободном обзоре в перспективе перемещает камеру вперёд или назад. |
+| ПКМ + колесо | Меняет скорость полёта в свободной перспективе на текущий сеанс редактора. Строка состояния показывает её относительно скорости по умолчанию. |
+| `WASD` и `Q`/`E` | Управляют полётом. Нажатие клавиши перемещения выводит камеру из орбитального режима. Удерживайте `Shift` для ускорения или `Ctrl` для замедления. |
 
-`Rotate` draws local/world X/Y/Z rings and rotates the complete selection around
-its common pivot. `Scale` provides local/world axis handles plus a center handle
-for uniform scaling. Hold `Ctrl` for 15-degree rotation snapping or 0.1 scale
-increments. Position, Euler rotation in degrees and non-uniform XYZ scale can
-also be entered exactly in the inspector. Switching tool or transform space
-cancels a live drag exactly. `Ctrl+C`, `Ctrl+V` and `Ctrl+D` copy, paste and
-duplicate placements while reusing their physical mesh and texture resources.
+Панель вьюпорта переключает **Перспективу** и **Ортогональ**, а также режимы
+**С освещением**, **Без освещения** и **Каркас**. **Сетка** и **Габариты**
+управляют сеткой пола и рамкой выделения. Переключение сохраняет загруженную
+сцену и положение камеры. Меню **Вид** управляет каталогом, структурой уровня
+и инспектором. **Справка → Управление и сочетания клавиш…** открывает подсказку
+в редакторе.
 
-The editor keeps visual placements and `spCollisionInfo` shapes as independent
-entities, then creates non-destructive links for high-confidence geometric matches
-inside the same `spPartitionNode`. `MOVE LINKED` is enabled by default, so a gizmo
-drag or numeric position edit moves both sides in one undoable command. Disable it
-to move the selected visual or collision independently. The inspector's `BINDINGS`
-section shows the linked peer, object index, and match confidence.
-Collision creation opens a preview with the visual source and proposed convex
-hull, triangle budget and padding. Generated collision entities can be regenerated,
-deleted, moved independently, or manually linked to a visual entity. Existing
-native collision entities can also be deleted with the toolbar button or `Delete`;
-saving removes their field-7 physics registry binding and the complete inline
-`spCollisionInfo`/`spMeshBV` branch, while Undo restores the pending edit before
-save.
-The manual association controls editor behavior; persisted transforms and
-geometry remain ordinary independent SMO collision objects.
+### Каталог ресурсов
 
-`Save` or `Ctrl+S` stores the current `.smolvlproj`; an opened SMO is first
-imported as an immutable project source. `File > Build SMO…` creates a separate
-game file. Only confirmed transform, collision, resource and payload operations
-from the project journal are applied. Sparkplug may omit identity rotation and
-unit scale; those optional fields are materialized in their confirmed order when
-needed. Unrelated and unknown fields remain byte-preserved. The result is parsed
-again before installation, written through a same-directory temporary file and
-checked by SHA-256 after installation. Replacing an existing output uses an
-atomic replace and creates a timestamped `.bak` beside it.
-Objects without a confirmed transform schema are rejected rather than written
-heuristically. The binary contract is described in
-[SMO field mutation subsystem](../../../docs/formats/smo-field-mutation.md).
+| Вкладка | Содержимое |
+| --- | --- |
+| **МОДЕЛИ** | Прочитанные ресурсы мешей, включая добавленные в проект модели. |
+| **ЭКЗЕМПЛЯРЫ** | Экземпляры в сцене с текущими координатами. |
+| **ТЕКСТУРЫ** | Прочитанные ресурсы `spTextureData` и модели с подтверждёнными привязками к ним. |
+| **НЕИЗВЕСТНОЕ** | Незарегистрированные классы объектов и диагностика чтения, мешей и текстур. |
 
-Every final SMO build creates `<output>.SmoLVLcreator.log` beside the requested
-file. The project path records the snapshot, object/data counts, worker limit,
-output hash, backup path, completion status and complete exception stack traces.
-The error dialog always shows the expected log path.
+Поле поиска фильтрует активную вкладку. `Ctrl` и `Shift` расширяют выделение
+карточек моделей и экземпляров. Каталог и вьюпорт используют одно выделение
+для гизмо и экспорта. Двойной щелчок по карточке показывает активный экземпляр
+в сцене. Из контекстного меню можно показать ресурс в сцене или структуре
+уровня и экспортировать выделение. Чтобы добавить экземпляр, перетащите
+карточку модели во вьюпорт или нажмите **Разместить** для добавления в точке,
+на которую смотрит камера.
 
-Final building is a bounded sequential operation rather than an opaque UI task.
-The status bar reports snapshot, load, journal verification, streaming build and
-completion stages plus the current container size. `Отмена` terminates the owned
-worker; a partially written same-directory temporary file is never installed.
+Общий компонент `SmoViewer.Rendering.Wpf` строит и кэширует эскизы видимых
+карточек моделей и экземпляров. Он использует подготовленный `SmoSceneMesh`
+и сохраняет исходные цвета вершин у мешей без текстур. Карточки текстур
+показывают уменьшенные BGRA-изображения. При прокрутке редактор сначала
+обрабатывает новые видимые карточки, а готовые эскизы из кэша показывает сразу.
 
-The production SMO build runs in a separate invocation of the editor under a
-Windows Job Object. The job limits both one process and the complete worker tree
-to 1536 MiB. That value is an upper bound, not memory that must be available or
-allocated. The GUI writes an exact `.smolvlproj` snapshot, so the worker never
-needs the renderer scene and a failed worker cannot corrupt or inflate the live
-document. Progress and the structured result are exchanged through atomic JSON
-files. A physical-memory estimate may show a warning, but never prohibits the
-user from continuing.
+## Редактирование экземпляров и коллизий
 
-Large external models are packed one mesh part per short-lived child process.
-Imported texture IDs are carried between parts, so a texture shared by thirty
-meshes is embedded once rather than thirty times. Level texture payloads have a
-128 MiB decoded-BGRA budget; oversized sets are proportionally resized while
-preserving alpha and material bindings. The same prepared textures are shared by
-all viewport and fitting-window preview meshes instead of being decoded once per
-mesh. If any memory or timeout limit is exceeded, only the save job is stopped
-and the target remains untouched.
+Выберите **Переместить**, **Повернуть** или **Масштабировать** и перетащите
+гизмо. **Глобальные оси** выравнивают его по осям сцены, **Локальные оси** —
+по осям выделенного объекта. Вращение использует общий центр выделения.
+Центральная рукоятка масштабирует равномерно. Удерживайте `Ctrl` при
+перетаскивании для привязки смещения с шагом в 1 единицу, вращения с шагом
+15° или масштаба с шагом 0,1. В инспекторе можно точно задать положение,
+углы Эйлера в градусах и масштаб по каждой оси. Ввод положения перемещает
+активный объект в указанные координаты и сохраняет относительные смещения
+остальных выделенных объектов.
 
-The reproducible stress runner performs random transforms, shared and external
-placements, complete composite replacements, texture edits and removals in a
-separate process. It also exercises collision creation/transformation/deletion,
-archive checkpoints and build/reopen/re-import determinism. It never writes the
-source level, applies a managed-heap limit plus a parent-process private-memory
-watchdog, and retains the resulting SMO, project and JSON metrics under
-`artifacts/stress`:
+Перетаскивание и ввод числа создают по одной записи в истории. `Esc` и смена
+инструмента или ориентации осей отменяют незавершённое перетаскивание. Меню
+**Правка** содержит команды **Отменить** и **Повторить** (`Ctrl+Z`, `Ctrl+Y`
+или `Ctrl+Shift+Z`). `Ctrl+C`, `Ctrl+V` и `Ctrl+D` копируют, вставляют
+и дублируют экземпляры с общими ресурсами мешей и текстур.
+
+Визуальный объект и форма `spCollisionInfo` хранятся как отдельные сущности.
+Редактор связывает их при уверенном геометрическом совпадении в пределах одного
+`spPartitionNode`. Раздел **СВЯЗИ** в инспекторе показывает связанный объект,
+его индекс и степень совпадения. Параметр **Перемещать вместе** включён по
+умолчанию. Он позволяет двигать модель и коллизию одной отменяемой командой.
+Для раздельного перемещения снимите флажок. Команды **Связать выделенные**
+и **Разорвать связь** задают связь вручную.
+
+Команда **Создать коллизию** показывает выпуклую оболочку вокруг выделенной
+модели. В предпросмотре видны исходная модель и предложенная оболочка.
+В диалоге можно настроить ограничение числа треугольников и отступ.
+Созданную форму можно построить заново, перемещать отдельно, привязать
+или удалить. Кнопка **Удалить** и клавиша `Delete` также удаляют поддерживаемые
+штатные формы коллизий. При последующей сборке SMO удаляются привязка
+в поле 7 реестра физики и встроенная ветвь `spCollisionInfo`/`spMeshBV`.
+До сборки правку можно отменить.
+
+<a id="import-and-diagnostics"></a>
+
+## Добавление модели, замена модели и замена текстуры
+
+1. Для добавления модели без скелета нажмите **+ Модель…** в нижнем каталоге
+   и выберите OBJ, GLB или FBX. Для замены выберите **Заменить…**
+   в контекстном меню карточки модели. FBX использует общий
+   `SmoFbxBridge.exe` и его библиотеку.
+2. В окне **Подготовка модели к импорту** нажмите **Выбрать изображение…**
+   в строке материала, чтобы назначить конкретное изображение.
+   **Подобрать изображения по имени…** заменяет предыдущий набор автоподбора.
+   Ручное назначение имеет приоритет. При неоднозначном совпадении выберите
+   нужное изображение вручную. Окно показывает изображения без назначения
+   и позволяет сбросить отдельную строку или весь автоподбор.
+3. Для OBJ команда **Выбрать MTL…** загружает указанную библиотеку материалов.
+   При смене библиотеки ручные назначения текстур сбрасываются.
+   **Вернуть исходный** восстанавливает библиотеку, объявленную в OBJ.
+   GLB и FBX используют собственные данные материалов.
+4. Нажмите **Продолжить** и проверьте диагностику импорта перед применением.
+   При добавлении проект размещает первый экземпляр в точке, на которую
+   смотрит камера. В этом сценарии для GLB к масштабу размещения применяется
+   множитель 100. При замене окно **Подгонка модели** показывает оригинал
+   и новую модель. Настройте положение, вращение и масштаб, затем нажмите
+   **Заменить**.
+
+Проверка отклоняет ошибочную топологию, несогласованные необязательные данные
+вершин, ошибочные ссылки на материалы и текстуры, нечисловые или бесконечные
+координаты и геометрию со скелетной привязкой до записи в журнал проекта.
+Редактор может показать предупреждение об отсутствующем изображении или
+восстановлении при чтении. Переход от материала MASK к режиму альфа-канала
+уровня сопровождается предупреждением о совместимости. Для предпросмотра
+и сборки используются принятые в диалоге назначения материалов и изображений.
+
+При полной замене в проекте может измениться число мешей. Подгонка задаёт
+опорное преобразование. Каждый новый экземпляр сохраняет положение
+относительно этой опоры. Редактор записывает новый граф мешей, материалов
+и текстур с параметрами прозрачности, удаляет старые ветви и сохраняет
+общие дочерние объекты, которые ещё используются. Ручные связи с коллизиями
+переходят к новым экземплярам. Если ветви нельзя безопасно отделить от других
+моделей, редактор сообщает об ограничении.
+
+Чтобы заменить изображение существующей текстуры, откройте **ТЕКСТУРЫ**,
+выберите карточку и нажмите **Заменить…**. В диалоге об альфа-канале кнопка
+**Да** берёт RGB и альфу из нового изображения, **Нет** заменяет RGB
+с сохранением исходной альфы из SMO, а **Отмена** оставляет прежнюю текстуру.
+Поддерживаемая замена приводит изображение к размеру целевой текстуры.
+Совместимые новые PC BGRA-текстуры прозрачных материалов могут включать
+уменьшенные mip-уровни с учётом альфы. Основной уровень сохраняет исходные
+пиксели. Поддерживаемые полные цепочки можно пересчитать при замене.
+
+<a id="project-serializer"></a>
+
+## Сохранение проекта и сборка файла игры
+
+**Файл → Сохранить проект** (`Ctrl+S`) и **Сохранить проект как…**
+(`Ctrl+Shift+S`) записывают архив `.smolvlproj`. Открытый SMO становится
+неизменяемым источником проекта. **Файл → Собрать SMO…** создаёт отдельный
+файл игры из подтверждённых операций с преобразованиями, коллизиями,
+ресурсами и данными в журнале проекта. При необходимости писатель добавляет
+отсутствующие поля тождественного вращения и единичного масштаба
+в подтверждённом порядке. Неизвестные поля сохраняются побайтно.
+Запись преобразований с неподтверждённой схемой полей отклоняется.
+
+Сборка записывает временный файл рядом с целевым, повторно читает его перед
+установкой и сверяет SHA-256 установленного результата. При атомарной замене
+прежний файл сохраняется в резервную копию `.bak` с отметкой времени.
+**Инструменты → Проверить уровень в игре…** проверяет текущую сборку проекта
+изолированным запуском оригинальной Winx Club через общий контекстный
+валидатор. Для игровых проверок собирайте SMO в отдельный файл.
+
+При каждой итоговой сборке SMO рядом создаётся
+`<выходной файл>.SmoLVLcreator.log`. В журнале указаны снимок проекта,
+число объектов и объём данных, лимит процесса сборки, хэш результата,
+путь резервной копии, итог операции и подробности исключений. Диалог
+ошибки указывает ожидаемый путь журнала.
+
+Строка состояния показывает подготовку снимка, загрузку, проверку журнала
+правок, потоковую сборку и завершение вместе с текущим размером контейнера.
+**Отмена** останавливает запущенный редактором процесс до установки
+недописанного временного файла. Windows Job Object ограничивает процесс
+сборки и его дочерние процессы 1536 МиБ. Это верхняя граница расхода памяти.
+При необходимости редактор показывает оценку перед сборкой и даёт выбрать,
+продолжать ли её. Процесс получает точный снимок архива и возвращает
+прогресс и результат через атомарно записываемые JSON-файлы.
+
+### Хранение проекта и общие ресурсы
+
+- `project.json` содержит нормализованный заголовок FFPS, каталог, метаданные
+  прямых полей и операции по стабильным ID. `data.bin` хранит неизменяемые
+  исходные данные, включая неизвестные. Новые сериализованные ветви хранятся
+  в неизменяемых записях `assets/<guid>.bin`. Архив содержит исходный уровень
+  в виде этих компонентов без копии `base.smo`.
+- Сборка с копированием при записи обновляет диапазоны полей, добавляет
+  подтверждённые необязательные поля и пересчитывает вложенные размеры
+  и смещения каталога. Проект без правок воспроизводит исходный SHA-256.
+- Импорт в проект и создание коллизий резервируют стабильные ID и прикрепляют
+  целые сериализованные ветви на подтверждённых границах владельца. Процесс
+  импорта модели возвращает план добавляемых ветвей, блоки данных и метаданные
+  каталога. Адаптер отклоняет непредусмотренные изменения исходных объектов.
+  В служебном пути сохранения SMO без проекта большие модели можно записывать
+  по одному мешу в процессе. Общие текстуры записываются один раз благодаря
+  передаче их ID между частями.
+- У импорта уровня есть лимит 128 МиБ на декодированные BGRA-текстуры.
+  Подготовка уменьшает слишком большие наборы с сохранением назначений
+  материалов и альфы. Вьюпорт и окно подгонки используют одни и те же
+  подготовленные изображения. При превышении лимита времени или памяти
+  предыдущий целевой файл остаётся на месте.
+- Дополнительные экземпляры создают статические узлы, которые ссылаются
+  на существующий меш, его материал и текстуры. Преобразование экземпляра,
+  владеющего ресурсом, редактируется отдельной записью проекта поверх
+  неизменяемого блока. Для меша с собственным `spStaticRenderObject` шаблоном
+  узла служит его ветвь. Для общего ресурса берётся существующий узел этого
+  же ресурса. Полное определение предшествует новым ссылкам в пределах
+  подтверждённого владельца и сектора.
+- При удалении экземпляра, владеющего ресурсом, его место занимает первый
+  уцелевший экземпляр, который использует меш. Ссылки различаются по типу
+  поля и номеру его вхождения. Для встроенной в сектор геометрии
+  `spPartitionRenderable` независимый экземпляр потребовал бы отдельной
+  операции копирования вершин и переноса в новую систему координат.
+- Ручные связи с коллизиями сохраняются в манифесте архива, участвуют
+  в отмене и повторе, следуют за переназначением владельца по ID и удаляются
+  при удалении одной из сторон. Итоговый SMO хранит геометрию коллизий
+  и их преобразования как самостоятельные объекты движка.
+- Перенаправление ресурса по стабильному ID обновляет поля исходных
+  объектов, добавленных ветвей и узлов размещения. При сборке исключаются
+  встроенные ресурсы, на которые больше нет ссылок. Замена и перенаправление
+  участвуют в отмене и повторе с сохранением исходного блока данных.
+
+См. [контракт изменения полей SMO](../../../docs/formats/smo-field-mutation.md)
+и [команды ProjectTool](../SmoLVLcreator.ProjectTool/README.md).
+
+## Просмотр данных SMO и воспроизводимый тест
+
+Раздел инспектора **ДАННЫЕ SMO** предназначен для чтения. Общие компоненты
+`SmoObjectFieldReader` и `SmoSchemaRegistry` предоставляют смещения таблицы,
+логические и физические смещения, прямые поля SBOO, ограниченный фрагмент
+байтов в шестнадцатеричном виде и подтверждённые свойства экземпляра,
+ресурса или коллизии. Для восстановленных классов `spFog`, `spLightData`,
+навигации, BSP и систем частиц в самом производном разделе сериализатора
+выводятся установленные имена полей движка и схема их данных. Более ранние
+унаследованные разделы могут повторно использовать те же номера полей.
+Их содержимое доступно в исходном виде. Неизвестные поля видны и сохраняются
+побайтно.
+
+Нагрузочный тест запускает случайные преобразования, размещения общих
+и внешних моделей, полные замены составных моделей, правки текстур,
+удаления и операции с коллизиями в отдельном процессе. На контрольных точках
+проверяются повторная сборка, открытие и импорт. Исходный файл остаётся
+целым. Расход памяти ограничен для управляемой кучи и дочернего процесса.
+Итоговый SMO, проект и метрики в JSON остаются в `artifacts/stress`.
 
 ```powershell
 dotnet run --project `
   tools/SmoLVLcreator/SmoLVLcreator.CoreTests/SmoLVLcreator.CoreTests.csproj `
   -c Release -- `
   --stress-project-save `
-  "local-data/Winx Club/Media/Levels/Alfea/Alfea02_old.smo" `
-  "local-data/Модели" `
+  "local-data/pc-pristine/Media/Levels/Alfea/Alfea02.smo" `
+  "path/to/rigid-models" `
   250 260830
 ```
 
-Optional arguments select an output root, the child private-memory limit in MiB
-and the supervisor timeout in seconds. A fixed seed reproduces the same authoring
-commands and makes a failing pipeline stage diagnosable from its JSON report.
+Укажите путь к локальному уровню и папке с моделями для импорта. Необязательные
+аргументы задают каталог результатов, лимит частной памяти дочернего
+процесса в МиБ и время ожидания в секундах. То же начальное значение
+генератора воспроизводит последовательность операций.
 
-## Import and diagnostics
+<a id="selection-export"></a>
 
-Model addition and complete replacement pass
-through one `SmoLevelImportValidator` contract in both the GUI and
-`SmoLVLcreator.Core`. It rejects malformed topology, inconsistent optional
-channels, broken material/texture references, non-finite positions, skinned
-level resources before editor history changes. Project-backed complete
-replacement may change the number of parts because it adds a new resource graph
-and removes the old scene branches instead of forcing bytes into old mesh slots.
-Non-fatal decoder repairs and the MASK-to-engine-alpha compatibility decision are
-shown for confirmation. Texture replacement explicitly asks whether to replace
-RGB and alpha together or preserve the original SMO alpha.
+## Экспорт выделения
 
-The inspector's `RAW DATA` section is read-only and comes from the shared
-`SmoObjectFieldReader`/`SmoSchemaRegistry`. It lists exact table, logical and
-physical offsets, every direct field, a bounded hex preview and current values of
-confirmed schema properties for the placement, resource or collision objects.
-For recovered `spFog`, `spLightData`, navigation, BSP and particle-system
-classes, the final (most-derived) serializer section also shows the confirmed
-engine field name and payload layout. Sparkplug reuses field numbers in inherited
-sections, so those earlier fields deliberately remain raw.
-Unknown fields remain visible and byte-preserved without being assigned guessed
-meaning. `Help > Управление и горячие клавиши…` summarizes camera, selection,
-editing, catalog and file workflows inside the application.
+Выделите во вьюпорте целые визуальные объекты с помощью `Ctrl` + ЛКМ.
+В одну сцену экспортируются всё выделение, его меши и текущие преобразования,
+включая несохранённые правки. При выделении только коллизий визуальной
+геометрии для экспорта нет.
 
-## Project serializer
+- **Файл → Экспорт** (`Ctrl+E`) использует заданную папку и формат. Имя
+  выводится из названия уровня и выделения.
+- **Файл → Экспортировать как…** (`Ctrl+Shift+E`) открывает диалог сохранения
+  Windows. В списке типов файлов можно выбрать GLB, FBX или OBJ.
+- **Инструменты → Настройки…** задаёт папку и формат быстрого экспорта.
 
-The editor-owned object graph and `.smolvlproj` archive are now the main
-SmoLVLcreator workflow. Opening either an SMO or an existing project creates the
-same project session; an opened SMO is an immutable source and is never
-overwritten in place. `Ctrl+S` stores the project, while `File > Build SMO...`
-creates a game file. A project archive stores normalized FFPS header/catalog
-and direct-field metadata in `project.json`, plus the immutable known/unknown
-data stream in `data.bin`; it contains no copied `base.smo`. New serialized
-object forests live in separate immutable `assets/<guid>.bin` entries rather
-than in JSON or a rewritten base stream. Property changes
-are stored as stable-ID operations. Its copy-on-write layout planner can patch
-existing transform slices and materialize absent optional fields while
-recalculating nested payloads, inline sizes and catalog offsets. Zero-edit
-projects still have to reproduce the exact source SHA-256. The separate CLI,
-field-edit tests and confirmed real-level round trips are documented in
-[SmoLVLcreator.ProjectTool](../SmoLVLcreator.ProjectTool/README.md).
+Общий `SmoExporter.Core` отвечает за запись форматов, материалы, текстуры,
+системы координат и экземпляры. GLB и OBJ записывает управляемый код. FBX
+использует `SmoFbxBridge.exe`. Для материалов с подтверждённым умножением
+цвета вершин на одну текстуру GLB и FBX сохраняют одинаковый цвет вершин
+в материале. В Blender материал GLB сочетает эту подкраску с текстурой.
+FBX хранит подкраску в файле, а импортёр FBX в Blender может подключить
+изображение напрямую к Base Color. Для сохранения переменного альфа-канала
+вершин доступны GLB и FBX. Формат OBJ такого канала не содержит.
 
-The Tools menu can validate the exact current project build in the game through
-the shared contextual validator. The core also exposes the first
-importer-facing structural primitive: reserve stable IDs, attach an opaque
-inline forest at a confirmed owner boundary, then regenerate the complete FFPS
-catalog and all owning sizes in one streaming build.
+<a id="known-limitations"></a>
 
-Generated collisions and complete rigid external models now use that primitive.
-`+ Model...` imports and places the first instance at the camera
-target; mesh parts, shared materials, textures and alpha state are retained as
-separate immutable project assets and enter the output stream only when preview
-or SMO output is built. One isolated worker serializes the complete model and
-returns only new forest plans, blobs and catalog metadata to the editor; no
-rolling full SMO is written to disk. The strict additive adapter rejects a serializer
-result if it changes, moves or removes an imported object instead of adding
-complete inline forests.
-The resulting mesh cards support the same `Place` button and viewport
-drag-and-drop as original level resources. Additional instances contain only a
-new static placement shell and reference the asset mesh; they do not duplicate
-geometry, materials or textures. The first asset-owning placement is editable
-too: its world/inverse matrices are stored as project overlays over the
-immutable asset blob and applied only during preview or final build.
+## Известные ограничения
 
-Reference shells are resource-specific. An imported mesh with a physical
-`spStaticRenderObject` derives the lightweight copy from its own branch and
-replaces only the copied inline geometry with a backward reference; a resource
-that is already shared reuses an existing shell for that exact resource. The
-definition is emitted before every new reference and both remain in the same
-confirmed owner/partition. If the original physical placement is removed while
-generated placements still use its mesh, the first surviving generated
-placement deterministically becomes the new physical owner and later placements
-remain references. References are selected by exact field type and occurrence,
-so duplicate mesh-reference fields inside one shell are never conflated. Baked
-sector geometry under
-`spPartitionRenderable` has no independent placement transform and is therefore
-not offered as a safe reference placement; moving it requires a future explicit
-vertex-copy/rebase operation instead of borrowing an unrelated object's shell.
+- При экспорте выделения счётчик может включать предупреждения о других
+  объектах уровня. Общие замечания доступны в каталоге **Неизвестное**.
+  Выберите запись, чтобы увидеть её текст в инспекторе в разделе
+  **Диагностика**. GLB также хранит сообщения в `extras.warnings`.
+- Экспорт геометрии пропускает системы частиц. Если в исходной модели
+  отсутствует явно заданный материал, её вид может зависеть от текущего
+  или стандартного состояния рендерера игры. В таком случае совпадение
+  внешнего вида в стороннем редакторе требует отдельной проверки.
+- Поддержка анимированных текстур находится в работе. Для текстур, которые
+  меняют изображение по времени, ещё предстоит определить и проверить
+  порядок предпросмотра, редактирования и экспорта кадров с их таймингом.
+- Отдельное перемещение геометрии, запечённой в секторе, требует
+  преобразования в самостоятельный экземпляр. Штатная замена рассчитана
+  на модели без скелета. Замена модели со скелетом с сохранением исходной
+  SAN-анимации остаётся в плане.
+- Сравнение кадров Alfea03 в игре и Blender с одной камеры и проверка
+  столкновений персонажа с добавленной геометрией в игре остаются открытыми.
 
-Manual visual-to-collision association overrides are editor metadata stored in
-the `.smolvlproj` manifest. They survive reopen, participate in the same project
-Undo/Redo history, follow promoted project object IDs and are pruned when either
-side is deleted. They intentionally do not create an unconfirmed engine field in
-the final SMO; collision geometry and transforms remain independent serialized
-objects.
+## Подписи интерфейса в руководствах
 
-Catalog `Replace...` is project-backed as well. The fit window produces one
-reference transform; every old instance keeps its transform relative to that
-reference. The importer then emits a complete new mesh/material/texture graph
-for all instances, including alpha state, and the project removes all old scene
-branches as one reachability transaction. Shared descendants still used
-elsewhere are relocated before pruning. The core also has a generic stable-ID
-resource redirect operation: it patches imported fields, added asset blobs and
-generated placement shells uniformly, and omits the unreachable old inline
-resource only during SMO build. Both replacement forms participate in Undo/Redo
-and leave `data.bin` immutable.
+| Русский | English |
+| --- | --- |
+| Язык интерфейса / Язык системы | Interface language / System |
+| Открыть уровень или проект… | Open level or project… |
+| Сохранить проект / Собрать SMO… | Save project / Build SMO… |
+| Каталог ресурсов / Структура уровня / Инспектор | Asset catalog / Level outliner / Inspector |
+| + Модель… / Заменить… | + Model… / Replace… |
+| Подготовка модели к импорту / Подгонка модели | Prepare imported model / Fit Model |
+| Разместить / Перемещать вместе | Place / MOVE LINKED |
+| Экспорт / Экспортировать как… | Export / Export as… |
 
-## Selection export
+Файлы переводов и порядок работы с ними описаны в разделе
+[Устройство SmoLVLcreator](development.md).
 
-Select one or more complete visual entities in the viewport with `Ctrl+left
-click`. Export always writes the complete selection to one scene, including all
-mesh parts and their current editor transforms; the level does not have to be
-saved first. Collision-only selections are not silently converted to render
-geometry.
+<a id="release-package"></a>
 
-- `File > Export` (`Ctrl+E`) uses the configured directory and format without a
-  dialog. The stable file name is derived from the level and selection.
-- `File > Export As…` (`Ctrl+Shift+E`) opens the standard Windows save dialog.
-  Its file-type list selects GLB, FBX, or OBJ directly.
-- `Tools > Settings…` configures the quick-export directory and format. Settings
-  are stored in
-  `%LOCALAPPDATA%/SparkplugEngineResearch/SmoLVLcreator/settings.json`.
+## Сборка архива
 
-The GUI supplies selection and dialogs only. `SmoLevelExportService` adapts the
-mutable editor document to the shared `SmoExporter.Core`; GLB, FBX, OBJ, material,
-texture, coordinate-system, and instancing behavior are not reimplemented in the
-level editor. FBX requires the shared `SmoFbxBridge.exe`; GLB and OBJ are managed
-export paths. OBJ cannot preserve varying per-vertex alpha; use GLB or FBX for
-such a selection.
-
-## Release package
-
-Пользовательский архив собирается общей системой репозитория:
+Из корня репозитория запустите общий скрипт сборки.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File ./release/Build-Releases.ps1 -Product SmoLVLcreator
 ```
 
-Результат помещается в `artifacts/release/current` и содержит стабильную точку
-запуска `SmoLVLcreator.exe`, single-file приложение, документацию и общий native
-FBX runtime. Для запуска требуется Windows 10/11 x64; bootstrapper при
-необходимости предлагает установить официальный .NET 8 Desktop Runtime x64.
+Результат помещается в `artifacts/release/current`. Архив содержит точку
+запуска `SmoLVLcreator.exe`, приложение, упакованное в один файл, документацию
+и общие компоненты FBX. Для запуска требуется Windows 10/11 x64. При необходимости
+лаунчер предлагает установить официальный .NET 8 Desktop Runtime x64.

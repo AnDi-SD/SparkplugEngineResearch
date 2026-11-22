@@ -1,0 +1,22 @@
+{
+  "InstallPrompt": "This application requires Microsoft .NET 8 Desktop Runtime (x64).\n\nDownload the official Microsoft installer and install the runtime? Windows may display a User Account Control (UAC) prompt.",
+  "InstallTitle": "Microsoft .NET 8 is required",
+  "RuntimeNotFound": "The installer finished, but Microsoft .NET 8 Desktop Runtime (x64) was not found.",
+  "ConfigNotFound": "The release configuration file was not found.",
+  "EntryMissing": "The entryPoint setting is missing from release.json.",
+  "EntryOutsidePackage": "The entryPoint must be inside the release directory.",
+  "ApplicationNotFound": "The application executable was not found.",
+  "InstallerStartFailed": "Could not start the Microsoft .NET installer.",
+  "InstallerExitCode": "The Microsoft .NET installer exited with code {0}.",
+  "InvalidSignature": "The Microsoft .NET installer has an invalid digital signature.",
+  "IncorrectSigner": "The installer is not signed by Microsoft Corporation.",
+  "ApplicationStartFailed": "Could not start the application.",
+  "LaunchError": "Launch error",
+  "InstallProgressTitle": "Installing Microsoft .NET 8",
+  "StartingDownload": "Downloading the official Microsoft installer…",
+  "DownloadFailed": "Could not download Microsoft .NET: {0}",
+  "EmptyDownload": "The downloaded Microsoft .NET installer is empty.",
+  "DownloadTooLarge": "The installer exceeds the download size limit.",
+  "DownloadProgress": "Downloading Microsoft .NET: {0}%",
+  "DownloadCancelled": "The download was cancelled."
+}

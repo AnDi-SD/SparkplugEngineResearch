@@ -429,6 +429,7 @@ namespace winxcoop::launcher
                     number("observationsSent",m.observationsSent);number("observationsReceived",m.observationsReceived);number("observationsAccepted",m.observationsAccepted);
                     number("observationsRejected",m.observationsRejected);number("acknowledgementsReceived",m.acknowledgementsReceived);number("remoteStates",m.remoteStates);
                     number("visualStatesCoalesced",m.visualStatesCoalesced);number("nativeCommands",m.nativeCommands);number("nativeAcknowledgements",m.nativeAcknowledgements);
+                    number("nativeCommandsCancelledOnRetirement",m.nativeCommandsCancelledOnRetirement);
                     number("nativeCreatesAcknowledged",m.nativeCreatesAcknowledged);number("nativeAppliesAcknowledged",m.nativeAppliesAcknowledged);number("nativeRemovesAcknowledged",m.nativeRemovesAcknowledged);
                     number("nativeAckLatencyTotalMs",m.nativeAckLatencyTotalMs);number("nativeAckLatencyMaxMs",m.nativeAckLatencyMaxMs);
                     number("observationRttSamples",m.observationRttSamples);number("observationRttTotalMs",m.observationRttTotalMs);number("observationRttMaxMs",m.observationRttMaxMs);
@@ -452,6 +453,7 @@ namespace winxcoop::launcher
                         boolean("mediaLeaseInherited",r.mediaLeaseInherited);boolean("mediaLeaseReleased",r.mediaLeaseReleased);boolean("helperReportValid",r.helperReportValid);boolean("helperCompleted",r.helperCompleted);
                         boolean("gameExitCodeKnown",r.gameExitCodeKnown);number("gameExitCode",r.gameExitCode);boolean("gameExitEventContinued",r.gameExitEventContinued);
                         boolean("gameCleanupConfirmed",r.gameCleanupConfirmed);boolean("gameForcedTermination",r.gameForcedTermination);boolean("commandUnconfirmed",r.commandUnconfirmed);
+                        boolean("commandCancelledOnRetirement",r.commandCancelledOnRetirement);
                         number("commandsPublished",r.commandsPublished);number("commandsAcknowledged",r.commandsAcknowledged);number("stopReason",static_cast<std::uint32_t>(r.stopReason));
                         boolean("helperLimitReached",r.helperLimitReached);json+=",\"error\":"+JsonString(r.error);
                     }

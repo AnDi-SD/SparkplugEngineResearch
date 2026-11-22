@@ -1,0 +1,22 @@
+{
+  "InstallPrompt": "Для запуска программы нужна среда выполнения Microsoft .NET 8 Desktop Runtime (x64).\n\nСкачать официальный установщик с сайта Microsoft и установить .NET? Windows может запросить подтверждение установки.",
+  "InstallTitle": "Требуется Microsoft .NET 8",
+  "RuntimeNotFound": "Установка завершилась, но среда выполнения Microsoft .NET 8 Desktop Runtime (x64) не найдена.",
+  "ConfigNotFound": "Не найден файл release.json с настройками запуска.",
+  "EntryMissing": "В release.json отсутствует параметр entryPoint.",
+  "EntryOutsidePackage": "Путь в параметре entryPoint должен вести к файлу внутри папки программы.",
+  "ApplicationNotFound": "Не найден исполняемый файл приложения.",
+  "InstallerStartFailed": "Не удалось запустить установщик Microsoft .NET.",
+  "InstallerExitCode": "Установка Microsoft .NET завершилась с ошибкой. Код установщика: {0}.",
+  "InvalidSignature": "Цифровая подпись установщика Microsoft .NET недействительна.",
+  "IncorrectSigner": "Не удалось подтвердить издателя установщика. Ожидаемая подпись: Microsoft Corporation.",
+  "ApplicationStartFailed": "Не удалось запустить приложение.",
+  "LaunchError": "Ошибка запуска",
+  "InstallProgressTitle": "Установка Microsoft .NET 8",
+  "StartingDownload": "Скачивание установщика с сайта Microsoft…",
+  "DownloadFailed": "Не удалось скачать установщик Microsoft .NET.\n\n{0}",
+  "EmptyDownload": "Скачанный файл установщика Microsoft .NET пуст.",
+  "DownloadTooLarge": "Размер установщика превышает допустимый предел.",
+  "DownloadProgress": "Скачивание установщика Microsoft .NET: {0}%",
+  "DownloadCancelled": "Скачивание отменено."
+}

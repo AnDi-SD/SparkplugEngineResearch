@@ -102,6 +102,19 @@ public sealed class SmoLevelSaveJob
                 replacement.ReplaceAlpha));
         }
 
+        var snapshots = new Dictionary<ImportedScene, string>(ReferenceEqualityComparer.Instance);
+
+        string Snapshot(ImportedScene scene)
+        {
+            if (!snapshots.TryGetValue(scene, out string? path))
+            {
+                path = Path.Combine(directory, $"scene-{snapshots.Count:D4}.bin");
+                SmoRigidImportSnapshot.Write(path, scene);
+                snapshots.Add(scene, path);
+            }
+            return path;
+        }
+
         job.ModelReplacements.AddRange(level.ModelReplacements.Values
             .OrderBy(item => item.MeshObjectIndex)
             .Select(item => new SmoSaveModelReplacement(
@@ -110,7 +123,8 @@ public sealed class SmoLevelSaveJob
                 item.Transform.Scale,
                 SmoSaveVector3.From(item.Transform.RotationDegrees),
                 SmoSaveVector3.From(item.Transform.Translation),
-                SmoSaveMatrix.From(item.ReferenceWorldTransform))));
+                SmoSaveMatrix.From(item.ReferenceWorldTransform))
+            { PreparedScenePath = Snapshot(item.ImportedScene) }));
 
         foreach (IGrouping<Guid, SmoLevelPlacementAddition> group in
                  level.PlacementAdditions.Values.GroupBy(item => item.GroupId))
@@ -132,7 +146,8 @@ public sealed class SmoLevelSaveJob
                 model.Id,
                 model.SourcePath,
                 model.Name,
-                model.TemplateMeshObjectIndex)));
+                model.TemplateMeshObjectIndex)
+            { PreparedScenePath = Snapshot(model.ImportedScene) }));
         job.ExternalPlacements.AddRange(level.ExternalPlacements.Values.Select(placement =>
             new SmoSaveExternalPlacement(
                 placement.Id,
@@ -201,19 +216,20 @@ public sealed class SmoLevelSaveJob
         var importedScenes = new Dictionary<string, ImportedScene>(
             StringComparer.OrdinalIgnoreCase);
 
-        ImportedScene LoadImported(string path)
+        ImportedScene LoadImported(string path, string? preparedScenePath)
         {
-            string fullPath = Path.GetFullPath(path);
-            if (!File.Exists(fullPath))
+            cancellationToken.ThrowIfCancellationRequested();
+            string fullPath = Path.GetFullPath(preparedScenePath ?? path);
+            if (preparedScenePath is null && !File.Exists(fullPath))
                 throw new FileNotFoundException(
                     "An imported model used by this save is no longer available.",
                     fullPath);
             if (!importedScenes.TryGetValue(fullPath, out ImportedScene? scene))
             {
-                scene = ImportedModelReader.Read(
-                    fullPath,
-                    NativeFbxBridgePath,
-                    cancellationToken);
+                // Saved jobs from before the snapshot field still refer to a donor path.
+                scene = preparedScenePath is null
+                    ? ImportedModelReader.Read(fullPath, NativeFbxBridgePath, cancellationToken)
+                    : SmoRigidImportSnapshot.Read(fullPath);
                 importedScenes.Add(fullPath, scene);
             }
             return scene;
@@ -227,7 +243,6 @@ public sealed class SmoLevelSaveJob
             TotalEntityCount = TotalEntityCount,
             BatchWorkerExecutable = workerHost.ExecutablePath,
             BatchWorkerAssembly = workerHost.ManagedEntryAssemblyPath,
-            NativeFbxBridgePath = NativeFbxBridgePath,
             IsModified = EntityTransforms.Count > 0 ||
                          ModelReplacements.Count > 0 ||
                          TextureReplacements.Count > 0 ||
@@ -247,7 +262,7 @@ public sealed class SmoLevelSaveJob
             ModelReplacements = ModelReplacements.Select(replacement =>
                 new SmoLevelModelReplacement(
                     replacement.MeshObjectIndex,
-                    LoadImported(replacement.SourcePath),
+                    LoadImported(replacement.SourcePath, replacement.PreparedScenePath),
                     new ReplacementTransform(
                         replacement.Scale,
                         replacement.RotationDegrees.ToVector3(),
@@ -275,7 +290,7 @@ public sealed class SmoLevelSaveJob
                 model => model.Id,
                 model => new SmoLevelExternalModel(
                     model.Id,
-                    LoadImported(model.SourcePath),
+                    LoadImported(model.SourcePath, model.PreparedScenePath),
                     model.SourcePath,
                     model.Name,
                     model.TemplateMeshObjectIndex)),
@@ -336,7 +351,10 @@ public sealed record SmoSaveModelReplacement(
     float Scale,
     SmoSaveVector3 RotationDegrees,
     SmoSaveVector3 Translation,
-    SmoSaveMatrix ReferenceWorldTransform);
+    SmoSaveMatrix ReferenceWorldTransform)
+{
+    public string? PreparedScenePath { get; init; }
+}
 
 public sealed record SmoSaveSharedPlacementGroup(
     List<SmoSaveSharedPlacement> Placements);
@@ -350,7 +368,10 @@ public sealed record SmoSaveExternalModel(
     Guid Id,
     string SourcePath,
     string Name,
-    int TemplateMeshObjectIndex);
+    int TemplateMeshObjectIndex)
+{
+    public string? PreparedScenePath { get; init; }
+}
 
 public sealed record SmoSaveExternalPlacement(
     Guid Id,

@@ -128,6 +128,47 @@ namespace winxcoop::adapter
         return source && Same(source,pin->bytes.data(),pin->size) && Live(address,pin->bytes.data(),pin->size)
             ? true : Fail(pin->name,address);
     }
+    bool PinnedImage::VerifyGuestStartup() const noexcept
+    {
+        for(const auto& pin:image_compatibility::GuestStartupCodePins)
+            if(!Verify(pin.address,pin.size))return false;
+        for(const auto& pin:image_compatibility::GuestStartupLayoutPins)
+        {
+            const auto* source=Source(pin.address,pin.size,IMAGE_SCN_MEM_READ);
+            if(!source || !Same(source,pin.bytes.data(),pin.size) || !Live(pin.address,pin.bytes.data(),pin.size))
+                return Fail(pin.name,pin.address);
+        }
+        return Layout(0x755290,sizeof(DWORD),IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE) ||
+            Fail("guest AppHelper slot left writable image data",0x755290);
+    }
+    bool PinnedImage::VerifyFeatureCode(const std::uint32_t address, const BYTE* expected, const std::size_t bytes) const noexcept
+    {
+        if(!expected || !bytes || bytes>32)return Fail("optional feature prefix exceeds its bound",address);
+        const auto* source=Source(address,bytes,IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_EXECUTE);
+        return (source && Same(source,expected,bytes) && Live(address,expected,bytes)) ||
+            Fail("optional feature source/live prefix differs",address);
+    }
+    bool PinnedImage::VerifyFeatureType(const std::uint32_t table, const std::uint32_t classId, const bool allowUninitialized) const noexcept
+    {
+        // Literal RTTI accessor and fixed physical table, matching the existing
+        // native scene census. No virtual call or translated type name is used.
+        const auto* source=Source(table,20,IMAGE_SCN_MEM_READ);
+        if(!source || !Live(table,source,20))return Fail("optional feature physical vtable differs",table);
+        std::uint32_t getter{},record{},identity{};
+        CopyMemory(&getter,source+16,4);
+        const auto* code=Source(getter,6,IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_EXECUTE);
+        if(!code || code[0]!=0xB8 || code[5]!=0xC3 || !Live(getter,code,6))
+            return Fail("optional feature RTTI accessor is not literal",getter);
+        CopyMemory(&record,code+1,4);
+        // Class-information records occupy writable zero-initialized image
+        // data and are initialized by the original CRT constructors. Startup
+        // preparation may precede those constructors; scene binding must not.
+        SIZE_T got{};
+        if(!Layout(record,4,IMAGE_SCN_MEM_READ|IMAGE_SCN_MEM_WRITE) ||
+            !ReadProcessMemory(GetCurrentProcess(),reinterpret_cast<const void*>(record),&identity,4,&got) || got!=4)
+            return Fail("optional feature RTTI record left writable image data",record);
+        return identity==classId || (allowUninitialized && !identity) || Fail("optional feature class identity differs",table);
+    }
     void PinnedImage::Close() noexcept
     {
         pe_=nullptr;

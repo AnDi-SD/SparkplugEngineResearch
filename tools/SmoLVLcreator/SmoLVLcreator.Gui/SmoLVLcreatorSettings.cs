@@ -8,6 +8,8 @@ public sealed record SmoLVLcreatorSettings(
     string ExportDirectory,
     SmoLevelExportFormat ExportFormat)
 {
+    public string Language { get; init; } = LevelText.Auto;
+
     public static SmoLVLcreatorSettings Default => new(
         Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -28,19 +30,22 @@ public static class SmoLVLcreatorSettingsStore
         "SmoLVLcreator",
         "settings.json");
 
-    public static SmoLVLcreatorSettings Load()
+    public static SmoLVLcreatorSettings Load() => Load(SettingsPath);
+
+    internal static SmoLVLcreatorSettings Load(string path)
     {
         try
         {
-            if (!File.Exists(SettingsPath))
+            if (!File.Exists(path))
                 return SmoLVLcreatorSettings.Default;
             SmoLVLcreatorSettings? settings = JsonSerializer.Deserialize<
-                SmoLVLcreatorSettings>(File.ReadAllText(SettingsPath), JsonOptions);
+                SmoLVLcreatorSettings>(File.ReadAllText(path), JsonOptions);
             return settings is null || string.IsNullOrWhiteSpace(settings.ExportDirectory)
                 ? SmoLVLcreatorSettings.Default
                 : settings with
                 {
-                    ExportDirectory = Path.GetFullPath(settings.ExportDirectory)
+                    ExportDirectory = Path.GetFullPath(settings.ExportDirectory),
+                    Language = LevelText.Normalize(settings.Language)
                 };
         }
         catch
@@ -49,10 +54,11 @@ public static class SmoLVLcreatorSettingsStore
         }
     }
 
-    public static void Save(SmoLVLcreatorSettings settings)
+    public static void Save(SmoLVLcreatorSettings settings) => Save(settings, SettingsPath);
+
+    internal static void Save(SmoLVLcreatorSettings settings, string path)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        string path = SettingsPath;
         string directory = Path.GetDirectoryName(path)!;
         Directory.CreateDirectory(directory);
         string temporary = path + $".{Guid.NewGuid():N}.tmp";

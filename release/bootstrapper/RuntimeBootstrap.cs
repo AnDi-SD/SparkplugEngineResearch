@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Globalization;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -23,6 +25,48 @@ internal static class RuntimeBootstrap
     private const long MaximumInstallerBytes = 150L * 1024L * 1024L;
     private const string InstallerUrl = "https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe";
     private const string ConfigName = "release.json";
+    private static readonly Lazy<Dictionary<string, string>> Messages =
+        new Lazy<Dictionary<string, string>>(LoadMessages);
+
+    private static Dictionary<string, string> LoadMessages()
+    {
+        Assembly assembly = typeof(RuntimeBootstrap).Assembly;
+        var product = Attribute.GetCustomAttribute(assembly, typeof(AssemblyProductAttribute)) as AssemblyProductAttribute;
+        string language = "ru";
+        if (product != null && product.Product == "SmoLVLcreator")
+        {
+            language = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName == "ru" ? "ru" : "en";
+            try
+            {
+                string settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "SparkplugEngineResearch", "SmoLVLcreator", "settings.json");
+                if (File.Exists(settingsPath))
+                {
+                    var settings = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(
+                        File.ReadAllText(settingsPath, Encoding.UTF8));
+                    object preference;
+                    if (settings != null && settings.TryGetValue("Language", out preference))
+                    {
+                        if (Equals(preference, "Russian")) language = "ru";
+                        if (Equals(preference, "English")) language = "en";
+                    }
+                }
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            catch (ArgumentException) { }
+            catch (InvalidOperationException) { }
+        }
+
+        using (Stream stream = assembly.GetManifestResourceStream("Bootstrapper.Strings." + language + ".json"))
+        using (var reader = new StreamReader(stream, Encoding.UTF8))
+            return new JavaScriptSerializer().Deserialize<Dictionary<string, string>>(reader.ReadToEnd());
+    }
+
+    private static string Message(string key, params object[] arguments)
+    {
+        return string.Format(CultureInfo.CurrentCulture, Messages.Value[key], arguments);
+    }
 
     [STAThread]
     private static int Main(string[] args)
@@ -38,10 +82,8 @@ internal static class RuntimeBootstrap
             if (!HasRequiredRuntime())
             {
                 DialogResult answer = MessageBox.Show(
-                    "Для работы программы требуется Microsoft .NET 8 Desktop Runtime (x64).\n\n" +
-                    "Скачать официальный установщик Microsoft и установить компонент автоматически? " +
-                    "Windows может показать стандартный запрос контроля учётных записей (UAC).",
-                    "Требуется Microsoft .NET 8",
+                    Message("InstallPrompt"),
+                    Message("InstallTitle"),
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Information,
                     MessageBoxDefaultButton.Button1);
@@ -52,7 +94,7 @@ internal static class RuntimeBootstrap
                 InstallRuntime();
                 if (!HasRequiredRuntime())
                     throw new InvalidOperationException(
-                        "Установщик завершился успешно, но Microsoft .NET 8 Desktop Runtime (x64) не найден.");
+                        Message("RuntimeNotFound"));
             }
 
             StartApplication(entryPoint, args);
@@ -76,21 +118,21 @@ internal static class RuntimeBootstrap
     private static string ReadEntryPoint(string configPath, string baseDirectory)
     {
         if (!File.Exists(configPath))
-            throw new FileNotFoundException("Не найден файл конфигурации релиза.", configPath);
+            throw new FileNotFoundException(Message("ConfigNotFound"), configPath);
 
         JavaScriptSerializer serializer = new JavaScriptSerializer();
         Dictionary<string, object> config = serializer.Deserialize<Dictionary<string, object>>(
             File.ReadAllText(configPath, Encoding.UTF8));
         object value;
         if (config == null || !config.TryGetValue("entryPoint", out value) || value == null)
-            throw new InvalidDataException("В release.json отсутствует параметр entryPoint.");
+            throw new InvalidDataException(Message("EntryMissing"));
 
         string basePath = Path.GetFullPath(baseDirectory).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         string target = Path.GetFullPath(Path.Combine(baseDirectory, Convert.ToString(value)));
         if (!target.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("entryPoint должен находиться внутри каталога релиза.");
+            throw new InvalidDataException(Message("EntryOutsidePackage"));
         if (!File.Exists(target))
-            throw new FileNotFoundException("Не найден исполняемый файл приложения.", target);
+            throw new FileNotFoundException(Message("ApplicationNotFound"), target);
         return target;
     }
 
@@ -160,11 +202,11 @@ internal static class RuntimeBootstrap
             using (Process installer = Process.Start(startInfo))
             {
                 if (installer == null)
-                    throw new InvalidOperationException("Не удалось запустить установщик Microsoft .NET.");
+                    throw new InvalidOperationException(Message("InstallerStartFailed"));
                 installer.WaitForExit();
                 if (installer.ExitCode != 0 && installer.ExitCode != 3010)
                     throw new InvalidOperationException(
-                        "Установщик Microsoft .NET завершился с кодом " + installer.ExitCode + ".");
+                        Message("InstallerExitCode", installer.ExitCode));
             }
         }
         finally
@@ -177,13 +219,13 @@ internal static class RuntimeBootstrap
     private static void VerifyMicrosoftSignature(string path)
     {
         if (!Authenticode.IsTrusted(path))
-            throw new InvalidDataException("Цифровая подпись установщика Microsoft .NET недействительна.");
+            throw new InvalidDataException(Message("InvalidSignature"));
 
         X509Certificate2 certificate = new X509Certificate2(X509Certificate.CreateFromSignedFile(path));
         try
         {
             if (certificate.Subject.IndexOf("O=Microsoft Corporation", StringComparison.OrdinalIgnoreCase) < 0)
-                throw new InvalidDataException("Установщик подписан не Microsoft Corporation.");
+                throw new InvalidDataException(Message("IncorrectSigner"));
         }
         finally
         {
@@ -201,7 +243,7 @@ internal static class RuntimeBootstrap
         startInfo.EnvironmentVariables.Remove("DOTNET_ROOT_X64");
         Process process = Process.Start(startInfo);
         if (process == null)
-            throw new InvalidOperationException("Не удалось запустить приложение.");
+            throw new InvalidOperationException(Message("ApplicationStartFailed"));
     }
 
     private static string JoinArguments(string[] args)
@@ -248,7 +290,7 @@ internal static class RuntimeBootstrap
 
     private static void ShowError(string message)
     {
-        MessageBox.Show(message, "Ошибка запуска", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        MessageBox.Show(message, Message("LaunchError"), MessageBoxButtons.OK, MessageBoxIcon.Error);
     }
 
     private sealed class DownloadDialog : Form
@@ -264,7 +306,7 @@ internal static class RuntimeBootstrap
         {
             this.source = source;
             this.destination = destination;
-            Text = "Установка Microsoft .NET 8";
+            Text = Message("InstallProgressTitle");
             ClientSize = new Size(440, 92);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -274,7 +316,7 @@ internal static class RuntimeBootstrap
 
             status = new Label();
             status.AutoSize = false;
-            status.Text = "Скачивание официального установщика Microsoft…";
+            status.Text = Message("StartingDownload");
             status.SetBounds(18, 16, 404, 22);
             Controls.Add(status);
 
@@ -289,9 +331,9 @@ internal static class RuntimeBootstrap
             Shown += BeginDownload;
             Application.Run(this);
             if (error != null)
-                throw new InvalidOperationException("Не удалось скачать Microsoft .NET: " + error.Message, error);
+                throw new InvalidOperationException(Message("DownloadFailed", error.Message), error);
             if (!File.Exists(destination) || new FileInfo(destination).Length == 0)
-                throw new InvalidDataException("Microsoft .NET был скачан как пустой файл.");
+                throw new InvalidDataException(Message("EmptyDownload"));
         }
 
         private void BeginDownload(object sender, EventArgs args)
@@ -315,20 +357,20 @@ internal static class RuntimeBootstrap
         {
             if (args.BytesReceived > MaximumInstallerBytes)
             {
-                error = new InvalidDataException("Размер установщика превышает допустимый предел.");
+                error = new InvalidDataException(Message("DownloadTooLarge"));
                 client.CancelAsync();
                 return;
             }
             if (args.TotalBytesToReceive <= 0) return;
             progress.Style = ProgressBarStyle.Continuous;
             progress.Value = Math.Max(0, Math.Min(100, args.ProgressPercentage));
-            status.Text = "Скачивание Microsoft .NET: " + args.ProgressPercentage + "%";
+            status.Text = Message("DownloadProgress", args.ProgressPercentage);
         }
 
         private void DownloadCompleted(object sender, AsyncCompletedEventArgs args)
         {
             if (args.Cancelled && error == null)
-                error = new OperationCanceledException("Скачивание отменено.");
+                error = new OperationCanceledException(Message("DownloadCancelled"));
             else if (!args.Cancelled)
                 error = args.Error;
             Close();

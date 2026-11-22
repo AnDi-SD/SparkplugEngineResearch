@@ -8,8 +8,11 @@ namespace SmoLVLcreator.Gui;
 
 public partial class SettingsWindow : Window
 {
+    private readonly SmoLVLcreatorSettings _settings;
+
     public SettingsWindow(SmoLVLcreatorSettings settings)
     {
+        _settings = settings;
         InitializeComponent();
         ExportDirectoryBox.Text = settings.ExportDirectory;
         ExportFormatBox.SelectedIndex = settings.ExportFormat switch
@@ -26,7 +29,7 @@ public partial class SettingsWindow : Window
     {
         var dialog = new OpenFolderDialog
         {
-            Title = "Папка быстрого экспорта",
+            Title = LevelText.Get("Dialog.Settings.QuickExportDirectory"),
             Multiselect = false,
             InitialDirectory = Directory.Exists(ExportDirectoryBox.Text)
                 ? ExportDirectoryBox.Text
@@ -49,8 +52,8 @@ public partial class SettingsWindow : Window
         {
             MessageBox.Show(
                 this,
-                "Укажите корректную папку экспорта.",
-                "Настройки SmoLVLcreator",
+                LevelText.Get("Dialog.Settings.InvalidExportDirectory"),
+                LevelText.Get("Dialog.Settings.Title"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -62,7 +65,7 @@ public partial class SettingsWindow : Window
             nameof(SmoLevelExportFormat.Glb);
         if (!Enum.TryParse(tag, ignoreCase: true, out SmoLevelExportFormat format))
             format = SmoLevelExportFormat.Glb;
-        Result = new SmoLVLcreatorSettings(directory, format);
+        Result = _settings with { ExportDirectory = directory, ExportFormat = format };
         DialogResult = true;
     }
 }

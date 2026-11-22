@@ -4,12 +4,14 @@
 #include "PinnedImage.h"
 #include "PassiveActor.h"
 #include "RemotePoseInterpolator.h"
+#include "GuestIsolation.h"
 #include <cmath>
 
 using namespace winxcoop::adapter;
 namespace
 {
     constexpr std::uintptr_t WorldReturn = 0x45A802;
+    constexpr std::uint32_t GuestSettingsReturn = 0x40E373;
     RuntimeShared* shared{};
     HANDLE mapping{};
     PVOID handler{};
@@ -18,6 +20,7 @@ namespace
     ULONGLONG lastPublished{};
     PinnedImage pinnedImage;
     PassiveActor actor;
+    GuestIsolation guestIsolation;
     RemotePoseInterpolator remoteInterpolation;
     RuntimeAnimation remoteAnimation{};
     std::uint64_t lastDisplayTime{};
@@ -28,6 +31,9 @@ namespace
     std::uint32_t actorProfile{}, actorAnimationManager{};
     std::uint32_t sceneProfile{}, sceneAnimationManager{}, sceneRecord{}, sceneRoot{}, scenePlayingState{};
     bool qualifiedSceneSeen{};
+    bool guestStartupInstalled{}, guestStartupApplied{};
+    BYTE guestStartupSignature[16]{};
+    const char* guestStartupFailure{"not applied"};
     std::uint32_t observationReason{}, lastPausedReason{};
     enum class SafePhase { None, World, PreUnload };
     SafePhase safePhase{};
@@ -85,6 +91,7 @@ namespace
     bool ActorPhase() noexcept
     { return safePhase!=SafePhase::None && GetCurrentThreadId()==mainThread && InterlockedCompareExchange(&inHandler,0,0)==1; }
     bool PassiveMode() noexcept { return configuration.mode==RuntimeMode::PassiveActor; }
+    bool GuestMode() noexcept { return PassiveMode() && configuration.startupLevel!=0; }
     void TraceLifetimeFailure() noexcept
     {
         char text[384]{};char* cursor=text;char* const end=text+sizeof(text)-1;
@@ -104,11 +111,23 @@ namespace
         const auto stats=actor.Statistics();snapshot.remoteCreated=stats.created;snapshot.remoteRemoved=stats.destroyed;
         snapshot.nativeCalls=stats.nativeCalls;snapshot.actorError=static_cast<std::uint32_t>(actor.Error());
     }
+    void TraceDetail(const char* prefix,const char* detail) noexcept
+    {
+        // Record the precise bounded actor gate, rather than only its numeric
+        // category. This reads our own retained error text, not the game graph.
+        char text[384]{};SIZE_T count=0;
+        const auto append=[&](const char* value) noexcept
+        {if(value)while(*value && count<sizeof(text)-1)text[count++]=*value++;};
+        append(prefix);append(detail);
+        OutputDebugStringA(text);
+    }
     void FailClosed(const RuntimeError error) noexcept
     {
         const LONG previous=InterlockedCompareExchange(&terminalError,static_cast<LONG>(error),0);
         if(GetCurrentThreadId()==mainThread)
         {
+            if(PassiveMode() && actor.Error()!=PassiveActorError::None)
+                TraceDetail("WinxCoop passive-actor failure: ",actor.LastError());
             snapshot.phase=RuntimePhase::Failed;snapshot.error=previous?static_cast<RuntimeError>(previous):error;
             snapshot.monotonicMilliseconds=GetTickCount64();Statistics();
             if(shared)Publish(shared->snapshot,snapshot);
@@ -150,6 +169,7 @@ namespace
     }
     void CloseResourcesBeforeHooks() noexcept
     {
+        guestIsolation.CloseBeforeHooks();
         CloseAssetPins();
         if(owner){CloseHandle(owner);owner=nullptr;}
         if(shared){UnmapViewOfFile(shared);shared=nullptr;}
@@ -190,6 +210,7 @@ namespace
     bool RetireVisualEpoch() noexcept
     {
         if(actor.Created() || actor.Poisoned())return false;
+        if(GuestMode())guestIsolation.Retire();
         snapshot.epochRetired=1;snapshot.remoteEntity=0;snapshot.levelId=0;snapshot.localComponentCount=0;
         snapshot.local={};snapshot.localAnimationQualified=0;snapshot.localFsmState=0xFFFFFFFFu;
         snapshot.remoteDisplay={};snapshot.mediaQualified=0;
@@ -215,6 +236,44 @@ namespace
         const bool flushed=FlushInstructionCache(GetCurrentProcess(),reinterpret_cast<void*>(address),1)!=FALSE;
         const bool restored=VirtualProtect(reinterpret_cast<void*>(address),1,protection,&ignored)!=FALSE;
         return flushed && restored;
+    }
+    bool ApplyGuestStartup(CONTEXT& context) noexcept
+    {
+        // The original App Init has just returned from LoadSettings, before
+        // AppHelper.Initialize and before the Logo's native startup consumer.
+        // Change only this child's heap launch option, never its installed INI.
+        BYTE live[16]{};std::uint32_t app{},table{},secondary{},oldLevel{},after{};BYTE buildPck{};
+        const auto fail=[](const char* reason) noexcept {guestStartupFailure=reason;return false;};
+        if(!guestStartupInstalled || guestStartupApplied || !configuration.startupLevel || configuration.startupLevel>50 ||
+            configuration.startupEntry || context.Eip!=GuestSettingsReturn)
+            return fail("startup identity or one-shot boundary differs");
+        if(!owner || WaitForSingleObject(owner,0)!=WAIT_TIMEOUT)return fail("startup owner is no longer active");
+        if(
+            !Read(GuestSettingsReturn,live,sizeof(live)) || live[0]!=0xCC ||
+            !Same(live+1,guestStartupSignature+1,sizeof(live)-1))return fail("startup instruction no longer matches its pin");
+        if(!Read(0x755290,&app,4) || app<0x10000 || (app&3) || app>0xFFFFFF9B ||
+            !Read(app,&table,4) || table!=0x700728 || !Read(app+0x10,&secondary,4) || secondary!=0x700724)
+            return fail("initialized AppHelper physical identity differs");
+        if(!Read(app+0x4B,&buildPck,1) || buildPck || !Read(app+0x60,&oldLevel,4) || oldLevel>50)
+            return fail("native settings are not the supported ordinary startup mode");
+        MEMORY_BASIC_INFORMATION region{};
+        if(!VirtualQuery(reinterpret_cast<const void*>(app+0x60),&region,sizeof(region)) || region.State!=MEM_COMMIT ||
+            region.Type!=MEM_PRIVATE || (region.Protect&PAGE_GUARD) || (region.Protect&0xFF)!=PAGE_READWRITE ||
+            static_cast<std::uint64_t>(app)+0x64>reinterpret_cast<std::uintptr_t>(region.BaseAddress)+region.RegionSize)
+            return fail("startup option is outside writable private AppHelper storage");
+        SIZE_T wrote{};
+        if(!WriteProcessMemory(GetCurrentProcess(),reinterpret_cast<void*>(app+0x60),&configuration.startupLevel,4,&wrote) || wrote!=4 ||
+            !Read(app+0x60,&after,4) || after!=configuration.startupLevel || Word(0x755290)!=app || Word(app)!=table)
+            return fail("startup option write or identity readback differs");
+        guestStartupApplied=true;
+        // Exact original A1 [755290] semantics: only EAX and EIP change. The
+        // OS restores all remaining integer/FP/SSE state from this context.
+        context.Eax=app;context.Eip=GuestSettingsReturn+5;
+        char text[]="WinxCoop guest startup applied level=00000000 entry=00000000 iniUnchanged=true";
+        const auto at=sizeof("WinxCoop guest startup applied level=")-1;
+        for(unsigned i=0;i<8;++i)text[at+i]="0123456789ABCDEF"[(configuration.startupLevel>>(28-i*4))&15];
+        OutputDebugStringA(text);
+        return true;
     }
     void ObserveAnimation(const std::uint32_t record) noexcept
     {
@@ -391,6 +450,25 @@ namespace
                 if(Word(manager)!=0x703470 || Word(playing)!=0x710874){FailClosed(RuntimeError::Identity);return;}
                 if(!qualifiedSceneSeen)
                 {
+                    if(configuration.startupLevel)
+                    {
+                        if(!guestStartupApplied || snapshot.levelId!=configuration.startupLevel)
+                        {TraceDetail("WinxCoop guest startup failure: ","first actual Playing scene differs from assigned startup");FailClosed(RuntimeError::Identity);return;}
+                        std::uint32_t slot=0xFFFFFFFFu;const bool slotRead=Read(profile+0x6DC,&slot,4);
+                        char text[]="WinxCoop guest startup ready level=00000000 saveSlotRaw=00000000 slotRead=0";
+                        const auto levelAt=sizeof("WinxCoop guest startup ready level=")-1;
+                        const auto slotAt=sizeof("WinxCoop guest startup ready level=00000000 saveSlotRaw=")-1;
+                        for(unsigned i=0;i<8;++i)
+                        {
+                            text[levelAt+i]="0123456789ABCDEF"[(snapshot.levelId>>(28-i*4))&15];
+                            text[slotAt+i]="0123456789ABCDEF"[(slot>>(28-i*4))&15];
+                        }
+                        text[sizeof(text)-2]=slotRead?'1':'0';OutputDebugStringA(text);
+                        if(!guestIsolation.BindMotion(record))
+                        {TraceDetail("WinxCoop guest isolation failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Identity);return;}
+                        if(!guestIsolation.SceneReady())
+                        {TraceDetail("WinxCoop guest flow readiness failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Identity);return;}
+                    }
                     sceneProfile=profile;sceneAnimationManager=manager;sceneRecord=record;sceneRoot=root;scenePlayingState=playing;
                     qualifiedSceneSeen=true;
                 }
@@ -401,6 +479,10 @@ namespace
                     if(!actor.Created() && RetireVisualEpoch())return;
                     TraceLifetimeFailure();FailClosed(RuntimeError::Unload);return;
                 }
+                if(GuestMode() && !guestIsolation.VerifyMotion(record))
+                {TraceDetail("WinxCoop guest isolation failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Identity);return;}
+                if(GuestMode() && !guestIsolation.CompletePresentation())
+                {TraceDetail("WinxCoop guest presentation failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Identity);return;}
             }
             const bool mediaMatches=MediaMatchesNative();
             snapshot.mediaQualified=mediaMatches?1:0;
@@ -530,7 +612,9 @@ namespace
         const auto at=reinterpret_cast<std::uintptr_t>(exception->ExceptionRecord->ExceptionAddress);
         UnloadGuard* guard{};
         if(PassiveMode())for(auto& candidate:unloadGuards)if(candidate.installed && candidate.address==at)guard=&candidate;
-        if(at!=WorldReturn && !guard)return EXCEPTION_CONTINUE_SEARCH;
+        const bool guestStartup=guestStartupInstalled && at==GuestSettingsReturn;
+        const bool guestPolicy=GuestMode() && guestIsolation.Handles(static_cast<std::uint32_t>(at));
+        if(at!=WorldReturn && !guard && !guestStartup && !guestPolicy)return EXCEPTION_CONTINUE_SEARCH;
         if (at==WorldReturn && InterlockedCompareExchange(&firstWorldLogged,1,0)==0)
         {
             std::uint32_t observedCaller{};
@@ -544,6 +628,23 @@ namespace
             // this owned diagnostic before another game instruction can run.
             FailClosed(RuntimeError::Thread);
             return EXCEPTION_CONTINUE_SEARCH;
+        }
+        if(guestPolicy)
+        {
+            bool completed=false;
+            __try { completed=guestIsolation.Handle(*exception->ContextRecord); }
+            __except(EXCEPTION_EXECUTE_HANDLER) { FailClosed(RuntimeError::NativeException); }
+            if(!completed)
+            {TraceDetail("WinxCoop guest isolation failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Command);return EXCEPTION_CONTINUE_SEARCH;}
+            InterlockedExchange(&inHandler,0);return EXCEPTION_CONTINUE_EXECUTION;
+        }
+        if(guestStartup)
+        {
+            bool completed=false;
+            __try { completed=ApplyGuestStartup(*exception->ContextRecord); }
+            __except(EXCEPTION_EXECUTE_HANDLER) { FailClosed(RuntimeError::NativeException); }
+            if(!completed){TraceDetail("WinxCoop guest startup failure: ",guestStartupFailure);FailClosed(RuntimeError::Identity);return EXCEPTION_CONTINUE_SEARCH;}
+            InterlockedExchange(&inHandler,0);return EXCEPTION_CONTINUE_EXECUTION;
         }
         if(guard)
         {
@@ -583,8 +684,9 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
     if (!Read(reinterpret_cast<std::uintptr_t>(argument), &start, sizeof(start)) || start.bytes != sizeof(start) ||
         start.version != IpcVersion || start.gamePid != GetCurrentProcessId() || !start.mainThreadId || !start.nonce ||
         start.mappingName[127] != 0 || !start.mappingName[0] || GetCurrentThreadId()!=start.mainThreadId ||
-        start.mode>RuntimeMode::PassiveActor || (start.mode==RuntimeMode::PassiveActor && (!start.session || !start.levelEpoch)) ||
-        (start.mode==RuntimeMode::Observe && (start.session || start.levelEpoch || start.mediaDirectory[0])))
+        start.mode>RuntimeMode::PassiveActor || start.startupLevel>50 || start.startupEntry ||
+        (start.mode==RuntimeMode::PassiveActor && (!start.session || !start.levelEpoch)) ||
+        (start.mode==RuntimeMode::Observe && (start.session || start.levelEpoch || start.mediaDirectory[0] || start.startupLevel)))
         return static_cast<DWORD>(RuntimeError::Identity);
     configuration=start;
     if (!pinnedImage.Open())
@@ -620,6 +722,15 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
     if(!owner || shared->launcherPid==GetCurrentProcessId() || GetProcessId(owner)!=shared->launcherPid || WaitForSingleObject(owner,0)!=WAIT_TIMEOUT)
     {CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Owner);}
     mainThread = start.mainThreadId;
+    if(start.startupLevel)
+    {
+        if(!pinnedImage.VerifyGuestStartup())
+        {TraceDetail("WinxCoop guest startup feature gate failed: ",pinnedImage.Failure());CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}
+        if(!Read(GuestSettingsReturn,guestStartupSignature,sizeof(guestStartupSignature)))
+        {TraceDetail("WinxCoop guest startup failure: ","settings-return signature read failed");CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}
+        if(!guestIsolation.Prepare(pinnedImage,mainThread,start.startupLevel))
+        {TraceDetail("WinxCoop guest isolation preparation failed: ",guestIsolation.Failure());CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}
+    }
     snapshot.gamePid = start.gamePid; snapshot.mainThreadId = mainThread; snapshot.phase = RuntimePhase::Attached;
     snapshot.mode=start.mode;snapshot.session=start.session;snapshot.levelEpoch=start.levelEpoch;
     if(PassiveMode())
@@ -641,11 +752,18 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
     // After the first installed hook any failure is terminal. Do not remove the
     // VEH, unload the DLL, or release borrowed resources from loader-lock code.
     if(!InstallByte(WorldReturn)){FailClosed(RuntimeError::Signature);return static_cast<DWORD>(RuntimeError::Signature);}
+    if(start.startupLevel)
+    {
+        if(!InstallByte(GuestSettingsReturn)){FailClosed(RuntimeError::Signature);return static_cast<DWORD>(RuntimeError::Signature);}
+        guestStartupInstalled=true;
+    }
     if(PassiveMode())for(auto& guard:unloadGuards)
     {
         if(!InstallByte(guard.address)){FailClosed(RuntimeError::Signature);return static_cast<DWORD>(RuntimeError::Signature);}
         guard.installed=true;
     }
+    if(start.startupLevel && !guestIsolation.Install())
+    {TraceDetail("WinxCoop guest isolation publication failed: ",guestIsolation.Failure());FailClosed(RuntimeError::Signature);return static_cast<DWORD>(RuntimeError::Signature);}
     Publish(shared->snapshot, snapshot);
     return 0;
 }

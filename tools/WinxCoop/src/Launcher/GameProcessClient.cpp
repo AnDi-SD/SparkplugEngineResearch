@@ -102,7 +102,8 @@ namespace winxcoop::launcher
             const Json& At(const char* key) const
             {
                 Require(kind==Kind::Object,"Report field is not an object");const auto found=std::find(keys.begin(),keys.end(),key);
-                Require(found!=keys.end(),"Required completed-report field is missing");return children[static_cast<std::size_t>(found-keys.begin())];
+                if(found==keys.end())throw std::runtime_error(std::string("Required completed-report field is missing: ")+key);
+                return children[static_cast<std::size_t>(found-keys.begin())];
             }
             bool Boolean() const {Require(kind==Kind::Boolean,"Report field is not a boolean");return boolean;}
             const std::string& String() const {Require(kind==Kind::String,"Report field is not a string");return text;}
@@ -270,6 +271,8 @@ namespace winxcoop::launcher
             if(!config.menuFirst)config.outer=Absolute(config.outer,MAX_PATH);
             config.caseDirectory=Absolute(config.caseDirectory,MAX_PATH-40);
             Require(config.session && config.levelEpoch && (config.menuFirst?config.seconds==0:config.seconds>=5 && config.seconds<=3600),"Nonzero session/epoch and seconds0 for menu-first or5..3600 for legacy diagnostic required");
+            Require(config.startupLevel<=50 && config.startupEntry==0 && (!config.startupLevel || config.menuFirst),
+                "Direct startup requires level1..50, default entry0 and the unbounded direct helper");
             for(const auto* file:{&config.game,&config.adapter,&config.gameHost})FileExists(*file,false);
             if(!config.menuFirst)FileExists(config.outer,false);FileExists(config.media,true);
         }
@@ -337,7 +340,8 @@ namespace winxcoop::launcher
                 argument(L"--seconds",std::to_wstring(config.seconds))+argument(L"--menu-first",config.menuFirst?L"1":L"0")+argument(L"--media",config.media)+argument(L"--mapping",runtimeName)+
                 argument(L"--status",statusName)+argument(L"--stop-event",stopName)+argument(L"--owner",std::to_wstring(identity.ownerPid))+
                 argument(L"--owner-created",std::to_wstring(identity.ownerCreationTime))+argument(L"--nonce",std::to_wstring(identity.nonce))+
-                argument(L"--session",std::to_wstring(config.session))+argument(L"--epoch",std::to_wstring(config.levelEpoch));
+                argument(L"--session",std::to_wstring(config.session))+argument(L"--epoch",std::to_wstring(config.levelEpoch))+
+                argument(L"--startup-level",std::to_wstring(config.startupLevel))+argument(L"--startup-entry",std::to_wstring(config.startupEntry));
             WriteFreshAscii(caseHost+L".args",args);
             if(config.menuFirst)
             {
@@ -494,6 +498,57 @@ namespace winxcoop::launcher
                 "Outer preparation/child cleanup/MediaPath rollback was not confirmed");
             Require(identity.helperPid && helperPid==identity.helperPid,"No matching helper status was observed for this outer child");
         }
+        bool RetiredPlayingExit(const Json& document)
+        {
+            if(!config.menuFirst || !failure.empty() || document.At("readySamples").Unsigned(MAXDWORD)==0)return false;
+            const auto ready=document.At("readySamples").Unsigned(MAXDWORD),samples=document.At("samples").Unsigned(MAXDWORD);
+            Require(samples>=ready && document.At("runtimeReadyObserved").Boolean() &&
+                document.At("loadComplete").Boolean() && document.At("startComplete").Boolean() &&
+                document.At("fullContextRestored").Boolean() && document.At("privatePageFreed").Boolean() &&
+                document.At("worldContextWitnessStarted").Boolean() && document.At("worldContextWitnessPassed").Boolean() &&
+                document.At("worldContextWitnessGprPreserved").Boolean() && document.At("worldContextWitnessSegmentsPreserved").Boolean() &&
+                document.At("worldContextWitnessDebugRegistersPreserved").Boolean() && document.At("worldContextWitnessFpuBytesPreserved").Boolean() &&
+                document.At("worldContextWitnessSseBytesPreserved").Boolean() && document.At("worldContextWitnessAllExtendedBytesPreserved").Boolean() &&
+                document.At("worldContextWitnessOriginalContextRestored").Boolean() && document.At("callerSignatureCapturedBeforeAdapter").Boolean() &&
+                document.At("callerBreakpointRestored").Boolean() && !document.At("callerProtectionChangePending").Boolean(),
+                "Playing exit lacks its actual bootstrap/world context qualification");
+            Require(haveSnapshot && result.visualEpochRetired && snapshot.phase==RuntimePhase::Stopped && snapshot.epochRetired &&
+                snapshot.error==RuntimeError::None && snapshot.levelId==0 && snapshot.localComponentCount==0 &&
+                snapshot.worldUpdates>0 && !snapshot.remoteEntity && !snapshot.actorError && snapshot.remoteCreated==snapshot.remoteRemoved &&
+                snapshot.unloadGuardHits>0 && snapshot.unloadCleanups<=snapshot.remoteRemoved &&
+                document.At("runtimePhase").Unsigned(static_cast<unsigned>(RuntimePhase::Failed))==static_cast<unsigned>(snapshot.phase) &&
+                document.At("runtimeError").Unsigned(static_cast<unsigned>(RuntimeError::Owner))==static_cast<unsigned>(snapshot.error) &&
+                document.At("epochRetired").Boolean() && document.At("runtimeLevelId").Unsigned(MAXDWORD)==snapshot.levelId &&
+                document.At("runtimeLocalComponentCount").Unsigned(MAXDWORD)==snapshot.localComponentCount &&
+                document.At("worldUpdates").Unsigned(MAXDWORD)==snapshot.worldUpdates &&
+                document.At("remoteCreated").Unsigned(MAXDWORD)==snapshot.remoteCreated && document.At("remoteRemoved").Unsigned(MAXDWORD)==snapshot.remoteRemoved &&
+                document.At("remoteEntity").Unsigned(MAXDWORD)==snapshot.remoteEntity && document.At("actorError").Unsigned(MAXDWORD)==snapshot.actorError &&
+                document.At("nativeCalls").Unsigned(MAXDWORD)==snapshot.nativeCalls &&
+                document.At("unloadGuardHits").Unsigned(MAXDWORD)==snapshot.unloadGuardHits && document.At("unloadCleanups").Unsigned(MAXDWORD)==snapshot.unloadCleanups &&
+                (!snapshot.remoteCreated || (snapshot.nativeCalls>0 && document.At("mediaQualifiedObserved").Boolean())),
+                "Playing exit has no matching retired native scene/cleanup observation");
+            RuntimeCommand command{};RuntimeAck ack{};
+            Require(TryRead(runtime->command,command) && Same(&command,&lastPublished,sizeof(command)) &&
+                TryRead(runtime->acknowledgement,ack) && Same(&ack,&acknowledgement,sizeof(ack)) &&
+                command.sequence==result.commandsPublished && ack.sequence==result.commandsAcknowledged &&
+                snapshot.lastCommandSequence==ack.sequence && command.sequence>=ack.sequence && command.sequence-ack.sequence<=1 &&
+                document.At("commandsSent").Unsigned(MAXDWORD)==0 && document.At("commandsAcknowledged").Unsigned(MAXDWORD)==0 &&
+                document.At("runtimeCommandsObserved").Boolean() && document.At("runtimeCommandStateConsistent").Boolean() &&
+                document.At("runtimePublishedCommandSequence").Unsigned(MAXDWORD)==command.sequence &&
+                document.At("runtimeAcknowledgedCommandSequence").Unsigned(MAXDWORD)==ack.sequence &&
+                document.At("runtimeAcknowledgementWorldUpdates").Unsigned(MAXDWORD)==ack.worldUpdates &&
+                document.At("runtimeLastCommandSequence").Unsigned(MAXDWORD)==ack.sequence,
+                "Playing exit command/ACK evidence differs from the owned immutable mailboxes");
+            const bool cancelled=command.sequence>ack.sequence;
+            Require(cancelled?(pendingActive && Same(&pending,&command,sizeof(command))):!pendingActive,
+                "Playing exit did not resolve its actual outstanding command state");
+            Require(document.At("runtimeCommandCancelledOnRetirement").Boolean()==cancelled,
+                "Playing exit cancellation differs from the real applied ACK sequence");
+            // An outstanding command is still unconfirmed. Retirement cancels
+            // its execution; neither the ACK nor the consumed sequence is forged.
+            result.commandCancelledOnRetirement=cancelled;
+            return true;
+        }
         void ParseHelper()
         {
             const auto document=Report(hostReport);Require(document.At("kind").String()=="WinxCoop-owned-x86-game-host","Wrong helper report kind");
@@ -503,6 +558,8 @@ namespace winxcoop::launcher
             const bool mappingBound=document.At("externalRuntimeMappingBound").Boolean();
             Require(document.At("menuFirst").Boolean()==config.menuFirst &&
                 document.At("gameLifetimeLimitEnabled").Boolean()!=config.menuFirst,"Helper lifetime policy differs from this launch");
+            Require(document.At("startupLevel").Unsigned(50)==config.startupLevel &&
+                document.At("startupEntry").Unsigned(0)==config.startupEntry,"Helper startup selection differs from its immutable assigned scene");
             if(config.menuFirst)
                 Require(document.At("helperPid").Unsigned(MAXDWORD)==identity.helperPid &&
                     document.At("helperCreationTime").Unsigned()==identity.helperCreationTime,"Direct helper report names another process instance");
@@ -555,7 +612,10 @@ namespace winxcoop::launcher
                 document.At("commandsAcknowledged").Unsigned(MAXDWORD)==0 && document.At("remoteCreated").Unsigned(MAXDWORD)==0 &&
                 document.At("remoteRemoved").Unsigned(MAXDWORD)==0 && document.At("remoteEntity").Unsigned(MAXDWORD)==0 &&
                 result.commandsPublished==0 && !pendingActive;
-            Require(completed && known && continued && cleaned && (exitCode==0 || measuredMenuExit) && error.kind==Json::Kind::Null,"GameHost/native owned cleanup failed");
+            const bool measuredPlayingExit=config.menuFirst && completed && known && continued && cleaned && exitCode==1 && !forced &&
+                !document.At("stopRequested").Boolean() && reason==static_cast<unsigned>(GameHostStopReason::GameExit) &&
+                document.At("fatalExceptions").Unsigned(MAXDWORD)==0 && RetiredPlayingExit(document);
+            Require(completed && known && continued && cleaned && (exitCode==0 || measuredMenuExit || measuredPlayingExit) && error.kind==Json::Kind::Null,"GameHost/native owned cleanup failed");
             if(config.menuFirst)
                 Require(!limited && identity.gamePid && identity.gameCreationTime && result.gameExitIndependentlyVerified,
                     "Direct GameHost lacks an unlimited independently retired original child identity");
@@ -571,6 +631,13 @@ namespace winxcoop::launcher
                     VerifyDirectHost();
                     if(!GetExitCodeProcess(outerProcess.value,&code))WinError("Direct GameHost exit code unavailable");
                     result.helperExitCodeKnown=true;result.helperExitCode=code;
+                    // The helper may finish between GUI ticks. Consume the
+                    // final native snapshot and real ACK before its report;
+                    // a retired epoch is distinct from a synthetic ACK.
+                    try { Headers();ReadSnapshot();ReadAck(); }
+                    catch(const std::exception& error){Fail(error.what());}
+                    // Preserve the first native failure, but still parse the
+                    // independently bound report to establish process cleanup.
                     ParseHelper();
                 }
                 catch(const std::exception& error){Fail(error.what());}

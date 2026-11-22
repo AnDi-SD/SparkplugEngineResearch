@@ -116,7 +116,7 @@ internal static class SmoLevelIsolatedSaveClient
                 processLimitMiB);
             using Process worker = Process.Start(startInfo) ??
                 throw new InvalidOperationException(
-                    "Could not start the isolated level-save worker.");
+                    LevelText.Get("Project.StartSaveWorkerFailed"));
             using var memoryLimit = WindowsProcessMemoryLimit.Assign(
                 worker,
                 checked((long)processLimitMiB * 1024 * 1024));
@@ -148,8 +148,7 @@ internal static class SmoLevelIsolatedSaveClient
                 {
                     TryKill(worker);
                     throw new TimeoutException(
-                        $"Isolated save exceeded {SaveTimeout.TotalMinutes:N0} minutes " +
-                        "and was stopped before it could consume the desktop session.");
+                        LevelText.Get("Project.SaveWorkerTimedOut", SaveTimeout.TotalMinutes));
                 }
 
                 await Task.Delay(150, CancellationToken.None);
@@ -170,13 +169,13 @@ internal static class SmoLevelIsolatedSaveClient
                 workerResult.SaveResult is null)
             {
                 string stage = lastProgress is null
-                    ? "before progress was reported"
-                    : $"during {lastProgress.Stage}: {lastProgress.Message}";
-                string error = workerResult?.Error ??
-                    $"Worker exited with code {worker.ExitCode}.";
+                    ? LevelText.Get("Project.BuildFailureNoProgress")
+                    : LevelText.Get("Project.SaveFailureStage", lastProgress.Stage, LevelText.Error(lastProgress.Message));
+                string error = workerResult?.Error is string message
+                    ? LevelText.Error(message)
+                    : LevelText.Get("Project.WorkerExit", worker.ExitCode);
                 throw new InvalidOperationException(
-                    $"Isolated save failed {stage}. {error}\n\n" +
-                    "The worker was memory-limited; the editor and Windows were kept alive.",
+                    LevelText.Get("Project.SaveWorkerFailed", stage, error),
                     workerResult?.Details is null
                         ? null
                         : new SmoLevelSaveWorkerRemoteException(workerResult.Details));
@@ -219,6 +218,7 @@ internal static class SmoLevelIsolatedSaveClient
         startInfo.Environment["DOTNET_GCHeapHardLimit"] =
             gcLimitBytes.ToString("X", CultureInfo.InvariantCulture);
         startInfo.Environment["DOTNET_GCConserveMemory"] = "9";
+        startInfo.Environment[LevelText.WorkerLanguageVariable] = LevelText.Language;
         return startInfo;
     }
 
@@ -309,7 +309,7 @@ internal static class SmoLevelIsolatedSaveClient
             return new SmoLevelSaveWorkerResult(
                 false,
                 null,
-                "The worker produced an unreadable result.",
+                LevelText.Get("Project.WorkerUnreadableResult"),
                 exception.ToString());
         }
     }
@@ -399,7 +399,7 @@ internal static class SmoLevelSaveWorkerHost
         {
             if (timer.Elapsed > TimeSpan.FromSeconds(30))
                 throw new TimeoutException(
-                    "The save worker was not admitted to its memory sandbox.");
+                    LevelText.Get("Project.SaveWorkerAdmissionTimeout"));
             Thread.Sleep(25);
         }
     }
@@ -450,7 +450,7 @@ internal sealed class WindowsProcessMemoryLimit : IDisposable
         IntPtr rawHandle = CreateJobObject(IntPtr.Zero, null);
         if (rawHandle == IntPtr.Zero)
             throw new InvalidOperationException(
-                $"Could not create the save memory sandbox ({Marshal.GetLastWin32Error()}).");
+                LevelText.Get("Project.SaveMemorySandboxFailed", Marshal.GetLastWin32Error()));
         var handle = new SafeFileHandle(rawHandle, ownsHandle: true);
         try
         {
@@ -477,8 +477,7 @@ internal sealed class WindowsProcessMemoryLimit : IDisposable
                         (uint)size))
                 {
                     throw new InvalidOperationException(
-                        $"Could not set the save memory limit " +
-                        $"({Marshal.GetLastWin32Error()}).");
+                        LevelText.Get("Project.SaveMemoryLimitFailed", Marshal.GetLastWin32Error()));
                 }
             }
             finally
@@ -488,8 +487,7 @@ internal sealed class WindowsProcessMemoryLimit : IDisposable
             if (!AssignProcessToJobObject(handle, process.Handle))
             {
                 throw new InvalidOperationException(
-                    $"Could not place the save worker in its memory sandbox " +
-                    $"({Marshal.GetLastWin32Error()}).");
+                    LevelText.Get("Project.SaveMemoryAssignmentFailed", Marshal.GetLastWin32Error()));
             }
             return new WindowsProcessMemoryLimit(handle);
         }

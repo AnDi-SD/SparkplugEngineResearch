@@ -5,6 +5,7 @@ using SmoViewer.Core;
 using System.IO;
 using System.Numerics;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace SmoLVLcreator.Gui;
 
@@ -37,10 +38,8 @@ public partial class MainWindow
         {
             MessageBox.Show(
                 this,
-                "Сначала сохраните или заново откройте обычный SMO. " +
-                "Проект импортирует только исходный контейнер, " +
-                "не смешивая его со старым журналом редактора.",
-                "SmoLVLcreator — проект уровня",
+                LevelText.Get("Project.CreateRequiresCleanSmo"),
+                LevelText.Get("Project.ProjectTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             return;
@@ -49,8 +48,8 @@ public partial class MainWindow
         string sourcePath = _workspace.SourcePath;
         var dialog = new SaveFileDialog
         {
-            Title = "Создать проект уровня",
-            Filter = "SmoLVLcreator project (*.smolvlproj)|*.smolvlproj",
+            Title = LevelText.Get("Project.CreateTitle"),
+            Filter = LevelText.Get("Project.ProjectFilter"),
             InitialDirectory = Path.GetDirectoryName(sourcePath),
             FileName = Path.GetFileNameWithoutExtension(sourcePath) + ".smolvlproj",
             AddExtension = true,
@@ -62,7 +61,7 @@ public partial class MainWindow
 
         try
         {
-            SetBusy(true, $"Создание {Path.GetFileName(dialog.FileName)}…");
+            SetBusy(true, LevelText.Get("Project.CreatingProject", Path.GetFileName(dialog.FileName)));
             SmoDocument source = _workspace.Document;
             SmoProject project = await Task.Run(() =>
             {
@@ -78,13 +77,12 @@ public partial class MainWindow
             ApplyProjectUiState();
             UpdateDocumentCaption();
             SetBusy(false,
-                $"Проект создан · {project.Objects.Count:N0} объектов · " +
-                "исходный data.bin неизменяем");
+                LevelText.Get("Project.ProjectCreated", project.Objects.Count));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось создать проект");
-            ShowProjectError("Ошибка создания проекта", exception);
+            SetBusy(false, LevelText.Get("Project.CreateFailed"));
+            ShowProjectError(LevelText.Get("Project.CreateError"), exception);
         }
     }
 
@@ -96,8 +94,8 @@ public partial class MainWindow
             return;
         var dialog = new OpenFileDialog
         {
-            Title = "Открыть проект уровня",
-            Filter = "SmoLVLcreator project (*.smolvlproj)|*.smolvlproj",
+            Title = LevelText.Get("Project.OpenTitle"),
+            Filter = LevelText.Get("Project.ProjectFilter"),
             CheckFileExists = true,
             Multiselect = false
         };
@@ -110,7 +108,7 @@ public partial class MainWindow
         try
         {
             string fullPath = Path.GetFullPath(path);
-            SetBusy(true, $"Открытие {Path.GetFileName(fullPath)}…");
+            SetBusy(true, LevelText.Get("Project.OpeningProject", Path.GetFileName(fullPath)));
             (SmoProject Project, SmoLevelWorkspace Workspace) loaded =
                 await Task.Run(() =>
                 {
@@ -128,14 +126,12 @@ public partial class MainWindow
             ApplyProjectUiState();
             UpdateDocumentCaption();
             SetBusy(false,
-                $"Проект открыт · " +
-                $"{loaded.Project.Objects.Count:N0} исходных объектов · " +
-                $"{loaded.Project.Manifest.ReferencePlacements.Count:N0} новых размещений");
+                LevelText.Get("Project.ProjectOpened", loaded.Project.Objects.Count, loaded.Project.Manifest.ReferencePlacements.Count));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось открыть проект");
-            ShowProjectError("Ошибка открытия проекта", exception);
+            SetBusy(false, LevelText.Get("Project.OpenFailed"));
+            ShowProjectError(LevelText.Get("Project.OpenError"), exception);
         }
     }
 
@@ -161,8 +157,8 @@ public partial class MainWindow
             _project!.Manifest.SourceFileName ?? "level.smo";
         var dialog = new SaveFileDialog
         {
-            Title = "Сохранить проект уровня",
-            Filter = "SmoLVLcreator project (*.smolvlproj)|*.smolvlproj",
+            Title = LevelText.Get("Project.SaveTitle"),
+            Filter = LevelText.Get("Project.ProjectFilter"),
             InitialDirectory = Path.GetDirectoryName(current),
             FileName = Path.GetFileNameWithoutExtension(current) + ".smolvlproj",
             AddExtension = true,
@@ -180,20 +176,19 @@ public partial class MainWindow
         try
         {
             string fullPath = Path.GetFullPath(path);
-            SetBusy(true, $"Сохранение {Path.GetFileName(fullPath)}…");
+            SetBusy(true, LevelText.Get("Project.SavingProject", Path.GetFileName(fullPath)));
             await Task.Run(() =>
                 SmoProjectArchive.Save(_project!, fullPath));
             _projectPath = fullPath;
             _projectSession!.MarkSaved();
             UpdateDocumentCaption();
             SetBusy(false,
-                $"Проект сохранён · data.bin {_project!.DataSection.Length:N0} байт " +
-                "не перепаковывался");
+                LevelText.Get("Project.ProjectSaved", _project!.DataSection.Length));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось сохранить проект");
-            ShowProjectError("Ошибка сохранения проекта", exception);
+            SetBusy(false, LevelText.Get("Project.SaveFailed"));
+            ShowProjectError(LevelText.Get("Project.SaveError"), exception);
         }
     }
 
@@ -207,8 +202,8 @@ public partial class MainWindow
             _project!.Manifest.SourceFileName ?? "level.smo";
         var dialog = new SaveFileDialog
         {
-            Title = "Собрать SMO из проекта",
-            Filter = "Sparkplug model or level (*.smo)|*.smo",
+            Title = LevelText.Get("Project.BuildTitle"),
+            Filter = LevelText.Get("Project.SmoFilter"),
             InitialDirectory = Path.GetDirectoryName(current),
             FileName = Path.GetFileNameWithoutExtension(current) + "_built.smo",
             AddExtension = true,
@@ -225,22 +220,15 @@ public partial class MainWindow
         {
             MessageBoxResult choice = MessageBox.Show(
                 this,
-                $"По приблизительной оценке сборке может понадобиться около " +
-                $"{memory.EstimatedPeakMiB:N0} МиБ памяти.\n\n" +
-                $"Сейчас свободно: {memory.AvailablePhysicalMiB:N0} МиБ.\n" +
-                $"Рекомендуемый объём с запасом для Windows: " +
-                $"{memory.RecommendedAvailableMiB:N0} МиБ.\n\n" +
-                "Это предупреждение, а не запрет. Сборка будет запущена в " +
-                $"отдельном процессе с верхним пределом {memory.WorkerLimitMiB:N0} МиБ; " +
-                "при его достижении завершится только сборка, а проект останется цел.\n\n" +
-                "Продолжить?",
-                "SmoLVLcreator — оценка памяти",
+                LevelText.Get("Project.MemoryWarning", memory.EstimatedPeakMiB,
+                    memory.AvailablePhysicalMiB, memory.RecommendedAvailableMiB, memory.WorkerLimitMiB),
+                LevelText.Get("Project.MemoryTitle"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
                 MessageBoxResult.No);
             if (choice != MessageBoxResult.Yes)
             {
-                StatusText.Text = "Сборка отменена после предупреждения о памяти";
+                StatusText.Text = LevelText.Get("Project.MemoryCancelled");
                 return;
             }
         }
@@ -249,7 +237,7 @@ public partial class MainWindow
         _saveCancellation = buildCancellation;
         try
         {
-            SetBusy(true, $"Сборка {Path.GetFileName(outputPath)}…");
+            SetBusy(true, LevelText.Get("Project.Building", Path.GetFileName(outputPath)));
             SaveProgressBar.Minimum = 0;
             SaveProgressBar.Maximum = 5;
             SaveProgressBar.Value = 0;
@@ -264,8 +252,8 @@ public partial class MainWindow
                     0,
                     update.TotalSteps);
                 SaveProgressBar.ToolTip =
-                    $"{update.CompletedSteps:N0} / {update.TotalSteps:N0} · " +
-                    $"{update.CurrentContainerBytes / (1024d * 1024d):N1} МиБ";
+                    LevelText.Get("Project.BuildProgress", update.CompletedSteps,
+                        update.TotalSteps, update.CurrentContainerBytes / (1024d * 1024d));
                 StatusText.Text = update.Message;
             });
             SmoProjectBuildResult result =
@@ -276,19 +264,18 @@ public partial class MainWindow
                     buildCancellation.Token);
             string backup = result.BackupPath is null
                 ? string.Empty
-                : $" · backup: {Path.GetFileName(result.BackupPath)}";
+                : LevelText.Get("Project.Backup", Path.GetFileName(result.BackupPath));
             SetBusy(false,
-                $"SMO собран и повторно проверен · {result.FileSize:N0} байт · " +
-                $"{result.ObjectCount:N0} объектов{backup} · log: " +
+                LevelText.Get("Project.BuiltSmo", result.FileSize, result.ObjectCount, backup) +
                 Path.GetFileName(diagnosticLogPath));
         }
         catch (OperationCanceledException)
         {
-            SetBusy(false, "Сборка отменена · проект и существующий SMO не повреждены");
+            SetBusy(false, LevelText.Get("Project.BuildCancelled"));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось собрать SMO");
+            SetBusy(false, LevelText.Get("Project.BuildFailed"));
             SmoLevelSaveService.TryAppendDiagnostic(
                 diagnosticLogPath,
                 "ERROR",
@@ -296,9 +283,9 @@ public partial class MainWindow
                 exception.ToString());
             MessageBox.Show(
                 this,
-                exception.Message +
-                $"\n\nПодробный журнал:\n{diagnosticLogPath}",
-                "SmoLVLcreator — ошибка сборки SMO",
+                LevelText.Error(exception.Message) +
+                LevelText.Get("Project.DiagnosticLog", diagnosticLogPath),
+                LevelText.Get("Project.BuildError"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -331,7 +318,7 @@ public partial class MainWindow
         try
         {
             Directory.CreateDirectory(directory);
-            SetBusy(true, "Сборка проекта для нативной проверки…");
+            SetBusy(true, LevelText.Get("Project.BuildingValidationCandidate"));
             SmoProjectBuildResult result =
                 await SmoProjectIsolatedBuildClient.BuildAsync(
                     _project,
@@ -339,8 +326,7 @@ public partial class MainWindow
                     progress: null,
                     CancellationToken.None);
             SetBusy(false,
-                $"Кандидат собран · {result.FileSize:N0} байт · " +
-                $"{result.ObjectCount:N0} объектов");
+                LevelText.Get("Project.ValidationCandidateBuilt", result.FileSize, result.ObjectCount));
             var window = new LevelNativeValidationWindow(
                 candidatePath,
                 _project.Manifest.SourceLogicalPath,
@@ -352,8 +338,8 @@ public partial class MainWindow
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось подготовить проект к проверке");
-            ShowProjectError("Ошибка подготовки нативной проверки", exception);
+            SetBusy(false, LevelText.Get("Project.ValidationCandidateFailed"));
+            ShowProjectError(LevelText.Get("Project.ValidationPreparationError"), exception);
         }
         finally
         {
@@ -382,7 +368,7 @@ public partial class MainWindow
             MessageBox.Show(
                 this,
                 reason,
-                "SmoLVLcreator — ссылочное размещение",
+                LevelText.Get("Project.ReferencePlacementTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
             return;
@@ -394,7 +380,7 @@ public partial class MainWindow
         await PasteProjectPlacementClipboardAsync(
             clipboard!,
             target,
-            "Размещена ссылочная копия");
+            LevelText.Get("Project.ReferenceCopyPlaced"));
     }
 
     private async Task AddProjectCollisionAsync(
@@ -406,13 +392,13 @@ public partial class MainWindow
             return;
         try
         {
-            SetBusy(true, "Подготовка проектной коллизии…");
+            SetBusy(true, LevelText.Get("Project.PreparingCollision"));
             SmoProjectCollisionAddition? addition = null;
             bool changed = await Task.Run(() =>
                 _projectSession!.Execute(
                     replacedCollisionObjectId is null
-                        ? $"Создать коллизию {name}"
-                        : $"Пересоздать коллизию {name}",
+                        ? LevelText.Label("Project.CreateCollisionAction", name)
+                        : LevelText.Label("Project.RegenerateCollisionAction", name),
                     project =>
                     {
                         if (replacedCollisionObjectId is uint oldId)
@@ -425,19 +411,23 @@ public partial class MainWindow
                     }));
             if (!changed || addition is null)
             {
-                SetBusy(false, "Проектная коллизия не изменила уровень");
+                SetBusy(false, LevelText.Get("Project.CollisionUnchanged"));
                 return;
             }
             await RefreshProjectPreviewAsync(
-                $"{(replacedCollisionObjectId is null ? "Создана" : "Пересоздана")} проектная коллизия · " +
-                $"{generated.Positions.Count:N0} вершин · " +
-                $"{generated.TriangleCount:N0} треугольников",
+                LevelText.Get(
+                    "Project.CollisionCreated",
+                    LevelText.Get(replacedCollisionObjectId is null
+                        ? "Project.CollisionCreatedVerb"
+                        : "Project.CollisionRegeneratedVerb"),
+                    generated.Positions.Count,
+                    generated.TriangleCount),
                 [addition.CollisionInfoObjectId]);
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось создать проектную коллизию");
-            ShowProjectError("Ошибка проектной коллизии", exception);
+            SetBusy(false, LevelText.Get("Project.CollisionCreationFailed"));
+            ShowProjectError(LevelText.Get("Project.CollisionError"), exception);
         }
     }
 
@@ -461,11 +451,11 @@ public partial class MainWindow
         SmoWorkerHostInfo workerHost = SmoWorkerHost.ResolveCurrent();
         try
         {
-            SetBusy(true, $"Подготовка проектной модели {name}…");
+            SetBusy(true, LevelText.Get("Project.PreparingModel", name));
             SmoProjectExternalModelAddition? addition = null;
             bool changed = await Task.Run(() =>
                 _projectSession!.Execute(
-                    $"Импортировать и разместить {name}",
+                    LevelText.Label("Project.ImportPlaceAction", name),
                     project => addition = SmoProjectImporterBridge.AddExternalModelBatched(
                         project,
                         imported,
@@ -477,20 +467,18 @@ public partial class MainWindow
                         ResolveProjectFbxBridgePath())));
             if (!changed || addition is null)
             {
-                SetBusy(false, "Импорт не изменил проект");
+                SetBusy(false, LevelText.Get("Project.ImportUnchanged"));
                 return;
             }
             await RefreshProjectPreviewAsync(
-                $"Импортирована модель {name} · " +
-                $"{addition.MeshObjectIds.Count:N0} мешей · " +
-                $"{addition.ImportedTextureObjectIds.Count:N0} текстур · " +
-                $"{target.X:0.##}, {target.Y:0.##}, {target.Z:0.##}",
+                LevelText.Get("Project.ModelImported", name, addition.MeshObjectIds.Count,
+                    addition.ImportedTextureObjectIds.Count, target.X, target.Y, target.Z),
                 addition.PlacementRootObjectIds);
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось импортировать модель в проект");
-            ShowProjectError("Ошибка проектного импорта модели", exception);
+            SetBusy(false, LevelText.Get("Project.ModelImportFailed"));
+            ShowProjectError(LevelText.Get("Project.ModelImportError"), exception);
         }
     }
 
@@ -505,24 +493,16 @@ public partial class MainWindow
             return;
         if (!Matrix4x4.Invert(referenceWorld, out Matrix4x4 inverseReference))
             throw new InvalidOperationException(
-                "Опорная матрица заменяемой модели необратима.");
+                LevelText.Get("Project.NoninvertibleReplacementReference"));
 
-        var oldRoots = new List<uint>();
-        var sourceWorlds = new List<Matrix4x4>();
+        var sourcePlacements = new List<(Matrix4x4 World, IReadOnlyList<SmoLevelEntityId> Entities)>();
         if (item.CompositeModels.Length > 0)
         {
             foreach (SmoCompositeModel instance in item.CompositeModels)
             {
-                sourceWorlds.Add(instance.Entities[0].WorldTransform);
-                foreach (SmoLevelEntity entity in instance.Entities)
-                {
-                    int sceneIndex = entity.Id.SceneObjectIndex;
-                    if ((uint)sceneIndex >= (uint)_workspace.Document.Objects.Count)
-                        throw new InvalidOperationException(
-                            $"Размещение [{sceneIndex}] отсутствует в проектном preview.");
-                    uint objectId = _workspace.Document.Objects[sceneIndex].Id;
-                    oldRoots.Add(objectId);
-                }
+                sourcePlacements.Add((
+                    instance.Entities[0].WorldTransform,
+                    instance.Entities.Select(entity => entity.Id).Distinct().ToArray()));
             }
         }
         else
@@ -531,26 +511,54 @@ public partial class MainWindow
                 .Select(part => part.AssetItem.Asset)
                 .FirstOrDefault(value => value is not null)
                 ?? throw new InvalidOperationException(
-                    "У выбранной модели нет размещений для полной замены.");
+                    LevelText.Get("Project.NoPlacementsForReplacement"));
+            var seen = new HashSet<(SmoLevelEntityId Owner, SmoLevelEntityId Branch)>();
             foreach (SmoLevelPlacement placement in asset.Placements)
             {
-                var entityId = new SmoLevelEntityId(placement.SceneObjectIndex);
-                if (_document.RemovedEntityIds.Contains(entityId))
+                var placementId = new SmoPlacementId(
+                    asset.ObjectIndex,
+                    placement.SceneObjectIndex,
+                    placement.OccurrenceKey);
+                if (!_document.TryGetPlacement(placementId, out SmoEditablePlacement? editable))
+                    throw new InvalidOperationException(LevelText.Get(
+                        "Project.PlacementMissingFromPreview", placement.SceneObjectIndex));
+                SmoLevelEntity entity = editable.Entity;
+                if (_document.RemovedEntityIds.Contains(entity.Id))
                     continue;
-                Matrix4x4 world = _document.TryGetEntity(
-                        entityId,
-                        out SmoLevelEntity? entity)
-                    ? entity!.WorldTransform
-                    : placement.WorldTransform;
-                uint objectId = _workspace.Document.Objects[placement.SceneObjectIndex].Id;
-                oldRoots.Add(objectId);
-                sourceWorlds.Add(world);
+                // A shared transform owner can contain unrelated models. In
+                // that case only the selected renderable branch is replaced.
+                bool ownsOnlyThisAsset = entity.Parts.All(part => part.Asset.ObjectIndex == asset.ObjectIndex);
+                if (!ownsOnlyThisAsset &&
+                    (placement.SceneObjectIndex == entity.Id.SceneObjectIndex ||
+                     entity.Parts.Any(part => part.Asset.ObjectIndex != asset.ObjectIndex &&
+                                              part.Source.SceneObjectIndex == placement.SceneObjectIndex)))
+                {
+                    throw new InvalidOperationException(LevelText.Get("Project.SharedReplacementBranch", item.Name));
+                }
+                SmoLevelEntityId branch = ownsOnlyThisAsset
+                    ? entity.Id
+                    : new SmoLevelEntityId(placement.SceneObjectIndex);
+                if (seen.Add((entity.Id, branch)))
+                    sourcePlacements.Add((editable.WorldTransform, [branch]));
             }
         }
 
-        uint[] oldRootIds = oldRoots.Distinct().ToArray();
+        uint ObjectIdForEntity(SmoLevelEntityId entity)
+        {
+            int sceneIndex = entity.SceneObjectIndex;
+            if ((uint)sceneIndex >= (uint)_workspace.Document.Objects.Count)
+                throw new InvalidOperationException(
+                    LevelText.Get("Project.PlacementMissingFromPreview", sceneIndex));
+            return _workspace.Document.Objects[sceneIndex].Id;
+        }
+
+        IReadOnlyList<uint>[] sourcePlacementRoots = sourcePlacements
+            .Select(placement => (IReadOnlyList<uint>)placement.Entities
+                .Select(ObjectIdForEntity).ToArray())
+            .ToArray();
+        uint[] oldRootIds = sourcePlacementRoots.SelectMany(roots => roots).Distinct().ToArray();
         if (oldRootIds.Length == 0)
-            throw new InvalidOperationException("У модели не осталось размещений для замены.");
+            throw new InvalidOperationException(LevelText.Get("Project.NoRemainingPlacements"));
         foreach (uint objectId in oldRootIds)
         {
             bool importedRoot = _project!.Objects.Any(entry =>
@@ -563,31 +571,45 @@ public partial class MainWindow
             if (!importedRoot && !generated && !added)
             {
                 throw new InvalidOperationException(
-                    $"Размещение {objectId} отсутствует в текущем проекте.");
+                    LevelText.Get("Project.PlacementMissingFromCurrentProject", objectId));
             }
         }
 
         Matrix4x4 reflection = Matrix4x4.CreateScale(1, 1, -1);
         Matrix4x4 fittedReferenceWorld = reflection * fit.Matrix * reflection;
-        Matrix4x4[] replacementWorlds = sourceWorlds
-            .Select(world => world * inverseReference * fittedReferenceWorld)
+        Matrix4x4[] replacementWorlds = sourcePlacements
+            .Select(placement => placement.World * inverseReference * fittedReferenceWorld)
             .ToArray();
         if (replacementWorlds.Any(world => !Matrix4x4.Invert(world, out _)))
             throw new InvalidOperationException(
-                "После подгонки одно из новых размещений получило необратимую матрицу.");
+                LevelText.Get("Project.NoninvertibleFittedPlacement"));
 
         string modelName = string.IsNullOrWhiteSpace(item.Name)
             ? Path.GetFileNameWithoutExtension(sourcePath)
             : item.Name.Trim();
+        var effectiveLinks = new List<SmoProjectCollisionLinkOverride>();
+        foreach (SmoLevelEntityId entity in sourcePlacements.SelectMany(placement => placement.Entities))
+        {
+            foreach (SmoLevelCollisionLink link in _document.GetCollisionLinks(entity))
+            {
+                if (TryGetProjectCollisionLink(
+                        _document.GetEntity(entity),
+                        _document.GetEntity(link.CollisionEntityId),
+                        out SmoProjectCollisionLinkOverride captured))
+                {
+                    effectiveLinks.Add(captured);
+                }
+            }
+        }
         SmoWorkerHostInfo workerHost = SmoWorkerHost.ResolveCurrent();
 
         try
         {
-            SetBusy(true, $"Полная замена {modelName}: подготовка новых ресурсов…");
+            SetBusy(true, LevelText.Get("Project.PreparingFullReplacement", modelName));
             SmoProjectExternalModelAddition? addition = null;
             bool changed = await Task.Run(() =>
                 _projectSession!.Execute(
-                    $"Полностью заменить {modelName}",
+                    LevelText.Label("Project.ReplaceEntireModelAction", modelName),
                     project =>
                     {
                         addition = SmoProjectImporterBridge.AddExternalModelBatched(
@@ -599,25 +621,26 @@ public partial class MainWindow
                             workerHost.ExecutablePath,
                             workerHost.ManagedEntryAssemblyPath,
                             ResolveProjectFbxBridgePath());
-                        project.RemoveSceneBranches(oldRootIds);
+                        project.ReplaceVisualBranches(
+                            sourcePlacementRoots,
+                            addition.PlacementRootObjectIdsByPlacement,
+                            effectiveLinks);
                     }));
             if (!changed || addition is null)
             {
-                SetBusy(false, "Полная замена не изменила проект");
+                SetBusy(false, LevelText.Get("Project.FullReplacementUnchanged"));
                 return;
             }
             await RefreshProjectPreviewAsync(
-                $"{modelName} заменена целиком · " +
-                $"{oldRootIds.Length:N0} старых размещений → " +
-                $"{addition.PlacementRootObjectIds.Count:N0} новых частей · " +
-                $"{addition.MeshObjectIds.Count:N0} мешей · " +
-                $"{addition.ImportedTextureObjectIds.Count:N0} текстур",
+                LevelText.Get("Project.FullReplacementDone", modelName, oldRootIds.Length,
+                    addition.PlacementRootObjectIds.Count, addition.MeshObjectIds.Count,
+                    addition.ImportedTextureObjectIds.Count),
                 addition.PlacementRootObjectIds);
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось выполнить полную замену модели");
-            ShowProjectError("Ошибка полной замены модели", exception);
+            SetBusy(false, LevelText.Get("Project.FullReplacementFailed"));
+            ShowProjectError(LevelText.Get("Project.FullReplacementError"), exception);
         }
     }
 
@@ -628,13 +651,13 @@ public partial class MainWindow
         if (!HasProject || _workspace is null || _isBusy)
             return false;
         if (model.Parts.Length == 0)
-            throw new InvalidOperationException("У модели нет размещаемых mesh-частей.");
+            throw new InvalidOperationException(LevelText.Get("Project.NoPlaceableParts"));
 
         Vector3 delta = target - model.SourceAnchor;
         ProjectResourcePlacementRequest[] requests = model.Parts.Select(part =>
         {
             if ((uint)part.MeshObjectIndex >= (uint)_workspace.Document.Objects.Count)
-                throw new InvalidOperationException("Mesh-ресурс каталога больше не существует.");
+                throw new InvalidOperationException(LevelText.Get("Project.MissingCatalogMesh"));
             Matrix4x4 world = part.SourceWorldTransform;
             world.M41 += delta.X;
             world.M42 += delta.Y;
@@ -647,13 +670,13 @@ public partial class MainWindow
 
         try
         {
-            SetBusy(true, $"Размещение {model.Name} в проекте…");
+            SetBusy(true, LevelText.Get("Project.PlacingModel", model.Name));
             var rootIds = new List<uint>(requests.Length);
             bool changed = await Task.Run(() =>
                 _projectSession!.Execute(
                     requests.Length == 1
-                        ? $"Разместить {model.Name}"
-                        : $"Разместить {model.Name} ({requests.Length} частей)",
+                        ? LevelText.Label("Project.PlaceAction", model.Name)
+                        : LevelText.Label("Project.PlacePartsAction", model.Name, requests.Length),
                     project =>
                     {
                         foreach (ProjectResourcePlacementRequest request in requests)
@@ -666,20 +689,18 @@ public partial class MainWindow
                     }));
             if (!changed)
             {
-                SetBusy(false, "Размещение не изменило проект");
+                SetBusy(false, LevelText.Get("Project.PlacementUnchanged"));
                 return false;
             }
             await RefreshProjectPreviewAsync(
-                $"Размещена ссылочная модель {model.Name} · " +
-                $"{requests.Length:N0} частей · " +
-                $"{target.X:0.##}, {target.Y:0.##}, {target.Z:0.##}",
+                LevelText.Get("Project.ReferencedModelPlaced", model.Name, requests.Length, target.X, target.Y, target.Z),
                 rootIds);
             return true;
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось разместить модель в проекте");
-            ShowProjectError("Ошибка проектного размещения", exception);
+            SetBusy(false, LevelText.Get("Project.PlacementFailed"));
+            ShowProjectError(LevelText.Get("Project.PlacementError"), exception);
             return false;
         }
     }
@@ -691,10 +712,10 @@ public partial class MainWindow
         string? label = _projectSession!.UndoLabel;
         if (!_projectSession.Undo())
         {
-            StatusText.Text = "Undo · история проекта пуста";
+            StatusText.Text = LevelText.Get("Project.UndoEmpty");
             return;
         }
-        await RefreshProjectPreviewAsync($"Undo · {label}");
+        await RefreshProjectPreviewAsync(LevelText.Get("Project.UndoStatus", LevelText.Display(label)));
     }
 
     private static string? ResolveProjectFbxBridgePath()
@@ -710,10 +731,10 @@ public partial class MainWindow
         string? label = _projectSession!.RedoLabel;
         if (!_projectSession.Redo())
         {
-            StatusText.Text = "Redo · история проекта пуста";
+            StatusText.Text = LevelText.Get("Project.RedoEmpty");
             return;
         }
-        await RefreshProjectPreviewAsync($"Redo · {label}");
+        await RefreshProjectPreviewAsync(LevelText.Get("Project.RedoStatus", LevelText.Display(label)));
     }
 
     private async Task RefreshProjectPreviewAsync(
@@ -722,7 +743,7 @@ public partial class MainWindow
     {
         try
         {
-            SetBusy(true, "Пересборка preview проекта…");
+            SetBusy(true, LevelText.Get("Project.RebuildingPreview"));
             SmoLevelWorkspace workspace = await Task.Run(() =>
                 BuildProjectPreviewWorkspace(_project!));
             AttachProjectPreview(workspace, selectObjectIds);
@@ -730,8 +751,8 @@ public partial class MainWindow
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось обновить preview проекта");
-            ShowProjectError("Ошибка preview проекта", exception);
+            SetBusy(false, LevelText.Get("Project.PreviewFailed"));
+            ShowProjectError(LevelText.Get("Project.PreviewError"), exception);
         }
     }
 
@@ -795,7 +816,7 @@ public partial class MainWindow
                 out SmoProjectCollisionLinkOverride link))
             return;
         _projectSession!.Execute(
-            present ? "Link visual and collision" : "Unlink visual and collision",
+            LevelText.Label(present ? "Project.LinkCollisionAction" : "Project.UnlinkCollisionAction"),
             project => project.SetCollisionLinkOverride(
                 link.VisualObjectId,
                 link.CollisionObjectId,
@@ -840,9 +861,9 @@ public partial class MainWindow
         if (CatalogImportModelButton is not null)
         {
             CatalogImportModelButton.IsEnabled = !_isBusy && _document is not null;
-            CatalogImportModelButton.ToolTip = active
-                ? "Импортировать модель и создать первое размещение в точке взгляда камеры"
-                : "Добавить внешнюю модель в каталог";
+            CatalogImportModelButton.SetResourceReference(ToolTipProperty, active
+                ? "Loc.Project.ImportPlaceTooltip"
+                : "Loc.Project.ImportTooltip");
         }
         if (AssetList?.ContextMenu is not null)
             AssetList.ContextMenu.IsEnabled = _document is not null;
@@ -900,9 +921,9 @@ public partial class MainWindow
                     _document.TryGetEntity(id, out SmoLevelEntity? entity) &&
                     entity!.Kind == SmoLevelEntityKind.Visual &&
                     entity.Parts.Count > 0));
-            CreateCollisionButton.Content = canRegenerate
-                ? "Регенерировать коллизию"
-                : "Создать коллизию";
+            CreateCollisionButton.SetResourceReference(ContentControl.ContentProperty, canRegenerate
+                ? "Loc.Project.RegenerateCollisionCaption"
+                : "Loc.Project.CreateCollisionCaption");
         }
         if (DeleteSelectedButton is not null)
         {
@@ -921,7 +942,7 @@ public partial class MainWindow
         clipboard = null;
         if (!HasProject || _document is null || _workspace is null)
         {
-            reason = "Проект уровня не открыт.";
+            reason = LevelText.Get("Project.ProjectNotOpen");
             return false;
         }
 
@@ -944,7 +965,7 @@ public partial class MainWindow
             .ToArray();
         if (parts.Length == 0)
         {
-            reason = "В выделении нет размещённой визуальной модели.";
+            reason = LevelText.Get("Project.NoSelectedVisualPlacement");
             return false;
         }
 
@@ -973,8 +994,8 @@ public partial class MainWindow
         {
             bool changed = _projectSession!.Execute(
                 clipboard.Parts.Length == 1
-                    ? $"Разместить {clipboard.Name}"
-                    : $"Разместить {clipboard.Name} ({clipboard.Parts.Length} частей)",
+                    ? LevelText.Label("Project.PlaceAction", clipboard.Name)
+                    : LevelText.Label("Project.PlacePartsAction", clipboard.Name, clipboard.Parts.Length),
                 project =>
                 {
                     foreach (ProjectPlacementClipboardPart part in clipboard.Parts)
@@ -992,13 +1013,12 @@ public partial class MainWindow
             if (!changed)
                 return;
             await RefreshProjectPreviewAsync(
-                $"{action} · {clipboard.Parts.Length:N0} частей · " +
-                $"{target.X:0.##}, {target.Y:0.##}, {target.Z:0.##}",
+                LevelText.Get("Project.ReferencePlacementPosition", action, clipboard.Parts.Length, target.X, target.Y, target.Z),
                 newRootIds);
         }
         catch (Exception exception)
         {
-            ShowProjectError("Ошибка ссылочного размещения", exception);
+            ShowProjectError(LevelText.Get("Project.ReferencePlacementError"), exception);
         }
     }
 
@@ -1009,12 +1029,12 @@ public partial class MainWindow
         templates = [];
         if (!HasProject || _document is null || _workspace is null)
         {
-            reason = "Проект уровня не открыт.";
+            reason = LevelText.Get("Project.ProjectNotOpen");
             return false;
         }
         if (_selectedEntities.Count == 0)
         {
-            reason = "Выберите размещённую модель в сцене.";
+            reason = LevelText.Get("Project.SelectVisualInScene");
             return false;
         }
 
@@ -1028,7 +1048,7 @@ public partial class MainWindow
             if ((uint)entityId.SceneObjectIndex >=
                 (uint)_workspace.Document.Objects.Count)
             {
-                reason = $"Объект [{entityId.SceneObjectIndex}] отсутствует в preview-каталоге.";
+                reason = LevelText.Get("Project.PreviewCatalogObjectMissing", entityId.SceneObjectIndex);
                 return false;
             }
             uint objectId = _workspace.Document.Objects[entityId.SceneObjectIndex].Id;
@@ -1046,7 +1066,7 @@ public partial class MainWindow
                 }
                 else
                 {
-                    reason = $"Для размещения {objectId} не найден исходный шаблон.";
+                    reason = LevelText.Get("Project.PlacementTemplateMissing", objectId);
                     return false;
                 }
             }
@@ -1062,7 +1082,7 @@ public partial class MainWindow
         }
         if (resolved.Count == 0)
         {
-            reason = "В выделении нет размещённой визуальной модели.";
+            reason = LevelText.Get("Project.NoSelectedVisualPlacement");
             return false;
         }
         templates = resolved.ToArray();
@@ -1115,7 +1135,7 @@ public partial class MainWindow
         targets = [];
         if (!HasProject || _document is null || _workspace is null)
         {
-            reason = "Проект уровня не открыт.";
+            reason = LevelText.Get("Project.ProjectNotOpen");
             return false;
         }
 
@@ -1125,13 +1145,13 @@ public partial class MainWindow
         {
             if (!_document.TryGetEntity(entityId, out SmoLevelEntity? entity))
             {
-                reason = $"Объект [{entityId.SceneObjectIndex}] отсутствует в проектном preview.";
+                reason = LevelText.Get("Project.ProjectPreviewObjectMissing", entityId.SceneObjectIndex);
                 return false;
             }
             if ((uint)entityId.SceneObjectIndex >=
                 (uint)_workspace.Document.Objects.Count)
             {
-                reason = $"Объект [{entityId.SceneObjectIndex}] отсутствует в preview-каталоге.";
+                reason = LevelText.Get("Project.PreviewCatalogObjectMissing", entityId.SceneObjectIndex);
                 return false;
             }
             uint objectId = _workspace.Document.Objects[entityId.SceneObjectIndex].Id;
@@ -1143,7 +1163,7 @@ public partial class MainWindow
                         _workspace.Document,
                         entityId.SceneObjectIndex))
                 {
-                    reason = $"Коллизия {objectId} не содержит подтверждённую геометрию spMeshBV.";
+                    reason = LevelText.Get("Project.CollisionGeometryMissing", objectId);
                     return false;
                 }
                 resolved.Add(new ProjectTransformTarget(
@@ -1163,7 +1183,7 @@ public partial class MainWindow
                     item.TypeHash == SmoClassIds.StaticRenderObject));
             if (!imported && !generated && !added)
             {
-                reason = $"Размещение {objectId} не поддерживает проектную трансформацию.";
+                reason = LevelText.Get("Project.UnsupportedPlacementTransform", objectId);
                 return false;
             }
             resolved.Add(new ProjectTransformTarget(
@@ -1174,7 +1194,7 @@ public partial class MainWindow
         }
         if (resolved.Count == 0)
         {
-            reason = "Выберите размещённую визуальную модель.";
+            reason = LevelText.Get("Project.SelectVisualPlacement");
             return false;
         }
         targets = resolved.ToArray();
@@ -1204,14 +1224,14 @@ public partial class MainWindow
             if (!changed)
                 return;
             await RefreshProjectPreviewAsync(
-                $"{label} · {targets.Count:N0} размещений · записано в журнал проекта",
+                LevelText.Get("Project.TransformRecorded", LevelText.Display(label), targets.Count),
                 targets.Select(item => item.ObjectId).ToArray());
         }
         catch (Exception exception)
         {
             await RefreshProjectPreviewAsync(
-                "Проектная трансформация отменена; preview восстановлен");
-            ShowProjectError("Ошибка проектной трансформации", exception);
+                LevelText.Get("Project.TransformCancelled"));
+            ShowProjectError(LevelText.Get("Project.TransformError"), exception);
         }
     }
 
@@ -1229,7 +1249,7 @@ public partial class MainWindow
         }
         StatusText.Text = reason;
         _ = RefreshProjectPreviewAsync(
-            "Проектная трансформация отменена; preview восстановлен");
+            LevelText.Get("Project.TransformCancelled"));
     }
 
     private async Task DeleteProjectSelectionAsync()
@@ -1246,11 +1266,8 @@ public partial class MainWindow
         }
         MessageBoxResult choice = MessageBox.Show(
             this,
-            $"Удалить объектов: {targets.Length:N0}?\n\n" +
-            "Общие mesh/material/texture ресурсы сохранятся. " +
-            "Если исходная ветка физически владеет общим ресурсом, проект " +
-            "сначала перенесёт владение к оставшемуся потребителю.",
-            "SmoLVLcreator — удалить из проекта",
+            LevelText.Get("Project.ConfirmDelete", targets.Length),
+            LevelText.Get("Project.DeleteTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Question,
             MessageBoxResult.No);
@@ -1258,29 +1275,29 @@ public partial class MainWindow
             return;
 
         string label = targets.Length == 1
-            ? "Удалить размещение"
-            : $"Удалить размещения ({targets.Length})";
+            ? LevelText.Label("Project.DeletePlacementAction")
+            : LevelText.Label("Project.DeletePlacementsAction", targets.Length);
         try
         {
             _projectDeletionInProgress = true;
-            SetBusy(true, "Подготовка удаления и preview проекта…");
+            SetBusy(true, LevelText.Get("Project.PreparingDelete"));
             uint[] objectIds = targets.Select(item => item.ObjectId).ToArray();
             SmoLevelDocument? preview = await Task.Run(() =>
                 PrepareProjectDeletion(session, label, objectIds));
             if (preview is null)
             {
-                SetBusy(false, "Проект не изменился");
+                SetBusy(false, LevelText.Get("Project.ProjectUnchanged"));
                 return;
             }
             _selectedEntities.Clear();
             AttachProjectPreview(preview.Workspace, preparedDocument: preview);
             SetBusy(false,
-                $"Удалено размещений: {targets.Length:N0} · общие ресурсы сохранены");
+                LevelText.Get("Project.PlacementsDeleted", targets.Length));
         }
         catch (Exception exception)
         {
-            SetBusy(false, "Не удалось удалить объекты из проекта");
-            ShowProjectError("Ошибка удаления из проекта", exception);
+            SetBusy(false, LevelText.Get("Project.DeleteFailed"));
+            ShowProjectError(LevelText.Get("Project.DeleteError"), exception);
         }
         finally
         {
@@ -1305,9 +1322,11 @@ public partial class MainWindow
 
     private void RestoreOrdinaryMenuHeaders()
     {
-        SaveMenuItem.Header = "Сохранить проект";
-        SaveAsMenuItem.Header = "Сохранить проект как…";
+        SaveMenuItem.SetResourceReference(HeaderedItemsControl.HeaderProperty, "Loc.Project.SaveCaption");
+        SaveAsMenuItem.SetResourceReference(HeaderedItemsControl.HeaderProperty, "Loc.Project.SaveAsCaption");
     }
+
+    private void RefreshProjectLanguage() => UpdateProjectCommandAvailability();
 
     private bool ConfirmDiscardProjectChanges()
     {
@@ -1315,9 +1334,8 @@ public partial class MainWindow
             return true;
         return MessageBox.Show(
                    this,
-                   "В проекте есть несохранённые операции. " +
-                   "Закрыть его без сохранения?",
-                   "SmoLVLcreator — несохранённый проект",
+                   LevelText.Get("Project.DiscardPrompt"),
+                   LevelText.Get("Project.DiscardTitle"),
                    MessageBoxButton.YesNo,
                    MessageBoxImage.Warning,
                    MessageBoxResult.No) == MessageBoxResult.Yes;
@@ -1334,8 +1352,8 @@ public partial class MainWindow
     private void ShowProjectError(string title, Exception exception) =>
         MessageBox.Show(
             this,
-            exception.Message,
-            $"SmoLVLcreator — {title}",
+            LevelText.Error(exception.Message),
+            LevelText.Get("Project.ErrorTitle", title),
             MessageBoxButton.OK,
             MessageBoxImage.Error);
 

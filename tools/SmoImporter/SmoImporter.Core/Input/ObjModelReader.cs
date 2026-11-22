@@ -33,8 +33,9 @@ public static class ObjModelReader
         cancellationToken.ThrowIfCancellationRequested();
 
         var warnings = new List<string>();
+        var diagnostics = new List<ImportedDiagnostic>();
         string[] libraryPaths = materialLibraryPath is null
-            ? ResolveMaterialLibraries(fullPath, File.ReadLines(fullPath), warnings, cancellationToken)
+            ? ResolveMaterialLibraries(fullPath, File.ReadLines(fullPath), warnings, diagnostics, cancellationToken)
             : [materialLibraryPath];
         var materials = new List<ImportedMaterial>();
         var materialIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -153,6 +154,7 @@ public static class ObjModelReader
             resolved.Materials)
         {
             ImportWarnings = warnings.AsReadOnly(),
+            ImportDiagnostics = diagnostics.AsReadOnly(),
             ObjMaterialLibraryPaths = Array.AsReadOnly(libraryPaths)
         };
         return ImportedTextureRecovery.Recover(scene, "OBJ", cancellationToken, resolved.UnavailableReasons, inferTextureAlpha: true);
@@ -195,6 +197,7 @@ public static class ObjModelReader
         string objPath,
         IEnumerable<string> lines,
         ICollection<string> warnings,
+        ICollection<ImportedDiagnostic> diagnostics,
         CancellationToken cancellationToken)
     {
         string directory = Path.GetDirectoryName(objPath) ?? Directory.GetCurrentDirectory();
@@ -231,7 +234,11 @@ public static class ObjModelReader
                     missingReference = true;
             }
             if (missingReference && warnedReferences.Count < 16 && warnedReferences.Add(references))
-                warnings.Add($"OBJ: не найдена библиотека материалов из mtllib {references}.");
+            {
+                string message = $"OBJ: не найдена библиотека материалов из mtllib {references}.";
+                warnings.Add(message);
+                diagnostics.Add(new ImportedDiagnostic("MissingMtl", message, references));
+            }
         }
         if (libraryPaths.Count == 0)
         {
