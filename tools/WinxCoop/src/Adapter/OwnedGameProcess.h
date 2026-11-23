@@ -57,7 +57,7 @@ namespace winxcoop::adapter
         // timer. DiagnosticProbe remains explicitly bounded and non-menu-first.
         // A nonzero startupLevel selects the guest's original direct-level boot;
         // it does not change this process ownership/lifetime policy.
-        bool menuFirst{};
+        bool menuFirst{}, sceneFollow{};
         ExternalRuntimeBinding external;
     };
     struct OwnedGameResult final

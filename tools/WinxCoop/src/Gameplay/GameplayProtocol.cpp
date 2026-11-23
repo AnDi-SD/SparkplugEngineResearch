@@ -111,11 +111,12 @@ namespace winxcoop::gameplay
                 case MessageKind::Remove: return 4;
                 case MessageKind::ObservedState: return 68;
                 case MessageKind::ObservationRejected: return 12;
+                case MessageKind::SceneSuspend: return 4;
             }
             return GameplayProtocol::MaximumPayload;
         }
         bool HostSends(const MessageKind kind)
-        { return kind == MessageKind::Welcome || kind == MessageKind::Resume || kind == MessageKind::State || kind == MessageKind::Remove || kind == MessageKind::ObservationRejected; }
+        { return kind == MessageKind::Welcome || kind == MessageKind::Resume || kind == MessageKind::State || kind == MessageKind::Remove || kind == MessageKind::ObservationRejected || kind == MessageKind::SceneSuspend; }
     }
 
     bool operator==(const Compatibility& a, const Compatibility& b) noexcept
@@ -135,6 +136,7 @@ namespace winxcoop::gameplay
         if((config_.role != networking::SessionRole::Host && config_.role != networking::SessionRole::Guest) ||
            !Valid(config_.compatibility) ||
            !(Valid(config_.qualifiedLevel) || (config_.allowDeferredLevel && Offer(config_.qualifiedLevel))) ||
+           (config_.allowSceneFollow && !config_.allowDeferredLevel) ||
            (config_.role == networking::SessionRole::Host ? config_.hostSession == 0 : config_.hostSession != 0))
             throw std::invalid_argument("Gameplay protocol requires exact qualified identity and a fresh host session");
         session_ = config_.hostSession;
@@ -200,6 +202,15 @@ namespace winxcoop::gameplay
     bool GameplayProtocol::HostAssignLevel(const std::uint32_t epoch, const LevelDescriptor& level)
     {
         if(config_.role != networking::SessionRole::Host || Terminal() || phase_ == Phase::Idle || epoch == 0 || !Valid(level)) return false;
+        if(suspended_)
+        {
+            if(!config_.allowSceneFollow || epoch <= epoch_ || !SameCapabilities(level,config_.qualifiedLevel) ||
+               (phase_ != Phase::AwaitingHello && phase_ != Phase::WaitingForHostLevel)) return false;
+            ResetEpochCounters(); config_.qualifiedLevel = level; epoch_ = epoch;
+            assigned_ = localReady_ = true; peerReady_ = welcomeSent_ = suspended_ = false;
+            if(!Push(MakeEvent(EventKind::LevelAssigned))) return false;
+            return !helloReceived_ || SendWelcome();
+        }
         if(config_.allowDeferredLevel && !assigned_ && config_.qualifiedLevel.levelId == 0)
         {
             if(!SameCapabilities(level,config_.qualifiedLevel) ||
@@ -212,6 +223,49 @@ namespace winxcoop::gameplay
         epoch_ = epoch; assigned_ = localReady_ = true;
         if(!Push(MakeEvent(EventKind::LevelAssigned))) return false;
         return !helloReceived_ || SendWelcome();
+    }
+    void GameplayProtocol::ResetEpochCounters() noexcept
+    {
+        const auto sentHello = sent_[static_cast<unsigned>(MessageKind::Hello)];
+        const auto receivedHello = received_[static_cast<unsigned>(MessageKind::Hello)];
+        sent_ = {}; received_ = {};
+        sent_[static_cast<unsigned>(MessageKind::Hello)] = sentHello;
+        received_[static_cast<unsigned>(MessageKind::Hello)] = receivedHello;
+        stateTicks_.fill(0); lastObservation_ = lastObservationTick_ = lastDecision_ = 0;
+    }
+    bool GameplayProtocol::SuspendScene(const std::uint16_t reason)
+    {
+        auto event = MakeEvent(EventKind::SceneSuspended);
+        event.suspensionReason = reason;
+        event.cancelledObservations = static_cast<std::uint32_t>(pendingObservations_.size());
+        const auto before = outbound_.size();
+        // Preserve queued control history across a fast second transition:
+        // Welcome(N) must precede Suspend(N), even before transport commit.
+        outbound_.erase(std::remove_if(outbound_.begin(),outbound_.end(),[](const auto& message)
+        { return message.key != static_cast<unsigned>(MessageKind::Hello) &&
+            message.key != static_cast<unsigned>(MessageKind::Welcome) &&
+            message.key != static_cast<unsigned>(MessageKind::SceneSuspend); }),outbound_.end());
+        event.cancelledMessages = static_cast<std::uint32_t>(before-outbound_.size());
+        events_.erase(std::remove_if(events_.begin(),events_.end(),[](const auto& value)
+        { return value.kind != EventKind::LevelAssigned && value.kind != EventKind::SceneSuspended; }),events_.end());
+        pendingObservations_.clear(); alive_.fill(false);
+        assigned_ = localReady_ = peerReady_ = welcomeSent_ = false;
+        suspended_ = true; suspensionReason_ = reason;
+        phase_ = config_.role == networking::SessionRole::Host && !helloReceived_ ? Phase::AwaitingHello : Phase::WaitingForHostLevel;
+        return Push(std::move(event));
+    }
+    bool GameplayProtocol::HostSuspendLevel(const std::uint16_t reason)
+    {
+        if(config_.role != networking::SessionRole::Host || !config_.allowSceneFollow || Terminal() || !epoch_) return false;
+        if(suspended_) return reason == suspensionReason_;
+        if(!assigned_ || (phase_ != Phase::AwaitingHello && phase_ != Phase::Loading && phase_ != Phase::Running)) return false;
+        const bool announced = welcomeSent_;
+        if(!SuspendScene(reason)) return false;
+        // Before Welcome there is no peer scene/session to fence. The first
+        // later Welcome may name the new actual generation directly.
+        if(!announced) return true;
+        std::array<std::uint8_t,4> body{}; Put16(body.data(),reason);
+        return Emit(MessageKind::SceneSuspend,0,body.data(),body.size());
     }
     bool GameplayProtocol::SendWelcome()
     {
@@ -318,7 +372,7 @@ namespace winxcoop::gameplay
         const auto* p = message.payload.data();
         const Header h{static_cast<MessageKind>(p[2]), Get64(p + 4), Get32(p + 12), Get32(p + 16), Get32(p + 20)};
         const auto k = static_cast<std::size_t>(h.kind);
-        if(Get16(p) != Version || p[3] != 0 || k < 1 || k > 9 || h.kind == MessageKind::Input || message.key != k || h.entity > 2 || h.sequence == 0 ||
+        if(Get16(p) != Version || p[3] != 0 || k < 1 || k > 10 || h.kind == MessageKind::Input || message.key != k || h.entity > 2 || h.sequence == 0 ||
            message.payload.size() != HeaderSize + BodySize(h.kind))
         { Fail(Error::InvalidMessage); return ReceiveResult::Rejected; }
         if(HostSends(h.kind) == (config_.role == networking::SessionRole::Host))
@@ -330,15 +384,30 @@ namespace winxcoop::gameplay
         else if(h.kind == MessageKind::Welcome)
         {
             if(h.session == 0 || h.epoch == 0 || h.entity != 0) { Fail(Error::InvalidMessage); return ReceiveResult::Rejected; }
-            if(assigned_ && (h.session != session_ || h.epoch != epoch_)) return ReceiveResult::IgnoredStale;
+            if(epoch_ && (h.session != session_ || h.epoch < epoch_ || (suspended_ && h.epoch == epoch_))) return ReceiveResult::IgnoredStale;
+            if(epoch_ && h.epoch > epoch_ && (!config_.allowSceneFollow || !suspended_))
+            { Fail(Error::InvalidEpoch); return ReceiveResult::Rejected; }
+            if(suspended_ && h.epoch > epoch_ && h.sequence != 1)
+            { Fail(Error::InvalidMessage); return ReceiveResult::Rejected; }
+        }
+        else if(h.kind == MessageKind::SceneSuspend)
+        {
+            if(epoch_ && (h.session != session_ || h.epoch < epoch_)) return ReceiveResult::IgnoredStale;
+            if(!config_.allowSceneFollow || !epoch_ || h.entity != 0 || (!assigned_ && !suspended_))
+            { Fail(Error::WrongPhase); return ReceiveResult::Rejected; }
+            if(h.epoch != epoch_) { Fail(Error::InvalidEpoch); return ReceiveResult::Rejected; }
         }
         else
         {
+            if(epoch_ && (h.session != session_ || h.epoch < epoch_)) return ReceiveResult::IgnoredStale;
+            // Old observations/Ready/decisions can still be in the carrier
+            // after the native scene fence. Ignore before FIFO/phase checks.
+            if(suspended_ && h.epoch == epoch_) return ReceiveResult::IgnoredStale;
             if(!assigned_) { Fail(Error::WrongPhase); return ReceiveResult::Rejected; }
-            if(h.session != session_ || h.epoch < epoch_) return ReceiveResult::IgnoredStale;
             if(h.epoch != epoch_) { Fail(Error::InvalidEpoch); return ReceiveResult::Rejected; }
         }
-        if(h.sequence <= received_[k][h.entity]) return ReceiveResult::IgnoredStale;
+        const bool newEpochWelcome = h.kind == MessageKind::Welcome && suspended_ && h.epoch > epoch_;
+        if(!newEpochWelcome && h.sequence <= received_[k][h.entity]) return ReceiveResult::IgnoredStale;
         try
         {
             const auto result = Handle(h, p + HeaderSize, message.payload.size() - HeaderSize);
@@ -364,15 +433,18 @@ namespace winxcoop::gameplay
                 if(!assigned_ || SendWelcome()) return ReceiveResult::Accepted;
                 break;
             case MessageKind::Welcome:
-                if(phase_ != Phase::AwaitingAssignment) { Fail(Error::WrongPhase); break; }
+                if(phase_ != Phase::AwaitingAssignment && !(config_.allowSceneFollow && suspended_ && phase_ == Phase::WaitingForHostLevel && h.epoch > epoch_))
+                { Fail(Error::WrongPhase); break; }
                 if(!(GetCompatibility(body) == config_.compatibility) ||
                    !(config_.allowDeferredLevel
                        ? Valid(GetLevel(body + CompatibilitySize)) && SameCapabilities(GetLevel(body + CompatibilitySize),config_.qualifiedLevel)
                        : GetLevel(body + CompatibilitySize) == config_.qualifiedLevel) ||
                    Get32(body + CompatibilitySize + LevelSize) != HostEntity || Get32(body + CompatibilitySize + LevelSize + 4) != GuestEntity)
                 { Fail(Error::Incompatible); break; }
+                if(suspended_) ResetEpochCounters();
                 if(config_.allowDeferredLevel) config_.qualifiedLevel = GetLevel(body + CompatibilitySize);
                 session_ = h.session; epoch_ = h.epoch; assigned_ = true; phase_ = Phase::Loading;
+                suspended_ = false; localReady_ = peerReady_ = false;
                 alive_[HostEntity] = alive_[GuestEntity] = true;
                 if(Push(MakeEvent(EventKind::LevelAssigned, 0, h.sequence))) return ReceiveResult::Accepted;
                 break;
@@ -456,6 +528,11 @@ namespace winxcoop::gameplay
                 alive_[h.entity] = false; if(h.entity == GuestEntity) pendingObservations_.clear();
                 { auto e = MakeEvent(EventKind::EntityRemoved, h.entity, h.sequence); e.removalReason = Get16(body);
                   if(Push(std::move(e))) return ReceiveResult::Accepted; }
+                break;
+            case MessageKind::SceneSuspend:
+                if(suspended_ || (phase_ != Phase::Loading && phase_ != Phase::Running) || Get16(body + 2) != 0)
+                { Fail(Error::WrongPhase); break; }
+                if(SuspendScene(Get16(body))) return ReceiveResult::Accepted;
                 break;
         }
         return ReceiveResult::Rejected;

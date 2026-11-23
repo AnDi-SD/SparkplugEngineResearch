@@ -13,6 +13,8 @@ namespace winxcoop::launcher
         std::uint64_t session{};
         std::uint32_t levelEpoch{}, seconds{}, startupLevel{}, startupEntry{};
         bool menuFirst = true;
+        // Opt-in per-scene generations inside the same original game process.
+        bool sceneFollow{};
     };
     struct GameProcessClientIdentity final
     {
@@ -35,7 +37,10 @@ namespace winxcoop::launcher
         bool helperExitCodeKnown{}, helperLimitReached{}, commandUnconfirmed{}, commandCancelledOnRetirement{};
         std::uint32_t helperExitCode{};
         bool helperReportValid{}, helperCompleted{}, gameExitCodeKnown{}, gameExitEventContinued{}, gameCleanupConfirmed{}, gameForcedTermination{};
-        std::uint32_t gameExitCode{}, commandsPublished{}, commandsAcknowledged{};
+        // Completed is the last consumed sequence. Applied acknowledgements and
+        // explicit retirement cancellations are separate counts, never aliases.
+        std::uint32_t gameExitCode{}, commandsPublished{}, commandsAcknowledged{}, commandsCompleted{}, commandsCancelledOnRetirement{};
+        std::uint32_t sceneGeneration{}, sceneRetirements{};
         adapter::GameHostStopReason stopReason{};
         std::string error;
     };
@@ -62,9 +67,16 @@ namespace winxcoop::launcher
         void Pump() noexcept;
         bool Submit(adapter::RuntimeOperation operation, std::uint32_t entity,
             const adapter::Transform& transform = {}, adapter::RuntimeAnimation animation = adapter::RuntimeAnimation::Idle) noexcept;
+        // Guest-only native load request. Its ACK confirms queue admission;
+        // actual scene readiness must be observed in a later scene generation.
+        bool RequestSceneFollow(std::uint32_t levelId, std::uint32_t entryId = 0) noexcept;
         void RequestStop() noexcept;
         GameProcessClientPhase Phase() const noexcept;
         bool Ready() const noexcept;
+        // Queue only Remove for an already created remote in a fresh active
+        // generation, including a retained pause/UI snapshot. The native
+        // original-thread gate independently proves actual scene eligibility.
+        bool CanSubmitRemoval() const noexcept;
         bool HasRuntimeSnapshot() const noexcept;
         bool CommandPending() const noexcept;
         bool Finished() const noexcept;

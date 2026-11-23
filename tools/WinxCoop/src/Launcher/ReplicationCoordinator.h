@@ -1,6 +1,7 @@
 #pragma once
 #include "PrototypeProfile.h"
 #include "GameProcessClient.h"
+#include "LaunchText.h"
 #include "../Networking/WindowsTcpTransport.h"
 #include <cstdint>
 #include <memory>
@@ -15,14 +16,17 @@ namespace winxcoop::launcher
         std::uint64_t observationsSent{}, observationsReceived{}, observationsAccepted{}, observationsRejected{}, acknowledgementsReceived{};
         std::uint64_t remoteStates{}, visualStatesCoalesced{}, nativeCreatesAcknowledged{}, nativeAppliesAcknowledged{}, nativeRemovesAcknowledged{};
         std::uint64_t nativeCommands{}, nativeAcknowledgements{}, nativeAckLatencyTotalMs{}, nativeAckLatencyMaxMs{};
-        // Final confirmed native retirement may cancel one immutable pending
-        // command. This is never an Applied ACK or a successful operation count.
+        // Explicit scene receipts or a qualified final retirement can cancel an
+        // immutable pending command. This is never an Applied operation count.
         std::uint64_t nativeCommandsCancelledOnRetirement{};
         std::uint64_t observationRttSamples{}, observationRttTotalMs{}, observationRttMaxMs{}, gameCompletions{}, gameSuccessfulCompletions{};
         std::uint64_t gameNativeCleanupCompletions{}, gameNoOuterLaunchCompletions{};
         std::uint64_t nativeAnimationSamples{}, derivedAnimationSamples{}, nativeRemoteCreated{}, nativeRemoteRemoved{};
         std::uint64_t remoteDisplaySamples{}, remoteDisplayMaxGapMs{};
         std::uint64_t cooperativeStarts{}, cooperativeRunningMs{};
+        // Network reuse never creates a second owned game or resets native IPC.
+        std::uint64_t guestSceneReuses{}, sceneMismatchWaits{}, nativeEpochRetirements{}, visualRemovalWaits{};
+        std::uint64_t hostSceneAssignments{}, sceneSuspensions{}, guestSceneFollows{}, nativeFollowRequestsAcknowledged{};
         std::uint64_t gameSoftLimitStops{}, gameSoftLimitFallbackStops{};
         std::uint32_t lastGameHelperLimitSeconds{}, lastGameSoftLimitSeconds{};
         float remoteDisplayMaxStep{};
@@ -60,8 +64,11 @@ namespace winxcoop::launcher
         bool Finished() const noexcept;
         bool CanStartHostGame() const noexcept;
         bool GameActive() const noexcept;
+        // An existing menu-first Guest may rejoin its already-qualified scene.
+        // Role changes, terminal native epochs and native/stop failures require
+        // a fresh original-game generation, not a reset of its IPC counters.
         bool CanAttach(networking::SessionRole) const noexcept;
-        const std::wstring& Status() const noexcept;
+        const UiStatus& Status() const noexcept;
         const std::string& Failure() const noexcept;
         const ReplicationMetrics& Metrics() const noexcept;
         const GameProcessClientResult& LastGameResult() const noexcept;

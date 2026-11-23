@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.0",
+  "repository": "AnDi-SD/SparkplugEngineResearch",
+  "tag": "winxcoop-v0.1.0",
+  "platforms": {
+    "Windows-x64": "amd64",
+    "Win7-x86": "i386"
+  },
+  "binaries": [
+    "WinxCoopLauncher.exe",
+    "WinxCoopGameHost.exe",
+    "WinxCoop.NativeAdapter.dll"
+  ],
+  "legalDocuments": ["LICENSE.md", "NOTICE.md", "ACKNOWLEDGEMENTS.md"]
+}

@@ -17,6 +17,11 @@ namespace winxcoop::adapter
         bool Handles(std::uint32_t address) const noexcept;
         bool Handle(CONTEXT& context) noexcept;
         bool SceneReady() noexcept;
+        bool CanFollow(std::uint32_t target) const noexcept;
+        bool PrepareFollow(std::uint32_t target, std::uint32_t flow,
+            std::uint32_t privateReturn, std::uint32_t expectedEntryEsp) noexcept;
+        bool CompleteFollowRequest(std::uint32_t target) noexcept;
+        bool BeginNextScene(std::uint32_t target) noexcept;
         // Retirement revokes gameplay admission; it does not reopen the
         // original new-game paths while the client is finishing its menus.
         void Retire() noexcept;
@@ -32,6 +37,8 @@ namespace winxcoop::adapter
         bool initialWrapperSeen_{}, ready_{}, retired_{}, firstBlockLogged_{}, failed_{};
         std::uint32_t calls_{}, wrappers_{}, bootAllowed_{}, uiAllowed_{}, popsAllowed_{}, resumesAllowed_{};
         std::uint32_t playableBlocked_{}, unknownBlocked_{}, failedAddress_{};
+        std::uint32_t followTarget_{}, followReturn_{}, followEsp_{};
+        bool followArmed_{}, followExecuting_{}, followPopQueued_{}, followPrepareQueued_{}, followPushQueued_{}, followCompleted_{};
         const char* failure_{"none"};
         bool Fail(const char* reason, std::uint32_t address = 0) noexcept;
         bool Lookup(std::uint32_t target, Record& record) const noexcept;

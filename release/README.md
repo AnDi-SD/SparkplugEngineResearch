@@ -1,8 +1,8 @@
 # Release layout
 
-All user-facing applications are packaged through `Build-Releases.ps1` and
-`release-manifest.json`. Ad-hoc copies of `bin/` or `publish/` directories are
-not release artifacts.
+Managed applications are packaged through `Build-Releases.ps1` and
+`release-manifest.json`. The native WinxCoop distribution uses its own
+[package command](#winxcoop). Ad-hoc build output is not a release artifact.
 
 All tool sources and future releases are hosted in `AnDi-SD/SparkplugEngineResearch`.
 SmoViewer and SMOTextureTool are ordinary directories under `tools/`.
@@ -153,7 +153,27 @@ window-message calls and three seconds for graceful close. The installed
 .NET 8 Desktop Runtime is required. The probe never confirms an installer
 dialog and does not exercise editing, export or rendering workflows.
 
-Only products listed in `release-manifest.json` receive user-facing packages.
+Only managed products listed in `release-manifest.json` receive user-facing packages.
 `SmoNativeValidator.Core`, its CLI harness, and its tests remain available in
 source and may be embedded by Viewer or Importer, but they are intentionally not
 packaged or published as a standalone product.
+
+## WinxCoop
+
+The native WinxCoop launcher, GameHost, and adapter stay together at the package
+root. Each platform ZIP includes a Russian and an English guide, release
+notes, and the shared license documents in `docs/`. The x64 ZIP uses the x64
+launcher and the x86 GameHost and adapter required by the original game.
+
+After validating both Ready builds, pass their checked SHA-256 inventory to
+the packager. Use a fresh output directory.
+
+```powershell
+python release/package_winxcoop.py --ready artifacts/WinxCoop/Ready `
+    --verified-manifest <checked-ready-manifest.json> `
+    --output artifacts/release/winxcoop-0.1.0
+```
+
+The script verifies the input bytes and PE architectures, checks links inside
+the package, and reads both archives back before writing `SHA256SUMS.txt`.
+Version, tag, and file names are set in `winxcoop-manifest.json`.

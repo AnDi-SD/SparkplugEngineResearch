@@ -92,12 +92,12 @@ namespace
     void BarrierAndCompatibility()
     {
         Pair p; p.Begin(); auto hello=Next(p.guest);
-        auto golden=Bytes("03000100 0000000000000000 00000000 01000000 00000000 "
+        auto golden=Bytes("04000100 0000000000000000 00000000 01000000 00000000 "
             "1111111111111111111111111111111111111111111111111111111111111111 "
             "2222222222222222222222222222222222222222222222222222222222222222 "
             "1c000000 02000000 3333333333333333333333333333333333333333333333333333333333333333 "
             "4444444444444444444444444444444444444444444444444444444444444444");
-        Check(hello.classId==0x31504357 && hello.key==1 && hello.payload==golden && golden.size()==160,"V3 Hello golden");
+        Check(hello.classId==0x31504357 && hello.key==1 && hello.payload==golden && golden.size()==160,"V4 Hello golden");
         Receive(p.host,hello); Check(!p.host.TakeOutbound() && p.host.CurrentPhase()==Phase::WaitingForHostLevel,"guest waits for host actual level");
         Check(!p.guest.HostAssignLevel(7,p.g.qualifiedLevel) && !p.guest.SubmitObservedState(Observation(1)),"guest cannot assign/start");
         Check(p.host.HostAssignLevel(7,p.h.qualifiedLevel),"host assigns lease"); auto welcome=Next(p.host);
@@ -120,7 +120,7 @@ namespace
     void GoldenObservationAndAuthority()
     {
         Pair p; p.Run(); Check(p.guest.SubmitObservedState(Observation(42)),"submit observation"); auto raw=Next(p.guest);
-        auto golden=Bytes("03000800 8070605040302010 07000000 01000000 02000000 2a000000 "
+        auto golden=Bytes("04000800 8070605040302010 07000000 01000000 02000000 2a000000 "
             "0000803f 00000040 00004040 00008040 00000000 00000000 "
             "0000803f 00000000 00000000 00000000 0000803f 00000000 00000000 00000000 0000803f 0100 0000");
         Check(raw.key==8 && raw.payload==golden && raw.payload.size()==92,"distinct ObservedState golden"); Receive(p.host,raw); auto observed=EventOf(p.host,EventKind::ObservedState);
@@ -201,9 +201,9 @@ namespace
     void MalformedStaleAndRetiredInput()
     {
         for(unsigned f=0;f<8;++f) { Pair p; p.Begin(); auto m=Next(p.guest); if(f==0)++m.classId; if(f==1)++m.key; if(f==2)m.payload[3]=1; if(f==3)Set32(m.payload,16,0); if(f==4)m.payload.pop_back(); if(f==5)m.payload.push_back(0); if(f==6)Set32(m.payload,20,3); if(f==7)m.payload[2]=10; Check(p.host.Receive(11,m)==ReceiveResult::Rejected&&p.host.CurrentPhase()==Phase::Failed,"malformed packet rejected"); }
-        for(auto version:{std::uint8_t(1),std::uint8_t(2)}) { Pair p; p.Begin(); auto m=Next(p.guest); m.payload[0]=version; Check(p.host.Receive(11,m)==ReceiveResult::Rejected,"old wire version rejected"); }
+        for(auto version:{std::uint8_t(1),std::uint8_t(2),std::uint8_t(3)}) { Pair p; p.Begin(); auto m=Next(p.guest); m.payload[0]=version; Check(p.host.Receive(11,m)==ReceiveResult::Rejected,"old wire version rejected"); }
         Pair p; p.Run(); InputIntent old; old.clientTick=1; Check(!p.guest.SubmitInput(old)&&!p.host.SubmitInput(old)&&!p.guest.LastGuestInputSequence()&&!p.guest.TakeOutbound(),"V3 legacy input API explicitly inactive");
-        SessionMessage retired; retired.classId=GameplayProtocol::ClassId; retired.key=5; retired.payload=Bytes("03000500 8070605040302010 07000000 01000000 02000000"); retired.payload.resize(44);
+        SessionMessage retired; retired.classId=GameplayProtocol::ClassId; retired.key=5; retired.payload=Bytes("04000500 8070605040302010 07000000 01000000 02000000"); retired.payload.resize(44);
         Check(p.host.Receive(11,retired)==ReceiveResult::Rejected&&p.host.LastError()==Error::InvalidMessage,"V3 input wire kind retired");
         Pair future; future.Run(); Check(future.guest.SubmitObservedState(Observation(1)),"future epoch setup"); auto m=Next(future.guest); Set32(m.payload,12,8); Check(future.host.Receive(11,m)==ReceiveResult::Rejected&&future.host.LastError()==Error::InvalidEpoch,"guest cannot advance host epoch");
         Pair replay; replay.Run(); Check(replay.guest.SubmitObservedState(Observation(1)),"duplicate observation setup"); m=Next(replay.guest); Receive(replay.host,m); Drain(replay.host); Check(replay.host.Receive(11,m)==ReceiveResult::IgnoredStale&&!replay.host.TakeEvent()&&replay.host.PendingObservationCount()==1,"observation replay no second decision event");
@@ -214,6 +214,6 @@ namespace
 }
 int main()
 {
-    try { MenuFirstDeferredLevel(); BarrierAndCompatibility(); GoldenObservationAndAuthority(); FifoAndRejection(); InvalidPosesAndDecisions(); SequenceAndBackpressure(); GenerationsRemovalAndSourceIds(); MalformedStaleAndRetiredInput(); std::cout<<"WinxCoop gameplay protocol V3: PASS "<<checks<<" checks\n"; return 0; }
-    catch(const std::exception& e) { std::cerr<<"WinxCoop gameplay protocol V3: FAIL "<<e.what()<<'\n'; return 1; }
+    try { MenuFirstDeferredLevel(); BarrierAndCompatibility(); GoldenObservationAndAuthority(); FifoAndRejection(); InvalidPosesAndDecisions(); SequenceAndBackpressure(); GenerationsRemovalAndSourceIds(); MalformedStaleAndRetiredInput(); std::cout<<"WinxCoop gameplay protocol V4: PASS "<<checks<<" checks\n"; return 0; }
+    catch(const std::exception& e) { std::cerr<<"WinxCoop gameplay protocol V4: FAIL "<<e.what()<<'\n'; return 1; }
 }

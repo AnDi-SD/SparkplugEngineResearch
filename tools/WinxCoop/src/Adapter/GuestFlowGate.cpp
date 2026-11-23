@@ -34,6 +34,10 @@ namespace winxcoop::adapter
             {0x40E5EF, 11, {0x6A,0x01,0x6A,0x36,0x8B,0xC8,0xE8,0xE6,0x6D,0x18,0x00}},
             {0x59541A, 12, {0x6A,0x02,0x6A,0x00,0x8B,0xCE,0x57,0xE8,0x5A,0xFA,0xFF,0xFF}},
             {0x59542B, 12, {0x6A,0x01,0x6A,0x00,0x8B,0xCE,0x57,0xE8,0x49,0xFA,0xFF,0xFF}},
+            // Exact inner tuples of one owned original595450(level,raw1).
+            {0x59545D, 11, {0x6A,0x00,0x6A,0x01,0x6A,0x51,0xE8,0x18,0xFA,0xFF,0xFF}},
+            {0x595489, 12, {0x6A,0x00,0x6A,0x04,0x57,0x8B,0xCE,0xE8,0xEB,0xF9,0xFF,0xFF}},
+            {0x595495, 12, {0x6A,0x02,0x6A,0x00,0x8B,0xCE,0x57,0xE8,0xDF,0xF9,0xFF,0xFF}},
             {0x5954A6, 10, {0x6A,0x01,0x6A,0x02,0x57,0xE8,0xD0,0xF9,0xFF,0xFF}},
             {0x5954C0, 14, {0x8B,0x44,0x24,0x04,0x6A,0x01,0x6A,0x03,0x50,0xE8,0xB2,0xF9,0xFF,0xFF}},
             {0x595440, 11, {0x6A,0x01,0x6A,0x01,0x6A,0x51,0xE8,0x35,0xFA,0xFF,0xFF}},
@@ -239,6 +243,14 @@ namespace winxcoop::adapter
             if(target>=1 && target<=50)
             {
                 Record assigned{};
+                if(context.Eip==Replace && followArmed_)
+                {
+                    if(retired_ || !ready_ || target!=followTarget_ || argument!=1 ||
+                        caller!=followReturn_ || context.Esp!=followEsp_ || followExecuting_ || followCompleted_)
+                        return Fail("owned guest follow wrapper identity differs",Replace);
+                    followArmed_=false;followExecuting_=true;
+                    return ReplayPush(context,Replace);
+                }
                 if(context.Eip==Push && !retired_ && !ready_ && !initialWrapperSeen_ && !initialQueued_ &&
                     target==assigned_ && argument==0 && caller==0x5CDF91 && Lookup(target,assigned))
                 {
@@ -265,7 +277,20 @@ namespace winxcoop::adapter
         if(!Word(context.Esp+12,delay))return Fail("guest flow queue countdown is unreadable",Queue);
         const auto mode=argument;bool allow=false;
         Record record{};
-        if(target>=1 && target<=50)
+        if(followExecuting_)
+        {
+            if(target==81 && mode==1 && delay==0 && caller==0x595468 &&
+                !followPopQueued_ && !followPrepareQueued_ && !followPushQueued_)
+            {followPopQueued_=true;allow=true;}
+            else if(target==followTarget_ && mode==4 && delay==0 && caller==0x595495 &&
+                followPopQueued_ && !followPrepareQueued_ && !followPushQueued_ && Lookup(target,record))
+            {followPrepareQueued_=true;allow=true;}
+            else if(target==followTarget_ && mode==0 && delay==2 && caller==0x5954A1 &&
+                followPopQueued_ && !followPushQueued_ && Lookup(target,record))
+            {followPushQueued_=true;allow=true;}
+            if(!allow)return Fail("owned guest follow emitted an unexpected native queue tuple",Queue);
+        }
+        else if(target>=1 && target<=50)
         {
             if(!retired_ && !ready_ && initialInProgress_ && !initialQueued_ && target==assigned_ &&
                 caller==0x595426 && mode==0 && delay==2 && Lookup(target,record))
@@ -298,6 +323,71 @@ namespace winxcoop::adapter
         // remains native at594E82. XOR's AF is architecturally undefined; use
         // the normal x86 zero choice and preserve every unrelated EFLAGS bit.
         context.Eax=0;context.EFlags=(context.EFlags&~0x8D5u)|0x44u;context.Eip=Queue+2;
+        return true;
+    }
+    bool GuestFlowGate::CanFollow(const std::uint32_t target) const noexcept
+    {
+        if(failed_ || !prepared_ || !installAttempted_ || !ready_ || retired_ || !playing_ ||
+            followTarget_ || target<1 || target>50)return false;
+        std::uint32_t global{},depth{},current{},top{},queued{};
+        Record old{},next{};
+        if(!Word(FlowGlobal,global) || global!=flow_ || !Lookup(assigned_,old) || old.object!=playing_ || old.table!=0x710874 ||
+            !Lookup(target,next) || next.table!=0x710874 || !Word(flow_+0x1AC,depth) || depth>20 ||
+            !Word(flow_+0x1B0,current) || current!=assigned_ || !Word(flow_+0x15C+depth*4,top) || top!=playing_)
+            return false;
+        for(unsigned i=0;i<10;++i)if(!Word(flow_+0x1B8+i*12,queued) || queued)return false;
+        return true;
+    }
+    bool GuestFlowGate::PrepareFollow(const std::uint32_t target,const std::uint32_t flow,
+        const std::uint32_t privateReturn,const std::uint32_t expectedEntryEsp) noexcept
+    {
+        BYTE trap{};MEMORY_BASIC_INFORMATION region{};
+        if(!CanFollow(target) || flow!=flow_ || !StackRange(expectedEntryEsp,12) ||
+            !Read(privateReturn,&trap,1) || trap!=0xCC ||
+            !VirtualQuery(reinterpret_cast<void*>(privateReturn),&region,sizeof(region)) || region.State!=MEM_COMMIT ||
+            region.Type!=MEM_PRIVATE || (region.Protect&0xFF)!=PAGE_EXECUTE_READ || (region.Protect&PAGE_GUARD))
+            return Fail("guest follow permit lacks exact settled Playing/private call ownership",Replace);
+        followTarget_=target;followReturn_=privateReturn;followEsp_=expectedEntryEsp;
+        followArmed_=true;followExecuting_=followPopQueued_=followPrepareQueued_=followPushQueued_=followCompleted_=false;
+        return true;
+    }
+    bool GuestFlowGate::CompleteFollowRequest(const std::uint32_t target) noexcept
+    {
+        if(failed_ || !followExecuting_ || followArmed_ || followCompleted_ || target!=followTarget_ ||
+            !followPopQueued_ || !followPushQueued_ || retired_)
+            return Fail("guest follow completion lacks its single native wrapper/queue receipt",Replace);
+        const unsigned count=followPrepareQueued_?3:2;
+        for(unsigned i=0;i<10;++i)
+        {
+            std::uint32_t queued{},mode{},delay{};
+            if(!Word(flow_+0x1B8+i*12,queued))return Fail("guest follow result queue is unreadable",Queue);
+            if(i>=count){if(queued)return Fail("guest follow wrote an extra queue target",Queue);continue;}
+            if(!Word(flow_+0x1BC+i*12,mode) || !Word(flow_+0x1C0+i*12,delay) ||
+                (i==0?(queued!=81 || mode!=1 || delay!=0):
+                    (i==count-1?(queued!=target || mode!=0 || delay!=2):(queued!=target || mode!=4 || delay!=0))))
+                return Fail("guest follow native queue result differs from the pinned call",Queue);
+        }
+        followExecuting_=false;followCompleted_=true;
+        OutputDebugStringA("WinxCoop guest follow request admitted: original POP/optional prepare/PUSH queued; entry not yet complete");
+        return true;
+    }
+    bool GuestFlowGate::BeginNextScene(const std::uint32_t target) noexcept
+    {
+        Record record{};std::uint32_t global{},table{},depth{},top{},current{},pending{};
+        if(failed_ || !retired_ || !followCompleted_ || followExecuting_ || followArmed_ || target!=followTarget_ ||
+            !Word(FlowGlobal,global) || global!=flow_ || !Word(flow_,table) || table!=FlowTable ||
+            !Lookup(target,record) || record.table!=0x710874 ||
+            !Word(flow_+0x1AC,depth) || depth>20 || !Word(flow_+0x15C+depth*4,top) || top!=record.object ||
+            !Word(flow_+0x1B0,current) || current!=target || !Word(flow_+0x1B8,pending) || pending)
+            return Fail("guest next scene lacks actual retirement and assigned fresh Playing",Queue);
+        for(unsigned i=1;i<10;++i)if(!Word(flow_+0x1B8+i*12,pending) || pending)
+            return Fail("guest next scene still has a later queued native operation",Queue);
+        assigned_=target;playing_=0;ready_=retired_=false;
+        // Native595450 has already queued this push. Do not reopen startup,
+        // Logo or ordinary unowned playable requests and do not republish hooks.
+        initialWrapperSeen_=initialQueued_=true;initialInProgress_=false;
+        followTarget_=followReturn_=followEsp_=0;
+        followCompleted_=followExecuting_=followArmed_=followPopQueued_=followPrepareQueued_=followPushQueued_=false;
         return true;
     }
     bool GuestFlowGate::SceneReady() noexcept

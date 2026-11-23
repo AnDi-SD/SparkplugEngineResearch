@@ -164,6 +164,7 @@ namespace winxcoop::adapter
         Patch patches[MaxSites]{};U count{},inputTailIndex{},cinematicStartIndex{MaxSites},assigned{};
         DWORD thread{};BYTE* code{};BYTE emitted[CodeBytes]{};U emittedBytes{};PinnedImage* image{};
         volatile LONG counters[64]{};U motion[4]{},record{};
+        LONG presentationCinematicBase{},followPresentationBase{};
         bool prepared{},published{},installed{},bound{},retired{},sceneReady{},presentationComplete{},presentationCalled{};
         GuestFlowGate flow;
 
@@ -368,6 +369,38 @@ namespace winxcoop::adapter
         if(!state_->flow.SceneReady())return Fail(state_->flow.Failure());
         state_->sceneReady=true;return true;
     }
+    bool GuestIsolation::CanFollow(const U target) const noexcept
+    {
+        return state_ && state_->installed && state_->bound && state_->sceneReady && !state_->retired &&
+            GetCurrentThreadId()==state_->thread && state_->flow.CanFollow(target);
+    }
+    bool GuestIsolation::PrepareFollow(const U target,const U flow,const U privateReturn,const U expectedEntryEsp) noexcept
+    {
+        if(!CanFollow(target))return Fail("guest follow permit has no active bound assigned scene/main thread");
+        if(!state_->flow.PrepareFollow(target,flow,privateReturn,expectedEntryEsp))return Fail(state_->flow.Failure());
+        // Baseline before native Exit/Entry: a new cinematic may already be
+        // withheld during LoadLevel, before the next SceneReady observation.
+        state_->followPresentationBase=InterlockedCompareExchange(&state_->counters[state_->cinematicStartIndex],0,0);
+        return true;
+    }
+    bool GuestIsolation::CompleteFollowRequest(const U target) noexcept
+    {
+        if(!state_ || !state_->installed || GetCurrentThreadId()!=state_->thread)
+            return Fail("guest follow request completion lost its installed/main-thread owner");
+        return state_->flow.CompleteFollowRequest(target) || Fail(state_->flow.Failure());
+    }
+    bool GuestIsolation::BeginNextScene(const U target) noexcept
+    {
+        if(!state_ || !state_->installed || !state_->retired || GetCurrentThreadId()!=state_->thread)
+            return Fail("guest next scene lacks actual previous retirement/main-thread ownership");
+        auto& s=*state_;
+        if(!s.flow.BeginNextScene(target))return Fail(s.flow.Failure());
+        ZeroMemory(s.motion,sizeof(s.motion));s.record=0;s.assigned=target;
+        s.bound=s.retired=s.sceneReady=s.presentationComplete=s.presentationCalled=false;
+        s.presentationCinematicBase=s.followPresentationBase;
+        OutputDebugStringA("WinxCoop guest isolation next scene admitted: original hooks retained; motion/presentation binding reset");
+        return true;
+    }
     bool GuestIsolation::CompletePresentation() noexcept
     {
         if(!state_ || !state_->installed || !state_->bound || !state_->sceneReady || state_->retired ||
@@ -375,7 +408,7 @@ namespace winxcoop::adapter
         auto& s=*state_;
         if(s.presentationComplete)return true;
         const LONG blocked=InterlockedCompareExchange(&s.counters[s.cinematicStartIndex],0,0);
-        if(blocked<=0)return true; // The original cinematic request may arrive after first SceneReady.
+        if(blocked<=s.presentationCinematicBase)return true; // A request for this scene may arrive after first SceneReady.
         s.presentationComplete=true; // One observation/attempt; never repair later fades or retry a native failure.
         const U flow=Word(0x755294);
         if(!GameplayContext() || Word(flow+0x1B0)!=s.assigned)
@@ -410,7 +443,8 @@ namespace winxcoop::adapter
     void GuestIsolation::Retire() noexcept
     {
         if(!state_ || state_->retired)return;
-        state_->Trace();ZeroMemory(state_->motion,sizeof(state_->motion));state_->record=0;state_->retired=true;
+        state_->Trace();ZeroMemory(state_->motion,sizeof(state_->motion));state_->record=0;
+        state_->bound=state_->sceneReady=false;state_->retired=true;
         state_->flow.Retire();
         OutputDebugStringA("WinxCoop guest isolation scene retired: motion receivers cleared; save/effect guards retained until exit");
     }

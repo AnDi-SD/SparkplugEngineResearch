@@ -83,6 +83,15 @@ if(WIN32)
         src/Adapter/RemotePoseInterpolator.h)
     target_compile_features(WinxCoopPoseInterpolation PUBLIC cxx_std_17)
     target_compile_definitions(WinxCoopPoseInterpolation PRIVATE WINVER=0x0601 _WIN32_WINNT=0x0601)
+    add_library(WinxCoopPassivePoseSmoothing STATIC
+        src/Adapter/PassivePoseSmoother.cpp
+        src/Adapter/PassivePoseSmoother.h)
+    target_link_libraries(WinxCoopPassivePoseSmoothing PUBLIC WinxCoopPoseInterpolation)
+    target_compile_features(WinxCoopPassivePoseSmoothing PUBLIC cxx_std_17)
+    target_compile_definitions(WinxCoopPassivePoseSmoothing PRIVATE WINVER=0x0601 _WIN32_WINNT=0x0601)
+    if(MSVC)
+        target_compile_options(WinxCoopPassivePoseSmoothing PRIVATE /W4 /utf-8)
+    endif()
     add_library(WinxCoopPoseInterpolationNative SHARED src/Adapter/PoseInterpolationNative.cpp)
     target_link_libraries(WinxCoopPoseInterpolationNative PRIVATE WinxCoopPoseInterpolation)
     set_target_properties(WinxCoopPoseInterpolationNative PROPERTIES OUTPUT_NAME "WinxCoop.PoseInterpolationNative")
@@ -116,11 +125,12 @@ if(WIN32)
     endif()
     add_executable(WinxCoopLauncher WIN32
         src/Launcher/LaunchMain.cpp
+        src/Launcher/LaunchText.h
         src/Launcher/ReplicationCoordinator.cpp
         src/Launcher/ReplicationCoordinator.h
         src/Launcher/PrototypeProfile.cpp
         src/Launcher/PrototypeProfile.h)
-    target_link_libraries(WinxCoopLauncher PRIVATE WinxCoopGameplay WinxCoopGameProcessClient WinxCoopLobbyDiscovery user32 shell32 comdlg32 bcrypt)
+    target_link_libraries(WinxCoopLauncher PRIVATE WinxCoopGameplay WinxCoopGameProcessClient WinxCoopLobbyDiscovery user32 gdi32 shell32 comdlg32 bcrypt)
     target_compile_definitions(WinxCoopLauncher PRIVATE UNICODE _UNICODE WINVER=0x0601 _WIN32_WINNT=0x0601)
     if(MSVC)
         target_compile_options(WinxCoopLauncher PRIVATE /W4 /utf-8)
@@ -137,6 +147,8 @@ if(WIN32)
             src/Adapter/GuestInputCatalog.h
             src/Adapter/GuestFlowGate.cpp
             src/Adapter/GuestFlowGate.h
+            src/Adapter/GuestSceneTransition.cpp
+            src/Adapter/GuestSceneTransition.h
             src/Adapter/PinnedImage.cpp
             src/Adapter/PinnedImage.h
             src/Adapter/PassiveImageCompatibility.h
@@ -144,7 +156,7 @@ if(WIN32)
             src/Adapter/RuntimeContract.h)
         set_target_properties(WinxCoopNativeAdapter PROPERTIES OUTPUT_NAME "WinxCoop.NativeAdapter")
         target_compile_features(WinxCoopNativeAdapter PRIVATE cxx_std_17)
-        target_link_libraries(WinxCoopNativeAdapter PRIVATE bcrypt WinxCoopPoseInterpolation)
+        target_link_libraries(WinxCoopNativeAdapter PRIVATE bcrypt WinxCoopPassivePoseSmoothing)
         add_library(WinxCoopOwnedGameProcess STATIC
             src/Adapter/OwnedGameProcess.cpp
             src/Adapter/OwnedGameProcess.h
@@ -246,12 +258,24 @@ if(BUILD_TESTING)
     add_executable(WinxCoopGameplayTests tests/GameplayProtocolTests.cpp)
     target_link_libraries(WinxCoopGameplayTests PRIVATE WinxCoopGameplay)
     add_test(NAME WinxCoopGameplayTests COMMAND WinxCoopGameplayTests)
+    add_executable(WinxCoopSceneFollowTests tests/SceneFollowProtocolTests.cpp)
+    target_link_libraries(WinxCoopSceneFollowTests PRIVATE WinxCoopGameplay)
+    add_test(NAME WinxCoopSceneFollowTests COMMAND WinxCoopSceneFollowTests)
+    set_tests_properties(WinxCoopSceneFollowTests PROPERTIES TIMEOUT 30)
     if(TARGET WinxCoopPoseInterpolation)
         add_executable(WinxCoopPoseInterpolationTests tests/RemotePoseInterpolatorTests.cpp)
         target_link_libraries(WinxCoopPoseInterpolationTests PRIVATE WinxCoopPoseInterpolation)
         target_compile_features(WinxCoopPoseInterpolationTests PRIVATE cxx_std_17)
         add_test(NAME WinxCoopPoseInterpolationTests COMMAND WinxCoopPoseInterpolationTests)
         set_tests_properties(WinxCoopPoseInterpolationTests PROPERTIES TIMEOUT 30)
+        add_executable(WinxCoopPassivePoseSmootherTests tests/PassivePoseSmootherTests.cpp)
+        target_link_libraries(WinxCoopPassivePoseSmootherTests PRIVATE WinxCoopPassivePoseSmoothing)
+        target_compile_features(WinxCoopPassivePoseSmootherTests PRIVATE cxx_std_17)
+        if(MSVC)
+            target_compile_options(WinxCoopPassivePoseSmootherTests PRIVATE /W4 /utf-8)
+        endif()
+        add_test(NAME WinxCoopPassivePoseSmootherTests COMMAND WinxCoopPassivePoseSmootherTests)
+        set_tests_properties(WinxCoopPassivePoseSmootherTests PROPERTIES TIMEOUT 30)
         add_executable(WinxCoopPoseInterpolationNativeTests tests/PoseInterpolationNativeTests.cpp)
         target_link_libraries(WinxCoopPoseInterpolationNativeTests PRIVATE WinxCoopPoseInterpolationNative)
         target_include_directories(WinxCoopPoseInterpolationNativeTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

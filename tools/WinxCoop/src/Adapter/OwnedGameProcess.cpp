@@ -381,7 +381,7 @@ namespace
         Options options; options.policy=policy;
         if(policy==OwnedGamePolicy::GameHost){options.mode=L"passive-actor";options.menuFirst=true;}
         bool game=false,adapter=false,report=false,seconds=false,mode=false,media=false,menuFirst=false,startupLevel=false,startupEntry=false;
-        bool runtime=false,status=false,stop=false,owner=false,created=false,nonce=false,session=false,epoch=false;
+        bool runtime=false,status=false,stop=false,owner=false,created=false,nonce=false,session=false,epoch=false,sceneFollow=false;
         for(int i=1;i<count;++i)
         {
             const std::wstring key=raw[i]; Require(i+1<count,"Every option requires one value"); const std::wstring value=raw[++i];
@@ -395,6 +395,8 @@ namespace
                 {options.startupLevel=value==L"0"?0:static_cast<DWORD>(NonzeroDecimal(value,50));startupLevel=true;}
             else if(policy==OwnedGamePolicy::GameHost && key==L"--startup-entry" && !startupEntry)
                 {Require(value==L"0","Only the original default startup entry0 is supported");options.startupEntry=0;startupEntry=true;}
+            else if(policy==OwnedGamePolicy::GameHost && key==L"--scene-follow" && !sceneFollow)
+                {Require(value==L"0" || value==L"1","--scene-follow expects0 or1");options.sceneFollow=value==L"1";sceneFollow=true;}
             else if(key==L"--mode" && !mode) { options.mode=value;mode=true; }
             else if(key==L"--media" && !media) { options.media=Absolute(value,MAX_PATH-40);media=true; }
             else if(policy==OwnedGamePolicy::GameHost && key==L"--mapping" && !runtime)
@@ -526,6 +528,8 @@ namespace winxcoop::adapter
             Require(MenuFirst()?options.seconds==0:options.seconds>=5 && options.seconds<=(Service()?3600u:600u),"Menu-first requires seconds0; diagnostic game limit is outside its policy bound");
             Require(options.startupLevel<=50 && options.startupEntry==0 && (!options.startupLevel || MenuFirst()),
                 "Direct startup requires an assigned level1..50 and the unbounded GameHost policy");
+            Require(!options.sceneFollow || (MenuFirst() && options.mode==L"passive-actor"),
+                "Scene following requires explicit menu-first passive GameHost policy");
             Require(options.mode==L"observe" || options.mode==L"passive-actor" || options.mode==L"passive-unload","Unknown owned game diagnostic mode");
             Require((options.mode==L"observe")==options.media.empty(),"Passive mode requires media; observe leaves it empty");
             if(!options.media.empty())options.media=Absolute(options.media,MAX_PATH-40);
@@ -650,6 +654,7 @@ namespace winxcoop::adapter
                 start.mode=RuntimeMode::PassiveActor;start.session=Service()?options.external.session:nonce;
                 start.levelEpoch=Service()?options.external.levelEpoch:1;
                 start.startupLevel=options.startupLevel;start.startupEntry=options.startupEntry;
+                start.sceneFollow=options.sceneFollow?1u:0u;
                 Require(options.media.size()<sizeof(start.mediaDirectory),"Media path exceeds IPC contract");
                 for(std::size_t i=0;i<options.media.size();++i)start.mediaDirectory[i]=static_cast<char>(options.media[i]);
             }
@@ -812,7 +817,8 @@ namespace winxcoop::adapter
         {
             return ack.bytes==sizeof(ack) && ack.version==IpcVersion && ack.session==pendingCommand.session &&
                 ack.levelEpoch==pendingCommand.levelEpoch && ack.sequence==pendingCommand.sequence && ack.entity==pendingCommand.entity &&
-                ack.operation==pendingCommand.operation && ack.status==RuntimeAckStatus::Applied && ack.error==RuntimeError::None && !ack.actorError;
+                ack.operation==pendingCommand.operation && ack.sceneGeneration==pendingCommand.sceneGeneration &&
+                ack.status==RuntimeAckStatus::Applied && ack.error==RuntimeError::None && !ack.actorError;
         }
         bool ActorFpQualified() const noexcept
         {
@@ -1061,11 +1067,17 @@ namespace winxcoop::adapter
             RuntimeSnapshot value{};if(!TryRead(shared->snapshot,value) || value.phase==RuntimePhase::Empty)return;
             Require(value.gamePid==pi.dwProcessId && value.mainThreadId==pi.dwThreadId && static_cast<unsigned>(value.phase)<=static_cast<unsigned>(RuntimePhase::Failed),"Snapshot identity/version mismatch");
             Require(value.mode==pendingStart.mode && value.session==pendingStart.session && value.levelEpoch==pendingStart.levelEpoch && !value.inputQualified,"Runtime mode/session/input qualification mismatch");
-            if(samples && value.worldUpdates==latest.worldUpdates && value.phase==latest.phase)return;
+            Require(value.sceneGeneration && value.sceneRetirements<=value.sceneGeneration &&
+                value.sceneGeneration==value.sceneRetirements+(value.epochRetired?0u:1u),"Native scene generation/retirement counters differ");
+            Require((options.sceneFollow && MenuFirst()) || value.sceneGeneration==1,"Legacy or unselected service changed its native scene generation");
+            Require(!samples || (value.sceneGeneration>=latest.sceneGeneration && value.sceneRetirements>=latest.sceneRetirements &&
+                value.lastCommandSequence>=latest.lastCommandSequence),"Native scene or command counter regressed");
+            if(samples && value.worldUpdates==latest.worldUpdates && value.phase==latest.phase && value.sceneGeneration==latest.sceneGeneration &&
+                value.sceneRetirements==latest.sceneRetirements && value.lastCommandSequence==latest.lastCommandSequence)return;
             Require(!samples || value.worldUpdates>=latest.worldUpdates,"Runtime world counter moved backward");
             const bool stateChanged=!samples || value.phase!=latest.phase || value.error!=latest.error || value.levelId!=latest.levelId ||
                 value.epochRetired!=latest.epochRetired || value.remoteCreated!=latest.remoteCreated || value.remoteRemoved!=latest.remoteRemoved ||
-                value.mediaQualified!=latest.mediaQualified;
+                value.mediaQualified!=latest.mediaQualified || value.sceneGeneration!=latest.sceneGeneration || value.sceneRetirements!=latest.sceneRetirements;
             latest=value;++samples;if(value.phase==RuntimePhase::Ready)++readySamples;
             mediaQualifiedObserved=mediaQualifiedObserved || value.mediaQualified!=0;
             if(MenuFirst() && !force && !stateChanged && now-lastSnapshotLog<1000)return;
@@ -1077,7 +1089,7 @@ namespace winxcoop::adapter
             Log("{\"event\":\"runtime-snapshot\",\"phase\":"+std::to_string(static_cast<unsigned>(value.phase))+",\"error\":"+std::to_string(static_cast<unsigned>(value.error))+",\"worldUpdates\":"+std::to_string(value.worldUpdates)+",\"level\":"+std::to_string(value.levelId)+",\"timeMs\":"+std::to_string(value.monotonicMilliseconds)+",\"localPosition\":"+position+",\"componentCount\":"+std::to_string(value.localComponentCount)+
                 ",\"remoteCreated\":"+std::to_string(value.remoteCreated)+",\"remoteRemoved\":"+std::to_string(value.remoteRemoved)+",\"remoteEntity\":"+std::to_string(value.remoteEntity)+
                 ",\"actorError\":"+std::to_string(value.actorError)+",\"nativeCalls\":"+std::to_string(value.nativeCalls)+",\"lastCommandSequence\":"+std::to_string(value.lastCommandSequence)+
-                ",\"unloadGuardHits\":"+std::to_string(value.unloadGuardHits)+",\"unloadCleanups\":"+std::to_string(value.unloadCleanups)+",\"epochRetired\":"+Boolean(value.epochRetired!=0)+",\"mediaQualified\":"+Boolean(value.mediaQualified!=0)+
+                ",\"unloadGuardHits\":"+std::to_string(value.unloadGuardHits)+",\"unloadCleanups\":"+std::to_string(value.unloadCleanups)+",\"epochRetired\":"+Boolean(value.epochRetired!=0)+",\"sceneGeneration\":"+std::to_string(value.sceneGeneration)+",\"sceneRetirements\":"+std::to_string(value.sceneRetirements)+",\"mediaQualified\":"+Boolean(value.mediaQualified!=0)+
                 ",\"localAnimation\":"+std::to_string(static_cast<unsigned>(value.localAnimation))+",\"localAnimationQualified\":"+Boolean(value.localAnimationQualified!=0)+",\"localFsmState\":"+std::to_string(value.localFsmState)+
                 ",\"remoteDisplayPosition\":"+remotePosition+",\"remoteDisplaySamples\":"+std::to_string(value.remoteDisplaySamples)+",\"remoteDisplayMaxGapMs\":"+std::to_string(value.remoteDisplayMaxGapMs)+",\"remoteDisplayMaxStep\":"+std::to_string(value.remoteDisplayMaxStep)+
                 ",\"gameTimerPaused\":"+Boolean(value.gameTimerPaused!=0)+",\"gameTimerActive\":"+Boolean(value.gameTimerActive!=0)+",\"gameTimerCurrentRaw\":"+std::to_string(value.gameTimerCurrentRaw)+",\"gameTimerDeltaRaw\":"+std::to_string(value.gameTimerDeltaRaw)+"}");
@@ -1090,6 +1102,7 @@ namespace winxcoop::adapter
             RuntimeAck ack{};Require(TryRead(shared->acknowledgement,ack) && ack.sequence==commandsAcknowledged,"Previous command ACK unavailable");
             RuntimeCommand command{};command.bytes=sizeof(command);command.version=IpcVersion;command.session=pendingStart.session;
             command.levelEpoch=pendingStart.levelEpoch;command.sequence=commandsSent+1;command.entity=2;command.operation=operation;command.animation=animation;
+            command.sceneGeneration=latest.sceneGeneration;
             if(operation!=RuntimeOperation::Remove)
             {
                 command.remote=latest.local;command.remote.position[0]+=animation==RuntimeAnimation::Walk?220.0f:180.0f;
@@ -1307,21 +1320,28 @@ namespace winxcoop::adapter
             ZeroMemory(&emptyCommand,sizeof(emptyCommand));ZeroMemory(&emptyAck,sizeof(emptyAck));
             const bool validCommand=command.sequence?
                 command.bytes==sizeof(command) && command.version==IpcVersion && command.session==pendingStart.session &&
-                    command.levelEpoch==pendingStart.levelEpoch && command.entity>=1 && command.entity<=2 && !command.reserved &&
-                    command.operation>=RuntimeOperation::Create && command.operation<=RuntimeOperation::Remove && command.animation<=RuntimeAnimation::Jump:
+                    command.levelEpoch==pendingStart.levelEpoch && command.sceneGeneration && command.sceneGeneration<=latest.sceneGeneration &&
+                    ((command.operation==RuntimeOperation::FollowLevel && options.sceneFollow && command.entity==0 && command.animation==RuntimeAnimation::Idle &&
+                        command.targetLevel>=1 && command.targetLevel<=50 && command.targetEntry==0 &&
+                        std::memcmp(&command.remote,&emptyCommand.remote,sizeof(command.remote))==0) ||
+                     (command.operation>=RuntimeOperation::Create && command.operation<=RuntimeOperation::Remove && command.entity>=1 && command.entity<=2 &&
+                        !command.targetLevel && !command.targetEntry && command.animation<=RuntimeAnimation::Jump)):
                 std::memcmp(&command,&emptyCommand,sizeof(command))==0;
             const bool validAck=ack.sequence?
                 ack.bytes==sizeof(ack) && ack.version==IpcVersion && ack.session==pendingStart.session && ack.levelEpoch==pendingStart.levelEpoch &&
-                    ack.entity>=1 && ack.entity<=2 && ack.operation>=RuntimeOperation::Create && ack.operation<=RuntimeOperation::Remove &&
-                    ack.status==RuntimeAckStatus::Applied && ack.error==RuntimeError::None && !ack.actorError &&
+                    ack.sceneGeneration && ack.sceneGeneration<=latest.sceneGeneration &&
+                    ((ack.operation==RuntimeOperation::FollowLevel && options.sceneFollow && ack.entity==0) ||
+                     (ack.operation>=RuntimeOperation::Create && ack.operation<=RuntimeOperation::Remove && ack.entity>=1 && ack.entity<=2)) &&
+                    (ack.status==RuntimeAckStatus::Applied || (options.sceneFollow && ack.status==RuntimeAckStatus::CancelledOnRetirement &&
+                        ack.sceneGeneration<=latest.sceneRetirements)) && ack.error==RuntimeError::None && !ack.actorError &&
                     ack.worldUpdates>0 && ack.worldUpdates<=latest.worldUpdates:
                 std::memcmp(&ack,&emptyAck,sizeof(ack))==0;
             if(!validCommand || !validAck || ack.sequence!=latest.lastCommandSequence || command.sequence<ack.sequence ||
                 command.sequence-ack.sequence>1 || latest.remoteCreated>ack.sequence)return;
             if(command.sequence==ack.sequence && command.sequence &&
-                (command.entity!=ack.entity || command.operation!=ack.operation))return;
+                (command.entity!=ack.entity || command.operation!=ack.operation || command.sceneGeneration!=ack.sceneGeneration))return;
             terminalCommandsConsistent=true;
-            // A command one ahead of the last real Applied ACK cannot run
+            // A command one ahead of the last real consumed ACK cannot run
             // after native epoch retirement. Record cancellation separately;
             // never advance the ACK or runtime consumed sequence to match it.
             terminalCommandCancelledOnRetirement=command.sequence>ack.sequence && RetiredPlayingSnapshot();
@@ -1408,6 +1428,10 @@ namespace winxcoop::adapter
                 ",\"runtimeCommandsObserved\":"+Boolean(terminalCommandsObserved)+",\"runtimeCommandStateConsistent\":"+Boolean(terminalCommandsConsistent)+
                 ",\"runtimePublishedCommandSequence\":"+std::to_string(terminalPublishedCommand.sequence)+
                 ",\"runtimeAcknowledgedCommandSequence\":"+std::to_string(terminalAcknowledgement.sequence)+
+                ",\"runtimeAcknowledgementStatus\":"+std::to_string(static_cast<unsigned>(terminalAcknowledgement.status))+
+                ",\"runtimeAcknowledgementSceneGeneration\":"+std::to_string(terminalAcknowledgement.sceneGeneration)+
+                ",\"runtimePublishedSceneGeneration\":"+std::to_string(terminalPublishedCommand.sceneGeneration)+
+                ",\"runtimeSceneGeneration\":"+std::to_string(latest.sceneGeneration)+",\"runtimeSceneRetirements\":"+std::to_string(latest.sceneRetirements)+
                 ",\"runtimeAcknowledgementWorldUpdates\":"+std::to_string(terminalAcknowledgement.worldUpdates)+
                 ",\"runtimeCommandCancelledOnRetirement\":"+Boolean(terminalCommandCancelledOnRetirement)+
                 ",\"actorLifecycleCompleted\":"+Boolean(actorLifecycleCompleted)+",\"remoteCreated\":"+std::to_string(latest.remoteCreated)+",\"remoteRemoved\":"+std::to_string(latest.remoteRemoved)+
@@ -1424,6 +1448,7 @@ namespace winxcoop::adapter
                 ",\"gameCreationTime\":"+std::to_string(gameCreationTime)+",\"menuFirst\":"+Boolean(MenuFirst())+
                 ",\"gameProcessCreated\":"+Boolean(pi.dwProcessId!=0)+
                 ",\"startupLevel\":"+std::to_string(options.startupLevel)+",\"startupEntry\":"+std::to_string(options.startupEntry)+
+                ",\"sceneFollow\":"+Boolean(options.sceneFollow)+
                 ",\"gameLifetimeLimitEnabled\":"+Boolean(!MenuFirst())+",\"eventDiagnosticsSuppressedAtCap\":"+Boolean(logCapNotice)+
                 ",\"stopRequested\":"+Boolean(stopRequested)+",\"stopReason\":"+std::to_string(static_cast<unsigned>(stopReason)):std::string();
             WriteAll(report.value,std::string("{\"kind\":")+Quote(Service()?"WinxCoop-owned-x86-game-host":"WinxCoop-owned-x86-adapter-probe")+

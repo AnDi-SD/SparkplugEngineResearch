@@ -211,7 +211,7 @@ namespace winxcoop::launcher
         std::wstring runtimeName,statusName,stopName,caseHost,hostReport,outerReport;
         std::string failure;
         ULONGLONG began{},commandBegan{},commandLastCheck{},commandReadyWait{};
-        std::uint32_t logicalEntity{};
+        std::uint32_t logicalEntity{}, followSourceGeneration{}, followTargetLevel{};
         bool attempted{},stopRequested{},haveSnapshot{},haveHelper{},pendingActive{},finalized{};
 
         explicit Impl(GameProcessClientConfiguration value):config(std::move(value)){result.directHost=config.menuFirst;}
@@ -273,6 +273,7 @@ namespace winxcoop::launcher
             Require(config.session && config.levelEpoch && (config.menuFirst?config.seconds==0:config.seconds>=5 && config.seconds<=3600),"Nonzero session/epoch and seconds0 for menu-first or5..3600 for legacy diagnostic required");
             Require(config.startupLevel<=50 && config.startupEntry==0 && (!config.startupLevel || config.menuFirst),
                 "Direct startup requires level1..50, default entry0 and the unbounded direct helper");
+            Require(!config.sceneFollow || config.menuFirst,"Scene following is available only for the ordinary unbounded game path");
             for(const auto* file:{&config.game,&config.adapter,&config.gameHost})FileExists(*file,false);
             if(!config.menuFirst)FileExists(config.outer,false);FileExists(config.media,true);
         }
@@ -341,7 +342,8 @@ namespace winxcoop::launcher
                 argument(L"--status",statusName)+argument(L"--stop-event",stopName)+argument(L"--owner",std::to_wstring(identity.ownerPid))+
                 argument(L"--owner-created",std::to_wstring(identity.ownerCreationTime))+argument(L"--nonce",std::to_wstring(identity.nonce))+
                 argument(L"--session",std::to_wstring(config.session))+argument(L"--epoch",std::to_wstring(config.levelEpoch))+
-                argument(L"--startup-level",std::to_wstring(config.startupLevel))+argument(L"--startup-entry",std::to_wstring(config.startupEntry));
+                argument(L"--startup-level",std::to_wstring(config.startupLevel))+argument(L"--startup-entry",std::to_wstring(config.startupEntry))+
+                argument(L"--scene-follow",config.sceneFollow?L"1":L"0");
             WriteFreshAscii(caseHost+L".args",args);
             if(config.menuFirst)
             {
@@ -418,9 +420,21 @@ namespace winxcoop::launcher
             Require(value.gamePid==identity.gamePid && value.mainThreadId==identity.mainThreadId && value.mode==RuntimeMode::PassiveActor &&
                 value.session==config.session && value.levelEpoch==config.levelEpoch && static_cast<unsigned>(value.phase)<=static_cast<unsigned>(RuntimePhase::Failed),"Native runtime snapshot identity/phase changed");
             Require(!haveSnapshot || (value.worldUpdates>=snapshot.worldUpdates && value.monotonicMilliseconds>=snapshot.monotonicMilliseconds &&
-                value.lastCommandSequence>=snapshot.lastCommandSequence),"Native runtime snapshot counter regressed");
+                value.lastCommandSequence>=snapshot.lastCommandSequence && value.sceneGeneration>=snapshot.sceneGeneration &&
+                value.sceneRetirements>=snapshot.sceneRetirements),"Native runtime snapshot counter regressed");
+            Require(value.sceneGeneration>=1 && value.sceneGeneration==value.sceneRetirements+(value.epochRetired?0u:1u) &&
+                (config.sceneFollow || (value.sceneGeneration==1 && value.sceneRetirements<=1)),"Native scene generation is not qualified for this process");
             Require(value.lastCommandSequence<=result.commandsPublished,"Native runtime applied an unpublished command");
+            if(haveSnapshot && (value.sceneRetirements>snapshot.sceneRetirements || value.sceneGeneration>snapshot.sceneGeneration))
+                logicalEntity=0; // Actual native cleanup; an old Applied ACK cannot resurrect it below.
             snapshot=value;haveSnapshot=true;
+            if(followSourceGeneration && value.sceneGeneration>followSourceGeneration && value.phase==RuntimePhase::Ready)
+            {
+                Require(value.levelId==followTargetLevel,"Follow request completed in an unassigned native scene");
+                followSourceGeneration=followTargetLevel=0;
+            }
+            result.sceneGeneration=value.sceneGeneration;result.sceneRetirements=value.sceneRetirements;
+            result.visualEpochRetired=value.epochRetired!=0;
             Require(value.phase!=RuntimePhase::Failed && value.error==RuntimeError::None && !value.actorError,"Native runtime failed its gate");
             if(value.epochRetired || value.phase==RuntimePhase::Stopped)
             {
@@ -429,11 +443,12 @@ namespace winxcoop::launcher
                 {
                     Require(value.epochRetired && value.phase==RuntimePhase::Stopped && !value.remoteEntity &&
                         value.remoteCreated==value.remoteRemoved,"Retired visual epoch has no confirmed passive cleanup");
-                    result.visualEpochRetired=true; // Keep the original game; do not clear a command or fabricate an ACK.
+                    // Keep the original game. Only an actual typed completion
+                    // below may consume an outstanding immutable command.
                 }
             }
         }
-        bool Ready() const noexcept
+        bool NativeReadyForCommandProgress() const noexcept
         {
             const auto now=GetTickCount64();
             const bool fresh=!config.menuFirst || (now>=helper.monotonicMilliseconds && now-helper.monotonicMilliseconds<=1000 &&
@@ -442,22 +457,70 @@ namespace winxcoop::launcher
                 haveSnapshot && snapshot.phase==RuntimePhase::Ready && !snapshot.epochRetired && snapshot.mediaQualified &&
                 (config.menuFirst?snapshot.levelId>=1 && snapshot.levelId<=50:snapshot.levelId==28) && fresh && helper.fullContextRestored && helper.worldContextPreserved;
         }
+        bool Ready() const noexcept {return !followSourceGeneration && NativeReadyForCommandProgress();}
+        bool CanSubmitRemoval() const noexcept
+        {
+            if(pendingActive || !logicalEntity || !failure.empty() || stopRequested || finalized || !haveHelper || !haveSnapshot ||
+                helper.phase!=GameHostPhase::Running || !helper.fullContextRestored || !helper.worldContextPreserved ||
+                snapshot.error!=RuntimeError::None || snapshot.actorError || snapshot.epochRetired || result.visualEpochRetired ||
+                !snapshot.mediaQualified || snapshot.remoteEntity!=logicalEntity ||
+                std::uint64_t(snapshot.remoteCreated)!=std::uint64_t(snapshot.remoteRemoved)+1)return false;
+            if(Ready())return true;
+            if(!config.menuFirst || snapshot.phase!=RuntimePhase::WaitingForLevel)return false;
+            const auto now=GetTickCount64();
+            return now>=helper.monotonicMilliseconds && now-helper.monotonicMilliseconds<=1000 &&
+                now>=snapshot.monotonicMilliseconds && now-snapshot.monotonicMilliseconds<=1000;
+        }
         bool Matching(const RuntimeAck& value,const RuntimeCommand& command) const noexcept
         {
             return value.bytes==sizeof(value) && value.version==IpcVersion && value.session==command.session && value.levelEpoch==command.levelEpoch &&
                 value.sequence==command.sequence && value.entity==command.entity && value.operation==command.operation &&
-                value.status==RuntimeAckStatus::Applied && value.error==RuntimeError::None && !value.actorError;
+                value.sceneGeneration==command.sceneGeneration &&
+                (value.status==RuntimeAckStatus::Applied || value.status==RuntimeAckStatus::CancelledOnRetirement) &&
+                value.error==RuntimeError::None && !value.actorError;
         }
         void ReadAck()
         {
             RuntimeAck value{};if(!TryRead(runtime->acknowledgement,value))return;
             if(value.sequence==acknowledgement.sequence){Require(Same(&value,&acknowledgement,sizeof(value)),"Acknowledgement changed after completion");return;}
             Require(pendingActive && value.sequence==pending.sequence && Matching(value,pending),"Native acknowledgement is stale, future, failed or has wrong identity");
+            if(value.status==RuntimeAckStatus::CancelledOnRetirement)
+            {
+                // The completion mailbox may precede the throttled snapshot.
+                // Wait for actual cleanup evidence; do not relabel cancellation
+                // as an Applied native operation or reset the shared command.
+                if(!haveSnapshot || snapshot.sceneRetirements<value.sceneGeneration)return;
+                Require(snapshot.sceneGeneration>=value.sceneGeneration,"Cancellation belongs to a future native scene");
+            }
             Require(value.worldUpdates>0 && (!haveSnapshot || value.worldUpdates>=snapshot.worldUpdates || snapshot.lastCommandSequence>=value.sequence),"Native acknowledgement has an invalid world counter");
-            CopyMemory(&acknowledgement,&value,sizeof(value));result.commandsAcknowledged=value.sequence;
-            if(pending.operation==RuntimeOperation::Create)logicalEntity=pending.entity;
-            else if(pending.operation==RuntimeOperation::Remove)logicalEntity=0;
+            CopyMemory(&acknowledgement,&value,sizeof(value));result.commandsCompleted=value.sequence;
+            if(value.status==RuntimeAckStatus::CancelledOnRetirement)++result.commandsCancelledOnRetirement;
+            else
+            {
+                ++result.commandsAcknowledged;
+                if(haveSnapshot && !snapshot.epochRetired && snapshot.sceneGeneration==value.sceneGeneration)
+                {
+                    if(pending.operation==RuntimeOperation::Create)logicalEntity=pending.entity;
+                    else if(pending.operation==RuntimeOperation::Remove)logicalEntity=0;
+                }
+            }
             pendingActive=false;pending={}; // Shared command remains immutable until the next sequence.
+        }
+        void PublishCommand(const RuntimeOperation operation,const std::uint32_t entity,const Transform& transform,
+            const RuntimeAnimation animation,const std::uint32_t targetLevel=0,const std::uint32_t targetEntry=0)
+        {
+            Require(!pendingActive && result.commandsPublished==result.commandsCompleted &&
+                std::uint64_t(result.commandsCompleted)==std::uint64_t(result.commandsAcknowledged)+result.commandsCancelledOnRetirement,
+                "Native command outcomes do not account for the previous immutable sequence");
+            Require(result.commandsPublished<MAXDWORD,"Native command sequence exhausted");RuntimeCommand previous{};
+            Require(TryRead(runtime->command,previous) && Same(&previous,&lastPublished,sizeof(previous)),"Shared command changed outside this client");
+            ZeroMemory(&pending,sizeof(pending));pending.bytes=sizeof(pending);pending.version=IpcVersion;pending.session=config.session;pending.levelEpoch=config.levelEpoch;
+            pending.sceneGeneration=snapshot.sceneGeneration;
+            pending.sequence=result.commandsPublished+1;pending.entity=entity;pending.operation=operation;pending.animation=animation;pending.remote=transform;
+            pending.targetLevel=targetLevel;pending.targetEntry=targetEntry;
+            if(operation==RuntimeOperation::FollowLevel){followSourceGeneration=snapshot.sceneGeneration;followTargetLevel=targetLevel;}
+            pendingActive=true;commandBegan=GetTickCount64();commandLastCheck=commandBegan;commandReadyWait=0;result.commandsPublished=pending.sequence;
+            CopyMemory(&lastPublished,&pending,sizeof(pending));Publish(runtime->command,pending);
         }
         bool Submit(const RuntimeOperation operation,const std::uint32_t entity,const Transform& transform,const RuntimeAnimation animation)
         {
@@ -469,14 +532,16 @@ namespace winxcoop::launcher
                 for(const auto value:transform.scale)Require(std::isfinite(value) && value>0,"Invalid local scale");
                 for(const auto value:transform.orientation)Require(std::isfinite(value),"Nonfinite local orientation");
             }
-            if(!Ready() || pendingActive)return false;
+            if(pendingActive || (operation==RuntimeOperation::Remove?!CanSubmitRemoval():!Ready()))return false;
             Require((operation==RuntimeOperation::Create && !logicalEntity) || (operation!=RuntimeOperation::Create && logicalEntity==entity),"Invalid local entity lifecycle");
-            Require(result.commandsPublished<MAXDWORD,"Native command sequence exhausted");RuntimeCommand previous{};
-            Require(TryRead(runtime->command,previous) && Same(&previous,&lastPublished,sizeof(previous)),"Shared command changed outside this client");
-            ZeroMemory(&pending,sizeof(pending));pending.bytes=sizeof(pending);pending.version=IpcVersion;pending.session=config.session;pending.levelEpoch=config.levelEpoch;
-            pending.sequence=result.commandsPublished+1;pending.entity=entity;pending.operation=operation;pending.animation=animation;pending.remote=transform;
-            pendingActive=true;commandBegan=GetTickCount64();commandLastCheck=commandBegan;commandReadyWait=0;result.commandsPublished=pending.sequence;
-            CopyMemory(&lastPublished,&pending,sizeof(pending));Publish(runtime->command,pending);return true;
+            PublishCommand(operation,entity,transform,animation);return true;
+        }
+        bool RequestSceneFollow(const std::uint32_t levelId,const std::uint32_t entryId)
+        {
+            OwnerThread();Require(config.menuFirst && config.sceneFollow && config.startupLevel && levelId>=1 && levelId<=50 && entryId==0,
+                "Native following requires an opted-in guest and a valid default-entry level");
+            if(pendingActive || !Ready() || logicalEntity || snapshot.remoteEntity || snapshot.remoteCreated!=snapshot.remoteRemoved)return false;
+            PublishCommand(RuntimeOperation::FollowLevel,0,{},RuntimeAnimation::Idle,levelId,entryId);return true;
         }
         void ParseOuter()
         {
@@ -525,17 +590,22 @@ namespace winxcoop::launcher
                 document.At("remoteEntity").Unsigned(MAXDWORD)==snapshot.remoteEntity && document.At("actorError").Unsigned(MAXDWORD)==snapshot.actorError &&
                 document.At("nativeCalls").Unsigned(MAXDWORD)==snapshot.nativeCalls &&
                 document.At("unloadGuardHits").Unsigned(MAXDWORD)==snapshot.unloadGuardHits && document.At("unloadCleanups").Unsigned(MAXDWORD)==snapshot.unloadCleanups &&
+                document.At("runtimeSceneGeneration").Unsigned(MAXDWORD)==snapshot.sceneGeneration &&
+                document.At("runtimeSceneRetirements").Unsigned(MAXDWORD)==snapshot.sceneRetirements &&
                 (!snapshot.remoteCreated || (snapshot.nativeCalls>0 && document.At("mediaQualifiedObserved").Boolean())),
                 "Playing exit has no matching retired native scene/cleanup observation");
             RuntimeCommand command{};RuntimeAck ack{};
             Require(TryRead(runtime->command,command) && Same(&command,&lastPublished,sizeof(command)) &&
                 TryRead(runtime->acknowledgement,ack) && Same(&ack,&acknowledgement,sizeof(ack)) &&
-                command.sequence==result.commandsPublished && ack.sequence==result.commandsAcknowledged &&
+                command.sequence==result.commandsPublished && ack.sequence==result.commandsCompleted &&
                 snapshot.lastCommandSequence==ack.sequence && command.sequence>=ack.sequence && command.sequence-ack.sequence<=1 &&
                 document.At("commandsSent").Unsigned(MAXDWORD)==0 && document.At("commandsAcknowledged").Unsigned(MAXDWORD)==0 &&
                 document.At("runtimeCommandsObserved").Boolean() && document.At("runtimeCommandStateConsistent").Boolean() &&
                 document.At("runtimePublishedCommandSequence").Unsigned(MAXDWORD)==command.sequence &&
                 document.At("runtimeAcknowledgedCommandSequence").Unsigned(MAXDWORD)==ack.sequence &&
+                document.At("runtimeAcknowledgementStatus").Unsigned(static_cast<unsigned>(RuntimeAckStatus::CancelledOnRetirement))==static_cast<unsigned>(ack.status) &&
+                document.At("runtimeAcknowledgementSceneGeneration").Unsigned(MAXDWORD)==ack.sceneGeneration &&
+                document.At("runtimePublishedSceneGeneration").Unsigned(MAXDWORD)==command.sceneGeneration &&
                 document.At("runtimeAcknowledgementWorldUpdates").Unsigned(MAXDWORD)==ack.worldUpdates &&
                 document.At("runtimeLastCommandSequence").Unsigned(MAXDWORD)==ack.sequence,
                 "Playing exit command/ACK evidence differs from the owned immutable mailboxes");
@@ -560,6 +630,7 @@ namespace winxcoop::launcher
                 document.At("gameLifetimeLimitEnabled").Boolean()!=config.menuFirst,"Helper lifetime policy differs from this launch");
             Require(document.At("startupLevel").Unsigned(50)==config.startupLevel &&
                 document.At("startupEntry").Unsigned(0)==config.startupEntry,"Helper startup selection differs from its immutable assigned scene");
+            Require(document.At("sceneFollow").Boolean()==config.sceneFollow,"Helper scene-follow policy differs from this launch");
             if(config.menuFirst)
                 Require(document.At("helperPid").Unsigned(MAXDWORD)==identity.helperPid &&
                     document.At("helperCreationTime").Unsigned()==identity.helperCreationTime,"Direct helper report names another process instance");
@@ -676,10 +747,14 @@ namespace winxcoop::launcher
             const auto now=GetTickCount64();
             if(pendingActive && !stopRequested && !(config.menuFirst && result.visualEpochRetired))
             {
-                const bool paused=haveHelper && helper.phase==GameHostPhase::Running && haveSnapshot &&
-                    snapshot.phase==RuntimePhase::WaitingForLevel && !snapshot.epochRetired && snapshot.gamePid==identity.gamePid &&
-                    now>=snapshot.monotonicMilliseconds && now-snapshot.monotonicMilliseconds<=1000;
-                if(now>=commandLastCheck && !paused)commandReadyWait+=now-commandLastCheck;
+                // Stock cinematics/loading may stop World entirely. A stale
+                // observation does not establish native Ready time and must
+                // never turn an ordinary cutscene into a stop/forced exit.
+                // Use the same native readiness admission as normal commands;
+                // the guest's additional follow barrier is not a native stall.
+                const bool eligible=!config.menuFirst || NativeReadyForCommandProgress();
+                if(now>=commandLastCheck && eligible)commandReadyWait+=config.menuFirst?
+                    std::min<ULONGLONG>(now-commandLastCheck,1000):now-commandLastCheck;
                 commandLastCheck=now;
                 Require(commandReadyWait<=CommandDeadline,"Native command acknowledgement timed out during ready time");
             }
@@ -716,9 +791,15 @@ namespace winxcoop::launcher
     {
         auto& client=*implementation_;try{return client.Submit(operation,entity,transform,animation);}catch(const std::exception& error){client.PumpFailure(error.what());}catch(...){client.PumpFailure("Unknown client command failure");}return false;
     }
+    bool GameProcessClient::RequestSceneFollow(const std::uint32_t levelId,const std::uint32_t entryId) noexcept
+    {
+        auto& client=*implementation_;try{return client.RequestSceneFollow(levelId,entryId);}catch(const std::exception& error){client.PumpFailure(error.what());}
+        catch(...){client.PumpFailure("Unknown client scene-follow failure");}return false;
+    }
     void GameProcessClient::RequestStop() noexcept {implementation_->Stop();}
     GameProcessClientPhase GameProcessClient::Phase() const noexcept {return implementation_->phase;}
     bool GameProcessClient::Ready() const noexcept {return implementation_->Ready();}
+    bool GameProcessClient::CanSubmitRemoval() const noexcept {return implementation_->CanSubmitRemoval();}
     bool GameProcessClient::HasRuntimeSnapshot() const noexcept {return implementation_->haveSnapshot;}
     bool GameProcessClient::CommandPending() const noexcept {return implementation_->pendingActive;}
     bool GameProcessClient::Finished() const noexcept {return implementation_->finalized;}

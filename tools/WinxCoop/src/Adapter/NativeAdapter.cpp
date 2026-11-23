@@ -3,8 +3,10 @@
 #include "RuntimeContract.h"
 #include "PinnedImage.h"
 #include "PassiveActor.h"
-#include "RemotePoseInterpolator.h"
+#include "PassivePoseSmoother.h"
 #include "GuestIsolation.h"
+#include "GuestSceneTransition.h"
+#include "PassiveImageCompatibility.h"
 #include <cmath>
 
 using namespace winxcoop::adapter;
@@ -21,16 +23,22 @@ namespace
     PinnedImage pinnedImage;
     PassiveActor actor;
     GuestIsolation guestIsolation;
-    RemotePoseInterpolator remoteInterpolation;
+    GuestSceneTransition guestTransition;
+    PassivePoseSmoother remoteInterpolation;
     RuntimeAnimation remoteAnimation{};
     std::uint64_t lastDisplayTime{};
     RuntimeStart configuration{};
     RuntimeCommand lastCommand{};
     RuntimeAck lastAck{};
+    RuntimeCommand pendingFollow{};
+    bool followPending{};
     HANDLE owner{}, assets[5]{};
     std::uint32_t actorProfile{}, actorAnimationManager{};
     std::uint32_t sceneProfile{}, sceneAnimationManager{}, sceneRecord{}, sceneRoot{}, scenePlayingState{};
+    std::uint32_t sceneFlow{}, sceneSceneManager{}, sceneLevelId{};
     bool qualifiedSceneSeen{};
+    bool sceneRearmEligible{}, retiredPlayingExitSeen{};
+    std::uint32_t retiredPlayingState{}, retiredFlow{}, retiredAtWorld{};
     bool guestStartupInstalled{}, guestStartupApplied{};
     BYTE guestStartupSignature[16]{};
     const char* guestStartupFailure{"not applied"};
@@ -92,6 +100,7 @@ namespace
     { return safePhase!=SafePhase::None && GetCurrentThreadId()==mainThread && InterlockedCompareExchange(&inHandler,0,0)==1; }
     bool PassiveMode() noexcept { return configuration.mode==RuntimeMode::PassiveActor; }
     bool GuestMode() noexcept { return PassiveMode() && configuration.startupLevel!=0; }
+    bool SceneFollowing() noexcept { return PassiveMode() && configuration.sceneFollow==1; }
     void TraceLifetimeFailure() noexcept
     {
         char text[384]{};char* cursor=text;char* const end=text+sizeof(text)-1;
@@ -204,22 +213,32 @@ namespace
     }
     void PublishRetired(const ULONGLONG now) noexcept
     {
-        snapshot.phase=RuntimePhase::Stopped;snapshot.monotonicMilliseconds=now;
+        snapshot.levelId=0;snapshot.localComponentCount=0;snapshot.local={};snapshot.localAnimationQualified=0;
+        snapshot.localFsmState=0xFFFFFFFFu;snapshot.remoteDisplay={};snapshot.mediaQualified=0;
+        snapshot.phase=RuntimePhase::Stopped;snapshot.monotonicMilliseconds=now;lastPublished=now;
         Statistics();Publish(shared->snapshot,snapshot);
     }
-    bool RetireVisualEpoch() noexcept
+    bool RetireVisualEpoch(const bool cohortBoundary=false,const bool playingExit=false) noexcept
     {
-        if(actor.Created() || actor.Poisoned())return false;
+        if(actor.Created() || actor.Poisoned() || snapshot.epochRetired || snapshot.sceneRetirements==0xFFFFFFFFu)return false;
+        retiredPlayingState=scenePlayingState;retiredFlow=sceneFlow;retiredAtWorld=snapshot.worldUpdates;
+        sceneRearmEligible=SceneFollowing() && cohortBoundary;retiredPlayingExitSeen=playingExit;
         if(GuestMode())guestIsolation.Retire();
+        ++snapshot.sceneRetirements;
         snapshot.epochRetired=1;snapshot.remoteEntity=0;snapshot.levelId=0;snapshot.localComponentCount=0;
         snapshot.local={};snapshot.localAnimationQualified=0;snapshot.localFsmState=0xFFFFFFFFu;
         snapshot.remoteDisplay={};snapshot.mediaQualified=0;
         actorProfile=actorAnimationManager=0;
         sceneProfile=sceneAnimationManager=sceneRecord=sceneRoot=scenePlayingState=0;
+        sceneFlow=sceneSceneManager=sceneLevelId=0;
         qualifiedSceneSeen=false;remoteInterpolation.Clear();lastDisplayTime=0;
         CloseAssetPins();
         PublishRetired(GetTickCount64());
-        OutputDebugStringA("WinxCoop visual epoch retired; original game continues without scene reuse");
+        OutputDebugStringA("WinxCoop visual scene retired; owned resources cleaned before any new scene arm");
+        if(SceneFollowing())OutputDebugStringA(!cohortBoundary?
+            "WinxCoop scene rearm forbidden: owner changed without the captured native unload boundary":
+            playingExit?"WinxCoop scene rearm awaits later quiescent Playing after witnessed original Exit":
+                "WinxCoop scene rearm awaits captured original Playing Exit after profile or animation cleanup");
         return true;
     }
     bool GuardSignature(const UnloadGuard& guard) noexcept
@@ -345,7 +364,8 @@ namespace
     {
         return a.bytes==b.bytes && a.version==b.version && a.session==b.session && a.levelEpoch==b.levelEpoch &&
             a.sequence==b.sequence && a.entity==b.entity && a.operation==b.operation && a.animation==b.animation &&
-            a.reserved==b.reserved && Same(&a.remote,&b.remote,sizeof(a.remote));
+            a.sceneGeneration==b.sceneGeneration && a.targetLevel==b.targetLevel && a.targetEntry==b.targetEntry &&
+            Same(&a.remote,&b.remote,sizeof(a.remote));
     }
     bool CommandTransform(const Transform& transform) noexcept
     {
@@ -354,7 +374,85 @@ namespace
         for(float x:transform.orientation)if(!Finite(x))return false;
         return true; // PassiveActor independently qualifies matrix and stock scale.
     }
-    bool Commands(const bool ready) noexcept
+    bool MaintenanceUi(const std::uint32_t object) noexcept
+    {
+        struct Ui final { std::uint32_t table,id,getter,record; };
+        static constexpr Ui allowed[]={
+            {0x710398,53,0x5F0080,0x768A50}, // Pause
+            {0x70ED30,61,0x5D53C0,0x767FD8}, // Diary
+            {0x70FD38,66,0x5E5310,0x768750}}; // Options/exit confirmation
+        std::uint32_t table{},id{},getter{};
+        if(object<0x10000 || !Read(object,&table,4) || !Read(object+0x10,&id,4))return false;
+        for(const auto& ui:allowed)if(table==ui.table && id==ui.id)
+        {
+            BYTE code[]={0xB8,static_cast<BYTE>(ui.record),static_cast<BYTE>(ui.record>>8),
+                static_cast<BYTE>(ui.record>>16),static_cast<BYTE>(ui.record>>24),0xC3};
+            return Word(sceneFlow+0x18+ui.id*4)==object && Read(table+0x10,&getter,4) && getter==ui.getter &&
+                pinnedImage.VerifyFeatureCode(ui.getter,code,sizeof(code));
+        }
+        return false;
+    }
+    bool RetainedForMaintenance() noexcept
+    {
+        // Tick has independently validated the live actor owner. This narrower
+        // admission is only the captured Playing underneath known stock UI,
+        // with no queued flow operation and the original world quiescence.
+        // It cannot create a visual, change scenes or revive a retired epoch.
+        if(!ActorPhase() || !qualifiedSceneSeen || snapshot.epochRetired || !actor.Created() || actor.Poisoned() ||
+            Word(0x755294)!=sceneFlow || Word(sceneFlow)!=0x702D2C || Word(0x75DB90)!=sceneSceneManager ||
+            Word(0x765AD4)!=sceneProfile || Word(sceneProfile)!=0x6F5A44 || Word(sceneProfile+0x2B4)!=sceneRecord ||
+            Word(sceneRecord)!=0x710F80 || Word(sceneRecord+0x20)!=11 || Word(sceneRecord+0x24)!=sceneRoot ||
+            Word(sceneRoot)!=0x6DC4F4 || Word(Word(sceneRoot+0x3C))!=0x6E7358 ||
+            Word(0x765ADC)!=sceneAnimationManager || Word(sceneAnimationManager)!=0x703470 ||
+            Word(scenePlayingState)!=0x710874 || Word(scenePlayingState+0x10)!=sceneLevelId ||
+            sceneLevelId<1 || sceneLevelId>50)return false;
+        std::uint32_t depth{},pending{},currentScene{},current{};
+        if(!Read(sceneFlow+0x1AC,&depth,4) || !depth || depth>20 ||
+            !Read(sceneFlow+0x1B8,&pending,4) || pending ||
+            !Read(sceneSceneManager+0x20,&currentScene,4) || currentScene ||
+            !Read(sceneFlow+0x1B0,&current,4))return false;
+        // All ten queue records must be empty; a consumed first slot does
+        // not independently rule out a later delayed operation.
+        for(unsigned i=1;i<10;++i)
+            if(!Read(sceneFlow+0x1B8+i*12,&pending,4) || pending)return false;
+        bool found=false;unsigned above{};
+        for(std::uint32_t i=0;i<=depth;++i)
+        {
+            std::uint32_t object{};if(!Read(sceneFlow+0x15C+i*4,&object,4))return false;
+            if(object==scenePlayingState){if(found)return false;found=true;}
+            else if(found){if(!MaintenanceUi(object))return false;++above;}
+            if(i==depth && (!found || !above || Word(object+0x10)!=current))return false;
+        }
+        return found && above;
+    }
+    void TraceMaintenance(const RuntimeCommand& command,const std::uint32_t nativeBefore) noexcept
+    {
+        char text[]="WinxCoop retained-ui maintenance ACK operation=00000000 sequence=00000000 nativeBefore=00000000 nativeAfter=00000000";
+        const std::uint32_t values[]={static_cast<std::uint32_t>(command.operation),command.sequence,nativeBefore,actor.Statistics().nativeCalls};
+        constexpr unsigned offsets[]={
+            sizeof("WinxCoop retained-ui maintenance ACK operation=")-1,
+            sizeof("WinxCoop retained-ui maintenance ACK operation=00000000 sequence=")-1,
+            sizeof("WinxCoop retained-ui maintenance ACK operation=00000000 sequence=00000000 nativeBefore=")-1,
+            sizeof("WinxCoop retained-ui maintenance ACK operation=00000000 sequence=00000000 nativeBefore=00000000 nativeAfter=")-1};
+        static_assert(offsets[3]+8==sizeof(text)-1,"bounded maintenance trace fields");
+        for(unsigned i=0;i<4;++i)for(unsigned j=0;j<8;++j)text[offsets[i]+j]="0123456789ABCDEF"[(values[i]>>(28-j*4))&15];
+        OutputDebugStringA(text);
+    }
+    void CommandOutcome(const RuntimeCommand& command,const RuntimeAckStatus status,const RuntimeError error) noexcept
+    {
+        Statistics();lastCommand=command;snapshot.lastCommandSequence=command.sequence;
+        lastAck={};lastAck.bytes=sizeof(lastAck);lastAck.version=IpcVersion;lastAck.session=command.session;
+        lastAck.levelEpoch=command.levelEpoch;lastAck.sequence=command.sequence;lastAck.entity=command.entity;
+        lastAck.operation=command.operation;lastAck.status=status;lastAck.error=error;
+        lastAck.worldUpdates=snapshot.worldUpdates;lastAck.actorError=snapshot.actorError;lastAck.sceneGeneration=command.sceneGeneration;
+        Publish(shared->acknowledgement,lastAck);
+        // The actual consumed outcome and its witness must be visible before
+        // returning to original code, including an immediate stock Quit.
+        // This also covers the private Follow completion outside a World Tick.
+        snapshot.monotonicMilliseconds=GetTickCount64();lastPublished=snapshot.monotonicMilliseconds;
+        Publish(shared->snapshot,snapshot);
+    }
+    bool Commands(const bool ready,const bool retainedForMaintenance,CONTEXT& context,bool& redirected) noexcept
     {
         RuntimeCommand command{};
         if(!TryRead(shared->command,command))return true;
@@ -363,19 +461,45 @@ namespace
             RuntimeCommand empty{};
             return SameCommand(command,empty) && !lastCommand.sequence;
         }
+        const Transform emptyTransform{};
+        const bool canonicalFollow=command.operation==RuntimeOperation::FollowLevel && SceneFollowing() && GuestMode() &&
+            command.entity==0 && command.animation==RuntimeAnimation::Idle && command.targetLevel>=1 && command.targetLevel<=50 &&
+            command.targetEntry==0 && Same(&command.remote,&emptyTransform,sizeof(emptyTransform));
+        const bool canonicalVisual=command.operation>=RuntimeOperation::Create && command.operation<=RuntimeOperation::Remove &&
+            command.entity>=1 && command.entity<=2 && !command.targetLevel && !command.targetEntry && command.animation<=RuntimeAnimation::Jump;
         if(command.bytes!=sizeof(command) || command.version!=IpcVersion || command.session!=configuration.session ||
-            command.levelEpoch!=configuration.levelEpoch || !command.entity || command.entity>2 || command.reserved ||
-            command.operation<RuntimeOperation::Create || command.operation>RuntimeOperation::Remove ||
-            command.animation>RuntimeAnimation::Jump || !PassiveMode())return false;
+            command.levelEpoch!=configuration.levelEpoch || !command.sceneGeneration || command.sceneGeneration>snapshot.sceneGeneration ||
+            (!canonicalFollow && !canonicalVisual) || !PassiveMode())return false;
+        if(followPending)return SameCommand(command,pendingFollow) && guestTransition.Pending();
         if(command.sequence==lastCommand.sequence)
         {
             if(!SameCommand(command,lastCommand))return false;
             return true; // Already acknowledged, never execute twice.
         }
-        if(lastCommand.sequence==0xFFFFFFFF || command.sequence!=lastCommand.sequence+1 || snapshot.epochRetired)return false;
+        if(lastCommand.sequence==0xFFFFFFFF || command.sequence!=lastCommand.sequence+1)return false;
         RuntimeAck previous{};
         if(!TryRead(shared->acknowledgement,previous) || !Same(&previous,&lastAck,sizeof(lastAck)))return false;
-        if(!ready)return true; // Hold the same next command; no native call or ACK during pause.
+        if(SceneFollowing() && (snapshot.epochRetired || command.sceneGeneration<snapshot.sceneGeneration))
+        {
+            if(command.sceneGeneration>snapshot.sceneRetirements)return false;
+            CommandOutcome(command,RuntimeAckStatus::CancelledOnRetirement,RuntimeError::None);
+            OutputDebugStringA("WinxCoop immutable command consumed as CancelledOnRetirement; no native operation executed");
+            return true;
+        }
+        if(snapshot.epochRetired || command.sceneGeneration!=snapshot.sceneGeneration)return false;
+        if(command.operation==RuntimeOperation::FollowLevel)
+        {
+            if(!ready || !guestTransition.CanBeginAtWorld(context,command.targetLevel,command.targetEntry))return true;
+            if(actor.Created() || snapshot.remoteEntity || snapshot.remoteCreated!=snapshot.remoteRemoved ||
+                !guestTransition.BeginAtWorld(context,command.targetLevel,command.targetEntry))return false;
+            pendingFollow=command;followPending=true;redirected=true;return true;
+        }
+        // A pending Apply may admit only its interpolation target while exact
+        // retained UI covers Playing. Remove may clean that retained actor.
+        // Create and all unknown/not-ready contexts still hold unchanged.
+        const bool maintenance=!ready && retainedForMaintenance;
+        if(!ready && (!maintenance || command.operation==RuntimeOperation::Create))return true;
+        const auto nativeBefore=actor.Statistics().nativeCalls;
         bool applied=false;
         if(command.operation==RuntimeOperation::Create)
         {
@@ -400,7 +524,7 @@ namespace
             {
                 Transform current{};const auto now=GetTickCount64();
                 applied=CommandTransform(command.remote) && remoteInterpolation.SetTarget(command.remote,now) && remoteInterpolation.Sample(now,current) &&
-                    actor.ApplyRemote(current,static_cast<PassiveAnimation>(command.animation));
+                    (maintenance || actor.ApplyRemote(current,static_cast<PassiveAnimation>(command.animation)));
                 if(applied)remoteAnimation=command.animation;
             }
             else
@@ -409,29 +533,66 @@ namespace
                 if(applied){snapshot.remoteEntity=0;actorProfile=actorAnimationManager=0;remoteInterpolation.Clear();lastDisplayTime=0;}
             }
         }
-        Statistics();
-        lastCommand=command;snapshot.lastCommandSequence=command.sequence;
-        lastAck={};lastAck.bytes=sizeof(lastAck);lastAck.version=IpcVersion;lastAck.session=command.session;
-        lastAck.levelEpoch=command.levelEpoch;lastAck.sequence=command.sequence;lastAck.entity=command.entity;
-        lastAck.operation=command.operation;lastAck.status=applied?RuntimeAckStatus::Applied:RuntimeAckStatus::Failed;
-        lastAck.error=applied?RuntimeError::None:RuntimeError::Actor;lastAck.worldUpdates=snapshot.worldUpdates;lastAck.actorError=snapshot.actorError;
-        Publish(shared->acknowledgement,lastAck);
+        CommandOutcome(command,applied?RuntimeAckStatus::Applied:RuntimeAckStatus::Failed,applied?RuntimeError::None:RuntimeError::Actor);
+        if(applied && maintenance)TraceMaintenance(command,nativeBefore);
         if(!applied)FailClosed(RuntimeError::Actor);
         return applied;
     }
-    void Tick() noexcept
+    bool RearmPins() noexcept
+    {
+        // Source was verified and file-pinned once before publication. Preserve
+        // those pins and all global hooks; recheck every admitted live feature
+        // before observing a new cohort instead of installing hooks again.
+        for(const auto& guard:unloadGuards)if(!guard.installed || !GuardSignature(guard))return false;
+        for(const auto& pin:image_compatibility::CodePins)
+        {
+            bool own=pin.address==WorldReturn;
+            for(const auto& guard:unloadGuards)if(pin.address==guard.address)own=true;
+            if(!own && !pinnedImage.Verify(pin.address,pin.size))return false;
+        }
+        for(const auto& pin:image_compatibility::LayoutPins)
+        {
+            BYTE bytes[32]{};
+            if(pin.size>sizeof(bytes) || !Read(pin.address,bytes,pin.size) || !Same(bytes,pin.bytes.data(),pin.size))return false;
+        }
+        return true;
+    }
+    bool EmptyFlowQueue() noexcept
+    {
+        const auto flow=Word(0x755294);if(Word(flow)!=0x702D2C)return false;
+        for(unsigned i=0;i<10;++i){std::uint32_t target{};if(!Read(flow+0x1B8+i*12,&target,4) || target)return false;}
+        return true;
+    }
+    void Tick(CONTEXT& context,bool& redirected) noexcept
     {
         ++snapshot.worldUpdates;
-        const auto now = GetTickCount64();
         if(!owner || WaitForSingleObject(owner,0)!=WAIT_TIMEOUT || shared->magic!=IpcMagic || shared->version!=IpcVersion ||
             shared->bytes!=sizeof(*shared) || shared->nonce!=configuration.nonce || shared->launcherPid!=GetProcessId(owner))
             {FailClosed(RuntimeError::Owner);return;}
-        // A retired visual epoch never follows the old scene, borrowed clips,
-        // pending command or a fresh scene. The original game continues normally.
+        if(GuestMode() && SceneFollowing() && !guestTransition.OnLaterWorld(context))
+            {TraceDetail("WinxCoop guest transition cleanup failure: ",guestTransition.Failure());FailClosed(RuntimeError::NativeException);return;}
+        // Only an explicitly selected menu-first service may arm a new native
+        // cohort. A real old Playing Exit must have been witnessed, including
+        // when an earlier profile/animation clear retired its visual first.
         if(snapshot.epochRetired)
         {
-            if(now-lastPublished>=50){lastPublished=now;PublishRetired(now);}
-            return;
+            if(SceneFollowing() && !Commands(false,false,context,redirected)){FailClosed(RuntimeError::Command);return;}
+            if(!SceneFollowing() || !sceneRearmEligible || !retiredPlayingExitSeen || snapshot.worldUpdates<=retiredAtWorld ||
+                !Observe() || !EmptyFlowQueue() || !MediaMatchesNative())
+            {const auto publishNow=GetTickCount64();if(publishNow-lastPublished>=50)PublishRetired(publishNow);return;}
+            if(!RearmPins() || actor.Created() || actor.Poisoned() || snapshot.remoteEntity || snapshot.remoteCreated!=snapshot.remoteRemoved ||
+                snapshot.sceneGeneration==0xFFFFFFFFu){FailClosed(RuntimeError::Unload);return;}
+            if(GuestMode())
+            {
+                const auto target=guestTransition.TargetLevel();
+                if(!target || snapshot.levelId!=target)
+                {const auto publishNow=GetTickCount64();if(publishNow-lastPublished>=50)PublishRetired(publishNow);return;}
+                if(!guestIsolation.BeginNextScene(target))
+                {TraceDetail("WinxCoop guest scene rearm failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Identity);return;}
+            }
+            ++snapshot.sceneGeneration;snapshot.epochRetired=0;sceneRearmEligible=false;retiredPlayingExitSeen=false;
+            retiredPlayingState=retiredFlow=retiredAtWorld=0;
+            OutputDebugStringA("WinxCoop new native scene generation armed after exact old Playing Exit; hooks and IPC sequence retained");
         }
         const auto timer=Word(0x755298);BYTE paused{},timerActive{};
         snapshot.gameTimerPaused=Read(timer+0x40,&paused,1)?paused:0xFFFFFFFFu;
@@ -452,7 +613,8 @@ namespace
                 {
                     if(configuration.startupLevel)
                     {
-                        if(!guestStartupApplied || snapshot.levelId!=configuration.startupLevel)
+                        const auto expected=snapshot.sceneGeneration==1?configuration.startupLevel:guestTransition.TargetLevel();
+                        if(!guestStartupApplied || snapshot.levelId!=expected)
                         {TraceDetail("WinxCoop guest startup failure: ","first actual Playing scene differs from assigned startup");FailClosed(RuntimeError::Identity);return;}
                         std::uint32_t slot=0xFFFFFFFFu;const bool slotRead=Read(profile+0x6DC,&slot,4);
                         char text[]="WinxCoop guest startup ready level=00000000 saveSlotRaw=00000000 slotRead=0";
@@ -470,6 +632,7 @@ namespace
                         {TraceDetail("WinxCoop guest flow readiness failure: ",guestIsolation.Failure());FailClosed(RuntimeError::Identity);return;}
                     }
                     sceneProfile=profile;sceneAnimationManager=manager;sceneRecord=record;sceneRoot=root;scenePlayingState=playing;
+                    sceneFlow=flow;sceneSceneManager=Word(0x75DB90);sceneLevelId=snapshot.levelId;
                     qualifiedSceneSeen=true;
                 }
                 else if(sceneProfile!=profile || sceneAnimationManager!=manager || sceneRecord!=record || sceneRoot!=root || scenePlayingState!=playing)
@@ -508,7 +671,8 @@ namespace
                 }
                 if(ready)lastPausedReason=0;
             }
-            if(!Commands(ready && !snapshot.epochRetired)){FailClosed(RuntimeError::Command);return;}
+            if(!Commands(ready && !snapshot.epochRetired,!ready && mediaMatches && RetainedForMaintenance(),context,redirected)){FailClosed(RuntimeError::Command);return;}
+            if(redirected)return;
             if(ready && actor.Created())
             {
                 const auto renderNow=GetTickCount64();
@@ -533,8 +697,9 @@ namespace
             if(TryRead(shared->command,command) && !SameCommand(command,empty)){FailClosed(RuntimeError::Command);return;}
         }
         if(InterlockedCompareExchange(&terminalError,0,0))return;
-        if (now - lastPublished < 50) return;lastPublished = now;
-        snapshot.monotonicMilliseconds = now;
+        const auto publishNow=GetTickCount64();
+        if (publishNow - lastPublished < 50) return;lastPublished = publishNow;
+        snapshot.monotonicMilliseconds = publishNow;
         snapshot.phase = snapshot.epochRetired?RuntimePhase::Stopped:ready?RuntimePhase::Ready:RuntimePhase::WaitingForLevel;
         Statistics();
         Publish(shared->snapshot, snapshot);
@@ -552,6 +717,19 @@ namespace
         }
         if(!GuardSignature(guard) || context.Eip!=guard.address || context.Esp<0x10004 || (context.Esp&3) || (context.EFlags&0x100))return false;
         ++snapshot.unloadGuardHits;
+        const auto exactPlayingExit=[&](const std::uint32_t flow,const std::uint32_t playing) noexcept
+        {
+            std::uint32_t depth{};
+            return guard.address==0x5F86C0 && playing && context.Ecx==playing && Word(playing)==0x710874 &&
+                Word(0x755294)==flow && Word(flow)==0x702D2C && Read(flow+0x1AC,&depth,4) && depth<=20 &&
+                Word(flow+0x15C+depth*4)==playing;
+        };
+        if(snapshot.epochRetired && sceneRearmEligible && !retiredPlayingExitSeen &&
+            exactPlayingExit(retiredFlow,retiredPlayingState))
+        {
+            retiredPlayingExitSeen=true;
+            OutputDebugStringA("WinxCoop retired cohort reached its exact original Playing Exit; later scene observation may rearm");
+        }
         bool cohortBoundary=false;
         if(qualifiedSceneSeen && !snapshot.epochRetired)
         {
@@ -586,10 +764,12 @@ namespace
             remoteInterpolation.Clear();lastDisplayTime=0;
             OutputDebugStringA("WinxCoop passive actor removed before native unload entry");
         }
-        // No automatic rearm: a later scene/session needs a fresh epoch owner.
+        // A profile/animation clear alone is not a completed scene switch.
+        // A selected follow service additionally latches the exact Playing Exit
+        // before a later quiescent world may observe and bind a new cohort.
         if(cohortBoundary && qualifiedSceneSeen)
         {
-            if(!RetireVisualEpoch())return false;
+            if(!RetireVisualEpoch(true,exactPlayingExit(sceneFlow,scenePlayingState)))return false;
         }
         // Permanent hook, exact original PUSH semantics. No single-step flag,
         // no temporary restoration/rearm interval where another unload can pass.
@@ -614,7 +794,8 @@ namespace
         if(PassiveMode())for(auto& candidate:unloadGuards)if(candidate.installed && candidate.address==at)guard=&candidate;
         const bool guestStartup=guestStartupInstalled && at==GuestSettingsReturn;
         const bool guestPolicy=GuestMode() && guestIsolation.Handles(static_cast<std::uint32_t>(at));
-        if(at!=WorldReturn && !guard && !guestStartup && !guestPolicy)return EXCEPTION_CONTINUE_SEARCH;
+        const bool followCompletion=GuestMode() && SceneFollowing() && guestTransition.Handles(static_cast<std::uint32_t>(at));
+        if(at!=WorldReturn && !guard && !guestStartup && !guestPolicy && !followCompletion)return EXCEPTION_CONTINUE_SEARCH;
         if (at==WorldReturn && InterlockedCompareExchange(&firstWorldLogged,1,0)==0)
         {
             std::uint32_t observedCaller{};
@@ -628,6 +809,24 @@ namespace
             // this owned diagnostic before another game instruction can run.
             FailClosed(RuntimeError::Thread);
             return EXCEPTION_CONTINUE_SEARCH;
+        }
+        if(followCompletion)
+        {
+            RuntimeCommand current{};RuntimeAck previous{};bool completed=false;
+            __try
+            {
+                completed=followPending && TryRead(shared->command,current) && SameCommand(current,pendingFollow) &&
+                    TryRead(shared->acknowledgement,previous) && Same(&previous,&lastAck,sizeof(lastAck)) &&
+                    guestTransition.Complete(*exception->ContextRecord);
+            }
+            __except(EXCEPTION_EXECUTE_HANDLER) { FailClosed(RuntimeError::NativeException); }
+            if(!completed)
+            {TraceDetail("WinxCoop guest follow completion failure: ",guestTransition.Failure());FailClosed(RuntimeError::Command);return EXCEPTION_CONTINUE_SEARCH;}
+            snapshot.phase=RuntimePhase::WaitingForLevel;snapshot.levelId=0;snapshot.localComponentCount=0;
+            snapshot.local={};snapshot.localAnimationQualified=0;snapshot.localFsmState=0xFFFFFFFFu;
+            CommandOutcome(pendingFollow,RuntimeAckStatus::Applied,RuntimeError::None);pendingFollow={};followPending=false;
+            OutputDebugStringA("WinxCoop FollowLevel acknowledged after original native flow request completed; awaiting actual scene readiness");
+            InterlockedExchange(&inHandler,0);return EXCEPTION_CONTINUE_EXECUTION;
         }
         if(guestPolicy)
         {
@@ -667,12 +866,16 @@ namespace
             return EXCEPTION_CONTINUE_SEARCH;
         }
         safePhase=SafePhase::World;
-        __try { Tick(); }
+        bool redirected=false;
+        __try { Tick(*exception->ContextRecord,redirected); }
         __except(EXCEPTION_EXECUTE_HANDLER) { FailClosed(RuntimeError::NativeException); }
         safePhase=SafePhase::None;
         if(InterlockedCompareExchange(&terminalError,0,0))return EXCEPTION_CONTINUE_SEARCH;
-        exception->ContextRecord->Eip = caller;
-        exception->ContextRecord->Esp += 4; // Exact semantics of the verified C3.
+        if(!redirected)
+        {
+            exception->ContextRecord->Eip = caller;
+            exception->ContextRecord->Esp += 4; // Exact semantics of the verified C3.
+        }
         InterlockedExchange(&inHandler,0);
         return EXCEPTION_CONTINUE_EXECUTION;
     }
@@ -684,7 +887,8 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
     if (!Read(reinterpret_cast<std::uintptr_t>(argument), &start, sizeof(start)) || start.bytes != sizeof(start) ||
         start.version != IpcVersion || start.gamePid != GetCurrentProcessId() || !start.mainThreadId || !start.nonce ||
         start.mappingName[127] != 0 || !start.mappingName[0] || GetCurrentThreadId()!=start.mainThreadId ||
-        start.mode>RuntimeMode::PassiveActor || start.startupLevel>50 || start.startupEntry ||
+        start.mode>RuntimeMode::PassiveActor || start.startupLevel>50 || start.startupEntry || start.sceneFollow>1 ||
+        (start.sceneFollow && start.mode!=RuntimeMode::PassiveActor) ||
         (start.mode==RuntimeMode::PassiveActor && (!start.session || !start.levelEpoch)) ||
         (start.mode==RuntimeMode::Observe && (start.session || start.levelEpoch || start.mediaDirectory[0] || start.startupLevel)))
         return static_cast<DWORD>(RuntimeError::Identity);
@@ -730,9 +934,12 @@ extern "C" __declspec(dllexport) DWORD WINAPI WinxCoopStartAdapter(void* argumen
         {TraceDetail("WinxCoop guest startup failure: ","settings-return signature read failed");CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}
         if(!guestIsolation.Prepare(pinnedImage,mainThread,start.startupLevel))
         {TraceDetail("WinxCoop guest isolation preparation failed: ",guestIsolation.Failure());CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}
+        if(start.sceneFollow && !guestTransition.Prepare(pinnedImage,guestIsolation,mainThread))
+        {TraceDetail("WinxCoop guest transition preparation failed: ",guestTransition.Failure());CloseResourcesBeforeHooks();return static_cast<DWORD>(RuntimeError::Signature);}
     }
     snapshot.gamePid = start.gamePid; snapshot.mainThreadId = mainThread; snapshot.phase = RuntimePhase::Attached;
     snapshot.mode=start.mode;snapshot.session=start.session;snapshot.levelEpoch=start.levelEpoch;
+    snapshot.sceneGeneration=1;
     if(PassiveMode())
     {
         // Ordinary boot/menu does not load or content-hash any visual asset.

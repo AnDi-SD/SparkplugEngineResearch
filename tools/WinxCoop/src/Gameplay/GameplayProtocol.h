@@ -26,14 +26,14 @@ namespace winxcoop::gameplay
     [[nodiscard]] bool operator==(const LevelDescriptor&, const LevelDescriptor&) noexcept;
 
     enum class MessageKind : std::uint8_t
-    { Hello = 1, Welcome, Ready, Resume, Input, State, Remove, ObservedState, ObservationRejected };
+    { Hello = 1, Welcome, Ready, Resume, Input, State, Remove, ObservedState, ObservationRejected, SceneSuspend };
     enum class Phase
     { Idle, AwaitingHello, AwaitingAssignment, WaitingForHostLevel, Loading, Running, Closed, Failed };
     enum class Error
     { None, InvalidMessage, Incompatible, WrongRole, WrongPhase, InvalidEpoch, Backpressure, ResourceFailure, SequenceExhausted, InputDiscontinuity, ObservationDiscontinuity };
     enum class ReceiveResult { Accepted, IgnoredStale, WrongConnection, Rejected };
     enum class Animation : std::uint16_t { Idle, Walk, Jump };
-    enum class EventKind { LevelAssigned, Started, GuestInput, AcceptedState, EntityRemoved, Disconnected, ObservedState, ObservationAccepted, ObservationRejected };
+    enum class EventKind { LevelAssigned, Started, GuestInput, AcceptedState, EntityRemoved, Disconnected, ObservedState, ObservationAccepted, ObservationRejected, SceneSuspended };
 
     struct InputIntent
     {
@@ -94,6 +94,9 @@ namespace winxcoop::gameplay
         ObservationToken observationToken;
         std::uint16_t removalReason = 0;
         std::uint16_t rejectionReason = 0;
+        std::uint16_t suspensionReason = 0;
+        // Explicit protocol-fence cancellations, never decisions or native ACKs.
+        std::uint32_t cancelledObservations = 0, cancelledMessages = 0;
     };
     struct Config
     {
@@ -107,13 +110,16 @@ namespace winxcoop::gameplay
         // Menu-first negotiation starts with no selected level (ID0). Only an
         // actual Host ready observation may assign it. Legacy profiles stay exact.
         bool allowDeferredLevel = false;
+        // V4 scene continuation is explicit and restricted to deferred profiles.
+        // It preserves carrier/session identity while issuing fresh scene epochs.
+        bool allowSceneFollow = false;
     };
 
     class GameplayProtocol final
     {
     public:
         static constexpr std::uint32_t ClassId = 0x31504357; // WCP1 family tag, carrier type 2; version is explicit below
-        static constexpr std::uint16_t Version = 3;
+        static constexpr std::uint16_t Version = 4;
         static constexpr std::uint32_t HostEntity = 1, GuestEntity = 2;
         static constexpr std::size_t MaximumPayload = 256, MaximumOutbound = 8, MaximumEvents = 16, MaximumPendingObservations = 16;
         explicit GameplayProtocol(Config);
@@ -123,6 +129,11 @@ namespace winxcoop::gameplay
         // Trusted host calls this only after campaign start/current scene is
         // actually ready. No guest API chooses a level or starts gameplay.
         [[nodiscard]] bool HostAssignLevel(std::uint32_t epoch, const LevelDescriptor& actualReadyLevel);
+        // Host-only fence after actual native retirement. Cancels old protocol
+        // observations/unsent data, never native commands. A later assignment
+        // must use a strictly higher epoch. Control messages/events stay FIFO.
+        // Idempotent only for the same reason while already suspended.
+        [[nodiscard]] bool HostSuspendLevel(std::uint16_t reason = 0);
         [[nodiscard]] bool NotifyLocalReady(const LevelDescriptor& actualReadyLevel);
         [[nodiscard]] const LevelDescriptor& AssignedLevel() const noexcept { return config_.qualifiedLevel; }
         // V2 source API retained explicitly inactive. V3 forwards stock local
@@ -168,6 +179,7 @@ namespace winxcoop::gameplay
         [[nodiscard]] std::uint32_t LevelEpoch() const noexcept { return epoch_; }
         [[nodiscard]] bool LocalReady() const noexcept { return localReady_; }
         [[nodiscard]] bool PeerReady() const noexcept { return peerReady_; }
+        [[nodiscard]] bool SceneSuspended() const noexcept { return suspended_; }
         [[nodiscard]] bool EntityAlive(std::uint32_t entity) const noexcept;
         // Retired V2 diagnostic counter, always zero in V3.
         [[nodiscard]] std::uint32_t LastGuestInputSequence() const noexcept { return 0; }
@@ -185,6 +197,8 @@ namespace winxcoop::gameplay
         [[nodiscard]] bool Push(Event);
         [[nodiscard]] bool SendWelcome();
         [[nodiscard]] bool SendResume();
+        [[nodiscard]] bool SuspendScene(std::uint16_t reason);
+        void ResetEpochCounters() noexcept;
         [[nodiscard]] ObservationToken MakeObservationToken(std::uint32_t sequence, const ObservedState&) const noexcept;
         [[nodiscard]] bool IsFrontObservation(const ObservationToken&) const noexcept;
         [[nodiscard]] bool EmitState(const AcceptedState&);
@@ -199,10 +213,14 @@ namespace winxcoop::gameplay
         std::uint32_t epoch_ = 0;
         bool helloReceived_ = false, assigned_ = false, welcomeSent_ = false;
         bool localReady_ = false, peerReady_ = false;
+        bool suspended_ = false;
+        std::uint16_t suspensionReason_ = 0;
         std::array<bool, 3> alive_{};
         // Independent monotonically increasing, nonwrapping counters for each
-        // message kind and entity. A new instance is required before exhaustion.
-        std::array<std::array<std::uint32_t, 3>, 10> sent_{}, received_{};
+        // message kind/entity within an epoch. Follow resets data counters only
+        // behind an explicit scene fence; Hello remains connection-scoped.
+        // A fresh connection is required before epoch or counter exhaustion.
+        std::array<std::array<std::uint32_t, 3>, 11> sent_{}, received_{};
         std::array<std::uint32_t, 3> stateTicks_{};
         std::uint32_t lastObservation_ = 0, lastObservationTick_ = 0, lastDecision_ = 0;
         std::deque<PendingObservation> pendingObservations_;

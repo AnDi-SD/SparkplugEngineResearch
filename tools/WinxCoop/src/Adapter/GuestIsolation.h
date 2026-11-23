@@ -18,6 +18,13 @@ namespace winxcoop::adapter
         bool Handles(std::uint32_t address) const noexcept;
         bool Handle(CONTEXT& context) noexcept;
         bool SceneReady() noexcept;
+        bool CanFollow(std::uint32_t target) const noexcept;
+        bool PrepareFollow(std::uint32_t target, std::uint32_t flow,
+            std::uint32_t privateReturn, std::uint32_t expectedEntryEsp) noexcept;
+        bool CompleteFollowRequest(std::uint32_t target) noexcept;
+        // Only after actual old native unload and a freshly observed assigned
+        // Playing. Keeps published hooks; replaces private motion admission.
+        bool BeginNextScene(std::uint32_t target) noexcept;
         // Complete only the terminal startup overlay of an actually withheld
         // cinematic. Called on ready ticks after motion/scene qualification;
         // a later request cannot be lost by running only on first SceneReady.
