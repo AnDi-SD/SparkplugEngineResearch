@@ -1,11 +1,17 @@
 #include "spOctreeNode.h"
+#include "Analysis/PC/spSphereContactMath.h"
+
 #include <cmath>
+#include <cstring>
+#include <limits>
 #include <utility>
 
 namespace sparkplug::reconstruction
 {
     namespace
     {
+        static_assert(sizeof(float) == sizeof(std::uint32_t) && std::numeric_limits<float>::is_iec559);
+
         constexpr float Epsilon = 0.001F;
         constexpr std::array<std::uint32_t, 8> Orders{0xFAB888, 0xDE2AC1, 0xBE1CC2, 0x9A8E8B,
                                                       0x6571AC, 0x4C633D, 0x21D53E, 0x08C777};
@@ -17,6 +23,26 @@ namespace sparkplug::reconstruction
                                   "spOctreeNode",        &spPartitionNode::StaticRTTI(),
                                   &CreateOctreeNode,     nullptr};
         const bool Registered = spRTTIManager::Instance().RegisterDeferredForAnalysis(Record);
+
+        bool IsAdmittedRayWord(std::uint32_t word) noexcept
+        {
+            const auto magnitude = word & 0x7FFFFFFFu;
+            return magnitude == 0 || (magnitude >= 0x33800000u && magnitude <= 0x45800000u);
+        }
+
+        float RayFloatFromWord(std::uint32_t word) noexcept
+        {
+            float value;
+            std::memcpy(&value, &word, sizeof(value));
+            return value;
+        }
+
+        std::uint32_t RayFloatWord(float value) noexcept
+        {
+            std::uint32_t word;
+            std::memcpy(&word, &value, sizeof(word));
+            return word;
+        }
     } // namespace
     spOctreeNode::spOctreeNode() : spPartitionNode(8)
     {
@@ -58,6 +84,88 @@ namespace sparkplug::reconstruction
     {
         return (p[0] > pivot[0] ? 1u : 0u) | (p[1] > pivot[1] ? 2u : 0u) |
                (p[2] > pivot[2] ? 4u : 0u); // ties and unordered choose low
+    }
+
+    std::uint32_t spOctreeNode::UpdateRayCandidatesForAnalysis(
+        RayCandidateCacheForAnalysis& cache, const RayInputForAnalysis& ray,
+        const RayCandidateForAnalysis** borrowedFirst) noexcept
+    {
+        namespace math = evidence::pc::sphere_contact_math;
+        Vector3 pivot{}, origin{}, direction{};
+        for (std::size_t axis = 0; axis < pivot.size(); ++axis)
+        {
+            if (!IsAdmittedRayWord(cache.pivotBits[axis]) || !IsAdmittedRayWord(ray.originBits[axis])
+                || !IsAdmittedRayWord(ray.directionBits[axis]))
+                return 0;
+            pivot[axis] = RayFloatFromWord(cache.pivotBits[axis]);
+            origin[axis] = RayFloatFromWord(ray.originBits[axis]);
+            direction[axis] = RayFloatFromWord(ray.directionBits[axis]);
+        }
+
+        if (borrowedFirst != nullptr)
+            *borrowedFirst = cache.scratch.data();
+        const auto first = OctantForAnalysis(origin, pivot);
+        cache.scratch[0] = {first, 0};
+        std::uint32_t count = 1;
+        std::uint32_t visited = 1u << first;
+
+        constexpr std::uint32_t parallelThreshold = 0x3727C5ACu;
+        const auto sampleBias = math::From(RayFloatFromWord(0x3A83126Fu));
+        for (std::size_t axis = 0; axis < direction.size(); ++axis)
+        {
+            const auto magnitude = ray.directionBits[axis] & 0x7FFFFFFFu;
+            if (magnitude <= parallelThreshold)
+                continue;
+
+            const auto inverse = math::Reciprocal(math::From(RayFloatFromWord(magnitude)));
+            auto signedInverse = inverse;
+            signedInverse.negative = bool(ray.directionBits[axis] >> 31);
+            const auto offset = math::Subtract(math::From(pivot[axis]), math::From(origin[axis]));
+            const auto time = math::Multiply(offset, signedInverse);
+            const auto storedTime = math::Store(time);
+            if (time.negative && time.mantissa != 0)
+                continue;
+
+            // The sample bias uses the stored time and the extended absolute reciprocal.
+            const auto sampleTime = math::Add(math::Multiply(inverse, sampleBias), math::From(storedTime));
+            Vector3 sample{};
+            for (std::size_t coordinate = 0; coordinate < sample.size(); ++coordinate)
+            {
+                auto product = math::Multiply(sampleTime, math::From(direction[coordinate]));
+                if (coordinate != 0)
+                    product = math::From(math::Store(product)); // Native Y/Z spill before adding origin.
+                sample[coordinate] = math::Store(math::Add(product, math::From(origin[coordinate])));
+            }
+
+            const auto child = OctantForAnalysis(sample, pivot);
+            auto& candidate = cache.scratch[count];
+            candidate.octant = child; // This write also happens for a duplicate.
+            const auto bit = 1u << child;
+            if ((visited & bit) != 0)
+                continue;
+            candidate.timeBits = RayFloatWord(storedTime);
+            visited |= bit;
+            ++count;
+        }
+
+        // Pair zero stays first. Sort the subsequent accepted pairs stably by stored time.
+        for (auto end = count - 1; end > 1; --end)
+        {
+            bool swapped = false;
+            for (std::uint32_t index = 1; index < end; ++index)
+            {
+                auto& left = cache.scratch[index];
+                auto& right = cache.scratch[index + 1];
+                if (RayFloatFromWord(left.timeBits) > RayFloatFromWord(right.timeBits))
+                {
+                    std::swap(left, right);
+                    swapped = true;
+                }
+            }
+            if (!swapped)
+                break;
+        }
+        return count;
     }
     spPartitionNode* spOctreeNode::FindLeafForAnalysis(const Vector3& point,
                                                        bool stopAtZone) noexcept

@@ -1,11 +1,13 @@
 #pragma once
 
 // Inferred declaration/implementation paths, not an original source string.
-// Original PC class/RTTI/8-child constructor and query40/44/48/50/54/5C slice.
-// Ray query4C, registrations, debug/query tail and full Scene wiring
-// remain open. Native uninitialized pivot is represented by an explicit gap.
+// Original PC class/RTTI/8-child constructor and query40/44/48/4C/50/54/5C slice.
+// Registrations, debug/query tail and full Scene wiring remain open. Native
+// uninitialized pivot is represented by an explicit gap.
 #include "spPartitionNode.h"
 #include "Analysis/PC/spVisibilityMath.h"
+
+#include <array>
 
 namespace sparkplug::reconstruction
 {
@@ -35,6 +37,32 @@ namespace sparkplug::reconstruction
                                                              const Vector3& pivot) noexcept;
         [[nodiscard]] std::uint8_t PointMaskForAnalysis(const Vector3& point) const noexcept;
         [[nodiscard]] std::uint8_t SphereMaskForAnalysis(const Sphere& sphere) const noexcept;
+
+        struct RayInputForAnalysis final
+        {
+            std::array<std::uint32_t, 3> originBits{};
+            std::array<std::uint32_t, 3> directionBits{};
+        };
+
+        struct RayCandidateForAnalysis final
+        {
+            std::uint32_t octant = 0;
+            std::uint32_t timeBits = 0;
+        };
+
+        struct RayCandidateCacheForAnalysis final
+        {
+            std::array<std::uint32_t, 3> pivotBits{};
+            std::array<RayCandidateForAnalysis, 4> scratch{};
+        };
+
+        // PC slot +4C on copied pivot and scratch words. Returns the active
+        // pair count, or zero on refused input. An admitted optional result
+        // borrows the supplied scratch until the owning cache is changed.
+        [[nodiscard]] static std::uint32_t UpdateRayCandidatesForAnalysis(
+            RayCandidateCacheForAnalysis& cache, const RayInputForAnalysis& ray,
+            const RayCandidateForAnalysis** borrowedFirst = nullptr) noexcept;
+
         [[nodiscard]] static std::uint32_t TraversalOrderForAnalysis(std::uint32_t octant) noexcept;
         // Packed return: low4=count, then3bits per child from bit4.
         [[nodiscard]] std::uint32_t VisibleChildrenForAnalysis(

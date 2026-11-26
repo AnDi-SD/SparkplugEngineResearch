@@ -14,7 +14,7 @@ ASCII-поиск `spOctreeNode.cpp/.h` в этом PC executable отрицат�
 - `spPartitionNode`: direct-owned child slots, presence-only Zone query input,
   leaf-query identity, inherited Base-only clone;
 - `spOctreeNode`: eight-child constructor, explicit geometry input, leaf/point/
-  sphere/plane queries и original traversal order.
+  sphere/plane queries, скопированный кэш кандидатов луча и original traversal order.
 
 Это **не все33 methods**, не полный Scene/serializer/partition registrations.
 `unique_ptr`, invalid-index/null-child/finite-bounds guards — host-only.
@@ -78,13 +78,31 @@ disabled и cached activeCount unsigned--. Tangency/NaN остаются active;
 Native record tests сравнены с source на160+160 independent cases,
 включая NaN, epsilon boundaries, negative radii и count mismatch.
 
-Ray4C: input `{originXYZ,directionXYZ}`, first record=startoctant,t0.
-Для каждой из3 split planes при `abs(dir)>1e-5f` иt>=0 вычисляется crossing,
-точка классифицируется чуть дальше по лучу (`t+abs(1/dir)*0.001f`),
-duplicate octants не добавляются, остальные sorted byT; original scratch
-перезаписывается следующим вызовом. Исполнены4 cases: раздельные3 crossings,
-одновременное диагональное пересечение, away ray и zero direction.
-Portable ray source пока не добавлен, граничные near-parallel/NaN случаи open.
+### Кандидаты луча
+
+Слот `+0x4C` получает начало и направление луча. Он записывает начальный
+октант и положительный ноль в первую пару кэша `+0x90`. Ненулевой указатель
+результата получает адрес этой пары. Значение `EAX` показывает число пар
+от 1 до 4. [Исходник Octree](../../../Sparkplug/Code/Sparkplug/spOctreeNode.cpp).
+
+Движок обрабатывает плоскости в порядке X, Y, Z. Он пропускает ось при
+`abs(direction) <= 1e-5f` (`0x3727C5AC`) или при отрицательном времени
+пересечения в точности x87. Точка для выбора октанта лежит в момент
+`storedT + abs(1 / direction) × 0.001f`. Произведения по Y и Z округляются
+до `binary32` перед сложением с началом луча. Для X этот промежуточный
+результат остаётся в x87.
+
+Повторный октант меняет слово номера в следующей свободной паре и сохраняет
+старое слово времени этой пары. Активное число пар при этом сохраняется.
+Первая пара остаётся на месте, остальные идут по возрастанию сохранённого
+времени. Равные времена сохраняют очерёдность осей.
+
+`UpdateRayCandidatesForAnalysis` принимает сырые слова опорной точки, луча
+и всех четырёх пар. Координаты и направления могут быть нулями обоих знаков
+или нормальными числами с модулем от 2⁻²⁴ до 4096. При отказе метод возвращает
+0. Указатель результата при успехе заимствует первую пару переданного кэша.
+Этот контракт охватывает вычисление кандидатов. Обход дочерних объектов и
+связанные запросы остаются отдельными операциями.
 
 Actual RenderNode registration`449C10`:
 

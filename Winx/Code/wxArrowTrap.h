@@ -2,6 +2,9 @@
 #include "Code/SparkBase/spBaseObject.h"
 #include "Analysis/Host/wxArrowTrapHost.h"
 
+#include <array>
+#include <optional>
+
 namespace winx::reconstruction
 {
     struct wxArrowTrapMessageForAnalysis final { std::uint32_t code = 0; };
@@ -41,6 +44,49 @@ namespace winx::reconstruction
             sparkplug::reconstruction::spCloneManager&) const override;
         void vfunc_0C(const void*) noexcept override;
         bool vfunc_2C_InRangeForAnalysis(const wxArrowPosition&) noexcept;
+
+        // The caller supplies positions from the PC root node and argument.
+        // Finite normal coordinates and signed zeros up to |16384| are
+        // admitted. A refusal leaves the range byte intact. Success returns AL.
+        [[nodiscard]] std::optional<std::uint8_t> TryUpdatePcRangeForAnalysis(
+            const wxArrowPosition& rootPosition, const wxArrowPosition& point) noexcept;
+
+        using CapturedPcPropertyReceiverForAnalysis = std::array<std::uint8_t, 0x19C>;
+        using PcSpeedReturnForAnalysis = std::array<std::uint8_t, 10>;
+        enum class PcPropertyProfileForAnalysis { Unqualified, CapturedPrimary };
+
+        struct ComposedPcSpeedForAnalysis final
+        {
+            PcSpeedReturnForAnalysis before{};
+            CapturedPcPropertyReceiverForAnalysis afterSet{};
+            PcSpeedReturnForAnalysis after{};
+        };
+        struct ComposedPcPauseForAnalysis final
+        {
+            std::uint32_t before{};
+            CapturedPcPropertyReceiverForAnalysis afterSet{};
+            std::uint32_t after{};
+        };
+
+        // These operations use the complete captured PC receiver as byte data.
+        // Speed getters require finite normal binary32 or signed zero.
+        // The setters write the argument DWORD verbatim. Refusal preserves output.
+        [[nodiscard]] static bool TryReadPcSpeedForAnalysis(const CapturedPcPropertyReceiverForAnalysis& before,
+            PcSpeedReturnForAnalysis& output, PcPropertyProfileForAnalysis profile) noexcept;
+        [[nodiscard]] static bool TryWritePcSpeedBitsForAnalysis(const CapturedPcPropertyReceiverForAnalysis& before,
+            std::uint32_t argument, CapturedPcPropertyReceiverForAnalysis& output,
+            PcPropertyProfileForAnalysis profile) noexcept;
+        [[nodiscard]] static bool TryComposePcSpeedForAnalysis(const CapturedPcPropertyReceiverForAnalysis& before,
+            std::uint32_t argument, ComposedPcSpeedForAnalysis& output, PcPropertyProfileForAnalysis profile) noexcept;
+
+        [[nodiscard]] static bool TryReadPcPauseForAnalysis(const CapturedPcPropertyReceiverForAnalysis& before,
+            std::uint32_t& output, PcPropertyProfileForAnalysis profile) noexcept;
+        [[nodiscard]] static bool TryWritePcPauseForAnalysis(const CapturedPcPropertyReceiverForAnalysis& before,
+            std::uint32_t argument, CapturedPcPropertyReceiverForAnalysis& output,
+            PcPropertyProfileForAnalysis profile) noexcept;
+        [[nodiscard]] static bool TryComposePcPauseForAnalysis(const CapturedPcPropertyReceiverForAnalysis& before,
+            std::uint32_t argument, ComposedPcPauseForAnalysis& output, PcPropertyProfileForAnalysis profile) noexcept;
+
         void SetupForAnalysis();
         void UpdateForAnalysis() noexcept;
         static bool RegisterPropertiesForAnalysis(wxArrowTrapHost&);

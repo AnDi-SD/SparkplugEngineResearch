@@ -6,4 +6,18 @@ The bounded value facade requires its explicit PC profile and primary `0x006F6F6
 
 The selected access ends at byte 297. A historical factory allocation of 376 bytes and a future diagnostic guard span of 329 bytes have different responsibilities and do not establish native `sizeof`. The current typed primary, RTTI, clone-prefix factory call, registration and own publisher establish the selected ownership chain; the opaque factory and incomplete clone remain outside this value operation. Registration base `wxEntity` does not establish physical C++ inheritance.
 
-The other string descriptor, constructors, lifetime, animation dispatch, production callers, PS2 behavior, rendering, gameplay and whole-class completeness remain unqualified. This operation belongs with the existing [AI behavior family](ai-behavior-family.md); it does not reconstruct that family's decision logic.
+This property belongs to the [AI behavior family](ai-behavior-family.md). The profile ends at the direct getter and setter.
+
+## Sparx Type DWORD on PC
+
+The same publisher passes the `Sparx Type` label with getter `0x00555050`
+and setter `0x00555040`. The getter reads the DWORD at `+0x124` into EAX.
+The setter reads the full four-byte argument at stack `+4`, stores it at
+`+0x124`, and returns with stack adjustment 4.
+
+The [capture interface](../../../Winx/Code/wxSparxBehavior.h) checks primary
+`0x006F6F60` and uses the separate `Sparx Type` profile with the same 297-byte
+prefix. The setter preserves byte `+0x128` and every other byte outside the
+DWORD. GET/SET/GET supplies both raw reads and the full prefix after the
+write. A refused capture leaves the output intact. The accepted contract
+concerns the stored bits. Interpretation of those bits belongs to callers.

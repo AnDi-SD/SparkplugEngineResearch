@@ -1,5 +1,7 @@
 #include "wxPendulum.h"
 #include "../Analysis/PC/wxPendulumAbi.h"
+#include "Analysis/PC/spSphereContactMath.h"
+#include <limits>
 
 namespace
 {
@@ -145,4 +147,61 @@ wxPendulum::ScalarResultForAnalysis wxPendulum::WriteScalarBitsForAnalysis(
     WriteScalarWord(staged, offset, rawArgument);
     output = staged;
     return ScalarResultForAnalysis::Completed;
+}
+
+namespace
+{
+namespace RangeMath = sparkplug::evidence::pc::sphere_contact_math;
+static_assert(sizeof(float) == sizeof(std::uint32_t) && std::numeric_limits<float>::is_iec559);
+static_assert(sizeof(wxPendulum::CapturedRangePrefixForAnalysis) == wxPendulumAbi::CapturedRangeMinimumPrefixBytes);
+static_assert(wxPendulumAbi::RangeByteOffset + 1 == sizeof(wxPendulum::CapturedRangePrefixForAnalysis));
+static_assert(wxPendulumAbi::RangeNodePositionOffset + 12 == sizeof(wxPendulum::RangeNodeForAnalysis::bytes));
+static_assert(wxPendulumAbi::RangePointPositionOffset + 12 == sizeof(wxPendulum::CapturedRangePointForAnalysis));
+
+std::uint32_t ReadRangeWord(const std::uint8_t* bytes) noexcept
+{
+    return std::uint32_t(bytes[0]) | (std::uint32_t(bytes[1]) << 8)
+        | (std::uint32_t(bytes[2]) << 16) | (std::uint32_t(bytes[3]) << 24);
+}
+
+bool RangeCoordinateAdmitted(std::uint32_t word) noexcept
+{
+    const auto magnitude = word & 0x7FFFFFFFu;
+    return magnitude == 0 || (0x00800000u <= magnitude && magnitude <= 0x46800000u);
+}
+
+RangeMath::Number RangeNumber(std::uint32_t word) noexcept
+{
+    float value;
+    std::memcpy(&value, &word, sizeof(value));
+    return RangeMath::From(value);
+}
+}
+
+bool wxPendulum::TryUpdatePcRangeForAnalysis(const CapturedRangePrefixForAnalysis& before,
+    const std::uint32_t capturedGlobalWord, const RangeNodeForAnalysis& node,
+    const CapturedRangePointForAnalysis& point, RangeResultForAnalysis& output) noexcept
+{
+    namespace Abi = wxPendulumAbi;
+    if (capturedGlobalWord != 0 || ReadRangeWord(before.data()) != Abi::CapturedPrimary
+        || node.capturedAddress == 0 || ReadRangeWord(before.data() + Abi::RangeNodeLinkOffset) != node.capturedAddress)
+        return false;
+
+    std::array<RangeMath::Number, 3> squares{};
+    for (std::size_t lane = 0; lane != squares.size(); ++lane)
+    {
+        const auto nodeWord = ReadRangeWord(node.bytes.data() + Abi::RangeNodePositionOffset + 4 * lane);
+        const auto pointWord = ReadRangeWord(point.data() + Abi::RangePointPositionOffset + 4 * lane);
+        if (!RangeCoordinateAdmitted(nodeWord) || !RangeCoordinateAdmitted(pointWord))
+            return false;
+        const auto delta = RangeMath::Subtract(RangeNumber(nodeWord), RangeNumber(pointWord));
+        squares[lane] = RangeMath::Multiply(delta, delta);
+    }
+
+    const auto squared = RangeMath::Add(RangeMath::Add(squares[0], squares[2]), squares[1]);
+    const auto limit = RangeNumber(Abi::RangeSquaredLimitBits);
+    RangeResultForAnalysis staged{before, std::uint8_t{1}};
+    staged.after[Abi::RangeByteOffset] = static_cast<std::uint8_t>(RangeMath::nearest::Compare(squared, limit) <= 0);
+    output = staged;
+    return true;
 }

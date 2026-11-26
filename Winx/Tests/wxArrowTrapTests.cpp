@@ -1,9 +1,13 @@
 #include "Code/wxArrowTrap.h"
 #include "Analysis/PC/wxArrowTrapAbi.h"
 #include "Analysis/PS2/wxArrowTrapAbi.h"
+#include <charconv>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 namespace
@@ -83,9 +87,121 @@ namespace
         { Check(o==0x12C,"pause offset"); properties+=';';properties+=s; }
         bool RegisterEntityPropertiesForAnalysis() override { properties+=";entity";return false; }
     };
+
+    struct PcRangeCase
+    {
+        std::array<std::uint32_t, 3> node;
+        std::array<std::uint32_t, 3> point;
+        std::uint8_t initialFlag;
+        std::uint8_t finalFlag;
+    };
+    constexpr PcRangeCase pcCases[]{
+        {{{0x00000000u, 0x80000000u, 0x00000000u}}, {{0x80000000u, 0x00000000u, 0x00000000u}}, 0x01, 1},
+        {{{0x4479c000u, 0x447a0000u, 0x00000000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0x00, 1},
+        {{{0xc47a0000u, 0xc47a0000u, 0x00000000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0xa5, 1},
+        {{{0x447a0000u, 0x00000000u, 0x447a0000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0x01, 1},
+        {{{0x447a4000u, 0x447a0000u, 0x00000000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0x00, 0},
+        {{{0x447a0000u, 0x3f800000u, 0x447a0000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0x01, 0},
+        {{{0x447a0000u, 0x00000000u, 0x447a0000u}}, {{0xa6800000u, 0x00000000u, 0x00000000u}}, 0xff, 0},
+        {{{0x447a0000u, 0x00000000u, 0x447a0000u}}, {{0x26800000u, 0x00000000u, 0x00000000u}}, 0x01, 1},
+        {{{0x447a0000u, 0x447a0000u, 0x34900000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0xa5, 1},
+        {{{0x46800000u, 0x44800000u, 0xc6800000u}}, {{0x46706000u, 0x447fc000u, 0xc6706000u}}, 0x55, 0},
+        {{{0x46800000u, 0x447fe000u, 0xc6800000u}}, {{0x46706400u, 0x44800000u, 0xc6706000u}}, 0x7f, 1},
+        {{{0x00800000u, 0x80800000u, 0x80000000u}}, {{0x00000000u, 0x00000000u, 0x00000000u}}, 0x80, 1},
+    };
+
+    wxArrowPosition DecodePosition(const std::array<std::uint32_t, 3>& words) noexcept
+    {
+        wxArrowPosition point;
+        for (std::size_t axis = 0; axis < point.size(); ++axis)
+            std::memcpy(&point[axis], &words[axis], sizeof(point[axis]));
+        return point;
+    }
+
+    void CheckPcRange()
+    {
+        Host host;
+        wxArrowTrap trap(host);
+        auto& state = trap.GetStateForAnalysis();
+        state.active = 0x93;
+        state.phase[1] = 0xA7;
+        state.timer[1] = 0.625f;
+        for (const auto& test : pcCases)
+        {
+            const auto node = DecodePosition(test.node), point = DecodePosition(test.point);
+            state.inRange = test.initialFlag;
+            const auto result = trap.TryUpdatePcRangeForAnalysis(node, point);
+            Check(result && *result == 1, "PC range AL");
+            Check(state.inRange == test.finalFlag, "PC range final byte");
+            Check(state.active == 0x93 && state.phase[1] == 0xA7 && state.timer[1] == 0.625f,
+                "PC range preserves adjacent state");
+        }
+
+        constexpr std::uint32_t refused[]{
+            0x00000001u, 0x807FFFFFu, 0x7F800000u, 0xFFC00000u, 0x46800001u,
+        };
+        for (const auto bits : refused)
+        {
+            const auto invalid = DecodePosition({0, bits, 0});
+            const wxArrowPosition zero{};
+            state.inRange = 0xA5;
+            Check(!trap.TryUpdatePcRangeForAnalysis(invalid, zero) && state.inRange == 0xA5,
+                "PC range rejects root coordinates outside its domain");
+            Check(!trap.TryUpdatePcRangeForAnalysis(zero, invalid) && state.inRange == 0xA5,
+                "PC range rejects argument coordinates outside its domain");
+        }
+        std::cout << "ArrowTrapRangePrecision: 46 contracts passed\n";
+    }
+
+    bool ReadHex(std::istream& stream, std::size_t width, std::uint32_t& value)
+    {
+        std::string word;
+        if (!(stream >> word) || word.size() != width ||
+            word.find_first_not_of("0123456789abcdef") != std::string::npos)
+            return false;
+        const auto end = word.data() + word.size();
+        const auto converted = std::from_chars(word.data(), end, value, 16);
+        return converted.ptr == end && converted.ec == std::errc{};
+    }
+
+    int ReplayPcRange()
+    {
+        Host host;
+        wxArrowTrap trap(host);
+        std::cout << std::hex << std::setfill('0');
+        std::string line;
+        while (std::getline(std::cin, line))
+        {
+            std::istringstream row(line);
+            std::array<std::uint32_t, 3> node, point;
+            for (auto* words : {&node, &point})
+                for (auto& coordinate : *words)
+                    if (!ReadHex(row, 8, coordinate))
+                        return 2;
+            std::uint32_t flag;
+            std::string extra;
+            if (!ReadHex(row, 2, flag) || row >> extra)
+                return 2;
+
+            auto& state = trap.GetStateForAnalysis();
+            state.inRange = static_cast<std::uint8_t>(flag);
+            const auto result = trap.TryUpdatePcRangeForAnalysis(DecodePosition(node), DecodePosition(point));
+            if (!result)
+                return 2;
+            std::cout << std::setw(2) << unsigned(*result) << ' '
+                      << std::setw(2) << unsigned(state.inRange) << '\n';
+        }
+        return std::cin.eof() ? 0 : 2;
+    }
 }
-int main()
+int main(int argc, char** argv)
 {
+    if (argc == 2 && std::string_view(argv[1]) == "--replay")
+        return ReplayPcRange();
+    if (argc != 1)
+        return 2;
+
+    CheckPcRange();
     using namespace winx::reconstruction;
     using namespace sparkplug::reconstruction;
     static_assert(winx::evidence::pc::wxArrowTrapFactory == 0x407A60);

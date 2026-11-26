@@ -1,4 +1,11 @@
 #include "wxArrowTrap.h"
+
+#include "Analysis/PC/wxArrowTrapAbi.h"
+#include "Analysis/PC/spFloat80TowardZero.h"
+#include "Analysis/PC/spSphereContactMath.h"
+
+#include <cstring>
+#include <limits>
 #include <stdexcept>
 
 namespace winx::reconstruction
@@ -19,6 +26,32 @@ namespace winx::reconstruction
         const spRTTIRecord record{wxArrowTrap::ClassID, 0x796A1869,
             "wxArrowTrap", &wxEntityRecord, &CreateArrowTrap, nullptr};
         const bool registered = spRTTIManager::Instance().RegisterDeferredForAnalysis(record);
+
+        using PropertyReceiver = wxArrowTrap::CapturedPcPropertyReceiverForAnalysis;
+        using PropertyProfile = wxArrowTrap::PcPropertyProfileForAnalysis;
+        static_assert(PropertyReceiver{}.size() == sizeof(evidence::pc::wxArrowTrapLayout));
+
+        std::uint32_t ReadPropertyWord(const PropertyReceiver& bytes, std::size_t offset) noexcept
+        {
+            return std::uint32_t(bytes[offset]) | (std::uint32_t(bytes[offset + 1]) << 8)
+                | (std::uint32_t(bytes[offset + 2]) << 16) | (std::uint32_t(bytes[offset + 3]) << 24);
+        }
+
+        bool AdmitsPcProperties(const PropertyReceiver& bytes, PropertyProfile profile) noexcept
+        {
+            return profile == PropertyProfile::CapturedPrimary
+                && ReadPropertyWord(bytes, 0) == evidence::pc::wxArrowTrapVtable;
+        }
+
+        bool WritePropertyWord(const PropertyReceiver& before, std::size_t offset, std::uint32_t argument,
+            PropertyReceiver& output, PropertyProfile profile) noexcept
+        {
+            if (!AdmitsPcProperties(before, profile)) return false;
+            output = before;
+            for (unsigned byte = 0; byte != 4; ++byte)
+                output[offset + byte] = std::uint8_t(argument >> (8 * byte));
+            return true;
+        }
     }
 
     wxArrowTrap::wxArrowTrap(wxArrowTrapHost& host) : host_(host)
@@ -68,6 +101,99 @@ namespace winx::reconstruction
         state_.inRange = static_cast<std::uint8_t>(!(dx * dx + dy * dy + dz * dz > 2000000.0f));
         return true;
     }
+    std::optional<std::uint8_t> wxArrowTrap::TryUpdatePcRangeForAnalysis(
+        const wxArrowPosition& rootPosition, const wxArrowPosition& point) noexcept
+    {
+        namespace math = sparkplug::evidence::pc::sphere_contact_math;
+        static_assert(sizeof(float) == sizeof(std::uint32_t) && std::numeric_limits<float>::is_iec559);
+        const auto admitsPosition = [](const wxArrowPosition& position) {
+            for (const auto& coordinate : position)
+            {
+                std::uint32_t bits;
+                std::memcpy(&bits, &coordinate, sizeof(bits));
+                const auto magnitude = bits & 0x7FFFFFFFu;
+                if (magnitude != 0 && (magnitude < 0x00800000u || magnitude > 0x46800000u))
+                    return false;
+            }
+            return true;
+        };
+        if (!admitsPosition(rootPosition) || !admitsPosition(point))
+            return std::nullopt;
+
+        const auto dx = math::Subtract(math::From(rootPosition[0]), math::From(point[0]));
+        const auto dy = math::Subtract(math::From(rootPosition[1]), math::From(point[1]));
+        const auto dz = math::Subtract(math::From(rootPosition[2]), math::From(point[2]));
+        const auto xz = math::Add(math::Multiply(dx, dx), math::Multiply(dz, dz));
+        const auto squared = math::Add(xz, math::Multiply(dy, dy));
+        const auto limit = math::From(evidence::pc::wxArrowTrapRangeSquaredLimit);
+        state_.inRange = static_cast<std::uint8_t>(math::nearest::Compare(squared, limit) <= 0);
+        return std::uint8_t{1};
+    }
+
+    bool wxArrowTrap::TryReadPcSpeedForAnalysis(const PropertyReceiver& before, PcSpeedReturnForAnalysis& output,
+        PropertyProfile profile) noexcept
+    {
+        if (!AdmitsPcProperties(before, profile)) return false;
+        const auto bits = ReadPropertyWord(before, evidence::pc::wxArrowTrapSpeedOffset);
+        const auto magnitude = bits & 0x7FFFFFFFu;
+        if (magnitude != 0 && (magnitude < 0x00800000u || magnitude >= 0x7F800000u)) return false;
+
+        float value;
+        std::memcpy(&value, &bits, sizeof(value));
+        const auto number = sparkplug::evidence::pc::float80_rtz::FromFloat(value);
+        const auto signAndExponent = std::uint16_t((number.negative ? 0x8000 : 0)
+            | (number.mantissa ? unsigned(number.exponent + 63 + 16383) : 0));
+        PcSpeedReturnForAnalysis staged{};
+        for (unsigned byte = 0; byte != 8; ++byte)
+            staged[byte] = std::uint8_t(number.mantissa >> (8 * byte));
+        staged[8] = std::uint8_t(signAndExponent);
+        staged[9] = std::uint8_t(signAndExponent >> 8);
+        output = staged;
+        return true;
+    }
+
+    bool wxArrowTrap::TryWritePcSpeedBitsForAnalysis(const PropertyReceiver& before, std::uint32_t argument,
+        PropertyReceiver& output, PropertyProfile profile) noexcept
+    {
+        return WritePropertyWord(before, evidence::pc::wxArrowTrapSpeedOffset, argument, output, profile);
+    }
+
+    bool wxArrowTrap::TryComposePcSpeedForAnalysis(const PropertyReceiver& before, std::uint32_t argument,
+        ComposedPcSpeedForAnalysis& output, PropertyProfile profile) noexcept
+    {
+        ComposedPcSpeedForAnalysis staged;
+        if (!TryReadPcSpeedForAnalysis(before, staged.before, profile)
+            || !TryWritePcSpeedBitsForAnalysis(before, argument, staged.afterSet, profile)
+            || !TryReadPcSpeedForAnalysis(staged.afterSet, staged.after, profile)) return false;
+        output = staged;
+        return true;
+    }
+
+    bool wxArrowTrap::TryReadPcPauseForAnalysis(const PropertyReceiver& before, std::uint32_t& output,
+        PropertyProfile profile) noexcept
+    {
+        if (!AdmitsPcProperties(before, profile)) return false;
+        output = ReadPropertyWord(before, evidence::pc::wxArrowTrapPauseOffset);
+        return true;
+    }
+
+    bool wxArrowTrap::TryWritePcPauseForAnalysis(const PropertyReceiver& before, std::uint32_t argument,
+        PropertyReceiver& output, PropertyProfile profile) noexcept
+    {
+        return WritePropertyWord(before, evidence::pc::wxArrowTrapPauseOffset, argument, output, profile);
+    }
+
+    bool wxArrowTrap::TryComposePcPauseForAnalysis(const PropertyReceiver& before, std::uint32_t argument,
+        ComposedPcPauseForAnalysis& output, PropertyProfile profile) noexcept
+    {
+        ComposedPcPauseForAnalysis staged;
+        if (!TryReadPcPauseForAnalysis(before, staged.before, profile)
+            || !TryWritePcPauseForAnalysis(before, argument, staged.afterSet, profile)
+            || !TryReadPcPauseForAnalysis(staged.afterSet, staged.after, profile)) return false;
+        output = staged;
+        return true;
+    }
+
     void* wxArrowTrap::FindRenderableForAnalysis(void* node) const
     {
         if (host_.HasRenderDataForAnalysis(node)) return node;

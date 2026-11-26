@@ -150,6 +150,9 @@ add_library(SparkplugEngine STATIC
     Analysis/Host/spPS2MouseHost.h
     Analysis/PS2/spPS2MouseAbi.h
     Analysis/PS2/spPS2MouseExactIntegerMath.h
+    Code/Sparkplug/spMovieTextureController.cpp
+    Code/Sparkplug/spMovieTextureController.h
+    Analysis/PC/spMovieTextureControllerAbi.h
     Code/Sparkplug/spVideoStream.cpp
     Code/Sparkplug/spVideoStream.h
     Code/SparkplugPC/spPCVideoStream.cpp
@@ -202,6 +205,12 @@ add_library(SparkplugEngine STATIC
     Analysis/PC/spSystemSettingsAbi.h
     Code/Sparkplug/spInputDevice.cpp
     Code/Sparkplug/spInputDevice.h
+    Code/SparkplugDX/spDXGamepad.cpp
+    Code/SparkplugDX/spDXGamepad.h
+    Analysis/PC/spDXGamepadAbi.h
+    Code/SparkplugDX/spDXKeyboard.cpp
+    Code/SparkplugDX/spDXKeyboard.h
+    Analysis/PC/spDXKeyboardAbi.h
     Code/SparkplugPC/spDXInputDevice.cpp
     Code/SparkplugPC/spDXInputDevice.h
     Code/SparkplugPS2/spPS2InputDevice.cpp
@@ -243,6 +252,20 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spBoundingVolume.h
     Code/Sparkplug/spBoundingVolumeQueries.cpp
     Code/Sparkplug/spBoundingVolumeQueries.h
+    Code/Sparkplug/spVector3Normalization.cpp
+    Code/Sparkplug/spVector3Normalization.h
+    Code/Sparkplug/spOrientationBasis.cpp
+    Code/Sparkplug/spOrientationBasis.h
+    Code/Sparkplug/spNodeWorldPoint.cpp
+    Code/Sparkplug/spNodeWorldPoint.h
+    Code/Sparkplug/spMovementMatVec.cpp
+    Code/Sparkplug/spMovementMatVec.h
+    Code/Sparkplug/spNodeMatVec.cpp
+    Code/Sparkplug/spNodeMatVec.h
+    Code/Sparkplug/spMatrix4ProductPc.cpp
+    Code/Sparkplug/spMatrix4ProductPc.h
+    Code/Sparkplug/spPlaneFromThree.cpp
+    Code/Sparkplug/spPlaneFromThree.h
     Analysis/PC/spSphereContactMath.h
     Analysis/PC/spSphereContactAbi.h
     Code/Sparkplug/spContactConstraint.cpp
@@ -306,6 +329,9 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXTextureSerializer.h
     Code/SparkplugDX/spDXMaterial.cpp
     Code/SparkplugDX/spDXMaterial.h
+    Code/SparkplugDX/spDXEnvironmentMapLayer.cpp
+    Code/SparkplugDX/spDXEnvironmentMapLayer.h
+    Analysis/PC/spDXEnvironmentMapLayerAbi.h
     Code/SparkplugDX/spDXMaterialSerializer.cpp
     Code/SparkplugDX/spDXMaterialSerializer.h
     Code/SparkplugDX/spDXShaderLayer.cpp
@@ -363,6 +389,7 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spAnimationManager.h
     Code/Sparkplug/spEvaluator.cpp
     Code/Sparkplug/spFunctionEval.cpp
+    Code/Sparkplug/spFunctionEvalLinearRampPc.cpp
     Code/Sparkplug/spColorEval.cpp
     Code/Sparkplug/spMaterialColorController.cpp
     Code/Sparkplug/spColorFuncEval.cpp
@@ -376,6 +403,19 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spAnimTrack.cpp
     Code/Sparkplug/spAnimTrack.h
     Code/Sparkplug/spAnimation.cpp
+    Code/Sparkplug/spAnimationVectorLinearPc.cpp
+    Code/Sparkplug/spAnimationScalarCubicPc.cpp
+    Code/Sparkplug/spAnimationVectorCubicPc.cpp
+    Code/Sparkplug/spAnimationVectorCubicCoefficientsPc.cpp
+    Code/Sparkplug/spAnimationKeyIntervalPc.cpp
+    Code/Sparkplug/spAnimationScalarCubicSamplePc.cpp
+    Code/Sparkplug/spAnimationScalarLinearPc.cpp
+    Code/Sparkplug/spAnimationQuaternionSlerpPreparationPc.cpp
+    Code/Sparkplug/spAnimationQuaternionSlerpSmallAnglePc.cpp
+    Code/Sparkplug/spAnimationQuaternionSlerpBlendPc.cpp
+    Code/Sparkplug/spAnimationQuaternionSquadFactorPc.cpp
+    Code/Sparkplug/spAnimationQuaternionSlerpFirstWeightPc.cpp
+    Code/Sparkplug/spAnimationQuaternionSlerpWeightContinuationPc.cpp
     Code/Sparkplug/spAnimation.h
     Code/Sparkplug/spAnimationSerializer.cpp
     Code/Sparkplug/spAnimationSerializer.h
@@ -437,6 +477,9 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spPS2Material.h
     Code/Sparkplug/spMaterialPassLayer.cpp
     Code/Sparkplug/spMaterialPassLayer.h
+    Code/Sparkplug/spMaterialMovieTexture.cpp
+    Code/Sparkplug/spMaterialMovieTexture.h
+    Analysis/PC/spMaterialMovieTextureAbi.h
     Code/Sparkplug/spMaterialTexture.cpp
     Code/Sparkplug/spMaterialTexture.h
     Code/Sparkplug/spMaterialTextureLayer.cpp
@@ -501,6 +544,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spBoxBVSerializer.h
     Code/Sparkplug/spOBBBVSerializer.cpp
     Code/Sparkplug/spOBBBVSerializer.h
+    Code/Sparkplug/spBoundingVolumeSizePc.cpp
+    Code/Sparkplug/spBoundingVolumeSizePc.h
     Code/Sparkplug/spMesh.cpp
     Code/Sparkplug/spMesh.h
     Code/Sparkplug/spMeshData.cpp
@@ -513,6 +558,10 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spModelSerializer.h
     Code/Sparkplug/spParticleSystem.cpp
     Code/Sparkplug/spParticleSystemRuntime.cpp
+    Code/Sparkplug/spParticleEmissionBudgetPc.cpp
+    Code/Sparkplug/spParticleEmissionBudgetPc.h
+    Code/Sparkplug/spParticleSystemManager.cpp
+    Code/Sparkplug/spParticleSystemManager.h
     Analysis/PC/spAxisAngleMath.h
     Code/Sparkplug/spParticleSystem.h
     Code/Sparkplug/spParticleSystemSerializer.cpp
@@ -553,6 +602,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spRenderNode.h
     Code/Sparkplug/spSkyBox.cpp
     Code/Sparkplug/spSkyBox.h
+    Code/Sparkplug/spSkyBoxManager.cpp
+    Code/Sparkplug/spSkyBoxManager.h
     Code/Sparkplug/spNavigationSet.cpp
     Code/Sparkplug/spNavigationSet.h
     Code/Sparkplug/spNavigationPortal.cpp
@@ -574,6 +625,8 @@ add_library(SparkplugEngine STATIC
     Code/Sparkplug/spQuad.h
     Code/Sparkplug/spLensFlare.cpp
     Code/Sparkplug/spLensFlare.h
+    Code/Sparkplug/spLensFlareManager.cpp
+    Code/Sparkplug/spLensFlareManager.h
     Code/Sparkplug/spLensFlareSerializer.cpp
     Code/Sparkplug/spLensFlareSerializer.h
     Code/Sparkplug/spOcclusionVolume.cpp
@@ -631,6 +684,8 @@ add_library(SparkplugEngine STATIC
     Analysis/PC/spProjectionAbi.h
     Code/Sparkplug/spProjectionFX.cpp
     Code/Sparkplug/spProjectionFX.h
+    Code/SparkplugPC/spPCLensFlareManager.cpp
+    Code/SparkplugPC/spPCLensFlareManager.h
     Code/SparkplugPC/spPCProjectionManager.cpp
     Code/SparkplugPC/spPCProjectionManager.h
     Code/SparkplugPC/spPCProjectionFX.cpp
@@ -639,6 +694,8 @@ add_library(SparkplugEngine STATIC
     Analysis/Host/spProjectionFxHost.h
     Analysis/PC/spProjectionManagerAbi.h
     Analysis/PC/spProjectionFxAbi.h
+    Code/SparkplugDX/spDXSceneGraphOptimizer.cpp
+    Code/SparkplugDX/spDXSceneGraphOptimizer.h
     Code/Sparkplug/spSceneGraphOptimizer.cpp
     Code/Sparkplug/spSceneGraphOptimizer.h
     Code/Sparkplug/spRenderableSerializer.cpp
@@ -705,6 +762,8 @@ add_library(SparkplugEngine STATIC
     Code/SparkplugDX/spDXSharedMeshData.h
     Code/SparkplugDX/spDXSharedMeshDataSerializer.cpp
     Code/SparkplugDX/spDXSharedMeshDataSerializer.h
+    Code/SparkplugDX/spDXBallisticPFX.cpp
+    Code/SparkplugDX/spDXBallisticPFX.h
     Code/SparkplugDX/spDXRenderer.cpp
     Code/SparkplugDX/spDXRenderer.h
     Code/SparkplugDX/spDXRenderer_Init.cpp
@@ -829,6 +888,14 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugVideoStreamTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugVideoStreamTests COMMAND SparkplugVideoStreamTests)
     set_tests_properties(SparkplugVideoStreamTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugMovieTextureControllerTests Tests/spMovieTextureControllerTests.cpp)
+    target_link_libraries(SparkplugMovieTextureControllerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugMovieTextureControllerTests COMMAND SparkplugMovieTextureControllerTests)
+    set_tests_properties(SparkplugMovieTextureControllerTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugMaterialMovieTextureResourceTests Tests/spMaterialMovieTextureResourceTests.cpp)
+    target_link_libraries(SparkplugMaterialMovieTextureResourceTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugMaterialMovieTextureResourceTests COMMAND SparkplugMaterialMovieTextureResourceTests)
+    set_tests_properties(SparkplugMaterialMovieTextureResourceTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugPS2VideoStreamTests Tests/spPS2VideoStreamTests.cpp)
     target_link_libraries(SparkplugPS2VideoStreamTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugPS2VideoStreamTests COMMAND SparkplugPS2VideoStreamTests)
@@ -849,10 +916,42 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugInputDeviceTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugInputDeviceTests COMMAND SparkplugInputDeviceTests)
     set_tests_properties(SparkplugInputDeviceTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXGamepadCachedValueTests Tests/spDXGamepadCachedValueTests.cpp)
+    target_link_libraries(SparkplugDXGamepadCachedValueTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXGamepadCachedValueTests COMMAND SparkplugDXGamepadCachedValueTests)
+    set_tests_properties(SparkplugDXGamepadCachedValueTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXKeyboardCurrentCacheTests Tests/spDXKeyboardCurrentCacheTests.cpp)
+    target_link_libraries(SparkplugDXKeyboardCurrentCacheTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXKeyboardCurrentCacheTests COMMAND SparkplugDXKeyboardCurrentCacheTests)
+    set_tests_properties(SparkplugDXKeyboardCurrentCacheTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXKeyboardChangedCacheTests Tests/spDXKeyboardChangedCacheTests.cpp)
+    target_link_libraries(SparkplugDXKeyboardChangedCacheTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXKeyboardChangedCacheTests COMMAND SparkplugDXKeyboardChangedCacheTests)
+    set_tests_properties(SparkplugDXKeyboardChangedCacheTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXSceneGraphOptimizerEmptyOnNodeTests Tests/spDXSceneGraphOptimizerEmptyOnNodeTests.cpp)
+    target_link_libraries(SparkplugDXSceneGraphOptimizerEmptyOnNodeTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXSceneGraphOptimizerEmptyOnNodeTests COMMAND SparkplugDXSceneGraphOptimizerEmptyOnNodeTests)
+    set_tests_properties(SparkplugDXSceneGraphOptimizerEmptyOnNodeTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugCameraOrthographicCacheTests Tests/spCameraOrthographicCacheTests.cpp)
+    target_link_libraries(SparkplugCameraOrthographicCacheTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCameraOrthographicCacheTests COMMAND SparkplugCameraOrthographicCacheTests)
+    set_tests_properties(SparkplugCameraOrthographicCacheTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugCameraPerspectiveCacheTests Tests/spCameraPerspectiveCacheTests.cpp)
+    target_link_libraries(SparkplugCameraPerspectiveCacheTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugCameraPerspectiveCacheTests COMMAND SparkplugCameraPerspectiveCacheTests)
+    set_tests_properties(SparkplugCameraPerspectiveCacheTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugQuad3DTests Tests/spQuad3DTests.cpp)
     target_link_libraries(SparkplugQuad3DTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugQuad3DTests COMMAND SparkplugQuad3DTests)
     set_tests_properties(SparkplugQuad3DTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugVector3NormalizeTests Tests/spVector3NormalizeTests.cpp)
+    target_link_libraries(SparkplugVector3NormalizeTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugVector3NormalizeTests COMMAND SparkplugVector3NormalizeTests)
+    set_tests_properties(SparkplugVector3NormalizeTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugOrientationBasisTests Tests/spOrientationBasisTests.cpp)
+    target_link_libraries(SparkplugOrientationBasisTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugOrientationBasisTests COMMAND SparkplugOrientationBasisTests)
+    set_tests_properties(SparkplugOrientationBasisTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugLightControllerTests Tests/spLightControllerTests.cpp)
     target_link_libraries(SparkplugLightControllerTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLightControllerTests COMMAND SparkplugLightControllerTests)
@@ -1035,9 +1134,77 @@ if(BUILD_TESTING)
     add_executable(SparkplugNodeWorldTests Tests/spNodeWorldTests.cpp)
     target_link_libraries(SparkplugNodeWorldTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugNodeWorldTests COMMAND SparkplugNodeWorldTests)
+    add_executable(SparkplugNodeWorldPointTests Tests/spNodeWorldPointTests.cpp)
+    target_link_libraries(SparkplugNodeWorldPointTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugNodeWorldPointTests COMMAND SparkplugNodeWorldPointTests)
+    set_tests_properties(SparkplugNodeWorldPointTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugMovementMatVecTests Tests/spMovementMatVecTests.cpp)
+    target_link_libraries(SparkplugMovementMatVecTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugMovementMatVecTests COMMAND SparkplugMovementMatVecTests)
+    set_tests_properties(SparkplugMovementMatVecTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugNodeMatVecTests Tests/spNodeMatVecTests.cpp)
+    target_link_libraries(SparkplugNodeMatVecTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugNodeMatVecTests COMMAND SparkplugNodeMatVecTests)
+    set_tests_properties(SparkplugNodeMatVecTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugMatrix4ProductPcTests Tests/spMatrix4ProductPcTests.cpp)
+    target_link_libraries(SparkplugMatrix4ProductPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugMatrix4ProductPcTests COMMAND SparkplugMatrix4ProductPcTests)
+    set_tests_properties(SparkplugMatrix4ProductPcTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugAnimationKeyTests Tests/spAnimationKeyTests.cpp)
     target_link_libraries(SparkplugAnimationKeyTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugAnimationKeyTests COMMAND SparkplugAnimationKeyTests)
+    add_executable(SparkplugAnimationVectorLinearPcTests Tests/spAnimationVectorLinearPcTests.cpp)
+    target_link_libraries(SparkplugAnimationVectorLinearPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationVectorLinearPcTests COMMAND SparkplugAnimationVectorLinearPcTests)
+    set_tests_properties(SparkplugAnimationVectorLinearPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationScalarCubicPcTests Tests/spAnimationScalarCubicPcTests.cpp)
+    target_link_libraries(SparkplugAnimationScalarCubicPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationScalarCubicPcTests COMMAND SparkplugAnimationScalarCubicPcTests)
+    set_tests_properties(SparkplugAnimationScalarCubicPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationVectorCubicPcTests Tests/spAnimationVectorCubicPcTests.cpp)
+    target_link_libraries(SparkplugAnimationVectorCubicPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationVectorCubicPcTests COMMAND SparkplugAnimationVectorCubicPcTests)
+    set_tests_properties(SparkplugAnimationVectorCubicPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationVectorCubicCoefficientsPcTests Tests/spAnimationVectorCubicCoefficientsPcTests.cpp)
+    target_link_libraries(SparkplugAnimationVectorCubicCoefficientsPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationVectorCubicCoefficientsPcTests COMMAND SparkplugAnimationVectorCubicCoefficientsPcTests)
+    set_tests_properties(SparkplugAnimationVectorCubicCoefficientsPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationKeyIntervalPcTests Tests/spAnimationKeyIntervalPcTests.cpp)
+    target_link_libraries(SparkplugAnimationKeyIntervalPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationKeyIntervalPcTests COMMAND SparkplugAnimationKeyIntervalPcTests)
+    set_tests_properties(SparkplugAnimationKeyIntervalPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationScalarCubicSamplePcTests Tests/spAnimationScalarCubicSamplePcTests.cpp)
+    target_link_libraries(SparkplugAnimationScalarCubicSamplePcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationScalarCubicSamplePcTests COMMAND SparkplugAnimationScalarCubicSamplePcTests)
+    set_tests_properties(SparkplugAnimationScalarCubicSamplePcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationScalarLinearPcTests Tests/spAnimationScalarLinearPcTests.cpp)
+    target_link_libraries(SparkplugAnimationScalarLinearPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationScalarLinearPcTests COMMAND SparkplugAnimationScalarLinearPcTests)
+    set_tests_properties(SparkplugAnimationScalarLinearPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationQuaternionSlerpPreparationPcTests Tests/spAnimationQuaternionSlerpPreparationPcTests.cpp)
+    target_link_libraries(SparkplugAnimationQuaternionSlerpPreparationPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationQuaternionSlerpPreparationPcTests COMMAND SparkplugAnimationQuaternionSlerpPreparationPcTests)
+    set_tests_properties(SparkplugAnimationQuaternionSlerpPreparationPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationQuaternionSlerpSmallAnglePcTests Tests/spAnimationQuaternionSlerpSmallAnglePcTests.cpp)
+    target_link_libraries(SparkplugAnimationQuaternionSlerpSmallAnglePcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationQuaternionSlerpSmallAnglePcTests COMMAND SparkplugAnimationQuaternionSlerpSmallAnglePcTests)
+    set_tests_properties(SparkplugAnimationQuaternionSlerpSmallAnglePcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationQuaternionSlerpBlendPcTests Tests/spAnimationQuaternionSlerpBlendPcTests.cpp)
+    target_link_libraries(SparkplugAnimationQuaternionSlerpBlendPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationQuaternionSlerpBlendPcTests COMMAND SparkplugAnimationQuaternionSlerpBlendPcTests)
+    set_tests_properties(SparkplugAnimationQuaternionSlerpBlendPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationQuaternionSquadFactorPcTests Tests/spAnimationQuaternionSquadFactorPcTests.cpp)
+    target_link_libraries(SparkplugAnimationQuaternionSquadFactorPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationQuaternionSquadFactorPcTests COMMAND SparkplugAnimationQuaternionSquadFactorPcTests)
+    set_tests_properties(SparkplugAnimationQuaternionSquadFactorPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationQuaternionSlerpFirstWeightPcTests Tests/spAnimationQuaternionSlerpFirstWeightPcTests.cpp)
+    target_link_libraries(SparkplugAnimationQuaternionSlerpFirstWeightPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationQuaternionSlerpFirstWeightPcTests COMMAND SparkplugAnimationQuaternionSlerpFirstWeightPcTests)
+    set_tests_properties(SparkplugAnimationQuaternionSlerpFirstWeightPcTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugAnimationQuaternionSlerpWeightContinuationPcTests Tests/spAnimationQuaternionSlerpWeightContinuationPcTests.cpp)
+    target_link_libraries(SparkplugAnimationQuaternionSlerpWeightContinuationPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugAnimationQuaternionSlerpWeightContinuationPcTests COMMAND SparkplugAnimationQuaternionSlerpWeightContinuationPcTests)
+    set_tests_properties(SparkplugAnimationQuaternionSlerpWeightContinuationPcTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugAnimationObjectTests Tests/spAnimationObjectTests.cpp)
     target_link_libraries(SparkplugAnimationObjectTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugAnimationObjectTests COMMAND SparkplugAnimationObjectTests)
@@ -1215,10 +1382,18 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugOctreeTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugOctreeTests COMMAND SparkplugOctreeTests)
     set_tests_properties(SparkplugOctreeTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugOctreeRayCandidatesTests Tests/spOctreeRayCandidatesTests.cpp)
+    target_link_libraries(SparkplugOctreeRayCandidatesTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugOctreeRayCandidatesTests COMMAND SparkplugOctreeRayCandidatesTests)
+    set_tests_properties(SparkplugOctreeRayCandidatesTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugZonePortalTests Tests/spZonePortalTests.cpp)
     target_link_libraries(SparkplugZonePortalTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugZonePortalTests COMMAND SparkplugZonePortalTests)
     set_tests_properties(SparkplugZonePortalTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugPlaneFromThreeTests Tests/spPlaneFromThreeTests.cpp)
+    target_link_libraries(SparkplugPlaneFromThreeTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPlaneFromThreeTests COMMAND SparkplugPlaneFromThreeTests)
+    set_tests_properties(SparkplugPlaneFromThreeTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugPolygonClipTests Tests/spPolygonClipTests.cpp)
     target_link_libraries(SparkplugPolygonClipTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugPolygonClipTests COMMAND SparkplugPolygonClipTests)
@@ -1227,6 +1402,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugBspTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugBspTests COMMAND SparkplugBspTests)
     set_tests_properties(SparkplugBspTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugBspRayScratchTests Tests/spBspRayScratchTests.cpp)
+    target_link_libraries(SparkplugBspRayScratchTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugBspRayScratchTests COMMAND SparkplugBspRayScratchTests)
+    set_tests_properties(SparkplugBspRayScratchTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugVisibilityPlaneStorageTests Tests/spVisibilityPlaneStorageTests.cpp)
     target_link_libraries(SparkplugVisibilityPlaneStorageTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugVisibilityPlaneStorageTests COMMAND SparkplugVisibilityPlaneStorageTests)
@@ -1308,6 +1487,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugCollisionCoreTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugCollisionCoreTests COMMAND SparkplugCollisionCoreTests)
     set_tests_properties(SparkplugCollisionCoreTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugBoundingVolumeSizePcTests Tests/spBoundingVolumeSizePcTests.cpp)
+    target_link_libraries(SparkplugBoundingVolumeSizePcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugBoundingVolumeSizePcTests COMMAND SparkplugBoundingVolumeSizePcTests)
+    set_tests_properties(SparkplugBoundingVolumeSizePcTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugLightSerializationTests Tests/spLightSerializationTests.cpp)
     target_link_libraries(SparkplugLightSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLightSerializationTests COMMAND SparkplugLightSerializationTests)
@@ -1317,7 +1500,10 @@ if(BUILD_TESTING)
     set_tests_properties(SparkplugNodeSerializationTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSceneSerializationTests Tests/spSceneSerializationTests.cpp)
     add_executable(SparkplugSkyBoxTests Tests/spSkyBoxTests.cpp)
+    add_executable(SparkplugSkyBoxManagerAppendTests Tests/spSkyBoxManagerAppendTests.cpp)
     add_executable(SparkplugLensFlareTests Tests/spLensFlareTests.cpp)
+    add_executable(SparkplugLensFlareManagerTests Tests/spLensFlareManagerTests.cpp)
+    add_executable(SparkplugPCLensFlareManagerInitTests Tests/spPCLensFlareManagerInitTests.cpp)
     add_executable(SparkplugOcclusionTopologyTests Tests/spOcclusionTopologyTests.cpp)
     add_executable(SparkplugOcclusionRuntimeTests Tests/spOcclusionRuntimeTests.cpp)
     target_link_libraries(SparkplugOcclusionRuntimeTests PRIVATE SparkplugEngine)
@@ -1337,6 +1523,12 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugLensFlareTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugLensFlareTests COMMAND SparkplugLensFlareTests)
     set_tests_properties(SparkplugLensFlareTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugLensFlareManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugLensFlareManagerTests COMMAND SparkplugLensFlareManagerTests)
+    set_tests_properties(SparkplugLensFlareManagerTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugPCLensFlareManagerInitTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugPCLensFlareManagerInitTests COMMAND SparkplugPCLensFlareManagerInitTests)
+    set_tests_properties(SparkplugPCLensFlareManagerInitTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugNavigationSerializationTests Tests/spNavigationSerializationTests.cpp)
     target_link_libraries(SparkplugNavigationSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugNavigationSerializationTests COMMAND SparkplugNavigationSerializationTests)
@@ -1344,7 +1536,11 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugSkyBoxTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugSkyBoxTests COMMAND SparkplugSkyBoxTests)
     set_tests_properties(SparkplugSkyBoxTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugSkyBoxManagerAppendTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugSkyBoxManagerAppendTests COMMAND SparkplugSkyBoxManagerAppendTests)
+    set_tests_properties(SparkplugSkyBoxManagerAppendTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugParticleSerializationTests Tests/spParticleSerializationTests.cpp)
+    add_executable(SparkplugParticleSystemManagerTests Tests/spParticleSystemManagerTests.cpp)
     add_executable(SparkplugParticleRuntimeTests Tests/spParticleRuntimeTests.cpp)
     target_link_libraries(SparkplugParticleRuntimeTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugParticleRuntimeTests COMMAND SparkplugParticleRuntimeTests)
@@ -1352,6 +1548,9 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugParticleSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugParticleSerializationTests COMMAND SparkplugParticleSerializationTests)
     set_tests_properties(SparkplugParticleSerializationTests PROPERTIES TIMEOUT 20)
+    target_link_libraries(SparkplugParticleSystemManagerTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugParticleSystemManagerTests COMMAND SparkplugParticleSystemManagerTests)
+    set_tests_properties(SparkplugParticleSystemManagerTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSkinSerializationTests Tests/spSkinSerializationTests.cpp)
     add_executable(SparkplugSkinRenderTests Tests/spSkinRenderTests.cpp)
     add_executable(SparkplugFixedShaderSkinningTests Tests/spFixedShaderSkinningTests.cpp)
@@ -1369,11 +1568,19 @@ if(BUILD_TESTING)
     target_compile_features(SparkplugBallisticCpuDrawTests PRIVATE cxx_std_17)
     add_test(NAME SparkplugBallisticCpuDrawTests COMMAND SparkplugBallisticCpuDrawTests)
     set_tests_properties(SparkplugBallisticCpuDrawTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXBallisticPFXPointStatesTests Tests/spDXBallisticPFXPointStatesTests.cpp)
+    target_link_libraries(SparkplugDXBallisticPFXPointStatesTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXBallisticPFXPointStatesTests COMMAND SparkplugDXBallisticPFXPointStatesTests)
+    set_tests_properties(SparkplugDXBallisticPFXPointStatesTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugParticleCpuUpdateTests Tests/spParticleCpuUpdateTests.cpp)
     target_include_directories(SparkplugParticleCpuUpdateTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_features(SparkplugParticleCpuUpdateTests PRIVATE cxx_std_17)
     add_test(NAME SparkplugParticleCpuUpdateTests COMMAND SparkplugParticleCpuUpdateTests)
     set_tests_properties(SparkplugParticleCpuUpdateTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugParticleEmissionBudgetPcTests Tests/spParticleEmissionBudgetPcTests.cpp)
+    target_link_libraries(SparkplugParticleEmissionBudgetPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugParticleEmissionBudgetPcTests COMMAND SparkplugParticleEmissionBudgetPcTests)
+    set_tests_properties(SparkplugParticleEmissionBudgetPcTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugSceneManagerTests Tests/spSceneManagerTests.cpp)
     add_executable(SparkplugRendererFogTests Tests/spRendererFogTests.cpp)
     target_link_libraries(SparkplugRendererFogTests PRIVATE SparkplugEngine)
@@ -1395,6 +1602,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugMaterialSerializationTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugMaterialSerializationTests COMMAND SparkplugMaterialSerializationTests)
     set_tests_properties(SparkplugMaterialSerializationTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugDXEnvironmentMapLayerCopyPayloadTests Tests/spDXEnvironmentMapLayerCopyPayloadTests.cpp)
+    target_link_libraries(SparkplugDXEnvironmentMapLayerCopyPayloadTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugDXEnvironmentMapLayerCopyPayloadTests COMMAND SparkplugDXEnvironmentMapLayerCopyPayloadTests)
+    set_tests_properties(SparkplugDXEnvironmentMapLayerCopyPayloadTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugTextureSerializationTests Tests/spTextureSerializationTests.cpp)
     add_executable(SparkplugUVFunctionTests Tests/spUVFunctionTests.cpp)
     add_executable(SparkplugColorFunctionTests Tests/spColorFunctionTests.cpp)
@@ -1412,6 +1623,10 @@ if(BUILD_TESTING)
     target_link_libraries(SparkplugFunctionEvalTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugFunctionEvalTests COMMAND SparkplugFunctionEvalTests)
     set_tests_properties(SparkplugFunctionEvalTests PROPERTIES TIMEOUT 20)
+    add_executable(SparkplugFunctionEvalLinearRampPcTests Tests/spFunctionEvalLinearRampPcTests.cpp)
+    target_link_libraries(SparkplugFunctionEvalLinearRampPcTests PRIVATE SparkplugEngine)
+    add_test(NAME SparkplugFunctionEvalLinearRampPcTests COMMAND SparkplugFunctionEvalLinearRampPcTests)
+    set_tests_properties(SparkplugFunctionEvalLinearRampPcTests PROPERTIES TIMEOUT 20)
     add_executable(SparkplugMaterialControllerTests Tests/spMaterialControllerTests.cpp)
     target_link_libraries(SparkplugMaterialControllerTests PRIVATE SparkplugEngine)
     add_test(NAME SparkplugMaterialControllerTests COMMAND SparkplugMaterialControllerTests)

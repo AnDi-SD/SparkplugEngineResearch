@@ -62,14 +62,34 @@ namespace sparkplug::reconstruction
         [[nodiscard]] std::uint32_t GetCameraDirtyFlagsForAnalysis() const noexcept;
 
         // Builds a fresh identity-based matrix using the two native formulas.
-        // This is NOT the stateful PC426F10 cache operation: its orthographic
-        // branch preserves all other cells, including previous perspective
-        // M23/M33. Exact cache updates are still an open runtime boundary.
-        // `orthographicBranch` names the observed branch only; its original
-        // field/API name is still unknown and is not the serialized 2D flag.
+        // The branch selects a formula independently of the serialized 2D flag.
         [[nodiscard]] bool BuildProjectionMatrixForAnalysis(
             Matrix4& destination,
             bool orthographicBranch = false) const noexcept;
+
+        struct OrthographicProjectionCacheForAnalysis final
+        {
+            std::uint32_t halfExtent = 0;
+            std::uint32_t aspectExtent = 0;
+            std::uint32_t nearPlane = 0;
+            std::uint32_t farPlane = 0;
+            std::uint8_t projectionBranch = 0;
+            std::array<std::uint32_t, 16> matrixWords{};
+            std::uint32_t dirtyFlags = 0;
+        };
+
+        // PC 00426F10 orthographic arm on copied binary32 words. Successful
+        // updates replace cells 0/5/10/14 and clear only ProjectionDirtyMask.
+        // The host can refuse inputs outside the qualified arithmetic profile.
+        [[nodiscard]] static bool TryUpdateOrthographicProjectionCacheForAnalysis(
+            OrthographicProjectionCacheForAnalysis& cache) noexcept;
+
+        using PerspectiveProjectionCacheForAnalysis = OrthographicProjectionCacheForAnalysis;
+
+        // PC 00426F10 perspective arm on the same copied cache fields. The
+        // constant cells 11/15 are replaced along with cells 0/5/10/14.
+        [[nodiscard]] static bool TryUpdatePerspectiveProjectionCacheForAnalysis(
+            PerspectiveProjectionCacheForAnalysis& cache) noexcept;
 
     protected:
         spCamera() noexcept = default;

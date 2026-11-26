@@ -17,6 +17,7 @@ namespace winx::evidence::pc
         std::uint8_t inRange, tail[3];
     };
     static_assert(offsetof(wxArrowTrapLayout, speed) == 0x128);
+    static_assert(offsetof(wxArrowTrapLayout, pauseMilliseconds) == 0x12C);
     static_assert(offsetof(wxArrowTrapLayout, arrows) == 0x138);
     static_assert(offsetof(wxArrowTrapLayout, phase) == 0x174);
     static_assert(offsetof(wxArrowTrapLayout, inRange) == 0x198);
@@ -24,4 +25,12 @@ namespace winx::evidence::pc
     inline constexpr std::uint32_t wxArrowTrapFactory = 0x407A60;
     inline constexpr std::uint32_t wxArrowTrapConstructor = 0x580BF0;
     inline constexpr std::uint32_t wxArrowTrapVtable = 0x701638;
+    inline constexpr std::uint32_t wxArrowTrapRangeMethod = 0x581080;
+    inline constexpr float wxArrowTrapRangeSquaredLimit = 2000000.0f;
+    inline constexpr std::size_t wxArrowTrapSpeedOffset = offsetof(wxArrowTrapLayout, speed);
+    inline constexpr std::size_t wxArrowTrapPauseOffset = offsetof(wxArrowTrapLayout, pauseMilliseconds);
+    inline constexpr std::uint32_t wxArrowTrapSpeedGetter = 0x580BD0;
+    inline constexpr std::uint32_t wxArrowTrapSpeedSetter = 0x555060;
+    inline constexpr std::uint32_t wxArrowTrapPauseGetter = 0x5550B0;
+    inline constexpr std::uint32_t wxArrowTrapPauseSetter = 0x5550A0;
 }

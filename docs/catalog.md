@@ -62,6 +62,7 @@
 ## Движок / Свет, частицы и эффекты
 
 - [LightController, ColorFuncEval и ссылки LightEntity](engine/effects/light-runtime.md).
+- [ParticleSystemManager update with an existing EngineCore (PC)](engine/effects/particle-system-manager-dispatch.md).
 - [PC BallisticPFX: CPU-геометрия и отправка](engine/effects/ballistic-cpu-draw.md).
 - [PC BallisticPFX: движение, размер точки и цвет](engine/effects/ballistic-shader.md).
 - [PC decoded Fog → renderer identity/device cache](engine/effects/renderer-fog.md).
@@ -287,9 +288,26 @@
 - [AIAction: поиск цели и запрос другого действия](game/ai/ai-perception-control.md).
 - [AIAction: поля входа и общая выбранная цель](game/ai/ai-action-entry-fields.md).
 - [AIAction: случайные параметры Minotaur и Mosquito](game/ai/ai-random-entry.md).
+- [Amplitude field in WandringNPCAIBehavior (PC)](game/ai/wandring-npc-ai-behavior-amplitude.md).
+- [Four scalar properties of GhostlySpiritStateMachine (PC)](game/ai/ghostly-spirit-state-machine-scalars.md).
+- [Gardenia and Jumping fields in GhoulieAIBehavior (PC)](game/ai/ghoulie-ai-behavior-raw-bytes.md).
+- [Hole fields in IceWormAIBehavior (PC)](game/ai/ice-worm-hole-values.md).
 - [IceWormHoles: raw сообщение в профиле NoNodeCalls](game/ai/ice-worm-holes-message.md).
+- [ID, Energy and Ct2 fields in MinotaurAIBehavior (PC)](game/ai/minotaur-ai-behavior-raw-values.md).
+- [Idle time and IceShield fields in TrixAIBehavior (PC)](game/ai/trix-ai-behavior-raw-values.md).
+- [Idle time fields in YetiAIBehavior (PC)](game/ai/yeti-ai-behavior-idle-time-values.md).
+- [Is Spider field in SpiderAIBehavior (PC)](game/ai/spider-ai-behavior-is-spider-byte.md).
 - [KikoMoving: сообщение и два raw DWORD](game/ai/kiko-moving-message.md).
+- [Movement and safety radii in BirdStateMachine (PC)](game/ai/bird-state-machine-radii.md).
+- [Raw hit and attack-time fields in KnutBossAIBehavior (PC)](game/ai/knut-boss-ai-behavior-raw-values.md).
+- [Raw properties of SimpleDatingStateMachine (PC)](game/ai/simple-dating-state-machine-raw-properties.md).
+- [Scale in BookStateMachine (PC)](game/ai/book-state-machine-scale.md).
+- [Shield time and blast damage fields in WinxHelpAIBehavior (PC)](game/ai/winx-help-ai-behavior-raw-values.md).
 - [SparxBehavior Test Animation byte (PC)](game/ai/sparx-test-animation-byte.md).
+- [Stunned Time field in GolemAIBehavior (PC)](game/ai/golem-stunned-time.md).
+- [Time fields in TrollAIBehavior (PC)](game/ai/troll-attack-time-values.md).
+- [Trigger radius and movement speed in IceBatStateMachine (PC)](game/ai/ice-bat-state-machine-scalars.md).
+- [Troll Fight byte in StudentsStateMachine (PC)](game/ai/students-state-machine-troll-fight-byte.md).
 - [Активация IceWormHoles и начальные связи Kiko](game/ai/ai-activation-fields.md).
 - [Выход из двадцати AI-состояний](game/ai/ai-exit-cleanup.md).
 - [Искусственный интеллект](game/ai/README.md).
@@ -320,6 +338,7 @@
 
 ## Игра / Игровые объекты
 
+- [Burst fields in StarEmitterTarget (PC)](game/entities/star-emitter-target-values.md).
 - [CollectibleGem: flags и проверка близости](game/entities/collectible-proximity.md).
 - [Dragon captured F32 properties (PC)](game/entities/dragon-properties.md).
 - [Entity: копирование изменённых полей 24 подклассов](game/entities/entity-modified-copy.md).
@@ -330,17 +349,22 @@
 - [Falling rock raw properties](game/entities/falling-rock-properties.md).
 - [Game Speed descriptor in DispelGame](game/entities/dispel-game-speed.md).
 - [Guard Num descriptor in UpsieDaisyGuardAIBehavior](game/entities/upsie-daisy-guard-number.md).
+- [Guard speed and vision properties in UpsieDaisyGuardAIBehavior (PC)](game/entities/upsie-daisy-guard-scalars.md).
 - [Inflicted Damage descriptor in QuietusCarnivorous](game/entities/quietus-carnivorous-damage.md).
 - [IntelliCam captured scalar properties (PC)](game/entities/intelli-cam-properties.md).
 - [Knut: полный вход, поиск Node и cached эффекты](game/entities/knut-node-entry.md).
 - [Lever Action descriptor raw DWORD getter (PC)](game/entities/lever-action-token.md).
+- [OneLinerMovingCharacter raw DWORD property (PC)](game/entities/one-liner-moving-character-raw-value.md).
 - [ParticleCtrl Animation file descriptor raw DWORD getter (PC)](game/entities/particle-animation-word.md).
+- [ParticleManager update with existing EngineCore and Game (PC)](game/entities/particle-manager-dispatch.md).
 - [Raw Damage у EyeBallSentry (PC)](game/entities/eye-ball-sentry-damage.md).
 - [Raw Value of Fairy Stars у BreakableVase (PC)](game/entities/breakable-vase-value.md).
 - [Spider Num descriptor in SpiderUpsieDaisyAIBehavior](game/entities/spider-upsie-daisy-number.md).
 - [Swamp gaz bubble raw damage property](game/entities/swamp-gaz-bubble-damage.md).
 - [SwampGazBubble raw Green byte callback value](game/entities/swamp-gaz-bubble-green-byte.md).
 - [SwampGazBubble scalar properties (PC)](game/entities/swamp-gaz-bubble-scalar-properties.md).
+- [Wait For Signal and Follow floor in UpsieDaisyGuardAIBehavior (PC)](game/entities/upsie-daisy-guard-bytes.md).
+- [Walk Speed and Turn Speed in SpiderUpsieDaisyAIBehavior (PC)](game/entities/spider-upsie-daisy-speeds.md).
 - [wxCabinetPuzzle: captured PC combination words](game/entities/cabinet-puzzle-digits.md).
 - [wxChallengeParams: defaults блока параметров на PC](game/entities/challenge-params-defaults.md).
 - [wxCylindricalDoor: два опубликованных свойства на PC](game/entities/cylindrical-door-properties.md).
@@ -352,12 +376,15 @@
 - [wxMovingPlatform: проверка близости на PC](game/entities/moving-platform-near-state.md).
 - [wxSideQuestGivenObject: captured PC Scale](game/entities/side-quest-given-object.md).
 - [wxThunderMaker: captured PC delay property bits](game/entities/thunder-maker.md).
+- [Байт активации `wxDispelTrigger` на PC](game/entities/dispel-trigger-active-byte.md).
 - [Два DWORD-свойства Pendulum (PC)](game/entities/pendulum-raw-properties.md).
 - [Два DWORD-свойства RacingCheckpoint (PC)](game/entities/racing-checkpoint-properties.md).
 - [Игровые объекты](game/entities/README.md).
 - [Оставшиеся игровые классы: независимый проход PC и PS2](game/entities/game-remainder.md).
 - [Привязка Node: Barrel и назначение Copy у MoveCtrl](game/entities/entity-bound-node-copy.md).
 - [Свойства скалярных полей wxSwampPlatformRing](game/entities/swamp-platform-ring-properties.md).
+- [Сырые свойства `wxBreakableBarrel` на PC](game/entities/breakable-barrel-raw-values.md).
+- [Сырые свойства `wxKickableIce` на PC](game/entities/kickable-ice-raw-properties.md).
 
 ## Игра / Состояния игры и меню
 

@@ -7,6 +7,7 @@
 ## Статьи
 
 - [LightController, ColorFuncEval и ссылки LightEntity](light-runtime.md).
+- [ParticleSystemManager update with an existing EngineCore (PC)](particle-system-manager-dispatch.md).
 - [PC BallisticPFX: CPU-геометрия и отправка](ballistic-cpu-draw.md).
 - [PC BallisticPFX: движение, размер точки и цвет](ballistic-shader.md).
 - [PC decoded Fog → renderer identity/device cache](renderer-fog.md).

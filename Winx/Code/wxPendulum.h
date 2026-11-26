@@ -49,4 +49,27 @@ public:
     static ScalarResultForAnalysis WriteScalarBitsForAnalysis(const CapturedScalarPrefixForAnalysis& before,
         ScalarPropertyForAnalysis property, std::uint32_t rawArgument, CapturedScalarPrefixForAnalysis& output,
         ScalarProfileForAnalysis profile = ScalarProfileForAnalysis::Unqualified) noexcept;
+
+    using CapturedRangePrefixForAnalysis = std::array<std::uint8_t, 0x159>;
+    using CapturedRangePointForAnalysis = std::array<std::uint8_t, 0x24>;
+
+    struct RangeNodeForAnalysis final
+    {
+        std::uint32_t capturedAddress;
+        std::array<std::uint8_t, 0x80> bytes;
+    };
+
+    struct RangeResultForAnalysis final
+    {
+        CapturedRangePrefixForAnalysis after;
+        std::uint8_t returnLowByte;
+    };
+
+    // Represents the PC range update with a pristine zero global word.
+    // The borrowed node address must match the link in the owner prefix.
+    // Both positions are finite normals up to magnitude 16384 or signed
+    // zeros. Refusal preserves the output. The owner may alias output.after.
+    static bool TryUpdatePcRangeForAnalysis(const CapturedRangePrefixForAnalysis& before,
+        std::uint32_t capturedGlobalWord, const RangeNodeForAnalysis& node,
+        const CapturedRangePointForAnalysis& point, RangeResultForAnalysis& output) noexcept;
 };

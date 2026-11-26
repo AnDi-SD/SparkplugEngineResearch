@@ -12,6 +12,46 @@ add_library(WinxCharacterStates STATIC
     Analysis/Host/wxGhoulJumpingStateHost.h
     Analysis/PC/wxGhoulJumpingStateAbi.h
     Analysis/PS2/wxGhoulJumpingStateAbi.h
+    Code/wxFallingState.cpp
+    Code/wxFallingState.h
+    Analysis/PC/wxFallingStateAbi.h
+    Code/wxFastAttackState.cpp
+    Code/wxFastAttackState.h
+    Analysis/PC/wxFastAttackStateAbi.h
+    Code/wxDroidAttackState.cpp
+    Code/wxDroidAttackState.h
+    Analysis/PC/wxDroidAttackStateAbi.h
+    Code/wxMissileState.cpp
+    Code/wxMissileState.h
+    Analysis/PC/wxMissileStateAbi.h
+    Code/wxJumpingState.cpp
+    Code/wxJumpingState.h
+    Analysis/PC/wxJumpingStateAbi.h
+    Code/wxTrollMovingState.cpp
+    Code/wxYetiMovingState.cpp
+    Code/wxTrollMovingState.h
+    Code/wxYetiMovingState.h
+    Code/wxMovingStateAirEventOperationsForAnalysis.h
+    Analysis/PC/wxMovingStateAirEventsAbi.h
+    Code/wxChargedAttackState.cpp
+    Code/wxChargedAttackState.h
+    Analysis/PC/wxChargedAttackStateAbi.h
+    Code/wxTrollAttackState.cpp
+    Code/wxTrollAttackState.h
+    Analysis/PC/wxTrollAttackStateAbi.h
+    Code/wxAnimationControllerCapturedMarksForAnalysis.h
+    Code/wxShadowBeastAttackState.cpp
+    Code/wxShadowBeastAttackState.h
+    Analysis/PC/wxShadowBeastAttackStateAbi.h
+    Code/wxGettingCollectibleState.cpp
+    Code/wxGettingCollectibleState.h
+    Analysis/PC/wxGettingCollectibleStateAbi.h
+    Code/wxLadderState.cpp
+    Code/wxLadderState.h
+    Analysis/PC/wxLadderStateAbi.h
+    Code/wxGolemAttackState.cpp
+    Code/wxGolemAttackState.h
+    Analysis/PC/wxGolemAttackStateAbi.h
     Code/wxHurtState.cpp
     Code/wxHurtState.h
     Analysis/Host/wxHurtStateHost.h
@@ -257,6 +297,12 @@ else()
 endif()
 
 add_library(WinxEntities STATIC
+    Code/wxOneLinerMovingCharacter.h
+    Code/wxOneLinerMovingCharacter.cpp
+    Analysis/PC/wxOneLinerMovingCharacterAbi.h
+    Code/wxStarEmitterTarget.h
+    Code/wxStarEmitterTarget.cpp
+    Analysis/PC/wxStarEmitterTargetAbi.h
     Code/wxParticleCtrl.h
     Code/wxParticleCtrl.cpp
     Analysis/PC/wxParticleCtrlAbi.h
@@ -271,6 +317,12 @@ add_library(WinxEntities STATIC
     Analysis/PC/wxQuietusCarnivorousAbi.h
     Code/wxDispelGame.h
     Code/wxDispelGame.cpp
+    Code/wxDispelTrigger.cpp
+    Code/wxDispelTrigger.h
+    Analysis/PC/wxDispelTriggerAbi.h
+    Code/wxChestTrigger.cpp
+    Code/wxChestTrigger.h
+    Analysis/PC/wxChestTriggerAbi.h
     Code/wxCylindricalDoor.h
     Code/wxCylindricalDoor.cpp
     Analysis/PC/wxCylindricalDoorAbi.h
@@ -304,6 +356,27 @@ add_library(WinxEntities STATIC
     Code/wxBreakableVase.h
     Code/wxBreakableVase.cpp
     Analysis/PC/wxBreakableVaseAbi.h
+    Code/wxBreakableBarrel.cpp
+    Code/wxBreakableBarrel.h
+    Analysis/PC/wxBreakableBarrelAbi.h
+    Code/wxKickableIce.cpp
+    Code/wxKickableIce.h
+    Analysis/PC/wxKickableIceAbi.h
+    Code/wxTargetRegion.cpp
+    Code/wxTargetRegion.h
+    Analysis/PC/wxTargetRegionAbi.h
+    Code/wxColourfulFlower.cpp
+    Code/wxColourfulFlower.h
+    Analysis/PC/wxColourfulFlowerAbi.h
+    Code/wxSpinningStatuesPuzzle.cpp
+    Code/wxSpinningStatuesPuzzle.h
+    Analysis/PC/wxSpinningStatuesPuzzleAbi.h
+    Code/wxDoorPuzzle.cpp
+    Code/wxDoorPuzzle.h
+    Analysis/PC/wxDoorPuzzleAbi.h
+    Code/wxBush.cpp
+    Code/wxBush.h
+    Analysis/PC/wxBushAbi.h
     Code/wxThunderMaker.h
     Code/wxThunderMaker.cpp
     Analysis/PC/wxThunderMakerAbi.h
@@ -359,6 +432,27 @@ add_library(WinxCharacterStateMachines STATIC
     Analysis/Host/wxCharacterStateMachineHost.h
     Analysis/PC/wxCharacterStateMachineAbi.h
     Analysis/PS2/wxCharacterStateMachineAbi.h
+    Code/wxBirdStateMachine.h
+    Code/wxBirdStateMachine.cpp
+    Analysis/PC/wxBirdStateMachineAbi.h
+    Code/wxGhostlySpiritStateMachine.h
+    Code/wxGhostlySpiritStateMachine.cpp
+    Analysis/PC/wxGhostlySpiritStateMachineAbi.h
+    Code/wxIceBatStateMachine.h
+    Code/wxIceBatStateMachine.cpp
+    Analysis/PC/wxIceBatStateMachineAbi.h
+    Code/wxSimpleDatingStateMachine.h
+    Code/wxSimpleDatingStateMachine.cpp
+    Analysis/PC/wxSimpleDatingStateMachineAbi.h
+    Code/wxBookStateMachine.h
+    Code/wxBookStateMachine.cpp
+    Analysis/PC/wxBookStateMachineAbi.h
+    Code/wxStudentsStateMachine.h
+    Code/wxStudentsStateMachine.cpp
+    Analysis/PC/wxStudentsStateMachineAbi.h
+    Code/wxWinxHelpStateMachine.cpp
+    Code/wxWinxHelpStateMachine.h
+    Analysis/PC/wxWinxHelpStateMachineAbi.h
 )
 target_include_directories(WinxCharacterStateMachines PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(WinxCharacterStateMachines PUBLIC WinxCharacterStates)
@@ -460,6 +554,39 @@ add_library(WinxAIBehaviors STATIC
     Code/wxSparxBehavior.h
     Code/wxSparxBehavior.cpp
     Analysis/PC/wxSparxBehaviorAbi.h
+    Code/wxGolemAIBehavior.h
+    Code/wxGolemAIBehavior.cpp
+    Analysis/PC/wxGolemAIBehaviorAbi.h
+    Code/wxIceWormAIBehavior.h
+    Code/wxIceWormAIBehavior.cpp
+    Analysis/PC/wxIceWormAIBehaviorAbi.h
+    Code/wxTrollAIBehavior.h
+    Code/wxTrollAIBehavior.cpp
+    Analysis/PC/wxTrollAIBehaviorAbi.h
+    Code/wxSpiderAIBehavior.h
+    Code/wxSpiderAIBehavior.cpp
+    Analysis/PC/wxSpiderAIBehaviorAbi.h
+    Code/wxGhoulieAIBehavior.h
+    Code/wxGhoulieAIBehavior.cpp
+    Analysis/PC/wxGhoulieAIBehaviorAbi.h
+    Code/wxYetiAIBehavior.h
+    Code/wxYetiAIBehavior.cpp
+    Analysis/PC/wxYetiAIBehaviorAbi.h
+    Code/wxTrixAIBehavior.h
+    Code/wxTrixAIBehavior.cpp
+    Analysis/PC/wxTrixAIBehaviorAbi.h
+    Code/wxKnutBossAIBehavior.h
+    Code/wxKnutBossAIBehavior.cpp
+    Analysis/PC/wxKnutBossAIBehaviorAbi.h
+    Code/wxWinxHelpAIBehavior.h
+    Code/wxWinxHelpAIBehavior.cpp
+    Analysis/PC/wxWinxHelpAIBehaviorAbi.h
+    Code/wxMinotaurAIBehavior.h
+    Code/wxMinotaurAIBehavior.cpp
+    Analysis/PC/wxMinotaurAIBehaviorAbi.h
+    Code/wxWandringNPCAIBehavior.h
+    Code/wxWandringNPCAIBehavior.cpp
+    Analysis/PC/wxWandringNPCAIBehaviorAbi.h
     Code/wxDragonAIBehavior.h
     Code/wxDragonAIBehavior.cpp
     Analysis/PC/wxDragonAIBehaviorAbi.h
@@ -1054,6 +1181,9 @@ else()
 endif()
 
 add_library(WinxGameCore STATIC
+    Code/wxParticleManager.cpp
+    Code/wxParticleManager.h
+    Analysis/PC/wxParticleManagerAbi.h
     Code/wxCutscene.h
     Code/wxCutscene.cpp
     Analysis/PC/wxCutsceneAbi.h
@@ -1061,6 +1191,15 @@ add_library(WinxGameCore STATIC
     Code/wxMovingPlatform.cpp
     Analysis/PC/wxMovingPlatformAbi.h
     Code/wxCollectibleGem.cpp
+    Code/wxGiantBoulderTrigger.cpp
+    Code/wxGiantBoulderTrigger.h
+    Analysis/PC/wxGiantBoulderTriggerAbi.h
+    Code/wxCT02OpenDoor.cpp
+    Code/wxCT02OpenDoor.h
+    Analysis/PC/wxCT02OpenDoorAbi.h
+    Code/wxPivotingDoor.cpp
+    Code/wxPivotingDoor.h
+    Analysis/PC/wxPivotingDoorAbi.h
     Code/wxCollectibleGem.h
     Code/wxFaceData.cpp
     Code/wxFaceData.h
@@ -1124,7 +1263,7 @@ if(BUILD_TESTING)
     target_link_libraries(WinxWxButtonTests PRIVATE WinxGUI)
     add_test(NAME WinxWxButtonTests COMMAND WinxWxButtonTests)
     set_tests_properties(WinxWxButtonTests PROPERTIES TIMEOUT 20)
-    foreach(suite IN ITEMS VectorWrapper PendulumScalar ParticleCtrlAnimationFile LeverActionToken SparxBehaviorTestAnimationByte DragonAIBehaviorScalar SpiderUpsieDaisyAIBehaviorSpiderNum CutsceneScalar IntelliCamScalar UpsieDaisyGuardAIBehaviorGuardNum QuietusCarnivorousDamage SwampGazBubbleScalar DispelGameSpeed RacingCheckpointFinishByte EyeBallSentryScalar SwampGazBubbleGreenByte FallingRockScalar CabinetPuzzleProperty KikoHoleRadius EyeBallSentryDamage ThunderMakerProperty BreakableVaseValue SideQuestGivenObjectScale GlyphFacing SwampGazBubbleDamage FallingRockProperty PendulumProperty RacingCheckpointProperty DamageProxyProperty ChallengeParamsDefaults SwampPlatformRingProperty CylindricalDoorProperty MovingPlatformNear CharacterTraitsProperty PlayerTraitsReset Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
+    foreach(suite IN ITEMS VectorWrapper OneLinerMovingCharacterRawValue StarEmitterTargetRawValues PendulumScalar PendulumRange ParticleCtrlAnimationFile ParticleManager GiantBoulderTriggerDistance CT02OpenDoorDistance PivotingDoorCachedDistance LeverActionToken SparxBehaviorTestAnimationByte SparxBehaviorTypeRawValue GolemAIBehaviorStunnedTime IceWormAIBehaviorHoleValues TrollAIBehaviorTimeValues SpiderAIBehaviorIsSpiderByte GhoulieAIBehaviorRawBytes YetiAIBehaviorIdleTimeValues TrixAIBehaviorRawValues KnutBossAIBehaviorRawValues WinxHelpAIBehaviorRawValues MinotaurAIBehaviorRawValues WandringNPCAIBehaviorAmplitude MinotaurAIBehaviorEnergy BirdStateMachineRadii GhostlySpiritStateMachineScalars IceBatStateMachineScalars SimpleDatingStateMachineRawProperties BookStateMachineScale StudentsStateMachineTrollFightByte FallingStateTargetMode FastAttackStatePermission DroidAttackStatePermission MissileStatePermissionByte JumpingStateTargetMode MovingStateAirEvents ChargedAttackStatePermission TrollAttackStateCompletion ShadowBeastAttackStatePermission GettingCollectibleStateTargetMode LadderStateMoveByte GolemAttackStateRecordClear DispelTriggerActiveByte WinxHelpStateMachineMaskedCode BreakableBarrelRawValues ChestTriggerOwnedWordZero KickableIceRawProperties KickableIceImpulseRange TargetRegionCopyPayload ColourfulFlowerCopyPayload SpinningStatuesPuzzleCopyPayload DoorPuzzleCopyPayload BushCopyPayload DragonAIBehaviorScalar SpiderUpsieDaisyAIBehaviorScalar SpiderUpsieDaisyAIBehaviorSpiderNum CutsceneScalar IntelliCamScalar UpsieDaisyGuardAIBehaviorRawBytes UpsieDaisyGuardAIBehaviorScalar UpsieDaisyGuardAIBehaviorGuardNum QuietusCarnivorousDamage SwampGazBubbleScalar DispelGameSpeed RacingCheckpointFinishByte EyeBallSentryScalar SwampGazBubbleGreenByte FallingRockScalar CabinetPuzzleProperty KikoHoleRadius EyeBallSentryDamage ThunderMakerProperty BreakableVaseValue SideQuestGivenObjectScale GlyphFacing SwampGazBubbleDamage FallingRockProperty PendulumProperty RacingCheckpointProperty DamageProxyProperty ChallengeParamsDefaults SwampPlatformRingProperty CylindricalDoorProperty MovingPlatformNear CharacterTraitsProperty PlayerTraitsReset Perception GameFlowState GameFlowNavigation LoadSaveGameFlowState DebugDialogGameFlowState IdleAIAction MinotaurDefendAIAction MinotaurAttackAIAction KikoHoleAIAction DroidWanderAIAction GhoulScriptAIAction HelpAIAction WanderAIAction CharacterRegistry WinxFlyAIAction DarcyAttackAIAction StormyAttackAIAction IcyAttackAIAction MosquitoAttackAIAction CommandExitAIAction FrogAttackAIAction IceWormAttackAIAction TrollKnutAttackAIAction SpiderShadowAttackAIAction KikoMovingAIAction IceWormHolesAIAction MikaelWandringAIAction CinematicGameFlowState PressStartGameFlowState GameOverGameFlowState TextController CharacterMoveCtrlReset HurtAIAction FlyingWanderAIAction IceGargoyleAIAction IceGargoyleAttackAIAction CreditsMenuGameFlowState CentreScreenGameFlowState GameTimer LogoAnimGameFlowState TargetManager TrollBeforeFightAIAction MenuGameFlowState)
         add_executable(Winx${suite}Tests Tests/wx${suite}Tests.cpp)
         target_link_libraries(Winx${suite}Tests PRIVATE WinxGameCore)
         add_test(NAME Winx${suite}Tests COMMAND Winx${suite}Tests)
@@ -1508,6 +1647,11 @@ if(BUILD_TESTING)
     target_link_libraries(WinxArrowTrapTests PRIVATE WinxArrowTraps)
     add_test(NAME WinxArrowTrapTests COMMAND WinxArrowTrapTests)
     set_tests_properties(WinxArrowTrapTests PROPERTIES TIMEOUT 20)
+
+    add_executable(WinxArrowTrapOwnPropertiesTests Tests/wxArrowTrapOwnPropertiesTests.cpp)
+    target_link_libraries(WinxArrowTrapOwnPropertiesTests PRIVATE WinxArrowTraps)
+    add_test(NAME WinxArrowTrapOwnPropertiesTests COMMAND WinxArrowTrapOwnPropertiesTests)
+    set_tests_properties(WinxArrowTrapOwnPropertiesTests PROPERTIES TIMEOUT 20)
 
     add_executable(WinxCharacterTests Tests/wxCharacterTests.cpp)
     target_link_libraries(WinxCharacterTests PRIVATE WinxCharacters)

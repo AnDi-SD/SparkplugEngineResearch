@@ -7,6 +7,8 @@
 #include "spPartitionNode.h"
 #include "Analysis/PC/spVisibilityMath.h"
 
+#include <array>
+
 namespace sparkplug::reconstruction
 {
     class spBSPNode : public spPartitionNode
@@ -48,6 +50,25 @@ namespace sparkplug::reconstruction
         // two records invalidated by next ray call; unused tail is untouched.
         [[nodiscard]] std::vector<RayCandidateForAnalysis> RayCandidatesForAnalysis(
             const std::array<float, 6>& ray) const;
+
+        struct RawRayCandidateForAnalysis final
+        {
+            std::uint32_t child = 0;
+            std::uint32_t timeBits = 0;
+        };
+
+        struct RayScratchForAnalysis final
+        {
+            std::array<std::uint32_t, 4> planeBits{};
+            std::array<RawRayCandidateForAnalysis, 2> scratch{};
+        };
+
+        // Exact PC 480360 on copied words. Ray input is origin XYZ, then
+        // direction XYZ. Zero indicates refusal outside the finite profile.
+        // On success the optional result borrows the supplied scratch.
+        [[nodiscard]] static std::uint32_t UpdateRayScratchForAnalysis(
+            RayScratchForAnalysis& state, const std::array<std::uint32_t, 6>& rayBits,
+            const RawRayCandidateForAnalysis** borrowedFirst = nullptr) noexcept;
 
       private:
         [[nodiscard]] double DistanceForAnalysis(const Vector3& point) const noexcept;

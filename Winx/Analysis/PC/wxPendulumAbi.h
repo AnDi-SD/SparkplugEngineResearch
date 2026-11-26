@@ -26,3 +26,13 @@ inline constexpr std::uint32_t MaximumAngleGetterPC = 0x00556E30;
 inline constexpr std::uint32_t InitialOffsetSetterPC = 0x00540CC0;
 inline constexpr std::uint32_t InitialOffsetGetterPC = 0x00558A30;
 }
+
+namespace wxPendulumAbi
+{
+inline constexpr std::size_t CapturedRangeMinimumPrefixBytes = 0x159;
+inline constexpr std::size_t RangeNodeLinkOffset = 0x18;
+inline constexpr std::size_t RangeNodePositionOffset = 0x74;
+inline constexpr std::size_t RangePointPositionOffset = 0x18;
+inline constexpr std::size_t RangeByteOffset = 0x158;
+inline constexpr std::uint32_t RangeSquaredLimitBits = 0x49F42400;
+}

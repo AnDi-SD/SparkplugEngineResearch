@@ -23,4 +23,20 @@ public:
     static bool ComposeTestAnimationLowByteForAnalysis(const CapturedPrefixForAnalysis& before,
         std::uint32_t rawArgumentWord, ComposedTestAnimationByteForAnalysis& output,
         ProfileForAnalysis profile = ProfileForAnalysis::Unqualified);
+
+    enum class TypeProfileForAnalysis { Unqualified, PcCapturedPrimarySparxTypeRawDword124 };
+    struct ComposedSparxTypeRawForAnalysis
+    {
+        std::uint32_t beforeRaw{};
+        CapturedPrefixForAnalysis afterSet{};
+        std::uint32_t afterRaw{};
+    };
+
+    // Raw PC words, including every bit of the supplied setter argument.
+    static bool ReadSparxTypeRawForAnalysis(const CapturedPrefixForAnalysis& before, std::uint32_t& output,
+        TypeProfileForAnalysis profile = TypeProfileForAnalysis::Unqualified) noexcept;
+    static bool WriteSparxTypeRawForAnalysis(const CapturedPrefixForAnalysis& before, std::uint32_t rawArgumentWord,
+        CapturedPrefixForAnalysis& output, TypeProfileForAnalysis profile = TypeProfileForAnalysis::Unqualified) noexcept;
+    static bool ComposeSparxTypeRawForAnalysis(const CapturedPrefixForAnalysis& before, std::uint32_t rawArgumentWord,
+        ComposedSparxTypeRawForAnalysis& output, TypeProfileForAnalysis profile = TypeProfileForAnalysis::Unqualified) noexcept;
 };
